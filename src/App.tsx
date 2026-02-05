@@ -40,7 +40,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     if (!user) return null;
 
     return (
-        <div className="flex h-screen bg-background text-foreground overflow-hidden">
+        <div className="flex h-screen text-foreground overflow-hidden">
             {/* Expandable Sidebar */}
             <aside
                 className={`group flex flex-col items-center py-3 z-50 shrink-0 border-r border-[color:var(--border)] transition-all duration-300 ease-in-out relative
@@ -202,7 +202,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden bg-background relative">
+            <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
                 {/* No Global Header - Views define their own toolbars */}
                 <div className="flex-1 overflow-hidden">
                     <div className="h-full w-full max-w-[1700px] mx-auto flex flex-col">

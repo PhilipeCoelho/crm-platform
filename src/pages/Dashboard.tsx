@@ -87,7 +87,7 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
+        <div className="h-full overflow-y-auto transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-8 py-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">

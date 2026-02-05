@@ -129,7 +129,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     const activeColumn = columns.find(c => c.id === activeColumnId);
 
     return (
-        <div className="flex flex-col h-full w-full bg-background overflow-hidden">
+        <div className="flex flex-col h-full w-full overflow-hidden">
             {/* Single Line Toolbar (Pipedrive Style) */}
             <div className="h-14 border-b border-border flex items-center justify-between px-4 bg-background shrink-0 gap-4 z-40">
                 {/* Left: Pipeline Title/Selector */}
