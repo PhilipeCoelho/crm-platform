@@ -240,7 +240,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             </div>
 
             {/* Kanban Content */}
-            <div className="flex-1 p-0 w-full h-full overflow-hidden bg-secondary/30 dark:bg-background/50">
+            <div className="flex-1 p-0 w-full h-full overflow-hidden bg-transparent">
                 <DndContext
                     sensors={sensors}
                     onDragStart={onDragStart}

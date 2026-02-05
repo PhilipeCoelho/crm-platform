@@ -218,9 +218,13 @@ export default function DealPreviewPopover({ dealId, onClose, position }: DealPr
                             <div className="flex flex-wrap gap-2 pt-2">
                                 {deal.tags.map(tagId => {
                                     const labelMap: any = { '1': 'Quente', '2': 'Morno', '3': 'Frio' };
-                                    const colorMap: any = { '1': 'bg-red-100 text-red-700', '2': 'bg-orange-100 text-orange-700', '3': 'bg-blue-100 text-blue-700' };
+                                    const colorMap: any = {
+                                        '1': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+                                        '2': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+                                        '3': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                    };
                                     return (
-                                        <span key={tagId} className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${colorMap[tagId] || 'bg-gray-100 text-gray-700'}`}>
+                                        <span key={tagId} className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${colorMap[tagId] || 'bg-muted text-muted-foreground'}`}>
                                             <Tag size={10} /> {labelMap[tagId] || 'Etiqueta'}
                                         </span>
                                     );
