@@ -25,7 +25,7 @@ export default {
                 "accent-foreground": "hsl(var(--accent-foreground))",
                 destructive: "hsl(var(--destructive))",
                 "destructive-foreground": "hsl(var(--destructive-foreground))",
-                border: "var(--border)",
+                border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
                 main: "hsl(var(--bg-main))",

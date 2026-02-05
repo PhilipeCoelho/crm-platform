@@ -13,8 +13,8 @@
     /* #FFFFFF */
     --card: 0 0% 100%;
     /* #FFFFFF */
-    --border: rgba(0, 0, 0, 0.06);
-    /* rgba(0,0,0,0.06) */
+    --border: 220 13% 91%;
+    /* Light Border */
 
     --text-primary: 222.2 47.4% 11.2%;
     /* #0F172A */
@@ -47,12 +47,12 @@
     /* Premium SaaS Tokens (Dark Mode) */
     --bg-main: 223 36% 7%;
     /* #0B0F19 */
-    --surface: 218 39% 11%;
-    /* #111827 - Column Background */
+    --surface: 222 47% 11%;
+    /* #0F172A - Blueish Dark Surface */
     --card: 220 26% 17%;
     /* #1F2937 - Card Background */
-    --border: rgba(255, 255, 255, 0.05);
-    /* rgba(255,255,255,0.05) */
+    --border: 217 33% 17%;
+    /* Dark Border */
 
     --text-primary: 220 13% 91%;
     /* #E5E7EB */
