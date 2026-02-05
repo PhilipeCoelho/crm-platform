@@ -3,7 +3,7 @@ import {
     User, Company, Contact, Deal, Activity, Pipeline, Stage,
     DEFAULT_PIPELINES
 } from '../types/schema';
-import { supabase } from './supabase';
+import { supabase } from '@/lib/supabase';
 
 
 // --- Types ---
@@ -50,7 +50,20 @@ export function useCRMStore(): CRMStore {
     // Given the prompt, we focus on Deals/Activities/Profiles. Contacts table exists.
     // Let's create a local mock for companies to avoid breaking UI, or sync if table existed.
 
-    const [pipelines] = useState<Record<string, Pipeline>>(DEFAULT_PIPELINES);
+    const [pipelines] = useState<Record<string, Pipeline>>(() => {
+        try {
+            const saved = localStorage.getItem('crm_pipelines');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Validate structure (basic check)
+                const isValid = Object.values(parsed).every((p: any) => Array.isArray(p.stages));
+                if (isValid) return parsed;
+            }
+        } catch (e) {
+            console.error('Failed to parse pipelines from storage', e);
+        }
+        return DEFAULT_PIPELINES;
+    });
 
     // --- Data Fetching ---
     const fetchAll = useCallback(async () => {

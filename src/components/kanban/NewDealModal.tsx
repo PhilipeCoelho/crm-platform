@@ -20,6 +20,13 @@ const LABELS = [
     { id: '3', name: 'Frio', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900' },
 ];
 
+const parseCurrency = (value: string): number => {
+    if (!value) return 0;
+    // Remove dots (thousands separator) and replace comma with dot (decimal)
+    const normalized = value.replace(/\./g, '').replace(',', '.');
+    return parseFloat(normalized) || 0;
+};
+
 export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToEdit, currency = 'BRL' }: NewDealModalProps) {
     const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, addContact } = useCRM();
 
@@ -176,7 +183,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
 
         const dealData = {
             title: title || (contactSearch ? `Negócio com ${contactSearch}` : 'Novo Negócio'),
-            value: parseFloat(value) || 0,
+            value: parseCurrency(value),
             currency: currency,
             pipelineId: selectedPipelineId,
             stageId: selectedStageId,

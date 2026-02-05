@@ -50,15 +50,8 @@ export default function PhoneInput({ value, onChange }: Props) {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const rawValue = e.target.value;
-        // We only want to format the user part, but we receive the whole string potentially?
-        // Actually the parent component usually holds the state "raw" or "formatted"?
-        // The user wants to SEE formatted numbers.
-        // Let's format and pass up.
-
-        // Allow spaces and numbers
-        if (!/^[0-9\s]*$/.test(rawValue)) return;
-
-        onChange(formatPhoneNumber(rawValue));
+        const cleaned = rawValue.replace(/\D/g, '');
+        onChange(cleaned);
     };
 
     const handleCountrySelect = (country: Country) => {
@@ -91,7 +84,7 @@ export default function PhoneInput({ value, onChange }: Props) {
                     type="tel"
                     className="flex-1 w-full px-3 py-2 bg-transparent text-sm focus:outline-none min-w-0" // min-w-0 fixes flex child overflow
                     placeholder="000 000 000"
-                    value={value}
+                    value={formatPhoneNumber(value)}
                     onChange={handleChange}
                 />
             </div>

@@ -51,7 +51,7 @@ export default function FilesTab({ deal, onSave }: FilesTabProps) {
                     <p className="font-medium">Arraste e solte arquivos aqui</p>
                     <p className="text-sm text-muted-foreground">ou</p>
                     <button
-                        onClick={() => handleUpload(`Documento_Exemplo_${Math.floor(Math.random() * 100)}.pdf`)}
+                        onClick={() => handleUpload(`Documento_Exemplo_${crypto.randomUUID().slice(0, 8)}.pdf`)}
                         className="text-primary hover:underline font-medium mt-2"
                     >
                         Selecione do computador
