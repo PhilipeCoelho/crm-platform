@@ -22,6 +22,7 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [time, setTime] = useState('10:00');
+    const [duration, setDuration] = useState('30m');
     const [selectedType, setSelectedType] = useState('task');
 
     const contact = contacts.find(c => c.id === deal.contactId);
@@ -46,6 +47,7 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
             title,
             dealId: deal.id,
             dueDate: `${date}T${time}:00.000Z`,
+            duration,
             completed: false
         });
         setTitle('');
@@ -103,7 +105,7 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
                         onChange={e => setDate(e.target.value)}
                     />
                 </div>
-                <div className="flex-1 flex items-center gap-2 border rounded-md p-2 bg-background">
+                <div className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background">
                     <Clock size={16} className="text-muted-foreground" />
                     <input
                         type="time"
@@ -111,6 +113,19 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
                         value={time}
                         onChange={e => setTime(e.target.value)}
                     />
+                </div>
+                <div className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background">
+                    <select
+                        className="bg-transparent outline-none flex-1 text-sm appearance-none cursor-pointer"
+                        value={duration}
+                        onChange={e => setDuration(e.target.value)}
+                        title="Duração"
+                    >
+                        <option value="15m">15 min</option>
+                        <option value="30m">30 min</option>
+                        <option value="1h">1 hora</option>
+                        <option value="2h">2 horas</option>
+                    </select>
                 </div>
             </div>
 

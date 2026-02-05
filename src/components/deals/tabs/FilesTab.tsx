@@ -60,10 +60,10 @@ export default function FilesTab({ deal, onSave }: FilesTabProps) {
             </div>
 
             {mockFile && (
-                <div className="flex items-center gap-3 p-3 bg-green-50 text-green-700 rounded border border-green-200 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded border border-green-200 dark:border-green-800 animate-in fade-in slide-in-from-top-2">
                     <FileText size={16} />
                     <span className="text-sm font-medium">Upload concluído: {mockFile}</span>
-                    <button onClick={() => setMockFile(null)} className="ml-auto hover:bg-green-100 rounded p-1"><X size={14} /></button>
+                    <button onClick={() => setMockFile(null)} className="ml-auto hover:bg-green-100 dark:hover:bg-green-900/40 rounded p-1"><X size={14} /></button>
                 </div>
             )}
 

@@ -73,6 +73,7 @@ export interface Activity {
     ownerId?: Id;
 
     dueDate?: string; // ISO Date string
+    duration?: string;
     completed: boolean;
     createdAt: string;
 }
