@@ -70,7 +70,7 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
         <div
             ref={setNodeRef}
             style={style}
-            className="flex flex-col rounded-xl bg-muted/30 dark:bg-muted/20 backdrop-blur-md border border-border/40 transition-colors h-full min-w-[220px] w-[280px] shadow-sm overflow-hidden"
+            className="flex flex-col rounded-xl bg-slate-50 dark:bg-slate-800/50 backdrop-blur-md border border-border/40 transition-colors h-full min-w-[220px] w-[280px] shadow-sm overflow-hidden"
         >
             <div
                 {...attributes}
