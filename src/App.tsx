@@ -153,6 +153,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                         <div className={`flex flex-col overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>
                             <span className="text-xs font-medium text-slate-900 dark:text-gray-200 truncate" title={user.email}>{user.email}</span>
                             <span className="text-[10px] text-slate-500 dark:text-gray-500">Usuário</span>
+                            <span className="text-[9px] text-slate-400 dark:text-gray-600 mt-1">v1.1 (Fixed)</span>
                         </div>
                     </div>
                 </div>
