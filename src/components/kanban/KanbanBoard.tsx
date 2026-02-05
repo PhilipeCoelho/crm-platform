@@ -40,14 +40,26 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     const [showFilters, setShowFilters] = useState(false);
     const [minValue, setMinValue] = useState<string>('');
 
-    // Persisted State
-    const [viewMode, setViewMode] = useState<'all' | 'today' | 'overdue' | 'no-action' | 'high-value'>(() => {
-        return (localStorage.getItem('kanban_view_mode') as any) || 'all';
-    });
+    // Strict Types for Local State
+    type ViewMode = 'all' | 'today' | 'overdue' | 'no-action' | 'high-value';
+    type StatusFilter = 'open' | 'won' | 'lost' | 'all';
 
-    const [statusFilter, setStatusFilter] = useState<'open' | 'won' | 'lost' | 'all'>(() => {
-        return (localStorage.getItem('kanban_status_filter') as any) || 'open';
-    });
+    // Safe LocalStorage Parsers
+    const getSavedViewMode = (): ViewMode => {
+        const saved = localStorage.getItem('kanban_view_mode');
+        const validModes: ViewMode[] = ['all', 'today', 'overdue', 'no-action', 'high-value'];
+        return validModes.includes(saved as ViewMode) ? (saved as ViewMode) : 'all';
+    };
+
+    const getSavedStatusFilter = (): StatusFilter => {
+        const saved = localStorage.getItem('kanban_status_filter');
+        const validStatuses: StatusFilter[] = ['open', 'won', 'lost', 'all'];
+        return validStatuses.includes(saved as StatusFilter) ? (saved as StatusFilter) : 'open';
+    };
+
+    // Persisted State
+    const [viewMode, setViewMode] = useState<ViewMode>(getSavedViewMode);
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>(getSavedStatusFilter);
 
     // Persistence Effects
     useEffect(() => {
@@ -146,7 +158,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     <div className="flex items-center gap-2 mr-2 bg-muted/50 rounded-md px-2 border border-transparent hover:border-border transition-all">
                         <select
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as any)}
+                            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
                             className={`bg-transparent text-sm font-medium outline-none cursor-pointer py-1 border-none focus:ring-0 ${statusFilter === 'won' ? 'text-green-600' :
                                 statusFilter === 'lost' ? 'text-red-600' : 'text-muted-foreground'
                                 }`}
@@ -162,7 +174,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     <div className="flex items-center gap-2 mr-2 bg-muted/50 rounded-md px-2 border border-transparent hover:border-border transition-all">
                         <select
                             value={viewMode}
-                            onChange={(e) => setViewMode(e.target.value as any)}
+                            onChange={(e) => setViewMode(e.target.value as ViewMode)}
                             className="bg-transparent text-sm font-medium text-muted-foreground outline-none cursor-pointer py-1 border-none focus:ring-0"
                             title="Filtrar por Visão"
                         >
@@ -253,7 +265,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                 <KanbanColumn
                                     key={col.id}
                                     column={col}
-                                    tasks={filteredDeals.filter(d => d.stageId === col.id) as any}
+                                    tasks={filteredDeals.filter(d => d.stageId === col.id)}
                                     updateColumn={() => { }}
                                     onAdd={openNewDealModal}
                                     currency={currency}
@@ -268,7 +280,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                             {activeColumn && (
                                 <KanbanColumn
                                     column={activeColumn!}
-                                    tasks={filteredDeals.filter(d => d.stageId === activeColumn.id) as any}
+                                    tasks={filteredDeals.filter(d => d.stageId === activeColumn.id)}
                                     updateColumn={() => { }}
                                     onAdd={() => { }}
                                     currency={currency}

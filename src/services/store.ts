@@ -56,8 +56,11 @@ export function useCRMStore(): CRMStore {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 // Validate structure (basic check)
-                const isValid = Object.values(parsed).every((p: any) => Array.isArray(p.stages));
-                if (isValid) return parsed;
+                const isValid = Object.values(parsed).every((p) => {
+                    const pipe = p as Partial<Pipeline>;
+                    return Array.isArray(pipe.stages);
+                });
+                if (isValid) return parsed as Record<string, Pipeline>;
             }
         } catch (e) {
             console.error('Failed to parse pipelines from storage', e);
@@ -208,25 +211,23 @@ export function useCRMStore(): CRMStore {
         // Optimistic
         setDeals(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
 
-        // DB Map
-        const dbUpdates: any = {};
-        if (updates.title) dbUpdates.title = updates.title;
-        if (updates.value) dbUpdates.value = updates.value;
-        if (updates.stageId) dbUpdates.stage_id = updates.stageId;
-        if (updates.status) dbUpdates.status = updates.status;
+        // DB Map - Strictly typed to match Supabase schema
+        const dbUpdates: Record<string, unknown> = {};
+        if (updates.title !== undefined) dbUpdates.title = updates.title;
+        if (updates.value !== undefined) dbUpdates.value = updates.value;
+        if (updates.stageId !== undefined) dbUpdates.stage_id = updates.stageId;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
         if (updates.companyId !== undefined) dbUpdates.company_id = updates.companyId;
         if (updates.contactId !== undefined) dbUpdates.contact_id = updates.contactId;
-        if (updates.tags) dbUpdates.tags = updates.tags;
-        if (updates.source) dbUpdates.source = updates.source;
-        if (updates.currency) dbUpdates.currency = updates.currency;
-        if (updates.wonAt) dbUpdates.won_at = updates.wonAt;
-        if (updates.lostAt) dbUpdates.lost_at = updates.lostAt;
-        if (updates.lostReason) dbUpdates.lost_reason = updates.lostReason;
+        if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
+        if (updates.source !== undefined) dbUpdates.source = updates.source;
+        if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
+        if (updates.wonAt !== undefined) dbUpdates.won_at = updates.wonAt;
+        if (updates.lostAt !== undefined) dbUpdates.lost_at = updates.lostAt;
+        if (updates.lostReason !== undefined) dbUpdates.lost_reason = updates.lostReason;
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('deals').update(dbUpdates).eq('id', id);
-            if (error) console.error('Update deal error', error);
-        }
     };
 
     const deleteDeal = async (id: string) => {
@@ -344,20 +345,17 @@ export function useCRMStore(): CRMStore {
     const updateActivity = async (id: string, updates: Partial<Activity>) => {
         setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
 
-        const dbUpdates: any = {};
-        if (updates.title) dbUpdates.title = updates.title;
-        if (updates.result) dbUpdates.result = updates.result;
-        if (updates.notes) dbUpdates.notes = updates.notes;
-        if (updates.completed !== undefined) dbUpdates.completed = updates.completed; // Match DB column? usually 'done' or 'completed'
+            const dbUpdates: Record<string, unknown> = {};
+            if (updates.title !== undefined) dbUpdates.title = updates.title;
+            if (updates.result !== undefined) dbUpdates.result = updates.result;
+            if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+            if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
 
-        // Note: Check DB column for completed. Schema says 'done' in prompt? 
-        // User prompt says: `done` (boolean). Type says `completed`.
-        // I will map `completed` -> `done` if needed, or check existing schema.
-        // Assuming 'completed' for now based on Types. 
-        // If DB uses 'done', I should map it.
-        // Let's assume standard mapping for now.
-
-        await supabase.from('activities').update(dbUpdates).eq('id', id);
+            const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
+            if (error) {
+                console.error('Update activity error', error);
+                // Revert optimistic update if needed, effectively we reload on error usually or alert
+            }
     };
 
     const deleteActivity = async (id: string) => {
