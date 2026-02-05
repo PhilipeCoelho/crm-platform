@@ -103,11 +103,11 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
                 </div>
 
                 {/* Progress Bar / Color Indicator (Optional Pipedrive touch) */}
-                <div className={`h-[2px] w-full mt-2 rounded-full ${tasks.length > 0 ? 'bg-primary/40' : 'bg-gray-200'}`} />
+                <div className={`h-[2px] w-full mt-2 rounded-full ${tasks.length > 0 ? 'bg-primary/40' : 'bg-muted'}`} />
             </div>
 
             {/* Task List */}
-            <div className="flex-grow flex flex-col gap-2 p-2 overflow-x-hidden overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
+            <div className="flex-grow flex flex-col gap-2 p-2 overflow-x-hidden overflow-y-auto scrollbar-thin scrollbar-thumb-border">
                 <SortableContext items={tasksIds}>
                     {tasks.map((task) => (
                         <KanbanCard key={task.id} deal={task} currency={currency} onPreview={onPreview} />
