@@ -1,17 +1,12 @@
 import { useCRM } from '@/contexts/CRMContext';
+import { GridItem } from '@/components/dashboard/DashboardGrid';
 import { startOfDay, isToday, parseISO, isBefore } from 'date-fns';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const LAYOUT_STORAGE_KEY = 'dashboard_layout_v1';
 
-export interface GridItem {
-    id: string;
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-}
+
 
 const DEFAULT_LAYOUT: GridItem[] = [
     { id: 'dailyActivities', x: 0, y: 0, w: 6, h: 2 },

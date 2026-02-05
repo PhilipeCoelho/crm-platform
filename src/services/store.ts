@@ -228,183 +228,185 @@ export function useCRMStore(): CRMStore {
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('deals').update(dbUpdates).eq('id', id);
+            if (error) console.error('Error updating deal:', error);
+        };
+    };
+
+    const deleteDeal = async (id: string) => {
+        setDeals(prev => prev.filter(d => d.id !== id));
+        await supabase.from('deals').delete().eq('id', id);
+    };
+
+    const addContact = async (data: Omit<Contact, 'id' | 'createdAt' | 'userId'>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("No user");
+
+        const newContact = {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            role: data.role,
+            user_id: user.id,
+            company_id: data.companyId
         };
 
-        const deleteDeal = async (id: string) => {
-            setDeals(prev => prev.filter(d => d.id !== id));
-            await supabase.from('deals').delete().eq('id', id);
+        // Optimistic
+        const tempId = generateId();
+        const optimisticContact = { ...data, id: tempId, userId: user.id, createdAt: new Date().toISOString() } as Contact;
+        setContacts(prev => [...prev, optimisticContact]);
+
+        const { data: inserted, error } = await supabase.from('contacts').insert(newContact).select().single();
+        if (error) {
+            setContacts(prev => prev.filter(c => c.id !== tempId));
+            throw error;
+        }
+        return { ...optimisticContact, id: inserted.id };
+    };
+
+    const updateContact = async (id: string, updates: Partial<Contact>) => {
+        setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+        await supabase.from('contacts').update(updates).eq('id', id);
+    };
+
+    const deleteContact = async (id: string) => {
+        // Optimistic update
+        // 1. Identify Deals to be deleted
+        const dealsToDelete = deals.filter(d => d.contactId === id);
+        const dealIdsToRemove = dealsToDelete.map(d => d.id);
+
+        // 2. Remove Contact
+        setContacts(prev => prev.filter(c => c.id !== id));
+
+        // 3. Remove Deals
+        setDeals(prev => prev.filter(d => d.contactId !== id));
+
+        // 4. Remove Activities associated with those Deals
+        setActivities(prev => prev.filter(a => !a.dealId || !dealIdsToRemove.includes(a.dealId)));
+
+        // --- Database ---
+
+        // 1. Delete Deals (and rely on Postgres CASCADE for activities if configured, or delete explicit)
+        // Let's explicitly delete deals. We assume activities cascade or are left orphaned (less critical). 
+        // User asked for "Negocios" (Deals) explicitly.
+
+        const { error: deleteDealsError } = await supabase
+            .from('deals')
+            .delete()
+            .eq('contact_id', id);
+
+        if (deleteDealsError) {
+            console.error('Error deleting deals:', deleteDealsError);
+            alert(`Erro ao excluir negócios associados: ${deleteDealsError.message}`);
+            fetchAll(); // Revert
+            return;
+        }
+
+        // 2. Delete Contact
+        const { error } = await supabase.from('contacts').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting contact:', error);
+            alert(`Erro ao excluir contato: ${error.message}`);
+            fetchAll(); // Revert
+        }
+    };
+
+    // Stub implementations for others to match interface
+    const addActivity = async (data: any) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const newActivity = {
+            title: data.title,
+            type: data.type,
+            date: data.dueDate, // Mapped from frontend dueDate
+            duration: data.duration,
+            deal_id: data.dealId,
+            user_id: user.id,
+            notes: data.notes,
+            result: data.result,
+            completed: data.completed !== undefined ? data.completed : false
         };
 
-        const addContact = async (data: Omit<Contact, 'id' | 'createdAt' | 'userId'>) => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("No user");
-
-            const newContact = {
-                name: data.name,
-                email: data.email,
-                phone: data.phone,
-                role: data.role,
-                user_id: user.id,
-                company_id: data.companyId
-            };
-
-            // Optimistic
-            const tempId = generateId();
-            const optimisticContact = { ...data, id: tempId, userId: user.id, createdAt: new Date().toISOString() } as Contact;
-            setContacts(prev => [...prev, optimisticContact]);
-
-            const { data: inserted, error } = await supabase.from('contacts').insert(newContact).select().single();
-            if (error) {
-                setContacts(prev => prev.filter(c => c.id !== tempId));
-                throw error;
-            }
-            return { ...optimisticContact, id: inserted.id };
+        const tempId = generateId();
+        const optimisticActivity = {
+            ...data,
+            id: tempId,
+            userId: user.id,
+            createdAt: new Date().toISOString()
         };
 
-        const updateContact = async (id: string, updates: Partial<Contact>) => {
-            setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-            await supabase.from('contacts').update(updates).eq('id', id);
+        setActivities(prev => [...prev, optimisticActivity]);
+
+        const { error } = await supabase.from('activities').insert(newActivity);
+        if (error) {
+            console.error('Error creating activity:', error);
+            setActivities(prev => prev.filter(a => a.id !== tempId));
+        }
+    };
+
+    const updateActivity = async (id: string, updates: Partial<Activity>) => {
+        setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+
+        const dbUpdates: Record<string, unknown> = {};
+        if (updates.title !== undefined) dbUpdates.title = updates.title;
+        if (updates.result !== undefined) dbUpdates.result = updates.result;
+        if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+        if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
+
+        const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
+        if (error) {
+            console.error('Update activity error', error);
+            // Revert optimistic update if needed, effectively we reload on error usually or alert
+        }
+    };
+
+    const deleteActivity = async (id: string) => {
+        setActivities(prev => prev.filter(a => a.id !== id));
+        await supabase.from('activities').delete().eq('id', id);
+    };
+
+    const addCompany = async (data: Omit<Company, 'id' | 'createdAt'>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("No user");
+
+        const newCompany = {
+            name: data.name,
+            website: data.website,
+            phone: data.phone,
+            email: data.email,
+            user_id: user.id
         };
 
-        const deleteContact = async (id: string) => {
-            // Optimistic update
-            // 1. Identify Deals to be deleted
-            const dealsToDelete = deals.filter(d => d.contactId === id);
-            const dealIdsToRemove = dealsToDelete.map(d => d.id);
+        const tempId = generateId();
+        const optimisticCompany = { ...data, id: tempId, createdAt: new Date().toISOString() } as Company;
+        setCompanies(prev => [...prev, optimisticCompany]);
 
-            // 2. Remove Contact
-            setContacts(prev => prev.filter(c => c.id !== id));
+        const { data: inserted, error } = await supabase.from('companies').insert(newCompany).select().single();
+        if (error) {
+            console.error('Error adding company:', error);
+            setCompanies(prev => prev.filter(c => c.id !== tempId));
+            throw error;
+        }
+        return { ...optimisticCompany, id: inserted.id };
+    };
 
-            // 3. Remove Deals
-            setDeals(prev => prev.filter(d => d.contactId !== id));
+    const updateCompany = async (id: string, updates: Partial<Company>) => {
+        setCompanies(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+        await supabase.from('companies').update(updates).eq('id', id);
+    };
 
-            // 4. Remove Activities associated with those Deals
-            setActivities(prev => prev.filter(a => !a.dealId || !dealIdsToRemove.includes(a.dealId)));
-
-            // --- Database ---
-
-            // 1. Delete Deals (and rely on Postgres CASCADE for activities if configured, or delete explicit)
-            // Let's explicitly delete deals. We assume activities cascade or are left orphaned (less critical). 
-            // User asked for "Negocios" (Deals) explicitly.
-
-            const { error: deleteDealsError } = await supabase
-                .from('deals')
-                .delete()
-                .eq('contact_id', id);
-
-            if (deleteDealsError) {
-                console.error('Error deleting deals:', deleteDealsError);
-                alert(`Erro ao excluir negócios associados: ${deleteDealsError.message}`);
-                fetchAll(); // Revert
-                return;
-            }
-
-            // 2. Delete Contact
-            const { error } = await supabase.from('contacts').delete().eq('id', id);
-            if (error) {
-                console.error('Error deleting contact:', error);
-                alert(`Erro ao excluir contato: ${error.message}`);
-                fetchAll(); // Revert
-            }
-        };
-
-        // Stub implementations for others to match interface
-        const addActivity = async (data: any) => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const newActivity = {
-                title: data.title,
-                type: data.type,
-                date: data.dueDate, // Mapped from frontend dueDate
-                duration: data.duration,
-                deal_id: data.dealId,
-                user_id: user.id,
-                notes: data.notes,
-                result: data.result,
-                completed: data.completed !== undefined ? data.completed : false
-            };
-
-            const tempId = generateId();
-            const optimisticActivity = {
-                ...data,
-                id: tempId,
-                userId: user.id,
-                createdAt: new Date().toISOString()
-            };
-
-            setActivities(prev => [...prev, optimisticActivity]);
-
-            const { error } = await supabase.from('activities').insert(newActivity);
-            if (error) {
-                console.error('Error creating activity:', error);
-                setActivities(prev => prev.filter(a => a.id !== tempId));
-            }
-        };
-
-        const updateActivity = async (id: string, updates: Partial<Activity>) => {
-            setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
-
-            const dbUpdates: Record<string, unknown> = {};
-            if (updates.title !== undefined) dbUpdates.title = updates.title;
-            if (updates.result !== undefined) dbUpdates.result = updates.result;
-            if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
-            if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
-
-            const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
-            if (error) {
-                console.error('Update activity error', error);
-                // Revert optimistic update if needed, effectively we reload on error usually or alert
-            }
-        };
-
-        const deleteActivity = async (id: string) => {
-            setActivities(prev => prev.filter(a => a.id !== id));
-            await supabase.from('activities').delete().eq('id', id);
-        };
-
-        const addCompany = async (data: Omit<Company, 'id' | 'createdAt'>) => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("No user");
-
-            const newCompany = {
-                name: data.name,
-                website: data.website,
-                phone: data.phone,
-                email: data.email,
-                user_id: user.id
-            };
-
-            const tempId = generateId();
-            const optimisticCompany = { ...data, id: tempId, createdAt: new Date().toISOString() } as Company;
-            setCompanies(prev => [...prev, optimisticCompany]);
-
-            const { data: inserted, error } = await supabase.from('companies').insert(newCompany).select().single();
-            if (error) {
-                console.error('Error adding company:', error);
-                setCompanies(prev => prev.filter(c => c.id !== tempId));
-                throw error;
-            }
-            return { ...optimisticCompany, id: inserted.id };
-        };
-
-        const updateCompany = async (id: string, updates: Partial<Company>) => {
-            setCompanies(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-            await supabase.from('companies').update(updates).eq('id', id);
-        };
-
-        return {
-            users: [],
-            companies,
-            contacts,
-            deals,
-            activities,
-            pipelines,
-            addDeal, updateDeal, deleteDeal,
-            addContact, updateContact, deleteContact,
-            addActivity, updateActivity, deleteActivity,
-            addCompany, updateCompany,
-            getPipelineStages: (pid: string) => pipelines[pid]?.stages || [],
-            refresh: fetchAll
-        };
-    }
+    return {
+        users: [],
+        companies,
+        contacts,
+        deals,
+        activities,
+        pipelines,
+        addDeal, updateDeal, deleteDeal,
+        addContact, updateContact, deleteContact,
+        addActivity, updateActivity, deleteActivity,
+        addCompany, updateCompany,
+        getPipelineStages: (pid: string) => pipelines[pid]?.stages || [],
+        refresh: fetchAll
+    };
+}
