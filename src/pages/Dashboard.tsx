@@ -23,21 +23,73 @@ export default function Dashboard() {
     const navigate = useNavigate();
     const [isNewActivityModalOpen, setIsNewActivityModalOpen] = useState(false);
 
-    // Load saved layout
+    // Load saved layout with Smart Collision Detection
     const [layout, setLayout] = useState<GridItem[]>(() => {
         const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
+        let finalLayout = [...DEFAULT_LAYOUT];
+
         if (saved) {
             try {
-                const parsed = JSON.parse(saved);
-                return DEFAULT_LAYOUT.map(item => {
-                    const savedItem = parsed.find((p: GridItem) => p.id === item.id);
-                    return savedItem ? { ...item, ...savedItem, content: null } : item;
+                const savedItems = JSON.parse(saved) as GridItem[];
+
+                // 1. Identify "Known" items (User has moved/saved these)
+                const processedIds = new Set<string>();
+
+                const mergedLayout: (GridItem | null)[] = DEFAULT_LAYOUT.map(defaultItem => {
+                    const savedItem = savedItems.find(p => p.id === defaultItem.id);
+                    if (savedItem) {
+                        processedIds.add(defaultItem.id);
+                        return { ...defaultItem, ...savedItem, content: null };
+                    }
+                    return null; // temporary marker for new items
                 });
+
+                // 2. Place New Items (Items in Default but NOT in Saved)
+                // We must find a spot for them that doesn't overlap with 'savedItem' positions.
+
+                // Helper to check collision
+                const collides = (rect1: GridItem, rect2: GridItem) => {
+                    return (
+                        rect1.x < rect2.x + rect2.w &&
+                        rect1.x + rect1.w > rect2.x &&
+                        rect1.y < rect2.y + rect2.h &&
+                        rect1.y + rect1.h > rect2.y
+                    );
+                };
+
+                // Get all currently occupied spaces from the saved items
+                const occupied = mergedLayout.filter((i): i is GridItem => i !== null);
+
+                // Process the nulls (new items)
+                finalLayout = mergedLayout.map((item, index) => {
+                    if (item) return item; // It's a saved item
+
+                    // It's a new item, we need to find a spot.
+                    const defaultItem = DEFAULT_LAYOUT[index];
+                    let candidate: GridItem = { ...defaultItem, content: null };
+
+                    // Try to place it at default position first
+                    let hasCollision = occupied.some(occ => collides(candidate, occ));
+
+                    if (!hasCollision) {
+                        occupied.push(candidate);
+                        return candidate;
+                    }
+
+                    // If default is taken, simple algorithms: Place at the bottom
+                    const maxY = occupied.reduce((max, i) => Math.max(max, i.y + i.h), 0);
+                    candidate = { ...candidate, x: 0, y: maxY }; // Start mostly at left-bottom
+
+                    // TODO: Could be smarter (scan for gaps), but 'bottom' is safe preventing overlap.
+                    occupied.push(candidate);
+                    return candidate;
+                });
+
             } catch {
-                return DEFAULT_LAYOUT;
+                finalLayout = DEFAULT_LAYOUT;
             }
         }
-        return DEFAULT_LAYOUT;
+        return finalLayout;
     });
 
     // Save layout
