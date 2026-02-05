@@ -46,8 +46,8 @@ function Layout({ children }: { children: React.ReactNode }) {
             <aside
                 className={`group flex flex-col items-center py-3 z-50 shrink-0 border-r border-[color:var(--border)] transition-all duration-300 ease-in-out relative
                     ${isSidebarExpanded ? 'w-56 items-start px-3' : 'w-14 items-center'}
-                     bg-white dark:bg-[#1a1d21] dark:backdrop-blur-md
-                    text-slate-900 dark:text-gray-200
+                     !bg-white dark:!bg-[#1a1d21] dark:backdrop-blur-md
+                    !text-slate-900 dark:!text-gray-200
                     `}
                 onMouseEnter={() => setIsSidebarHovered(true)}
                 onMouseLeave={() => setIsSidebarHovered(false)}
@@ -68,7 +68,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                     <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold text-xs shrink-0 select-none">
                         CP
                     </div>
-                    <span className={`font-bold text-slate-900 dark:text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
+                    <span className={`font-bold !text-slate-900 dark:!text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
                         CRM Pro
                     </span>
                 </Link>
@@ -78,8 +78,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'dashboard'
-                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
+                                ? '!bg-slate-100 dark:!bg-[#2A3241] !text-slate-900 dark:!text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
+                                : 'hover:!bg-slate-100 dark:hover:!bg-[#151C25] !text-slate-500 hover:!text-slate-900 dark:!text-[#9BA7B4] dark:hover:!text-white'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -92,8 +92,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'pipelines'
-                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
+                                ? '!bg-slate-100 dark:!bg-[#2A3241] !text-slate-900 dark:!text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
+                                : 'hover:!bg-slate-100 dark:hover:!bg-[#151C25] !text-slate-500 hover:!text-slate-900 dark:!text-[#9BA7B4] dark:hover:!text-white'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -106,8 +106,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'contacts'
-                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
+                                ? '!bg-slate-100 dark:!bg-[#2A3241] !text-slate-900 dark:!text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
+                                : 'hover:!bg-slate-100 dark:hover:!bg-[#151C25] !text-slate-500 hover:!text-slate-900 dark:!text-[#9BA7B4] dark:hover:!text-white'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
