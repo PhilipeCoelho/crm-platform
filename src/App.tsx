@@ -46,8 +46,8 @@ function Layout({ children }: { children: React.ReactNode }) {
             <aside
                 className={`group flex flex-col items-center py-3 z-50 shrink-0 border-r border-[color:var(--border)] transition-all duration-300 ease-in-out relative
                     ${isSidebarExpanded ? 'w-56 items-start px-3' : 'w-14 items-center'}
-                     bg-background dark:bg-[rgba(9,12,18,0.65)] dark:backdrop-blur-md
-                    text-foreground dark:text-gray-200
+                     bg-white dark:bg-[#1a1d21] dark:backdrop-blur-md
+                    text-slate-900 dark:text-gray-200
                     `}
                 onMouseEnter={() => setIsSidebarHovered(true)}
                 onMouseLeave={() => setIsSidebarHovered(false)}
@@ -56,7 +56,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 {isSidebarExpanded && (
                     <button
                         onClick={() => setIsSidebarPinned(!isSidebarPinned)}
-                        className={`absolute right-2 top-3 p-1 rounded-md hover:bg-muted dark:hover:bg-white/10 text-muted-foreground hover:text-foreground dark:text-gray-400 dark:hover:text-white transition-colors ${isSidebarPinned ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                        className={`absolute right-2 top-3 p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white transition-colors ${isSidebarPinned ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                         title={isSidebarPinned ? "Desafixar barra lateral" : "Fixar barra lateral"}
                     >
                         {isSidebarPinned ? <ChevronRight size={14} className="rotate-180" /> : <div className="w-2 h-2 rounded-full border-2 border-current" />}
@@ -68,7 +68,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                     <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold text-xs shrink-0 select-none">
                         CP
                     </div>
-                    <span className={`font-bold text-foreground dark:text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
+                    <span className={`font-bold text-slate-900 dark:text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
                         CRM Pro
                     </span>
                 </Link>
@@ -78,8 +78,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'dashboard'
-                                ? 'bg-muted dark:bg-[#1A2230] text-foreground dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:bg-muted dark:hover:bg-[#151C25] text-muted-foreground hover:text-foreground dark:text-[#9BA7B4] dark:hover:text-[#E6EDF3]'
+                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
+                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -92,8 +92,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'pipelines'
-                                ? 'bg-muted dark:bg-[#1A2230] text-foreground dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:bg-muted dark:hover:bg-[#151C25] text-muted-foreground hover:text-foreground dark:text-[#9BA7B4] dark:hover:text-[#E6EDF3]'
+                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
+                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -106,8 +106,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'contacts'
-                                ? 'bg-[#26292c] dark:bg-[#1A2230] text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:bg-[#26292c] dark:hover:bg-[#151C25] text-gray-400 hover:text-white dark:text-[#9BA7B4] dark:hover:text-[#E6EDF3]'
+                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
+                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -124,8 +124,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${isSettingsOpen
-                                ? 'bg-muted dark:bg-[#1A2230] text-foreground dark:text-white'
-                                : 'hover:bg-muted dark:hover:bg-[#151C25] text-muted-foreground hover:text-foreground dark:text-[#9BA7B4] dark:hover:text-[#E6EDF3]'
+                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white'
+                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -137,7 +137,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                     <button
                         onClick={() => signOut()}
                         title={!isSidebarExpanded ? "Sair" : ""}
-                        className={`group flex items-center gap-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-muted-foreground dark:text-gray-400 transition-all duration-200 min-h-[40px] ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto'}`}
+                        className={`group flex items-center gap-3 rounded-lg hover:bg-slate-100 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-gray-400 transition-all duration-200 min-h-[40px] ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto'}`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
                             <LogOut size={20} />
@@ -146,13 +146,13 @@ function Layout({ children }: { children: React.ReactNode }) {
                     </button>
 
                     {/* User Avatar (Mini) */}
-                    <div className={`flex items-center gap-3 mt-2 rounded-md border border-border/10 p-1 bg-muted/50 dark:bg-white/5 ${isSidebarExpanded ? 'w-full px-2' : 'w-8 justify-center border-none bg-transparent'}`}>
+                    <div className={`flex items-center gap-3 mt-2 rounded-md border border-border/10 p-1 bg-slate-50 dark:bg-white/5 ${isSidebarExpanded ? 'w-full px-2' : 'w-8 justify-center border-none bg-transparent'}`}>
                         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
                             {user.email?.substring(0, 1).toUpperCase() || 'U'}
                         </div>
                         <div className={`flex flex-col overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 hidden'}`}>
-                            <span className="text-xs font-medium text-foreground dark:text-gray-200 truncate" title={user.email}>{user.email}</span>
-                            <span className="text-[10px] text-muted-foreground dark:text-gray-500">Usuário</span>
+                            <span className="text-xs font-medium text-slate-900 dark:text-gray-200 truncate" title={user.email}>{user.email}</span>
+                            <span className="text-[10px] text-slate-500 dark:text-gray-500">Usuário</span>
                         </div>
                     </div>
                 </div>
