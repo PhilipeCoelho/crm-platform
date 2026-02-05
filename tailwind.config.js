@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+/** @type {import('tailwindcss').Config} - Force Cache Invalidation V1 */
 export default {
     content: [
         "./index.html",
