@@ -131,7 +131,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     return (
         <div className="flex flex-col h-full w-full overflow-hidden">
             {/* Single Line Toolbar (Pipedrive Style) */}
-            <div className="h-14 border-b border-border flex items-center justify-between px-4 bg-background shrink-0 gap-4 z-40">
+            <div className="h-14 border-b border-border flex items-center justify-between px-4 bg-transparent shrink-0 gap-4 z-40">
                 {/* Left: Pipeline Title/Selector */}
                 <div className="flex items-center gap-2">
                     <h1 className="text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors">
@@ -210,7 +210,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                                 type="number"
                                                 value={minValue}
                                                 onChange={(e) => setMinValue(e.target.value)}
-                                                className="w-full pl-8 pr-3 py-1.5 text-sm bg-background border border-border rounded-md focus:ring-2 focus:ring-primary/50 outline-none text-foreground"
+                                                className="w-full pl-8 pr-3 py-1.5 text-sm bg-transparent border border-border rounded-md focus:ring-2 focus:ring-primary/50 outline-none text-foreground"
                                                 placeholder="0.00"
                                             />
                                         </div>
