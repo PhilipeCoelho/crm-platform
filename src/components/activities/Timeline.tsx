@@ -49,6 +49,8 @@ export default function Timeline({ activities, onReopen }: Props) {
                         {activity.type === 'email' && 'Email enviado'}
                         {activity.type === 'meeting' && 'Reunião'}
                         {activity.type === 'task' && 'Tarefa concluída'}
+                        {activity.type === 'note' && 'Nota adicionada'}
+                        {activity.duration && <span className="ml-1">• Duração: {activity.duration}</span>}
                         {activity.result && <span className="block mt-1 text-foreground italic">"{activity.result}"</span>}
                     </div>
                 </div>
