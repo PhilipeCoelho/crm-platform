@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <ThemeProvider defaultTheme="system" storageKey="crm_theme_mode">
+        <ThemeProvider defaultTheme="dark" storageKey="crm_theme_preference_v2">
             <CRMApp />
         </ThemeProvider>
     </React.StrictMode>,
