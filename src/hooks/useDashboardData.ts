@@ -4,9 +4,7 @@ import { startOfDay, isToday, parseISO, isBefore } from 'date-fns';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const LAYOUT_STORAGE_KEY = 'dashboard_layout_v1';
-
-
+const LAYOUT_STORAGE_KEY = 'dashboard_layout_v2_compact';
 
 const DEFAULT_LAYOUT: GridItem[] = [
     { id: 'dailyActivities', x: 0, y: 0, w: 6, h: 2 },
@@ -14,7 +12,7 @@ const DEFAULT_LAYOUT: GridItem[] = [
     { id: 'pipelineValue', x: 0, y: 2, w: 4, h: 1 },
     { id: 'openDeals', x: 4, y: 2, w: 4, h: 1 },
     { id: 'wonDeals', x: 8, y: 2, w: 4, h: 1 },
-    { id: 'todayAgenda', x: 0, y: 3, w: 12, h: 3 },
+    { id: 'todayAgenda', x: 0, y: 3, w: 12, h: 4 },
 ];
 
 export function useDashboardData() {

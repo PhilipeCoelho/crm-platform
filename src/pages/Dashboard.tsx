@@ -265,7 +265,8 @@ export default function Dashboard() {
                             items={gridItems}
                             onLayoutChange={actions.saveLayout}
                             isEditable={isEditMode}
-                            rowHeight={120}
+                            rowHeight={80}
+                            gap={16}
                         />
                     </div>
                 </div>
