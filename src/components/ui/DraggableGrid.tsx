@@ -1,4 +1,5 @@
 import { ReactNode, useState, useEffect, useMemo } from 'react';
+// @ts-ignore
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import { GripVertical } from 'lucide-react';
 import 'react-grid-layout/css/styles.css';
