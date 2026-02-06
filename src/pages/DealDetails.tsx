@@ -42,6 +42,20 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
     }
 
     const pipeline = pipelines[deal.pipelineId] || pipelines['sales'];
+
+    if (!pipeline) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full">
+                <p className="text-muted-foreground">Erro: Pipeline não encontrado.</p>
+                {isModal ? (
+                    <button onClick={onClose} className="text-primary hover:underline mt-2">Fechar</button>
+                ) : (
+                    <button onClick={() => navigate('/')} className="text-primary hover:underline mt-2">Voltar</button>
+                )}
+            </div>
+        );
+    }
+
     const currentStageIndex = pipeline.stages.findIndex(s => s.id === deal.stageId);
     const isClosed = deal.status !== 'open';
 
