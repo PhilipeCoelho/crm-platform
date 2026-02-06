@@ -23,14 +23,15 @@ interface DraggableGridProps {
     cols?: number;
     rowHeight?: number;
     gap?: number;
-    isEditable?: boolean; // Kept for interface compatibility but ignored
+    isEditable?: boolean;
 }
 
 export default function DraggableGrid({
     items,
     onLayoutChange,
     rowHeight = 100,
-    gap = 24
+    gap = 24,
+    isEditable = false
 }: DraggableGridProps) {
 
     // Transform our safe GridItem[] to RGL's expected layout format
@@ -87,12 +88,12 @@ export default function DraggableGrid({
     const handleLayoutChange = (layout: any, allLayouts: any) => {
         setCurrentLayouts(allLayouts);
 
-        // Fix: Only save changes when in Desktop ('lg') view.
-        // Saving layouts from smaller breakpoints ('md', 'sm', etc.) would overwrite the master desktop coordinates
-        // with compressed values. When returning to Desktop, this causes the "messy" scrambled look.
-        // We prioritize the integrity of the Desktop layout as the source of truth.
-        if (currentBreakpoint === 'lg') {
-            // Use the current breakpoint's layout (or fallback to provided layout) as the source of truth
+        // Save Logic:
+        // 1. If 'lg' (Desktop) or 'md' (Laptop), assume it's a valid layout to persist.
+        // 2. OR if user is explicitly in Edit Mode, we trust they know what they are dealing with.
+        if (['lg', 'md'].includes(currentBreakpoint) || isEditable) {
+
+            // Prefer the layout for the current breakpoint to ensure we capture what the user sees
             const activeLayout = allLayouts[currentBreakpoint] || layout;
 
             const newItems = activeLayout.map((l: any) => {
@@ -112,6 +113,7 @@ export default function DraggableGrid({
 
     return (
         <div className="w-full min-h-[500px]">
+            {/* @ts-ignore */}
             <ResponsiveGridLayout
                 className="layout"
                 layouts={currentLayouts}
@@ -120,8 +122,8 @@ export default function DraggableGrid({
                 rowHeight={rowHeight}
                 margin={[gap, gap]}
                 containerPadding={[0, 0]}
-                isDraggable={true}
-                isResizable={true}
+                isDraggable={isEditable}
+                isResizable={isEditable}
                 draggableHandle=".drag-handle"
                 onLayoutChange={handleLayoutChange}
                 onBreakpointChange={handleBreakpointChange}
@@ -129,26 +131,32 @@ export default function DraggableGrid({
                 compactType="vertical"
                 preventCollision={false}
                 resizeHandle={
-                    <div className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-20 flex items-end justify-end p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-2.5 h-2.5 border-r-2 border-b-2 border-primary/50 rounded-br-[2px]" />
-                    </div>
+                    isEditable ? (
+                        <div className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-20 flex items-end justify-end p-1 opacity-100 transition-opacity">
+                            <div className="w-2.5 h-2.5 border-r-2 border-b-2 border-primary/50 rounded-br-[2px]" />
+                        </div>
+                    ) : undefined
                 }
             >
                 {items.map((item) => (
                     <div
                         key={item.id}
-                        className="bg-card border border-border/60 rounded-[12px] shadow-sm overflow-hidden group hover:border-primary/50 hover:shadow-md transition-all duration-200"
+                        className={`bg-card border rounded-[12px] shadow-sm overflow-hidden group transition-all duration-200
+                        ${isEditable ? 'border-primary/40 hover:border-primary hover:shadow-md' : 'border-border/60'}
+                        `}
                     >
-                        {/* Drag Handle - Always present but subtle */}
-                        <div
-                            className="drag-handle absolute top-2 right-2 p-1.5 rounded-md hover:bg-muted cursor-grab active:cursor-grabbing z-30 transition-opacity opacity-0 group-hover:opacity-100"
-                            title="Arrastar Card"
-                        >
-                            <GripVertical size={16} className="text-muted-foreground/50 hover:text-foreground" />
-                        </div>
+                        {/* Drag Handle - Visible only in edit mode */}
+                        {isEditable && (
+                            <div
+                                className="drag-handle absolute top-2 right-2 p-1.5 rounded-md hover:bg-muted cursor-grab active:cursor-grabbing z-30 transition-opacity"
+                                title="Arrastar Card"
+                            >
+                                <GripVertical size={16} className="text-muted-foreground/50 hover:text-foreground" />
+                            </div>
+                        )}
 
                         {/* Content */}
-                        <div className="h-full w-full overflow-hidden">
+                        <div className={`h-full w-full overflow-hidden ${isEditable ? 'pointer-events-none select-none' : ''}`}>
                             <div className="h-full w-full overflow-y-auto custom-scrollbar p-0">
                                 {item.content}
                             </div>
