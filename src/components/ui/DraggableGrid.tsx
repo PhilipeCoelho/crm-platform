@@ -87,9 +87,11 @@ export default function DraggableGrid({
     const handleLayoutChange = (layout: any, allLayouts: any) => {
         setCurrentLayouts(allLayouts);
 
-        // Fix: Allow saving in 'lg' (Desktop), 'md' (Laptop/Split), and 'sm' (Tablet).
-        // We only block 'xs' and 'xxs' (Mobile) because those are forced to a 1-column stack.
-        if (!['xs', 'xxs'].includes(currentBreakpoint)) {
+        // Fix: Only save changes when in Desktop ('lg') view.
+        // Saving layouts from smaller breakpoints ('md', 'sm', etc.) would overwrite the master desktop coordinates
+        // with compressed values. When returning to Desktop, this causes the "messy" scrambled look.
+        // We prioritize the integrity of the Desktop layout as the source of truth.
+        if (currentBreakpoint === 'lg') {
             // Use the current breakpoint's layout (or fallback to provided layout) as the source of truth
             const activeLayout = allLayouts[currentBreakpoint] || layout;
 
