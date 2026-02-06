@@ -340,6 +340,7 @@ export function useCRMStore(): CRMStore {
         const { error } = await supabase.from('activities').insert(newActivity);
         if (error) {
             console.error('Error creating activity:', error);
+            alert(`Erro ao criar atividade: ${error.message} (Detalhe: ${error.details || ''})`);
             setActivities(prev => prev.filter(a => a.id !== tempId));
         }
     };
