@@ -10,7 +10,13 @@ export interface GridItem {
     content: ReactNode;
 }
 
-isEditable ?: boolean;
+interface DraggableGridProps {
+    items: GridItem[];
+    onLayoutChange: (items: GridItem[]) => void;
+    cols?: number;
+    rowHeight?: number;
+    gap?: number;
+    isEditable?: boolean;
 }
 
 export default function DraggableGrid({
