@@ -10,12 +10,7 @@ export interface GridItem {
     content: ReactNode;
 }
 
-interface DraggableGridProps {
-    items: GridItem[];
-    onLayoutChange: (items: GridItem[]) => void;
-    cols?: number;
-    rowHeight?: number;
-    gap?: number;
+isEditable ?: boolean;
 }
 
 export default function DraggableGrid({
@@ -23,7 +18,8 @@ export default function DraggableGrid({
     onLayoutChange,
     cols = 12,
     rowHeight = 100,
-    gap = 24
+    gap = 24,
+    isEditable = false
 }: DraggableGridProps) {
     const [layout, setLayout] = useState<GridItem[]>(items);
     const [dragging, setDragging] = useState<string | null>(null);
@@ -60,24 +56,40 @@ export default function DraggableGrid({
         return { gridX: Math.max(0, Math.min(gridX, cols - 1)), gridY: Math.max(0, gridY) };
     };
 
-    const handleDragStart = (e: React.MouseEvent, itemId: string) => {
-        e.preventDefault();
-        setDragging(itemId);
-        setDragStart({ x: e.clientX, y: e.clientY });
+    // Unified Event Handlers (Mouse + Touch)
+    const getClientCoords = (e: React.MouseEvent | React.TouchEvent | MouseEvent | TouchEvent) => {
+        if ('touches' in e) {
+            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        return { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
     };
 
-    const handleResizeStart = (e: React.MouseEvent, itemId: string) => {
+    const handleDragStart = (e: React.MouseEvent | React.TouchEvent, itemId: string) => {
+        if (!isEditable) return;
+        // e.preventDefault(); // Don't prevent default on touch immediately or scroll breaks
+        const coords = getClientCoords(e);
+        setDragging(itemId);
+        setDragStart(coords);
+    };
+
+    const handleResizeStart = (e: React.MouseEvent | React.TouchEvent, itemId: string) => {
+        if (!isEditable) return;
         e.preventDefault();
         e.stopPropagation();
+        const coords = getClientCoords(e);
         setResizing(itemId);
-        setDragStart({ x: e.clientX, y: e.clientY });
+        setDragStart(coords);
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMove = (e: MouseEvent | TouchEvent) => {
         if (!dragStart || !containerRef.current) return;
 
-        const deltaX = e.clientX - dragStart.x;
-        const deltaY = e.clientY - dragStart.y;
+        const coords = getClientCoords(e);
+        const deltaX = coords.x - dragStart.x;
+        const deltaY = coords.y - dragStart.y;
+
+        // Prevent scrolling while dragging/resizing
+        if (e.cancelable) e.preventDefault();
 
         if (dragging) {
             const item = layout.find(i => i.id === dragging);
@@ -93,7 +105,7 @@ export default function DraggableGrid({
                     i.id === dragging ? { ...i, x: newX, y: newY } : i
                 );
                 setLayout(newLayout);
-                setDragStart({ x: e.clientX, y: e.clientY });
+                setDragStart(coords);
             }
         }
 
@@ -111,12 +123,12 @@ export default function DraggableGrid({
                     i.id === resizing ? { ...i, w: newW, h: newH } : i
                 );
                 setLayout(newLayout);
-                setDragStart({ x: e.clientX, y: e.clientY });
+                setDragStart(coords);
             }
         }
     };
 
-    const handleMouseUp = () => {
+    const handleEnd = () => {
         if (dragging || resizing) {
             saveLayout(layout);
         }
@@ -127,11 +139,15 @@ export default function DraggableGrid({
 
     useEffect(() => {
         if (dragging || resizing) {
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
+            const moveEvents = ['mousemove', 'touchmove'];
+            const endEvents = ['mouseup', 'touchend'];
+
+            moveEvents.forEach(ev => document.addEventListener(ev, handleMove as any, { passive: false }));
+            endEvents.forEach(ev => document.addEventListener(ev, handleEnd));
+
             return () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
+                moveEvents.forEach(ev => document.removeEventListener(ev, handleMove as any));
+                endEvents.forEach(ev => document.removeEventListener(ev, handleEnd));
             };
         }
     }, [dragging, resizing, dragStart, layout]);
@@ -144,9 +160,11 @@ export default function DraggableGrid({
             top: `${item.y * (rowHeight + gap)}px`,
             width: `${item.w * colWidth + (item.w - 1) * gap}px`,
             height: `${item.h * rowHeight + (item.h - 1) * gap}px`,
-            transition: dragging === item.id || resizing === item.id ? 'none' : 'all 120ms ease-out',
-            opacity: dragging === item.id ? 0.8 : 1,
-            zIndex: dragging === item.id || resizing === item.id ? 1000 : 1,
+            transition: dragging === item.id || resizing === item.id ? 'none' : 'all 300ms cubic-bezier(0.25, 0.8, 0.25, 1)',
+            opacity: dragging === item.id ? 0.9 : 1,
+            zIndex: dragging === item.id || resizing === item.id ? 50 : 1,
+            scale: dragging === item.id ? '1.02' : '1',
+            boxShadow: dragging === item.id ? '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' : undefined
         };
     };
 
@@ -156,38 +174,47 @@ export default function DraggableGrid({
     return (
         <div
             ref={containerRef}
-            className="relative w-full"
+            className="relative w-full transition-all duration-300"
             style={{ height: `${containerHeight}px`, minHeight: '400px' }}
         >
             {layout.map(item => (
                 <div
                     key={item.id}
                     style={getItemStyle(item)}
-                    className={`bg-card border rounded-[12px] shadow-[0_6px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.35)] overflow-hidden ${resizing === item.id ? 'border-blue-500' : 'border-border/60'
-                        } ${dragging === item.id ? 'shadow-2xl' : ''}`}
+                    className={`bg-card border rounded-[12px] overflow-hidden group 
+                        ${resizing === item.id ? 'border-primary ring-2 ring-primary/20' : 'border-border/60'} 
+                        ${isEditable ? 'cursor-grab active:cursor-grabbing hover:border-primary/50' : ''}
+                    `}
                 >
-                    {/* Drag Handle */}
-                    <div
-                        onMouseDown={(e) => handleDragStart(e, item.id)}
-                        className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-muted/50 cursor-move z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Arrastar"
-                    >
-                        <GripVertical size={16} className="text-muted-foreground" />
-                    </div>
+                    {/* Drag Handle - Only visible in Edit Mode */}
+                    {isEditable && (
+                        <div
+                            onMouseDown={(e) => handleDragStart(e, item.id)}
+                            onTouchStart={(e) => handleDragStart(e, item.id)}
+                            className="absolute top-2 right-2 p-1.5 rounded-md bg-background/80 hover:bg-muted cursor-grab active:cursor-grabbing z-20 shadow-sm border border-border/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <GripVertical size={16} className="text-muted-foreground" />
+                        </div>
+                    )}
 
                     {/* Content */}
-                    <div className="h-full w-full overflow-auto p-6 group">
-                        {item.content}
+                    <div className={`h-full w-full overflow-hidden ${isEditable ? 'pointer-events-none select-none' : ''}`}>
+                        {/* Wrap content in a div that handles internal scroll if not editing */}
+                        <div className="h-full w-full overflow-y-auto custom-scrollbar p-0">
+                            {item.content}
+                        </div>
                     </div>
 
-                    {/* Resize Handle */}
-                    <div
-                        onMouseDown={(e) => handleResizeStart(e, item.id)}
-                        className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-50"
-                        title="Redimensionar"
-                    >
-                        <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-blue-500 rounded-br" />
-                    </div>
+                    {/* Resize Handle - Only visible in Edit Mode */}
+                    {isEditable && (
+                        <div
+                            onMouseDown={(e) => handleResizeStart(e, item.id)}
+                            onTouchStart={(e) => handleResizeStart(e, item.id)}
+                            className="absolute bottom-0 right-0 w-8 h-8 cursor-nwse-resize z-20 flex items-end justify-end p-1.5 hover:bg-muted/10 rounded-tl-xl transition-colors"
+                        >
+                            <div className="w-2.5 h-2.5 border-r-2 border-b-2 border-primary/50 rounded-br-[2px]" />
+                        </div>
+                    )}
                 </div>
             ))}
         </div>

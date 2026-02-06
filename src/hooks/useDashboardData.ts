@@ -86,6 +86,38 @@ export function useDashboardData() {
         }
     }, [deleteActivity]);
 
+    // --- Layout State Management ---
+    const [layout, setLayout] = useState<GridItem[]>(() => {
+        try {
+            const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved) as GridItem[];
+                // Merge with default to ensure any new widgets added in future updates appear
+                // This logic prioritizes saved positions but adds missing default items
+                const validItems = DEFAULT_LAYOUT.map(def => {
+                    const savedItem = parsed.find(p => p.id === def.id);
+                    return savedItem ? { ...def, ...savedItem, content: undefined } : def;
+                });
+                return validItems;
+            }
+        } catch (e) {
+            console.error('Error loading layout', e);
+        }
+        return DEFAULT_LAYOUT;
+    });
+
+    const saveLayout = useCallback((newLayout: GridItem[]) => {
+        // Strip content property before saving to avoid circular refs or huge storage usage
+        const cleanLayout = newLayout.map(({ content, ...rest }) => rest);
+        localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(cleanLayout));
+        setLayout(newLayout);
+    }, []);
+
+    const resetLayout = useCallback(() => {
+        localStorage.removeItem(LAYOUT_STORAGE_KEY);
+        setLayout(DEFAULT_LAYOUT);
+    }, []);
+
     return {
         stats: {
             completedTodayCount,
@@ -106,8 +138,11 @@ export function useDashboardData() {
             handleActivityGoalChange,
             handleToggleActivity,
             handleDeleteActivity,
-            navigate
+            navigate,
+            saveLayout,
+            resetLayout
         },
+        layout, // Export current state
         DEFAULT_LAYOUT,
         LAYOUT_STORAGE_KEY
     };

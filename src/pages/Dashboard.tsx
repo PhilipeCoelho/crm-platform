@@ -1,40 +1,21 @@
 import { useDashboardData } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, ReactNode, useMemo } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3 } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
-import DashboardGrid, { GridItem } from '@/components/dashboard/DashboardGrid';
+import DraggableGrid from '@/components/ui/DraggableGrid'; // Switched to DraggableGrid
+import { GridItem } from '@/components/dashboard/DashboardGrid'; // Keep type
 
 export default function Dashboard() {
     const {
         stats,
         lists,
         actions,
-        DEFAULT_LAYOUT,
-        LAYOUT_STORAGE_KEY
+        layout, // Now using live layout state
     } = useDashboardData();
 
     const [isNewActivityModalOpen, setIsNewActivityModalOpen] = useState(false);
-
-    // Layout State - Simplified for stability (Read-Only Grid for now to solve resize bugs)
-    // We can re-introduce D&D once the Grid is stable.
-    const layout = useMemo(() => {
-        try {
-            const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
-            if (saved) {
-                // Merge saved layout with defaults to ensure all items exist
-                const parsed = JSON.parse(saved) as GridItem[];
-                return DEFAULT_LAYOUT.map(def => {
-                    const savedItem = parsed.find(p => p.id === def.id);
-                    return savedItem ? { ...def, ...savedItem } : def;
-                });
-            }
-        } catch (e) {
-            console.error('Error loading layout', e);
-        }
-        return DEFAULT_LAYOUT;
-    }, [DEFAULT_LAYOUT, LAYOUT_STORAGE_KEY]);
-
+    const [isEditMode, setIsEditMode] = useState(false);
 
     // --- Card Content Factories ---
     const cardContents: Record<string, ReactNode> = {
@@ -175,33 +156,61 @@ export default function Dashboard() {
         ),
     };
 
-    const gridItems = layout.map((item) => ({
+    const gridItems = useMemo(() => layout.map((item) => ({
         ...item,
         content: cardContents[item.id] || null
-    }));
+    })), [layout, cardContents]);
 
     return (
         <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+                <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Minha Agenda</h1>
                         <p className="text-muted-foreground mt-1 text-sm">Foque no que precisa ser feito hoje.</p>
                     </div>
-                    <button
-                        onClick={() => setIsNewActivityModalOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95"
-                    >
-                        <Plus size={18} />
-                        Nova Atividade
-                    </button>
+
+                    <div className="flex items-center gap-2">
+                        {/* Edit Mode Toggle */}
+                        {isEditMode ? (
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
+                                <button
+                                    onClick={() => { actions.resetLayout(); setIsEditMode(false); }}
+                                    className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
+                                >
+                                    <RotateCcw size={16} /> Reseta
+                                </button>
+                                <button
+                                    onClick={() => setIsEditMode(false)}
+                                    className="px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 rounded-lg shadow-sm flex items-center gap-2 transition-all"
+                                >
+                                    <Save size={16} /> Salvar & Sair
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsEditMode(true)}
+                                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg flex items-center gap-2 transition-colors"
+                            >
+                                <LayoutGrid size={16} /> Organizar Cards
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => setIsNewActivityModalOpen(true)}
+                            className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95 ml-2"
+                        >
+                            <Plus size={18} />
+                            Nova Atividade
+                        </button>
+                    </div>
                 </div>
 
                 {/* Main Content Area */}
                 <div className="space-y-8">
 
-                    {/* Alerts Section */}
+                    {/* Alerts Section (Keep static) */}
                     {(lists.overdueActivities.length > 0 || lists.dealsWithoutAction.length > 0) && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {lists.overdueActivities.length > 0 && (
@@ -251,11 +260,15 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    {/* Dashboard Grid */}
-                    <DashboardGrid
-                        items={gridItems}
-                        rowHeight={120} // Adjusted for better visual density
-                    />
+                    {/* Draggable Dashboard Grid */}
+                    <div className={isEditMode ? 'ring-2 ring-primary/20 rounded-xl p-2 bg-muted/20 border border-dashed border-primary/30 transition-all' : ''}>
+                        <DraggableGrid
+                            items={gridItems}
+                            onLayoutChange={actions.saveLayout}
+                            isEditable={isEditMode}
+                            rowHeight={120}
+                        />
+                    </div>
                 </div>
 
                 <NewActivityModal
