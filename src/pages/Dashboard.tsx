@@ -249,6 +249,9 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {/* Date Filter */}
+                        <MonthFilter selected={stats.monthFilter} onToggle={actions.toggleMonthFilter} />
+
                         {/* Edit Mode Toggle */}
                         {isEditMode ? (
                             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
