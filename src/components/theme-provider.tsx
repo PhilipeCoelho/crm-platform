@@ -22,7 +22,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
 export function ThemeProvider({
     children,
-    defaultTheme = "system",
+    defaultTheme = "dark",
     storageKey = "crm_theme_mode",
 }: ThemeProviderProps) {
     const [theme, setTheme] = useState<Theme>(
