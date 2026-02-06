@@ -1,10 +1,10 @@
 import { useDashboardData } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, ReactNode, useMemo, useRef, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw, XCircle, Filter, ChevronDown } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw, XCircle, ChevronDown } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import DraggableGrid from '@/components/ui/DraggableGrid'; // Switched to DraggableGrid
-import { format, subMonths, parseISO } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m: string) => void }) {
