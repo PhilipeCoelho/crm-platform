@@ -1,5 +1,5 @@
 import { Activity } from '@/types/schema';
-import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock } from 'lucide-react';
+import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil } from 'lucide-react';
 import { format, isBefore, isToday, startOfDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -7,6 +7,7 @@ interface Props {
     activities: Activity[];
     onToggle: (id: string) => void;
     onDelete?: (id: string) => void;
+    onEdit?: (activity: Activity) => void;
 }
 
 const typeIcons = {
@@ -103,6 +104,15 @@ export default function ActivityList({ activities, onToggle, onDelete }: Props) 
                                                 {status === 'today' ? 'Hoje' : format(parseISO(activity.dueDate), "dd MMM", { locale: ptBR })}
                                             </span>
                                         </div>
+                                    )}
+                                    {onEdit && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onEdit(activity); }}
+                                            className="opacity-0 group-hover/item:opacity-100 p-1 hover:bg-blue-50 hover:text-blue-500 rounded text-muted-foreground transition-all"
+                                            title="Editar atividade"
+                                        >
+                                            <Pencil size={14} />
+                                        </button>
                                     )}
                                     {onDelete && (
                                         <button
