@@ -114,20 +114,28 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             </div>
 
             <div className="flex gap-4">
-                <div className="flex-1 flex items-center gap-2 border rounded-md p-2 bg-background">
+                <div
+                    className="flex-1 flex items-center gap-2 border rounded-md p-2 bg-background cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => dateInputRef.current?.showPicker()}
+                >
                     <Calendar size={16} className="text-muted-foreground" />
                     <input
+                        ref={dateInputRef}
                         type="date"
-                        className="bg-transparent outline-none flex-1 text-sm"
+                        className="bg-transparent outline-none flex-1 text-sm cursor-pointer"
                         value={date}
                         onChange={e => setDate(e.target.value)}
                     />
                 </div>
-                <div className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background">
+                <div
+                    className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => timeInputRef.current?.showPicker()}
+                >
                     <Clock size={16} className="text-muted-foreground" />
                     <input
+                        ref={timeInputRef}
                         type="time"
-                        className="bg-transparent outline-none flex-1 text-sm"
+                        className="bg-transparent outline-none flex-1 text-sm cursor-pointer"
                         value={time}
                         onChange={e => setTime(e.target.value)}
                     />
