@@ -38,21 +38,35 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
         // Auto-focus logic could go here
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!title.trim()) return;
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-        addActivity({
-            type: selectedType as any,
-            title,
-            dealId: deal.id,
-            dueDate: `${date}T${time}:00.000Z`,
-            duration,
-            completed: false
-        });
-        setTitle('');
-        setSelectedType('task'); // Reset to task or keep? Keep is usually better workflow but resetting to default is safer.
-        if (onSave) onSave();
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!title.trim() || isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            // Map UI types to Schema types to strictly satisfy DB constraints
+            let validType = selectedType;
+            if (selectedType === 'lunch') validType = 'meeting';
+            if (selectedType === 'deadline') validType = 'task';
+
+            await addActivity({
+                type: validType as any,
+                title,
+                dealId: deal.id,
+                dueDate: `${date}T${time}:00.000Z`,
+                duration,
+                completed: false
+            });
+            setTitle('');
+            setSelectedType('task');
+            if (onSave) onSave();
+        } catch (error) {
+            console.error("Error creating activity:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -132,11 +146,11 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
             <div className="flex justify-end">
                 <button
                     type="submit"
-                    disabled={!title.trim()}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium text-sm flex items-center gap-2 shadow-sm"
+                    disabled={!title.trim() || isSubmitting}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium text-sm flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <CheckCircle2 size={16} />
-                    Agendar {QUICK_ACTIONS.find(a => a.type === selectedType)?.label}
+                    {isSubmitting ? 'Agendando...' : `Agendar ${QUICK_ACTIONS.find(a => a.type === selectedType)?.label}`}
                 </button>
             </div>
         </form>
