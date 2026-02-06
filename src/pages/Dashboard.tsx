@@ -1,9 +1,76 @@
 import { useDashboardData } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
-import { useState, ReactNode, useMemo } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw, XCircle } from 'lucide-react';
+import { useState, ReactNode, useMemo, useRef, useEffect } from 'react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw, XCircle, Filter, ChevronDown } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import DraggableGrid from '@/components/ui/DraggableGrid'; // Switched to DraggableGrid
+import { format, subMonths, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m: string) => void }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    // Generate last 12 months
+    const months = useMemo(() => {
+        return Array.from({ length: 12 }, (_, i) => {
+            const d = subMonths(new Date(), i);
+            return {
+                id: format(d, 'yyyy-MM'),
+                label: format(d, 'MMMM', { locale: ptBR }),
+                year: format(d, 'yyyy')
+            };
+        });
+    }, []);
+
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const selectedLabels = selected
+        .map(s => {
+            const m = months.find(x => x.id === s);
+            return m ? m.label.substring(0, 3) : s;
+        })
+        .join(', ');
+
+    return (
+        <div className="relative z-50" ref={ref}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-secondary/50 hover:bg-secondary text-foreground rounded-lg transition-colors border border-border/50"
+            >
+                <Calendar size={16} className="text-muted-foreground" />
+                <span className="capitalize">{selectedLabels || 'Filtrar Data'}</span>
+                <ChevronDown size={14} className="opacity-50" />
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-xl overflow-hidden p-1 grid grid-cols-2 gap-1 animate-in fade-in zoom-in-95 duration-200">
+                    {months.map(m => (
+                        <button
+                            key={m.id}
+                            onClick={() => onToggle(m.id)}
+                            className={`
+                                text-xs px-3 py-2 rounded-lg capitalize flex items-center justify-between transition-colors
+                                ${selected.includes(m.id)
+                                    ? 'bg-primary text-primary-foreground font-medium shadow-sm'
+                                    : 'hover:bg-muted text-muted-foreground hover:text-foreground'}
+                            `}
+                        >
+                            <span>{m.label}</span>
+                            {selected.includes(m.id) && <span className="opacity-60 text-[10px]">{m.year}</span>}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function Dashboard() {
     const {
