@@ -33,18 +33,27 @@ export default function NoteTab({ deal, onSave }: NoteTabProps) {
         }, 0);
     };
 
-    const handleSave = () => {
-        if (!content.trim()) return;
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-        addActivity({
-            type: 'note',
-            title: content,
-            dealId: deal.id,
-            completed: true,
-            dueDate: new Date().toISOString()
-        });
-        setContent('');
-        if (onSave) onSave();
+    const handleSave = async () => {
+        if (!content.trim() || isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            await addActivity({
+                type: 'note',
+                title: content,
+                dealId: deal.id,
+                completed: true,
+                dueDate: new Date().toISOString()
+            });
+            setContent('');
+            if (onSave) onSave();
+        } catch (error) {
+            console.error("Error saving note:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -71,10 +80,10 @@ export default function NoteTab({ deal, onSave }: NoteTabProps) {
                 <span className="text-xs text-muted-foreground px-2">Suporta Markdown básico</span>
                 <button
                     onClick={handleSave}
-                    disabled={!content.trim()}
+                    disabled={!content.trim() || isSubmitting}
                     className="px-4 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md font-medium text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Salvar Nota
+                    {isSubmitting ? 'Salvando...' : 'Salvar Nota'}
                 </button>
             </div>
         </div>
