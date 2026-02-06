@@ -45,13 +45,20 @@ export default function Timeline({ activities, onReopen }: Props) {
                     </div>
 
                     <div className="mt-1 text-xs text-muted-foreground">
-                        {activity.type === 'call' && 'Chamada realizada'}
-                        {activity.type === 'email' && 'Email enviado'}
-                        {activity.type === 'meeting' && 'Reunião'}
-                        {activity.type === 'task' && 'Tarefa concluída'}
-                        {activity.type === 'note' && 'Nota adicionada'}
-                        {activity.duration && <span className="ml-1">• Duração: {activity.duration}</span>}
-                        {activity.result && <span className="block mt-1 text-foreground italic">"{activity.result}"</span>}
+                        {activity.type === 'note' ? (
+                            <div className="mt-2 p-3 bg-yellow-50/50 border border-yellow-100 rounded text-foreground/90 whitespace-pre-wrap font-normal">
+                                {activity.title}
+                            </div>
+                        ) : (
+                            <>
+                                {activity.type === 'call' && 'Chamada realizada'}
+                                {activity.type === 'email' && 'Email enviado'}
+                                {activity.type === 'meeting' && 'Reunião'}
+                                {activity.type === 'task' && 'Tarefa concluída'}
+                                {activity.duration && <span className="ml-1">• Duração: {activity.duration}</span>}
+                                {activity.result && <span className="block mt-1 text-foreground italic">"{activity.result}"</span>}
+                            </>
+                        )}
                     </div>
                 </div>
             ))}
