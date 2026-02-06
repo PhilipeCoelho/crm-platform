@@ -1,7 +1,7 @@
 import { useDashboardData } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, ReactNode, useMemo, useRef, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw, XCircle, ChevronDown } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import DraggableGrid from '@/components/ui/DraggableGrid'; // Switched to DraggableGrid
 import { format, subMonths } from 'date-fns';
@@ -81,7 +81,6 @@ export default function Dashboard() {
     } = useDashboardData();
 
     const [isNewActivityModalOpen, setIsNewActivityModalOpen] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
 
     // --- Card Content Factories ---
     const cardContents: Record<string, ReactNode> = {
@@ -252,31 +251,6 @@ export default function Dashboard() {
                         {/* Date Filter */}
                         <MonthFilter selected={stats.monthFilter} onToggle={actions.toggleMonthFilter} />
 
-                        {/* Edit Mode Toggle */}
-                        {isEditMode ? (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
-                                <button
-                                    onClick={() => { actions.resetLayout(); setIsEditMode(false); }}
-                                    className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
-                                >
-                                    <RotateCcw size={16} /> Reseta
-                                </button>
-                                <button
-                                    onClick={() => setIsEditMode(false)}
-                                    className="px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 rounded-lg shadow-sm flex items-center gap-2 transition-all"
-                                >
-                                    <Save size={16} /> Salvar & Sair
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => setIsEditMode(true)}
-                                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg flex items-center gap-2 transition-colors"
-                            >
-                                <LayoutGrid size={16} /> Organizar Cards
-                            </button>
-                        )}
-
                         <button
                             onClick={() => setIsNewActivityModalOpen(true)}
                             className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95 ml-2"
@@ -341,11 +315,10 @@ export default function Dashboard() {
                     )}
 
                     {/* Draggable Dashboard Grid */}
-                    <div className={isEditMode ? 'ring-2 ring-primary/20 rounded-xl p-2 bg-muted/20 border border-dashed border-primary/30 transition-all' : ''}>
+                    <div>
                         <DraggableGrid
                             items={gridItems}
                             onLayoutChange={actions.saveLayout}
-                            isEditable={isEditMode}
                             rowHeight={80}
                             gap={16}
                         />
