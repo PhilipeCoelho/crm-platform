@@ -4,7 +4,6 @@ import { useState, ReactNode, useMemo } from 'react';
 import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import DraggableGrid from '@/components/ui/DraggableGrid'; // Switched to DraggableGrid
-import { GridItem } from '@/components/dashboard/DashboardGrid'; // Keep type
 
 export default function Dashboard() {
     const {
