@@ -216,7 +216,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     );
 }
 
-function App() {
+function CRMApp() {
     const { user, loading } = useSupabaseAuth();
     const [selectedCurrency] = useState<Currency>(currencies[0]);
 
@@ -259,4 +259,4 @@ function App() {
 
 }
 
-export default App;
+export default CRMApp;
