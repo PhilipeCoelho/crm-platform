@@ -54,10 +54,10 @@ export default function DraggableGrid({
         setCurrentLayout(layouts.lg);
     }, [layouts]);
 
-    const handleLayoutChange = (layout: any[]) => {
+    const handleLayoutChange = (layout: any) => {
         setCurrentLayout(layout);
         // Map back to our GridItem format for persistence
-        const newItems = layout.map(l => {
+        const newItems = layout.map((l: any) => {
             const original = items.find(i => i.id === l.i);
             return {
                 id: l.i,
