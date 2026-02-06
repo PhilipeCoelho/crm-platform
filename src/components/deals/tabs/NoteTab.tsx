@@ -40,7 +40,8 @@ export default function NoteTab({ deal, onSave }: NoteTabProps) {
             type: 'note',
             title: content,
             dealId: deal.id,
-            completed: true
+            completed: true,
+            dueDate: new Date().toISOString()
         });
         setContent('');
         if (onSave) onSave();
