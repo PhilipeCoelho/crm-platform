@@ -6,7 +6,7 @@ import { GripVertical } from 'lucide-react';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+const ResponsiveGridLayout = WidthProvider(Responsive) as any;
 
 export interface GridItem {
     id: string;
