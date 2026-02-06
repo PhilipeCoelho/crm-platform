@@ -28,7 +28,7 @@ const parseCurrency = (value: string): number => {
 };
 
 export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToEdit, currency = 'BRL' }: NewDealModalProps) {
-    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, addContact } = useCRM();
+    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, addContact, updateContact } = useCRM();
 
     // --- Form State ---
     const [title, setTitle] = useState('');
@@ -177,8 +177,14 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                 finalContactId = newCt.id;
             }
         } else if (finalContactId && !dealToEdit) {
-            // Update existing contact info if provided and we are creating a new deal (optional, but good UX)
-            // Skipped for now to keep it simple, assumes existing contact data is correct
+            // Update existing contact info if different (and provided)
+            // This ensures "detailment of saved contacts" gets updated with new info from the deal form
+            if (phone || email) {
+                await updateContact(finalContactId, {
+                    phone: phone || undefined,
+                    email: email || undefined
+                });
+            }
         }
 
         const dealData = {
