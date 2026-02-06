@@ -56,7 +56,7 @@ const statusStyles = {
     }
 };
 
-export default function ActivityList({ activities, onToggle, onDelete }: Props) {
+export default function ActivityList({ activities, onToggle, onDelete, onEdit }: Props) {
     if (activities.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
