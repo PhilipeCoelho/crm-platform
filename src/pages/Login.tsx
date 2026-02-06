@@ -110,7 +110,7 @@ export default function Login({ onLogin }: Props) {
             <div className="space-y-2 mb-8">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-4">
                     <Sparkles size={12} />
-                    <span>CRM Platform v1.0</span>
+                    <span>CRM Platform v1.3 (Final)</span>
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight text-foreground">
                     {isLogin ? 'Bem-vindo de volta' : 'Comece agora grátis'}
