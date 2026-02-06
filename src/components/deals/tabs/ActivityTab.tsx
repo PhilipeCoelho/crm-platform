@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Deal } from '@/types/schema';
-import { Calendar, Clock, CheckCircle2, Phone, Mail, Users, Utensils, Flag } from 'lucide-react';
+import { CheckCircle2, Phone, Mail, Users, Utensils, Flag } from 'lucide-react';
 
 interface ActivityTabProps {
     deal: Deal;
@@ -28,7 +28,10 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
     const contact = contacts.find(c => c.id === deal.contactId);
     const contactName = contact?.name || 'Cliente';
 
-    // ... (keep handleQuickAction)
+    const handleQuickAction = (action: typeof QUICK_ACTIONS[0]) => {
+        setSelectedType(action.type);
+        setTitle(action.template(contactName));
+    };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,7 +41,6 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
 
         setIsSubmitting(true);
         try {
-            // Map UI types to Schema types to strictly satisfy DB constraints
             let validType = selectedType;
             if (selectedType === 'lunch') validType = 'meeting';
             if (selectedType === 'deadline') validType = 'task';
@@ -48,7 +50,7 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
                 title,
                 dealId: deal.id,
                 dueDate: `${date}T${time}:00.000Z`,
-                duration: Number(duration), // Ensure number
+                duration: duration,
                 completed: false
             });
             setTitle('');
@@ -60,6 +62,8 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
             setIsSubmitting(false);
         }
     };
+
+    // ... render return ...
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-card/50">
