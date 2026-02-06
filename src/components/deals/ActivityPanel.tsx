@@ -178,7 +178,11 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                                 </h3>
                             </div>
                             <div className="pl-4 border-l-2 border-border space-y-4 opacity-75 hover:opacity-100 transition-opacity">
-                                <Timeline activities={historyActivities} onReopen={readOnly ? undefined : handleActivityToggle} />
+                                <Timeline
+                                    activities={historyActivities}
+                                    onReopen={readOnly ? undefined : handleActivityToggle}
+                                    onEdit={readOnly ? undefined : (id, newTitle) => updateActivity(id, { title: newTitle })}
+                                />
                             </div>
                         </section>
                     )}
