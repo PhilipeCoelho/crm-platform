@@ -35,8 +35,9 @@ export default function DraggableGrid({
 }: DraggableGridProps) {
     // Transform our safe GridItem[] to RGL's expected layout format
     // We strictly separate the "Data Layout" from the "Content Map" to avoid RGL mutation issues
-    const layouts = useMemo(() => ({
-        lg: items.map(item => ({
+    // Transform our safe GridItem[] to RGL's expected layout format
+    const layouts = useMemo(() => {
+        const base = items.map(item => ({
             i: item.id,
             x: item.x,
             y: item.y,
@@ -44,20 +45,50 @@ export default function DraggableGrid({
             h: item.h,
             minW: 2,
             minH: 2
-        }))
-    }), [items]);
+        }));
+
+        // Helper to generate column-specific layouts
+        const generateMobileLayout = (cols: number) => {
+            // Sort by Y, then X to ensure vertical stacking order respects visual flow
+            const sorted = [...base].sort((a, b) => {
+                if (a.y === b.y) return a.x - b.x;
+                return a.y - b.y;
+            });
+
+            return sorted.map((item, index) => ({
+                ...item,
+                x: 0, // Always start at left
+                y: index * item.h, // Stack vertically based on height
+                w: cols, // Full width
+            }));
+        };
+
+        return {
+            lg: base,
+            md: base, // Let RGL handle slight resize for MD (10 cols) to avoid aggressive stacking
+            sm: base, // Let RGL handle SM (6 cols) or... actually for 6 cols/tablet, let's keep it fluid.
+            // But for true mobile, force stacking:
+            xs: generateMobileLayout(4),
+            xxs: generateMobileLayout(2)
+        };
+    }, [items]);
 
     // Internal state to track optimistic updates while dragging
-    const [currentLayout, setCurrentLayout] = useState(layouts.lg);
+    const [currentLayouts, setCurrentLayouts] = useState(layouts);
 
     useEffect(() => {
-        setCurrentLayout(layouts.lg);
+        setCurrentLayouts(layouts);
     }, [layouts]);
 
-    const handleLayoutChange = (layout: any) => {
-        setCurrentLayout(layout);
+    const handleLayoutChange = (layout: any, allLayouts: any) => {
+        setCurrentLayouts(allLayouts);
+
+        // We persist based on the LG layout (source of truth) whenever possible
+        // to prevent mobile-specific stacking from overwriting the desktop board structure permanently.
+        const sourceLayout = allLayouts.lg || layout;
+
         // Map back to our GridItem format for persistence
-        const newItems = layout.map((l: any) => {
+        const newItems = sourceLayout.map((l: any) => {
             const original = items.find(i => i.id === l.i);
             return {
                 id: l.i,
@@ -75,7 +106,7 @@ export default function DraggableGrid({
         <div className="w-full min-h-[500px]">
             <ResponsiveGridLayout
                 className="layout"
-                layouts={{ lg: currentLayout }}
+                layouts={currentLayouts}
                 // Breakpoints match standard Tailwind (lg usually at 1200 or 1024, here we default to strict 12 col or responsive)
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
