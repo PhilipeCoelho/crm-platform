@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Deal } from '@/types/schema';
-import { CheckCircle2, Phone, Mail, Users, Utensils, Flag } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Phone, Mail, Users, Utensils, Flag } from 'lucide-react';
 
 interface ActivityTabProps {
     deal: Deal;
@@ -50,7 +50,7 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
                 title,
                 dealId: deal.id,
                 dueDate: `${date}T${time}:00.000Z`,
-                duration: duration,
+                duration: Number(duration),
                 completed: false
             });
             setTitle('');
@@ -63,25 +63,78 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
         }
     };
 
-    // ... render return ...
-
     return (
         <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-card/50">
-            {/* ... title input ... */}
-            <div className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background">
-                <select
-                    className="bg-transparent outline-none flex-1 text-sm appearance-none cursor-pointer"
-                    value={duration}
-                    onChange={e => setDuration(Number(e.target.value))}
-                    title="Duração"
-                >
-                    <option value={15}>15 min</option>
-                    <option value={30}>30 min</option>
-                    <option value={60}>1 hora</option>
-                    <option value={120}>2 horas</option>
-                </select>
+            <div className="space-y-2">
+                <input
+                    type="text"
+                    placeholder="O que você precisa fazer?"
+                    className="w-full p-2 bg-transparent border-b border-border focus:border-primary outline-none font-medium text-lg"
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    autoFocus
+                />
+
+                <div className="flex items-center gap-2 pt-1">
+                    {QUICK_ACTIONS.map(action => {
+                        const Icon = action.icon;
+                        const isSelected = selectedType === action.type;
+                        return (
+                            <button
+                                key={action.type}
+                                type="button"
+                                onClick={() => handleQuickAction(action)}
+                                className={`
+                                    p-2 rounded-full border transition-all flex items-center justify-center
+                                    ${isSelected
+                                        ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-105'
+                                        : 'bg-background text-muted-foreground border-transparent hover:bg-muted hover:scale-110'}
+                                `}
+                                title={action.label}
+                            >
+                                <Icon size={16} />
+                            </button>
+                        );
+                    })}
+                    <span className="text-xs text-muted-foreground ml-2">
+                        {QUICK_ACTIONS.find(a => a.type === selectedType)?.label}
+                    </span>
+                </div>
             </div>
-            {/* ... submit button ... */}
+
+            <div className="flex gap-4">
+                <div className="flex-1 flex items-center gap-2 border rounded-md p-2 bg-background">
+                    <Calendar size={16} className="text-muted-foreground" />
+                    <input
+                        type="date"
+                        className="bg-transparent outline-none flex-1 text-sm"
+                        value={date}
+                        onChange={e => setDate(e.target.value)}
+                    />
+                </div>
+                <div className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background">
+                    <Clock size={16} className="text-muted-foreground" />
+                    <input
+                        type="time"
+                        className="bg-transparent outline-none flex-1 text-sm"
+                        value={time}
+                        onChange={e => setTime(e.target.value)}
+                    />
+                </div>
+                <div className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background">
+                    <select
+                        className="bg-transparent outline-none flex-1 text-sm appearance-none cursor-pointer"
+                        value={duration}
+                        onChange={e => setDuration(Number(e.target.value))}
+                        title="Duração"
+                    >
+                        <option value={15}>15 min</option>
+                        <option value={30}>30 min</option>
+                        <option value={60}>1 hora</option>
+                        <option value={120}>2 horas</option>
+                    </select>
+                </div>
+            </div>
 
             <div className="flex justify-end">
                 <button
