@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Deal } from '@/types/schema';
 import { Calendar, Clock, CheckCircle2, Phone, Mail, Users, Utensils, Flag } from 'lucide-react';
 
@@ -31,6 +31,9 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     const [time, setTime] = useState(initialData?.time || '10:00');
     const [duration, setDuration] = useState(initialData?.duration || 30);
     const [selectedType, setSelectedType] = useState(initialData?.type || 'task');
+
+    const dateInputRef = useRef<HTMLInputElement>(null);
+    const timeInputRef = useRef<HTMLInputElement>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
