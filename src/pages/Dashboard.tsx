@@ -1,7 +1,7 @@
 import { useDashboardData } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, ReactNode, useMemo } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, LayoutGrid, Save, RotateCcw, XCircle } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import DraggableGrid from '@/components/ui/DraggableGrid'; // Switched to DraggableGrid
 
@@ -123,6 +123,17 @@ export default function Dashboard() {
                 <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Negócios Ganhos</p>
                     <p className="text-2xl font-bold text-foreground mt-0.5">{stats.wonDealsCount}</p>
+                </div>
+            </div>
+        ),
+        lostDeals: (
+            <div className="h-full p-4 flex items-center gap-4">
+                <div className="p-3 bg-red-500/10 rounded-full text-red-500">
+                    <XCircle size={22} />
+                </div>
+                <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Negócios Perdidos</p>
+                    <p className="text-2xl font-bold text-foreground mt-0.5">{stats.lostDealsCount}</p>
                 </div>
             </div>
         ),
