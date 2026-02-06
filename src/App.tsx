@@ -256,6 +256,7 @@ function App() {
             </BrowserRouter>
         </CRMProvider>
     );
+
 }
 
 export default App;
