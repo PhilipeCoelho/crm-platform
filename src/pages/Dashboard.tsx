@@ -245,7 +245,7 @@ export default function Dashboard() {
                                 <div className="flex items-center justify-between mb-2 w-full">
                                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <Target size={16} className="text-blue-500" />
-                                        {isTodayView ? 'Meta Diária' : 'Produtividade'}
+                                        {isTodayView ? 'Meta Diária' : 'Prospecção'}
                                     </p>
                                     <ProductivityFilterSelector
                                         value={stats.productivityFilter}
