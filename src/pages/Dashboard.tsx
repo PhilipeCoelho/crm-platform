@@ -231,12 +231,62 @@ export default function Dashboard() {
                 </div>
             </div>
         ),
+        lateActivities: (
+            <div className="h-full bg-red-500/5 p-4 flex flex-col">
+                <div className="flex items-center gap-2 mb-4 shrink-0">
+                    <h3 className="text-red-500 font-semibold flex items-center gap-2">
+                        <AlertTriangle size={18} />
+                        Atrasadas ({lists.overdueActivities.length})
+                    </h3>
+                </div>
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0">
+                    <ActivityList
+                        activities={lists.overdueActivities}
+                        onToggle={actions.handleToggleActivity}
+                        onDelete={actions.handleDeleteActivity}
+                    />
+                </div>
+            </div>
+        ),
+        noActionDeals: (
+            <div className="h-full p-4 flex flex-col">
+                <div className="flex items-center gap-2 mb-4 shrink-0">
+                    <div className="p-1.5 bg-yellow-500/10 rounded-md text-yellow-500">
+                        <AlertTriangle size={16} />
+                    </div>
+                    <h3 className="font-semibold text-foreground">Atenção Necessária ({lists.dealsWithoutAction.length})</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0 space-y-2">
+                    {lists.dealsWithoutAction.map(deal => (
+                        <div
+                            key={deal.id}
+                            onClick={() => actions.navigate(`/deals/${deal.id}`)}
+                            className="p-3 bg-secondary/50 hover:bg-secondary border border-border/50 rounded-lg cursor-pointer transition-all group flex justify-between items-center"
+                        >
+                            <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">{deal.title}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: deal.currency }).format(deal.value)}</span>
+                                <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        ),
     };
 
-    const gridItems = useMemo(() => layout.map((item) => ({
-        ...item,
-        content: cardContents[item.id] || null
-    })), [layout, cardContents]);
+    const gridItems = useMemo(() => {
+        return layout
+            .filter(item => {
+                if (item.id === 'lateActivities' && lists.overdueActivities.length === 0) return false;
+                if (item.id === 'noActionDeals' && lists.dealsWithoutAction.length === 0) return false;
+                return true;
+            })
+            .map((item) => ({
+                ...item,
+                content: cardContents[item.id] || null
+            }));
+    }, [layout, cardContents, lists.overdueActivities.length, lists.dealsWithoutAction.length]);
 
     return (
         <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
@@ -290,56 +340,6 @@ export default function Dashboard() {
 
                 {/* Main Content Area */}
                 <div className="space-y-8">
-
-                    {/* Alerts Section (Keep static) */}
-                    {(lists.overdueActivities.length > 0 || lists.dealsWithoutAction.length > 0) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {lists.overdueActivities.length > 0 && (
-                                <div className="bg-red-500/5 border border-red-500/20 rounded-[12px] p-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                                    <h3 className="text-red-500 font-semibold mb-4 flex items-center gap-2">
-                                        <AlertTriangle size={18} />
-                                        Atrasadas ({lists.overdueActivities.length})
-                                    </h3>
-                                    <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                                        <ActivityList
-                                            activities={lists.overdueActivities}
-                                            onToggle={actions.handleToggleActivity}
-                                            onDelete={actions.handleDeleteActivity}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {lists.dealsWithoutAction.length > 0 && (
-                                <div className="bg-card border border-yellow-500/50 rounded-[12px] p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="p-1.5 bg-yellow-500/10 rounded-md text-yellow-500">
-                                            <AlertTriangle size={16} />
-                                        </div>
-                                        <h3 className="font-semibold text-foreground">Atenção Necessária</h3>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        {lists.dealsWithoutAction.length} negócios ativos sem próxima ação.
-                                    </p>
-                                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {lists.dealsWithoutAction.map(deal => (
-                                            <div
-                                                key={deal.id}
-                                                onClick={() => actions.navigate(`/deals/${deal.id}`)}
-                                                className="p-3 bg-secondary/50 hover:bg-secondary border border-border/50 rounded-lg cursor-pointer transition-all group flex justify-between items-center"
-                                            >
-                                                <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">{deal.title}</span>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-xs text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: deal.currency }).format(deal.value)}</span>
-                                                    <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
 
                     {/* Draggable Dashboard Grid */}
                     <div className={isEditMode ? 'ring-2 ring-primary/20 rounded-xl p-2 bg-muted/20 border border-dashed border-primary/30 transition-all' : ''}>
