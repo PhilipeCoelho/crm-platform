@@ -124,7 +124,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
             </div>
 
             {/* Content Area */}
-            <div className="p-3 bg-muted/10 border-b border-border shadow-inner shrink-0">
+            <div className="p-4 border-b border-border shrink-0">
                 {renderContent()}
             </div>
 

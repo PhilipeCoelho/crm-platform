@@ -19,13 +19,11 @@ export default function ActivityTab({ deal, onSave }: ActivityTabProps) {
     };
 
     return (
-        <div className="p-4 border rounded-lg bg-card/50">
-            <ActivityForm
-                deal={deal}
-                onSave={handleSave}
-                contactName={contactName}
-                submitLabel="Agendar"
-            />
-        </div>
+        <ActivityForm
+            deal={deal}
+            onSave={handleSave}
+            contactName={contactName}
+            submitLabel="Agendar"
+        />
     );
 }

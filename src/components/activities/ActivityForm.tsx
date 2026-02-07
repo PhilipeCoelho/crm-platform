@@ -23,11 +23,11 @@ export interface ActivityFormProps {
 }
 
 const QUICK_ACTIONS = [
+    { type: 'message', icon: MessageSquare, label: 'Mensagem', template: (name: string) => `Mensagem para ${name}` },
     { type: 'call', icon: Phone, label: 'Ligação', template: (name: string) => `Ligar para ${name}` },
     { type: 'email', icon: Mail, label: 'Email', template: (name: string) => `Email para ${name}` },
     { type: 'meeting', icon: Users, label: 'Reunião', template: (name: string) => `Reunião com ${name}` },
     { type: 'task', icon: CheckCircle2, label: 'Tarefa', template: () => `Tarefa:` },
-    { type: 'message', icon: MessageSquare, label: 'Mensagem', template: (name: string) => `Mensagem para ${name}` },
 ];
 
 export default function ActivityForm({ deal, onSave, initialData, contactName = 'Cliente', submitLabel = 'Agendar' }: ActivityFormProps) {
