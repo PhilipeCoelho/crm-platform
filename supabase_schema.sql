@@ -42,6 +42,7 @@ create table deals (
   priority text,
   stage_id text, -- 'lead', 'qualified', etc. (mapped in frontend)
   status text default 'active', -- 'active', 'won', 'lost'
+  position float8 default 0, -- Added for Order
   expected_date timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
