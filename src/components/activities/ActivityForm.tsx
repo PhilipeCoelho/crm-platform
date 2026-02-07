@@ -87,7 +87,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-2 p-4">
             <div className="space-y-1.5">
                 <input
                     type="text"
