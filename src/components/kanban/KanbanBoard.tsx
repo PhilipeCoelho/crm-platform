@@ -267,7 +267,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     onDragOver={onDragOver}
                 >
                     <div className="h-full w-full overflow-x-auto overflow-y-hidden">
-                        <div className="flex h-full min-w-max px-6 pb-4 pt-4 gap-6 mx-auto max-w-[1600px]">
+                        <div className="flex h-full min-w-max px-4 pb-2 pt-2 gap-4 mx-auto max-w-[1600px]">
                             <SortableContext items={columnsId}>
                                 {columns.map((col) => (
                                     <KanbanColumn

@@ -53,7 +53,7 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
             <div
                 ref={setNodeRef}
                 style={style}
-                className="bg-muted/50 w-[300px] h-[500px] max-h-[500px] rounded-lg border-2 border-primary opacity-40 shrink-0"
+                className="bg-muted/50 w-[260px] h-[500px] max-h-[500px] rounded-lg border-2 border-primary opacity-40 shrink-0"
             />
         );
     }
@@ -70,19 +70,19 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
         <div
             ref={setNodeRef}
             style={style}
-            className="flex flex-col rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] transition-colors h-full min-w-[300px] w-[300px] shrink-0 overflow-hidden"
+            className="flex flex-col rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] transition-colors h-full min-w-[260px] w-[260px] shrink-0 overflow-hidden"
         >
             <div
                 {...attributes}
                 {...listeners}
-                className="p-3 flex flex-col gap-1.5 shrink-0 cursor-grab group/header bg-slate-100/50 dark:bg-transparent border-b border-transparent dark:border-white/[0.05]"
+                className="p-2 px-3 flex flex-col gap-1 shrink-0 cursor-grab group/header bg-slate-100/50 dark:bg-transparent border-b border-transparent dark:border-white/[0.05]"
             >
                 {/* Header Row: Title & Count */}
                 <div className="flex items-center justify-between w-full">
                     <InlineEditableField
                         value={column.title}
                         onSave={(val) => updateColumn(column.id, val)}
-                        className="text-[14px] font-semibold text-foreground w-full truncate"
+                        className="text-[13px] font-semibold text-foreground w-full truncate"
                         placeholder="Nome da etapa"
                     />
                     <span className="text-[11px] font-medium text-muted-foreground/70 bg-background/80 px-1.5 py-0.5 rounded-md border border-border/40">

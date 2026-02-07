@@ -75,7 +75,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
                 <nav className="flex-1 flex flex-col w-full space-y-2">
                     <Link to="/dashboard" title={!isSidebarExpanded ? "Dashboard" : ""}
-                        className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
+                        className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[36px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'dashboard'
                                 ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
@@ -83,13 +83,13 @@ function Layout({ children }: { children: React.ReactNode }) {
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
-                            <LayoutDashboard strokeWidth={currentView === 'dashboard' ? 2.5 : 2} size={20} />
+                            <LayoutDashboard strokeWidth={currentView === 'dashboard' ? 2.5 : 2} size={18} />
                         </div>
-                        <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto delay-75' : 'opacity-0 w-0'}`}>Dashboard</span>
+                        <span className={`text-[13px] whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto delay-75' : 'opacity-0 w-0'}`}>Dashboard</span>
                     </Link>
 
                     <Link to="/pipeline" title={!isSidebarExpanded ? "Pipeline" : ""}
-                        className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
+                        className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[36px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'pipelines'
                                 ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
@@ -97,13 +97,13 @@ function Layout({ children }: { children: React.ReactNode }) {
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
-                            <CheckSquare strokeWidth={currentView === 'pipelines' ? 2.5 : 2} size={20} />
+                            <CheckSquare strokeWidth={currentView === 'pipelines' ? 2.5 : 2} size={18} />
                         </div>
-                        <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto delay-75' : 'opacity-0 w-0'}`}>Pipeline</span>
+                        <span className={`text-[13px] whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto delay-75' : 'opacity-0 w-0'}`}>Pipeline</span>
                     </Link>
 
                     <Link to="/contacts" title={!isSidebarExpanded ? "Contatos" : ""}
-                        className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
+                        className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[36px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'contacts'
                                 ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
@@ -111,9 +111,9 @@ function Layout({ children }: { children: React.ReactNode }) {
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
-                            <Users strokeWidth={currentView === 'contacts' ? 2.5 : 2} size={20} />
+                            <Users strokeWidth={currentView === 'contacts' ? 2.5 : 2} size={18} />
                         </div>
-                        <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto delay-75' : 'opacity-0 w-0'}`}>Contatos</span>
+                        <span className={`text-[13px] whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'opacity-100 w-auto delay-75' : 'opacity-0 w-0'}`}>Contatos</span>
                     </Link>
                 </nav>
 

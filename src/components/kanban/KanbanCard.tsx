@@ -87,13 +87,13 @@ function DealCard({ deal, currency, onPreview }: Props) {
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className={`group relative bg-white dark:bg-[#111418] p-3 rounded-md border border-slate-200 dark:border-white/[0.06] shadow-sm dark:shadow-[0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-md dark:hover:bg-[#1A1D21] transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
+            className={`group relative bg-white dark:bg-[#111418] p-2 px-3 rounded-md border border-slate-200 dark:border-white/[0.06] shadow-sm dark:shadow-[0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-md dark:hover:bg-[#1A1D21] transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
                 ${!hasNextAction ? 'border-l-red-500' : isOverdue ? 'border-l-orange-500' : 'border-l-transparent border-l-slate-300 dark:border-l-gray-700'}
             `}
         >
             {/* Title */}
-            <div className="mb-2 pr-5 relative">
-                <h4 className="font-semibold text-[14px] text-slate-800 dark:text-[#E6E8EB] leading-snug group-hover:text-primary transition-colors line-clamp-2">
+            <div className="mb-1 pr-5 relative">
+                <h4 className="font-semibold text-[13px] text-slate-800 dark:text-[#E6E8EB] leading-snug group-hover:text-primary transition-colors line-clamp-2">
                     {deal.title}
                 </h4>
 
@@ -109,16 +109,16 @@ function DealCard({ deal, currency, onPreview }: Props) {
 
             {/* Contact */}
             {contact && (
-                <div className="flex items-center gap-1.5 text-muted-foreground/70 mb-3 pl-0.5" title={contact.name}>
-                    <User size={13} className="shrink-0" />
-                    <span className="text-[12px] truncate">{contact.name}</span>
+                <div className="flex items-center gap-1.5 text-muted-foreground/50 mb-2 pl-0.5" title={contact.name}>
+                    <User size={12} className="shrink-0" />
+                    <span className="text-[11px] truncate">{contact.name}</span>
                 </div>
             )}
 
             {/* Footer: Action & Value */}
-            <div className="flex items-center justify-between pt-3 mt-auto border-t border-dashed border-border/30">
+            <div className="flex items-center justify-between pt-2 mt-auto border-t border-dashed border-border/30">
                 {/* Left: Action Indicator (Priority) */}
-                <div className={`flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded
+                <div className={`flex items-center gap-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded
                     ${!hasNextAction ? 'text-red-700 bg-red-50 dark:bg-red-900/20' :
                         isOverdue ? 'text-orange-700 bg-orange-50 dark:bg-orange-900/20' :
                             'text-foreground/80 bg-muted/60'}`}>
