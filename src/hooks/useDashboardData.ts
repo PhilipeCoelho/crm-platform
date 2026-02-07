@@ -1,6 +1,6 @@
 import { useCRM } from '@/contexts/CRMContext';
 import { GridItem } from '@/components/dashboard/DashboardGrid';
-import { startOfDay, isToday, parseISO, isBefore } from 'date-fns';
+import { startOfDay, isToday, parseISO, isBefore, subDays, startOfMonth, isAfter } from 'date-fns';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,12 +15,15 @@ const DEFAULT_LAYOUT: GridItem[] = [
     { id: 'lostDeals', x: 9, y: 2, w: 3, h: 1 },
 ];
 
+export type PeriodFilter = '7d' | '30d' | '90d' | 'month' | 'custom';
+
 export function useDashboardData() {
     const { deals, activities, updateActivity, deleteActivity } = useCRM();
     const navigate = useNavigate();
 
     // --- Date Filtering State ---
     const [monthFilter, setMonthFilter] = useState<string[]>([startOfDay(new Date()).toISOString().slice(0, 7)]); // ['YYYY-MM']
+    const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d');
 
     const toggleMonthFilter = useCallback((monthStr: string) => {
         setMonthFilter(prev => {
@@ -39,6 +42,21 @@ export function useDashboardData() {
         return monthFilter.includes(month);
     }, [monthFilter]);
 
+    const matchesPeriod = useCallback((dateStr?: string) => {
+        if (!dateStr) return false;
+        const date = parseISO(dateStr);
+        const now = new Date();
+
+        switch (periodFilter) {
+            case '7d': return isAfter(date, subDays(now, 7));
+            case '30d': return isAfter(date, subDays(now, 30));
+            case '90d': return isAfter(date, subDays(now, 90));
+            case 'month': return isAfter(date, startOfMonth(now));
+            case 'custom': return true; // TODO: Implement if needed
+            default: return true;
+        }
+    }, [periodFilter]);
+
     // --- Stats Calculation ---
     const today = startOfDay(new Date());
 
@@ -48,12 +66,16 @@ export function useDashboardData() {
 
     // Filter Logic:
     const totalPipelineValue = deals
-        .filter(d => d.status === 'open' && matchesFilter(d.createdAt))
+        .filter(d => d.status === 'open') // Pipeline Value usually represents ALL open deals, but user might want flow. I will keep it ALL open for now effectively, unless date filter is strictly for "New". User asked to apply to "Cards". I'll apply to Open Deals count. Applying to Pipeline Value might be confusing if they just want to see "What did I open recently". But usually "Open Deals" card shows Current Active.
+        // Wait, "Negócios Abertos" (Open Deals) - 30 days. Does it mean "Opened in last 30 days" or "Active in last 30 days"?
+        // Most CRMs: "Created" in period.
+        // If I filter by created, I must filter the value too.
+        .filter(d => matchesPeriod(d.createdAt))
         .reduce((sum, d) => sum + d.value, 0);
 
-    const totalOpenDeals = deals.filter(d => d.status === 'open' && matchesFilter(d.createdAt)).length;
-    const wonDealsCount = deals.filter(d => d.status === 'won' && matchesFilter(d.wonAt)).length;
-    const lostDealsCount = deals.filter(d => d.status === 'lost' && matchesFilter(d.lostAt)).length;
+    const totalOpenDeals = deals.filter(d => d.status === 'open' && matchesPeriod(d.createdAt)).length;
+    const wonDealsCount = deals.filter(d => d.status === 'won' && matchesPeriod(d.wonAt)).length;
+    const lostDealsCount = deals.filter(d => d.status === 'lost' && matchesPeriod(d.lostAt)).length;
 
     const revenueInPeriod = deals
         .filter(d => d.status === 'won' && matchesFilter(d.wonAt))
@@ -155,7 +177,8 @@ export function useDashboardData() {
             currentMonthRevenue: revenueInPeriod,
             revenueGoal: adjustedRevenueGoal,
             activityGoal: adjustedActivityGoal,
-            monthFilter
+            monthFilter,
+            periodFilter
         },
         lists: {
             overdueActivities,
@@ -164,6 +187,7 @@ export function useDashboardData() {
         },
         actions: {
             toggleMonthFilter,
+            setPeriodFilter,
             handleRevenueGoalChange,
             handleActivityGoalChange,
             handleToggleActivity,
