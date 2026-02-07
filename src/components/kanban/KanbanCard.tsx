@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Deal } from "@/types/schema";
-import { Building, User, Trash2 } from "lucide-react";
+import { User, Trash2 } from "lucide-react";
 
 import { Currency } from "@/data/currencies";
 import { useCRM } from "@/contexts/CRMContext";
@@ -51,7 +51,7 @@ function DealCard({ deal, currency, onPreview }: Props) {
     };
 
     // Resolve Relations
-    const company = deal.companyId ? companies.find(c => c.id === deal.companyId) : undefined;
+    // const company = deal.companyId ? companies.find(c => c.id === deal.companyId) : undefined; // Removed as unused
     const contact = deal.contactId ? contacts.find(c => c.id === deal.contactId) : undefined;
 
     const handleClick = (e: React.MouseEvent) => {
