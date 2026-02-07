@@ -1,4 +1,4 @@
-import { useDashboardData, ProductivityFilter } from '@/hooks/useDashboardData';
+import { useDashboardData, ProductivityFilter, RevenueFilter } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, CalendarDays, Target, Euro, CheckSquare } from 'lucide-react';
@@ -105,21 +105,24 @@ function ProductivityFilterSelector({ value, onChange, customRange, onCustomRang
     );
 }
 
-function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m: string) => void }) {
+function RevenueFilterSelector({ value, onChange, customRange, onCustomRangeChange }: {
+    value: RevenueFilter,
+    onChange: (v: RevenueFilter) => void,
+    customRange: { start: Date | null, end: Date | null },
+    onCustomRangeChange: (r: { start: Date | null, end: Date | null }) => void
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
-    // Generate last 12 months in CHRONOLOGICAL order
-    const months = useMemo(() => {
-        const end = new Date();
-        const start = subMonths(end, 11);
-        return eachMonthOfInterval({ start, end }).map(d => ({
-            id: format(d, 'yyyy-MM'),
-            label: format(d, 'MMM', { locale: ptBR }), // Short label (Jan, Fev)
-            full: format(d, 'MMMM yyyy', { locale: ptBR }),
-            year: format(d, 'yyyy')
-        }));
-    }, []);
+    const options: { label: string, value: RevenueFilter }[] = [
+        { label: 'Este Mês', value: 'this_month' },
+        { label: 'Mês Anterior', value: 'last_month' },
+        { label: 'Últimos 30 dias', value: '30d' },
+        { label: 'Últimos 90 dias', value: '90d' },
+        { label: 'Personalizado', value: 'custom' },
+    ];
+
+    const currentLabel = options.find(o => o.value === value)?.label;
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
@@ -129,41 +132,69 @@ function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m:
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
-    const selectedLabels = selected.length > 0
-        ? `${selected.length} selecionado${selected.length > 1 ? 's' : ''}`
-        : 'Selecionar';
-
     return (
-        <div className="relative z-50" ref={ref}>
+        <div className="relative" ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="group flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-background hover:bg-muted/50 text-foreground rounded-full transition-all border border-dashed border-border/80 hover:border-primary/50 ring-0 focus:ring-2 focus:ring-primary/20 outline-none"
+                className="flex items-center gap-2 px-2 py-1 text-xs font-medium bg-secondary/50 hover:bg-secondary text-foreground rounded transition-colors border border-border/50"
             >
-                <Calendar size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                <span className="capitalize text-muted-foreground group-hover:text-foreground">{selectedLabels}</span>
-                <ChevronDown size={14} className="text-muted-foreground/50 group-hover:text-primary/50" />
+                <Calendar size={12} className="text-muted-foreground" />
+                <span className="capitalize max-w-[100px] truncate">{currentLabel}</span>
+                <ChevronDown size={12} className="opacity-50" />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-popover/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl overflow-hidden p-3 animate-in fade-in zoom-in-95 duration-200">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 px-1">Selecione os meses</p>
-                    <div className="grid grid-cols-4 gap-2">
-                        {months.map(m => (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="p-1 grid grid-cols-1 gap-0.5">
+                        {options.map(opt => (
                             <button
-                                key={m.id}
-                                onClick={() => onToggle(m.id)}
+                                key={opt.value}
+                                onClick={() => {
+                                    onChange(opt.value);
+                                    if (opt.value !== 'custom') setIsOpen(false);
+                                }}
                                 className={`
-                                    text-xs py-2 rounded-md capitalize flex flex-col items-center justify-center transition-all border
-                                    ${selected.includes(m.id)
-                                        ? 'bg-primary text-primary-foreground font-semibold border-primary shadow-sm'
-                                        : 'bg-muted/30 border-transparent hover:bg-muted text-muted-foreground hover:text-foreground'}
+                                    w-full text-left px-3 py-2 text-sm rounded-md transition-colors
+                                    ${value === opt.value
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'hover:bg-muted text-foreground'}
                                 `}
                             >
-                                <span>{m.label}</span>
-                                <span className={`text-[9px] mt-0.5 ${selected.includes(m.id) ? 'text-primary-foreground/70' : 'text-muted-foreground/50'}`}>{m.year}</span>
+                                {opt.label}
                             </button>
                         ))}
                     </div>
+
+                    {value === 'custom' && (
+                        <div className="p-2 border-t border-border/50 space-y-2 bg-muted/20">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Início</label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
+                                        value={customRange.start ? format(customRange.start, 'yyyy-MM-dd') : ''}
+                                        onChange={(e) => onCustomRangeChange({ ...customRange, start: e.target.value ? parseISO(e.target.value) : null })}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Fim</label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
+                                        value={customRange.end ? format(customRange.end, 'yyyy-MM-dd') : ''}
+                                        onChange={(e) => onCustomRangeChange({ ...customRange, end: e.target.value ? parseISO(e.target.value) : null })}
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="w-full bg-primary text-primary-foreground text-xs py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
+                            >
+                                Aplicar
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -322,35 +353,59 @@ export default function Dashboard() {
                                 <div className="flex justify-between items-center w-full mb-2">
                                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <Euro size={16} className="text-yellow-500" />
-                                        Receita ({stats.monthFilter.length > 1 ? 'Múltiplos' : 'Mensal'})
+                                        {stats.isRevenueGoalVisible ? 'Receita (Mensal)' : 'Receita (Período)'}
                                     </p>
-                                    <MonthFilter selected={stats.monthFilter} onToggle={actions.toggleMonthFilter} />
-                                </div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <input
-                                        type="number"
-                                        value={stats.revenueGoal}
-                                        onChange={(e) => actions.handleRevenueGoalChange(Number(e.target.value))}
-                                        className="text-xs text-muted-foreground bg-transparent border-b border-dashed border-border focus:border-primary focus:text-foreground outline-none w-20"
+                                    <RevenueFilterSelector
+                                        value={stats.revenueFilter}
+                                        onChange={actions.setRevenueFilter}
+                                        customRange={stats.revenueCustomRange}
+                                        onCustomRangeChange={actions.setRevenueCustomRange}
                                     />
-                                    <span className="text-[10px] text-muted-foreground uppercase">Meta</span>
                                 </div>
-                                <div className="flex items-baseline gap-2">
-                                    <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' }).format(stats.currentMonthRevenue)}</h3>
-                                    <span className="text-sm text-muted-foreground/60 font-medium">/ {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR', notation: 'compact' }).format(stats.revenueGoal)}</span>
-                                </div>
+
+                                {stats.isRevenueGoalVisible ? (
+                                    // Month View: Show Goal
+                                    <>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <input
+                                                type="number"
+                                                value={stats.revenueGoal}
+                                                onChange={(e) => actions.handleRevenueGoalChange(Number(e.target.value))}
+                                                className="text-xs text-muted-foreground bg-transparent border-b border-dashed border-border focus:border-primary focus:text-foreground outline-none w-20"
+                                            />
+                                            <span className="text-[10px] text-muted-foreground uppercase">Meta</span>
+                                        </div>
+                                        <div className="flex items-baseline gap-2">
+                                            <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' }).format(stats.currentRevenue)}</h3>
+                                            <span className="text-sm text-muted-foreground/60 font-medium">/ {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR', notation: 'compact' }).format(stats.revenueGoal)}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    // Historical View: Just Total
+                                    <div className="mt-4">
+                                        <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' }).format(stats.currentRevenue)}</h3>
+                                        <p className="text-sm text-muted-foreground font-medium mt-1">faturado no período</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        <div className="space-y-2 mt-auto">
-                            <div className="w-full bg-secondary h-2 rounded-full overflow-hidden relative">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.currentMonthRevenue >= stats.revenueGoal ? 'bg-green-500' : 'bg-yellow-500'}`}
-                                    style={{ width: `${Math.min((stats.currentMonthRevenue / stats.revenueGoal) * 100, 100)}%` }}
-                                />
-                            </div>
-                            <p className="text-xs text-muted-foreground/80 text-right">
-                                {stats.currentMonthRevenue >= stats.revenueGoal ? 'Meta batida! 🔥' : `${((stats.currentMonthRevenue / stats.revenueGoal) * 100).toFixed(1)}% alcançado`}
-                            </p>
+
+                        <div className="space-y-2 mt-auto min-h-[1.5rem]">
+                            {stats.isRevenueGoalVisible ? (
+                                <>
+                                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden relative">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-green-500' : 'bg-yellow-500'}`}
+                                            style={{ width: `${Math.min((stats.currentRevenue / stats.revenueGoal) * 100, 100)}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground/80 text-right">
+                                        {stats.currentRevenue >= stats.revenueGoal ? 'Meta batida! 🔥' : `${((stats.currentRevenue / stats.revenueGoal) * 100).toFixed(1)}% alcançado`}
+                                    </p>
+                                </>
+                            ) : (
+                                <div className="h-2 w-full bg-secondary/30 rounded-full" /> // Placeholder/Neutral bar
+                            )}
                         </div>
                     </div>
 
