@@ -407,15 +407,15 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         // Insert Active Deal at the new position
                         fullList.splice(overIndex, 0, activeDeal);
 
-                        fullList.forEach((d, idx) => {
+                        const updates = fullList.map((d, idx) => {
                             const cleanPos = (idx + 1) * 1024;
                             // Only update if changed
                             console.log(`Re-indexing ${d.title} to ${cleanPos}`);
-                            updateDeal(d.id, { position: cleanPos, stageId: targetStageId });
+                            return updateDeal(d.id, { position: cleanPos, stageId: targetStageId });
                         });
 
                         // Force refresh
-                        setTimeout(() => refresh(), 800);
+                        Promise.all(updates).then(() => setTimeout(refresh, 800));
                         shouldUpdate = false; // Handled by loop
                     } else {
                         // Insert between Prev and Next
@@ -428,10 +428,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
         if (shouldUpdate) {
             console.log(`💾 Persisting Update -> ID: ${activeId}, Stage: ${targetStageId}, Pos: ${newPos}`);
-            updateDeal(activeId, { stageId: targetStageId, position: newPos });
-
-            // Safety: Force refresh after 500ms to ensure DB sync
-            setTimeout(() => refresh(), 500);
+            updateDeal(activeId, { stageId: targetStageId, position: newPos })
+                .then(() => setTimeout(refresh, 500));
         } else {
             console.warn('⚠️ DragEnd detected but no update required?', { activeId, overId: over.id, overType: over.data.current?.type });
         }
