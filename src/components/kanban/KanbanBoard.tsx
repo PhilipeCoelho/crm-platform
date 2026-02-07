@@ -415,8 +415,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                             return updateDeal(d.id, { position: cleanPos, stageId: targetStageId });
                         });
 
-                        // Force refresh
-                        Promise.all(updates).then(() => setTimeout(refresh, 800));
+                        // Collision fixes (Optimistic + BG Update) - No auto-refresh
+                        Promise.all(updates);
                         shouldUpdate = false; // Handled by loop
                     } else {
                         // Insert between Prev and Next
@@ -442,7 +442,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     console.log('✅ Direct Update Success');
                     // Sync local state
                     updateDeal(activeId, { stageId: targetStageId, position: newPos });
-                    setTimeout(refresh, 500);
+                    // setTimeout(refresh, 500); // Removed to prevent race conditions
                 }
             });
         } else {
