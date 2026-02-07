@@ -4,18 +4,15 @@ import { startOfDay, isToday, parseISO, isBefore } from 'date-fns';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const LAYOUT_STORAGE_KEY = 'dashboard_layout_v2_1';
+const LAYOUT_STORAGE_KEY = 'dashboard_layout_v2_2';
 
 const DEFAULT_LAYOUT: GridItem[] = [
-    { id: 'lateActivities', x: 0, y: 0, w: 6, h: 3 },
-    { id: 'noActionDeals', x: 6, y: 0, w: 6, h: 3 },
-    { id: 'dailyActivities', x: 0, y: 3, w: 6, h: 2 },
-    { id: 'monthlyRevenue', x: 6, y: 3, w: 6, h: 2 },
-    { id: 'pipelineValue', x: 0, y: 5, w: 3, h: 1 },
-    { id: 'openDeals', x: 3, y: 5, w: 3, h: 1 },
-    { id: 'wonDeals', x: 6, y: 5, w: 3, h: 1 },
-    { id: 'lostDeals', x: 9, y: 5, w: 3, h: 1 },
-    { id: 'todayAgenda', x: 0, y: 6, w: 12, h: 4 },
+    { id: 'dailyActivities', x: 0, y: 0, w: 6, h: 2 },
+    { id: 'monthlyRevenue', x: 6, y: 0, w: 6, h: 2 },
+    { id: 'pipelineValue', x: 0, y: 2, w: 3, h: 1 },
+    { id: 'openDeals', x: 3, y: 2, w: 3, h: 1 },
+    { id: 'wonDeals', x: 6, y: 2, w: 3, h: 1 },
+    { id: 'lostDeals', x: 9, y: 2, w: 3, h: 1 },
 ];
 
 export function useDashboardData() {

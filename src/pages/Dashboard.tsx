@@ -204,89 +204,12 @@ export default function Dashboard() {
                 </div>
             </div>
         ),
-        todayAgenda: (
-            <div className="h-full p-4 flex flex-col overflow-hidden">
-                <div className="flex items-center gap-3 mb-4 shrink-0">
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Calendar size={20} />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground">
-                        Para Hoje <span className="text-muted-foreground font-normal text-base ml-1">({lists.todayActivities.length})</span>
-                    </h3>
-                </div>
-
-                <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
-                    {lists.todayActivities.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground/60 border-2 border-dashed border-border/50 rounded-xl">
-                            <CheckCircle2 size={48} className="mb-4 opacity-20" />
-                            <p className="text-lg font-medium">Tudo limpo por hoje! 🎉</p>
-                        </div>
-                    ) : (
-                        <ActivityList
-                            activities={lists.todayActivities}
-                            onToggle={actions.handleToggleActivity}
-                            onDelete={actions.handleDeleteActivity}
-                        />
-                    )}
-                </div>
-            </div>
-        ),
-        lateActivities: (
-            <div className="h-full bg-red-500/5 p-4 flex flex-col">
-                <div className="flex items-center gap-2 mb-4 shrink-0">
-                    <h3 className="text-red-500 font-semibold flex items-center gap-2">
-                        <AlertTriangle size={18} />
-                        Atrasadas ({lists.overdueActivities.length})
-                    </h3>
-                </div>
-                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0">
-                    <ActivityList
-                        activities={lists.overdueActivities}
-                        onToggle={actions.handleToggleActivity}
-                        onDelete={actions.handleDeleteActivity}
-                    />
-                </div>
-            </div>
-        ),
-        noActionDeals: (
-            <div className="h-full p-4 flex flex-col">
-                <div className="flex items-center gap-2 mb-4 shrink-0">
-                    <div className="p-1.5 bg-yellow-500/10 rounded-md text-yellow-500">
-                        <AlertTriangle size={16} />
-                    </div>
-                    <h3 className="font-semibold text-foreground">Atenção Necessária ({lists.dealsWithoutAction.length})</h3>
-                </div>
-                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0 space-y-2">
-                    {lists.dealsWithoutAction.map(deal => (
-                        <div
-                            key={deal.id}
-                            onClick={() => actions.navigate(`/deals/${deal.id}`)}
-                            className="p-3 bg-secondary/50 hover:bg-secondary border border-border/50 rounded-lg cursor-pointer transition-all group flex justify-between items-center"
-                        >
-                            <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">{deal.title}</span>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: deal.currency }).format(deal.value)}</span>
-                                <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        ),
     };
 
-    const gridItems = useMemo(() => {
-        return layout
-            .filter(item => {
-                if (item.id === 'lateActivities' && lists.overdueActivities.length === 0) return false;
-                if (item.id === 'noActionDeals' && lists.dealsWithoutAction.length === 0) return false;
-                return true;
-            })
-            .map((item) => ({
-                ...item,
-                content: cardContents[item.id] || null
-            }));
-    }, [layout, cardContents, lists.overdueActivities.length, lists.dealsWithoutAction.length]);
+    const gridItems = useMemo(() => layout.map((item) => ({
+        ...item,
+        content: cardContents[item.id] || null
+    })), [layout, cardContents]);
 
     return (
         <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
@@ -341,7 +264,7 @@ export default function Dashboard() {
                 {/* Main Content Area */}
                 <div className="space-y-8">
 
-                    {/* Draggable Dashboard Grid */}
+                    {/* Draggable Dashboard Grid (Metrics) */}
                     <div className={isEditMode ? 'ring-2 ring-primary/20 rounded-xl p-2 bg-muted/20 border border-dashed border-primary/30 transition-all' : ''}>
                         <DraggableGrid
                             items={gridItems}
@@ -350,6 +273,88 @@ export default function Dashboard() {
                             rowHeight={80}
                             gap={16}
                         />
+                    </div>
+
+                    {/* Static Grid: Alerts & Agenda */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                        {/* Left Column: Alerts (Overdue & Attention) */}
+                        {(lists.overdueActivities.length > 0 || lists.dealsWithoutAction.length > 0) && (
+                            <div className="space-y-6 lg:col-span-1">
+                                {lists.overdueActivities.length > 0 && (
+                                    <div className="bg-red-500/5 border border-red-500/20 rounded-[12px] p-6 h-fit max-h-[400px] flex flex-col">
+                                        <h3 className="text-red-500 font-semibold mb-4 flex items-center gap-2 shrink-0">
+                                            <AlertTriangle size={18} />
+                                            Atrasadas ({lists.overdueActivities.length})
+                                        </h3>
+                                        <div className="overflow-y-auto pr-2 custom-scrollbar min-h-0">
+                                            <ActivityList
+                                                activities={lists.overdueActivities}
+                                                onToggle={actions.handleToggleActivity}
+                                                onDelete={actions.handleDeleteActivity}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {lists.dealsWithoutAction.length > 0 && (
+                                    <div className="bg-card border border-yellow-500/50 rounded-[12px] p-6 shadow-sm h-fit max-h-[400px] flex flex-col">
+                                        <div className="flex items-center gap-2 mb-4 shrink-0">
+                                            <div className="p-1.5 bg-yellow-500/10 rounded-md text-yellow-500">
+                                                <AlertTriangle size={16} />
+                                            </div>
+                                            <h3 className="font-semibold text-foreground">Atenção Necessária ({lists.dealsWithoutAction.length})</h3>
+                                        </div>
+                                        <div className="overflow-y-auto pr-2 custom-scrollbar min-h-0 space-y-2">
+                                            {lists.dealsWithoutAction.map(deal => (
+                                                <div
+                                                    key={deal.id}
+                                                    onClick={() => actions.navigate(`/deals/${deal.id}`)}
+                                                    className="p-3 bg-secondary/50 hover:bg-secondary border border-border/50 rounded-lg cursor-pointer transition-all group flex justify-between items-center"
+                                                >
+                                                    <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">{deal.title}</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: deal.currency }).format(deal.value)}</span>
+                                                        <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Right Column: Today's Agenda (Takes remaining space) */}
+                        <div className={(lists.overdueActivities.length > 0 || lists.dealsWithoutAction.length > 0) ? "lg:col-span-2" : "lg:col-span-3"}>
+                            <div className="bg-card border border-border rounded-[12px] shadow-sm p-6 h-full min-h-[400px] flex flex-col">
+                                <div className="flex items-center gap-3 mb-6 shrink-0">
+                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                        <Calendar size={20} />
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-foreground">
+                                        Para Hoje <span className="text-muted-foreground font-normal text-base ml-1">({lists.todayActivities.length})</span>
+                                    </h3>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
+                                    {lists.todayActivities.length === 0 ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground/60 border-2 border-dashed border-border/50 rounded-xl bg-muted/20">
+                                            <CheckCircle2 size={48} className="mb-4 opacity-20" />
+                                            <p className="text-lg font-medium">Tudo limpo por hoje! 🎉</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <ActivityList
+                                                activities={lists.todayActivities}
+                                                onToggle={actions.handleToggleActivity}
+                                                onDelete={actions.handleDeleteActivity}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
