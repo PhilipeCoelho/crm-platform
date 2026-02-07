@@ -227,113 +227,114 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                 </div>
             </div>
 
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-[240px_1fr] overflow-hidden">
-                {/* Left Column: Info (Resumo) */}
-                <div className="border-b lg:border-b-0 lg:border-r border-border p-4 overflow-y-auto bg-background">
-                    <div className="space-y-6">
-
-                        {/* Summary Section */}
-                        <div>
-                            <h3 className="text-xs font-bold text-foreground mb-3 flex items-center gap-2">
-                                <span className="w-1 h-3 bg-primary rounded-full" />
-                                Resumo
-                            </h3>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-sm">
-                                    <DollarSign size={14} className="text-muted-foreground" />
-                                    <span className="font-semibold text-foreground">
-                                        {deal.value.toLocaleString('pt-BR', { style: 'currency', currency: deal.currency })}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Building size={14} />
-                                    <span>Funil de vendas &rarr; <strong>{pipeline.name}</strong></span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <User size={14} />
-                                    <span>Criado por <strong>Você</strong></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="h-px bg-border/50" />
-
-                        {/* Person Section */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
-                                    <User size={14} />
-                                    Pessoa
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-muted/5">
+                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
+                    {/* Left Column: Info (Resumo) */}
+                    <div className="lg:sticky lg:top-0 h-fit space-y-6">
+                        <div className="space-y-6 bg-transparent">
+                            {/* Summary Section */}
+                            <div>
+                                <h3 className="text-xs font-bold text-foreground mb-3 flex items-center gap-2">
+                                    <span className="w-1 h-3 bg-primary rounded-full" />
+                                    Resumo
                                 </h3>
-                                {!contact && (
-                                    <button onClick={() => setIsEditModalOpen(true)} className="text-primary hover:bg-primary/10 p-1 rounded">
-                                        <Plus size={12} />
-                                    </button>
-                                )}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <DollarSign size={14} className="text-muted-foreground" />
+                                        <span className="font-semibold text-foreground">
+                                            {deal.value.toLocaleString('pt-BR', { style: 'currency', currency: deal.currency })}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <Building size={14} />
+                                        <span>Funil de vendas &rarr; <strong>{pipeline.name}</strong></span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <User size={14} />
+                                        <span>Criado por <strong>Você</strong></span>
+                                    </div>
+                                </div>
                             </div>
 
-                            {contact ? (
-                                <Link to={`/contacts/${contact.id}`} className="group block">
-                                    <div className="flex items-start gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                                            {contact.name.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-sm text-blue-600 group-hover:underline truncate">{contact.name}</p>
-                                            <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
-                                                <p className="flex items-center gap-1">
-                                                    <span className="opacity-70">Email:</span> {contact.email}
-                                                </p>
-                                                <p className="flex items-center gap-1">
-                                                    <span className="opacity-70">Tel:</span> {contact.phone || '-'}
-                                                </p>
+                            <div className="h-px bg-border/50" />
+
+                            {/* Person Section */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
+                                        <User size={14} />
+                                        Pessoa
+                                    </h3>
+                                    {!contact && (
+                                        <button onClick={() => setIsEditModalOpen(true)} className="text-primary hover:bg-primary/10 p-1 rounded">
+                                            <Plus size={12} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {contact ? (
+                                    <Link to={`/contacts/${contact.id}`} className="group block">
+                                        <div className="flex items-start gap-2">
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                                                {contact.name.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-medium text-sm text-blue-600 group-hover:underline truncate">{contact.name}</p>
+                                                <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                                                    <p className="flex items-center gap-1">
+                                                        <span className="opacity-70">Email:</span> {contact.email}
+                                                    </p>
+                                                    <p className="flex items-center gap-1">
+                                                        <span className="opacity-70">Tel:</span> {contact.phone || '-'}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </Link>
-                            ) : (
-                                <p className="text-xs text-muted-foreground italic">Nenhuma pessoa vinculada</p>
-                            )}
-                        </div>
-
-                        <div className="h-px bg-border/50" />
-
-                        {/* Organization Section */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
-                                    <Building size={14} />
-                                    Organização
-                                </h3>
-                                {!company && (
-                                    <button onClick={() => setIsEditModalOpen(true)} className="text-primary hover:bg-primary/10 p-1 rounded">
-                                        <Plus size={12} />
-                                    </button>
+                                    </Link>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground italic">Nenhuma pessoa vinculada</p>
                                 )}
                             </div>
 
-                            {company ? (
-                                <Link to={`/companies/${company.id}`} className="group block">
-                                    <div className="flex items-start gap-2">
-                                        <div className="w-8 h-8 rounded bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                                            {company.name.substring(0, 2).toUpperCase()}
+                            <div className="h-px bg-border/50" />
+
+                            {/* Organization Section */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
+                                        <Building size={14} />
+                                        Organização
+                                    </h3>
+                                    {!company && (
+                                        <button onClick={() => setIsEditModalOpen(true)} className="text-primary hover:bg-primary/10 p-1 rounded">
+                                            <Plus size={12} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {company ? (
+                                    <Link to={`/companies/${company.id}`} className="group block">
+                                        <div className="flex items-start gap-2">
+                                            <div className="w-8 h-8 rounded bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                                                {company.name.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">{company.name}</p>
+                                                <p className="text-xs text-muted-foreground truncate mt-0.5">{company.website || 'Sem website'}</p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">{company.name}</p>
-                                            <p className="text-xs text-muted-foreground truncate mt-0.5">{company.website || 'Sem website'}</p>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ) : (
-                                <p className="text-xs text-muted-foreground italic">Nenhuma organização vinculada</p>
-                            )}
+                                    </Link>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground italic">Nenhuma organização vinculada</p>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Right Column: Activity Panel */}
-                <div className="flex flex-col bg-background relative overflow-hidden min-h-[300px]">
-                    <ActivityPanel deal={deal} readOnly={isClosed} />
+                    {/* Right Column: Activity Panel */}
+                    <div className="min-w-0 overflow-hidden bg-background rounded-lg border border-border shadow-sm">
+                        <ActivityPanel deal={deal} readOnly={isClosed} />
+                    </div>
                 </div>
             </div>
 
