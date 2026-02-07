@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Calendar, CheckCircle2, X } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Activity } from '@/types/schema';
