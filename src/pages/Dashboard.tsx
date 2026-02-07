@@ -4,12 +4,17 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, Filter, CalendarDays, Target, Euro } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { format, subMonths } from 'date-fns';
+import { format, subMonths, eachMonthOfInterval, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 // --- Components ---
 
-function PeriodSelector({ value, onChange }: { value: PeriodFilter, onChange: (v: PeriodFilter) => void }) {
+function PeriodSelector({ value, onChange, customRange, onCustomRangeChange }: {
+    value: PeriodFilter,
+    onChange: (v: PeriodFilter) => void,
+    customRange: { start: Date | null, end: Date | null },
+    onCustomRangeChange: (r: { start: Date | null, end: Date | null }) => void
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
@@ -35,7 +40,7 @@ function PeriodSelector({ value, onChange }: { value: PeriodFilter, onChange: (v
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-background hover:bg-muted text-foreground rounded-md transition-all border border-border shadow-sm active:scale-95"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-background hover:bg-muted/50 text-foreground rounded-md transition-all border border-border/60 shadow-sm active:scale-95"
             >
                 <Filter size={14} className="text-muted-foreground" />
                 <span>{currentLabel}</span>
@@ -43,21 +48,57 @@ function PeriodSelector({ value, onChange }: { value: PeriodFilter, onChange: (v
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-popover/95 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                    {options.map(opt => (
-                        <button
-                            key={opt.value}
-                            onClick={() => { onChange(opt.value); setIsOpen(false); }}
-                            className={`
-                                w-full text-left px-4 py-2 text-sm transition-colors
-                                ${value === opt.value
-                                    ? 'bg-primary/5 text-primary font-medium'
-                                    : 'hover:bg-muted/50 text-foreground'}
-                            `}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="absolute right-0 top-full mt-2 w-72 bg-popover/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl overflow-hidden p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="grid grid-cols-1 gap-1 mb-2">
+                        {options.map(opt => (
+                            <button
+                                key={opt.value}
+                                onClick={() => {
+                                    onChange(opt.value);
+                                    if (opt.value !== 'custom') setIsOpen(false);
+                                }}
+                                className={`
+                                    w-full text-left px-3 py-2 text-sm rounded-lg transition-colors
+                                    ${value === opt.value
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'hover:bg-muted/50 text-foreground'}
+                                `}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {value === 'custom' && (
+                        <div className="pt-2 border-t border-border/50 space-y-3 p-1">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Início</label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
+                                        value={customRange.start ? format(customRange.start, 'yyyy-MM-dd') : ''}
+                                        onChange={(e) => onCustomRangeChange({ ...customRange, start: e.target.value ? parseISO(e.target.value) : null })}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Fim</label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
+                                        value={customRange.end ? format(customRange.end, 'yyyy-MM-dd') : ''}
+                                        onChange={(e) => onCustomRangeChange({ ...customRange, end: e.target.value ? parseISO(e.target.value) : null })}
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="w-full bg-primary text-primary-foreground text-xs py-2 rounded-md font-medium hover:bg-primary/90 transition-colors"
+                            >
+                                Aplicar Filtro
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -68,16 +109,16 @@ function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m:
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
+    // Generate last 12 months in CHRONOLOGICAL order
     const months = useMemo(() => {
-        return Array.from({ length: 12 }, (_, i) => {
-            const d = subMonths(new Date(), i);
-            return {
-                id: format(d, 'yyyy-MM'),
-                label: format(d, 'MMMM', { locale: ptBR }),
-                full: format(d, 'MMMM yyyy', { locale: ptBR }),
-                year: format(d, 'yyyy')
-            };
-        });
+        const end = new Date();
+        const start = subMonths(end, 11);
+        return eachMonthOfInterval({ start, end }).map(d => ({
+            id: format(d, 'yyyy-MM'),
+            label: format(d, 'MMM', { locale: ptBR }), // Short label (Jan, Fev)
+            full: format(d, 'MMMM yyyy', { locale: ptBR }),
+            year: format(d, 'yyyy')
+        }));
     }, []);
 
     useEffect(() => {
@@ -88,41 +129,41 @@ function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m:
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
-    const selectedLabels = selected
-        .map(s => {
-            const m = months.find(x => x.id === s);
-            return m ? m.label : s;
-        })
-        .join(', ');
+    const selectedLabels = selected.length > 0
+        ? `${selected.length} selecionado${selected.length > 1 ? 's' : ''}`
+        : 'Selecionar';
 
     return (
         <div className="relative z-50" ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="group flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-background hover:bg-muted text-foreground rounded-full transition-all border border-dashed border-border hover:border-primary/50"
+                className="group flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-background hover:bg-muted/50 text-foreground rounded-full transition-all border border-dashed border-border/80 hover:border-primary/50 ring-0 focus:ring-2 focus:ring-primary/20 outline-none"
             >
                 <Calendar size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                <span className="capitalize text-muted-foreground group-hover:text-foreground">{selectedLabels || 'Selecionar Mês'}</span>
+                <span className="capitalize text-muted-foreground group-hover:text-foreground">{selectedLabels}</span>
                 <ChevronDown size={14} className="text-muted-foreground/50 group-hover:text-primary/50" />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-popover/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden p-2 grid grid-cols-2 gap-1 animate-in fade-in zoom-in-95 duration-200">
-                    {months.map(m => (
-                        <button
-                            key={m.id}
-                            onClick={() => onToggle(m.id)}
-                            className={`
-                                text-xs px-3 py-2 rounded-lg capitalize flex flex-col items-start justify-center transition-all border border-transparent
-                                ${selected.includes(m.id)
-                                    ? 'bg-primary/10 text-primary font-semibold border-primary/20'
-                                    : 'hover:bg-muted text-muted-foreground hover:text-foreground'}
-                            `}
-                        >
-                            <span>{m.label}</span>
-                            <span className={`text-[10px] ${selected.includes(m.id) ? 'text-primary/60' : 'text-muted-foreground/50'}`}>{m.year}</span>
-                        </button>
-                    ))}
+                <div className="absolute right-0 top-full mt-2 w-72 bg-popover/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl overflow-hidden p-3 animate-in fade-in zoom-in-95 duration-200">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 px-1">Selecione os meses</p>
+                    <div className="grid grid-cols-4 gap-2">
+                        {months.map(m => (
+                            <button
+                                key={m.id}
+                                onClick={() => onToggle(m.id)}
+                                className={`
+                                    text-xs py-2 rounded-md capitalize flex flex-col items-center justify-center transition-all border
+                                    ${selected.includes(m.id)
+                                        ? 'bg-primary text-primary-foreground font-semibold border-primary shadow-sm'
+                                        : 'bg-muted/30 border-transparent hover:bg-muted text-muted-foreground hover:text-foreground'}
+                                `}
+                            >
+                                <span>{m.label}</span>
+                                <span className={`text-[9px] mt-0.5 ${selected.includes(m.id) ? 'text-primary-foreground/70' : 'text-muted-foreground/50'}`}>{m.year}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
@@ -179,7 +220,12 @@ export default function Dashboard() {
 
                     {/* Actions & Global Filter */}
                     <div className="flex items-center gap-3">
-                        <PeriodSelector value={stats.periodFilter} onChange={actions.setPeriodFilter} />
+                        <PeriodSelector
+                            value={stats.periodFilter}
+                            onChange={actions.setPeriodFilter}
+                            customRange={stats.customDateRange}
+                            onCustomRangeChange={actions.setCustomDateRange}
+                        />
 
                         <button
                             onClick={() => setIsNewActivityModalOpen(true)}
@@ -322,9 +368,9 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                     {/* Atrasadas */}
-                    <div className="bg-red-50/50 border border-red-200/60 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                    <div className="bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
                         <div className="flex items-center gap-2 mb-4">
-                            <h3 className="text-red-600 font-semibold flex items-center gap-2">
+                            <h3 className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-2">
                                 <AlertTriangle size={18} />
                                 Atrasadas ({lists.overdueActivities.length})
                             </h3>
@@ -345,7 +391,7 @@ export default function Dashboard() {
                         {lists.overdueActivities.length > 3 && (
                             <button
                                 onClick={() => setShowAllOverdue(!showAllOverdue)}
-                                className="mt-3 text-xs font-medium text-red-600 hover:text-red-700 flex items-center gap-1 self-start"
+                                className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 self-start"
                             >
                                 {showAllOverdue ? 'Mostrar menos' : `Ver todas (${lists.overdueActivities.length - 3} mais)`} <ArrowRight size={12} />
                             </button>
@@ -353,9 +399,9 @@ export default function Dashboard() {
                     </div>
 
                     {/* Para Hoje */}
-                    <div className="bg-blue-50/50 border border-blue-200/60 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                    <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
                         <div className="flex items-center gap-2 mb-4">
-                            <h3 className="text-blue-600 font-semibold flex items-center gap-2">
+                            <h3 className="text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-2">
                                 <CalendarDays size={18} />
                                 Para Hoje ({lists.todayActivities.length})
                             </h3>
@@ -376,7 +422,7 @@ export default function Dashboard() {
                         {lists.todayActivities.length > 3 && (
                             <button
                                 onClick={() => setShowAllToday(!showAllToday)}
-                                className="mt-3 text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 self-start"
+                                className="mt-3 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 self-start"
                             >
                                 {showAllToday ? 'Mostrar menos' : `Ver todas (${lists.todayActivities.length - 3} mais)`} <ArrowRight size={12} />
                             </button>
