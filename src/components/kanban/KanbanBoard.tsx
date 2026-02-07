@@ -400,9 +400,28 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     const nextPos = next.position || 0;
                     const prevPos = prev ? (prev.position || 0) : (nextPos - 2048);
 
-                    // Insert between Prev and Next (or before Next if first)
-                    newPos = (prevPos + nextPos) / 2;
-                    shouldUpdate = true;
+                    // Check for Collision/Tight Gap
+                    if (Math.abs(nextPos - prevPos) < 0.01) {
+                        console.log('⚠️ Collision/Tight Gap detected. Re-indexing column...');
+                        const fullList = [...stageDeals];
+                        // Insert Active Deal at the new position
+                        fullList.splice(overIndex, 0, activeDeal);
+
+                        fullList.forEach((d, idx) => {
+                            const cleanPos = (idx + 1) * 1024;
+                            // Only update if changed
+                            console.log(`Re-indexing ${d.title} to ${cleanPos}`);
+                            updateDeal(d.id, { position: cleanPos, stageId: targetStageId });
+                        });
+
+                        // Force refresh
+                        setTimeout(() => refresh(), 800);
+                        shouldUpdate = false; // Handled by loop
+                    } else {
+                        // Insert between Prev and Next
+                        newPos = (prevPos + nextPos) / 2;
+                        shouldUpdate = true;
+                    }
                 }
             }
         }
