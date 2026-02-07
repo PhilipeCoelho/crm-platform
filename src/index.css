@@ -44,20 +44,15 @@
   }
 
   .dark {
-    /* Premium SaaS Tokens (Dark Mode) */
-    --bg-main: 223 36% 7%;
-    /* #0B0F19 */
-    --surface: 222 47% 11%;
-    /* #0F172A - Blueish Dark Surface */
-    --card: 220 26% 17%;
-    /* #1F2937 - Card Background */
-    --border: 217 33% 17%;
-    /* Dark Border */
+    /* Premium SaaS Tokens (Dark Mode) - Slate Theme */
+    --bg-main: 222 47% 11%;     /* #0F172A (Slate 900) */
+    --surface: 222 47% 11%;     /* #0F172A (Slate 900) */
+    --card: 215 28% 17%;        /* #1E293B (Slate 800) */
+    --border: 215 25% 27%;      /* #334155 (Slate 700) - Visible border */
 
-    --text-primary: 220 13% 91%;
-    /* #E5E7EB */
-    --text-secondary: 215 9% 65%;
-    /* #9CA3AF */
+    /* Typography */
+    --text-primary: 210 40% 98%;   /* #F8FAFC (Slate 50) */
+    --text-secondary: 215 20% 65%; /* #94A3B8 (Slate 400) */
 
     /* Shadcn Mappings */
     --background: var(--bg-main);
@@ -66,20 +61,22 @@
     --popover: var(--card);
     --popover-foreground: var(--text-primary);
 
-    --primary: 225 100% 65%;
+    --primary: 225 100% 65%;       /* Keep Accent Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 216 30% 10%;
-    --secondary-foreground: 210 29% 93%;
-    --muted: 216 30% 10%;
-    --muted-foreground: 215 9% 65%;
-    /* Matches text-secondary */
-    --accent: 225 100% 65%;
-    --accent-foreground: 0 0% 100%;
+    --secondary: 215 28% 17%;      /* Slate 800 */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 28% 17%;          /* Slate 800 */
+    --muted-foreground: 215 16% 47%; /* Slate 500 */
+    
+    --accent: 215 28% 17%;         /* Slate 800 */
+    --accent-foreground: 210 40% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --input: 214 21% 17%;
+    --input: 215 28% 17%;          /* Slate 800 */
     --ring: 225 100% 65%;
   }
 }
@@ -92,16 +89,11 @@
 
   body {
     @apply bg-background text-foreground;
-    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .dark body {
-    background:
-      radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 40%),
-      radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.06), transparent 40%),
-      hsl(var(--bg-main));
-    background-attachment: fixed;
-    /* Ensures gradient stays while scrolling */
+    background: hsl(var(--bg-main));
+    /* Clean Slate 900 background, no gradient */
   }
 
   /* Utility classes handled by tailwind.config.js */
