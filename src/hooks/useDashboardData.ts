@@ -1,6 +1,6 @@
 import { useCRM } from '@/contexts/CRMContext';
 import { GridItem } from '@/components/dashboard/DashboardGrid';
-import { startOfDay, isToday, parseISO, isBefore, subDays, startOfMonth, isAfter, isWithinInterval, endOfDay } from 'date-fns';
+import { startOfDay, isToday, parseISO, isBefore, subDays, startOfMonth, isAfter, isWithinInterval, endOfDay, subMonths, endOfMonth } from 'date-fns';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,34 +16,21 @@ const DEFAULT_LAYOUT: GridItem[] = [
 ];
 
 export type ProductivityFilter = 'today' | '7d' | '30d' | '90d' | 'month' | 'custom';
+export type RevenueFilter = 'this_month' | 'last_month' | '30d' | '90d' | 'custom';
 
 export function useDashboardData() {
     const { deals, activities, updateActivity, deleteActivity } = useCRM();
     const navigate = useNavigate();
 
     // --- State ---
-    const [monthFilter, setMonthFilter] = useState<string[]>([startOfDay(new Date()).toISOString().slice(0, 7)]); // ['YYYY-MM'] for Revenue
 
     // Productivity Filter
     const [productivityFilter, setProductivityFilter] = useState<ProductivityFilter>('today');
     const [productivityCustomRange, setProductivityCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
 
-    const toggleMonthFilter = useCallback((monthStr: string) => {
-        setMonthFilter(prev => {
-            if (prev.includes(monthStr)) {
-                const next = prev.filter(m => m !== monthStr);
-                return next.length ? next : [startOfDay(new Date()).toISOString().slice(0, 7)];
-            } else {
-                return [...prev, monthStr];
-            }
-        });
-    }, []);
-
-    const matchesFilter = useCallback((dateStr?: string) => {
-        if (!dateStr) return false;
-        const month = dateStr.slice(0, 7);
-        return monthFilter.includes(month);
-    }, [monthFilter]);
+    // Revenue Filter
+    const [revenueFilter, setRevenueFilter] = useState<RevenueFilter>('this_month');
+    const [revenueCustomRange, setRevenueCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
 
     // General "Recent" Filter for Cards (Hardcoded to 30d rolling window for now as Global Selector was removed)
     const matchesGeneralPeriod = useCallback((dateStr?: string) => {
@@ -75,23 +62,41 @@ export function useDashboardData() {
         }
     }, [productivityFilter, productivityCustomRange]);
 
+    // Revenue Matcher
+    const matchesRevenuePeriod = useCallback((dateStr?: string) => {
+        if (!dateStr) return false;
+        const date = parseISO(dateStr);
+        const now = new Date();
+
+        switch (revenueFilter) {
+            case 'this_month':
+                return isWithinInterval(date, { start: startOfMonth(now), end: endOfMonth(now) });
+            case 'last_month':
+                const lastMonthStart = startOfMonth(subMonths(now, 1));
+                const lastMonthEnd = endOfMonth(subMonths(now, 1));
+                return isWithinInterval(date, { start: lastMonthStart, end: lastMonthEnd });
+            case '30d': return isAfter(date, subDays(now, 30));
+            case '90d': return isAfter(date, subDays(now, 90));
+            case 'custom':
+                if (!revenueCustomRange.start) return true;
+                return isWithinInterval(date, {
+                    start: startOfDay(revenueCustomRange.start),
+                    end: endOfDay(revenueCustomRange.end || now)
+                });
+            default: return true;
+        }
+    }, [revenueFilter, revenueCustomRange]);
+
     // --- Stats Calculation ---
     const today = startOfDay(new Date());
 
-    // 1. Productivity Stats (Strict Logic: Completed AND has Deal)
+    // 1. Productivity Stats
     const completedActivities = activities.filter(a =>
         a.completed &&
-        a.dealId && // Must be linked to a deal
-        a.dueDate && // Must have a date to be filtered
+        a.dealId &&
+        a.dueDate &&
         matchesProductivityPeriod(a.dueDate)
     );
-
-    // We also need "Today's Count" regardless of the filter, IF the user switches views,
-    // BUT the request says "When switching period: show accumulated".
-    // So `stats.productivityCount` will follow the filter.
-
-    // For the specific "Today" view (Progress Bar), we might need a specific "Today Count" if the filter IS 'today'.
-    // If filter is 'month', we show Total.
 
     // Let's explicitly calculate "Today's Real Score" for the goal comparison if needed.
     const todayProductivityScore = activities.filter(a =>
@@ -100,6 +105,15 @@ export function useDashboardData() {
         a.dueDate &&
         isToday(parseISO(a.dueDate))
     ).length;
+
+    // 2. Revenue Stats
+    const revenueInPeriod = deals
+        .filter(d => d.status === 'won')
+        .filter(d => matchesRevenuePeriod(d.wonAt)) // MUST HAVE wonAt
+        .reduce((sum, d) => sum + d.value, 0);
+
+    // Only show goal if viewing THIS MONTH
+    const isRevenueGoalVisible = revenueFilter === 'this_month';
 
     // General Stats
     const totalPipelineValue = deals
@@ -111,9 +125,6 @@ export function useDashboardData() {
     const wonDealsCount = deals.filter(d => d.status === 'won' && matchesGeneralPeriod(d.wonAt)).length;
     const lostDealsCount = deals.filter(d => d.status === 'lost' && matchesGeneralPeriod(d.lostAt)).length;
 
-    const revenueInPeriod = deals
-        .filter(d => d.status === 'won' && matchesFilter(d.wonAt))
-        .reduce((sum, d) => sum + d.value, 0);
 
     // --- Goals State ---
     const [revenueGoal, setRevenueGoal] = useState(() => Number(localStorage.getItem('dashboard_revenue_goal')) || 5000);
@@ -128,8 +139,6 @@ export function useDashboardData() {
         setActivityGoal(val);
         localStorage.setItem('dashboard_activity_goal', String(val));
     };
-
-    const adjustedRevenueGoal = revenueGoal * monthFilter.length;
 
     // --- Lists Processing ---
     const openActivities = activities.filter(a => !a.completed).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
@@ -202,16 +211,18 @@ export function useDashboardData() {
             productivityCustomRange,
             activityGoal,
 
+            // Revenue
+            currentRevenue: revenueInPeriod,
+            revenueGoal,
+            isRevenueGoalVisible,
+            revenueFilter,
+            revenueCustomRange,
+
             // General
             totalPipelineValue,
             totalOpenDeals,
             wonDealsCount,
             lostDealsCount,
-
-            // Revenue
-            currentMonthRevenue: revenueInPeriod,
-            revenueGoal: adjustedRevenueGoal,
-            monthFilter,
         },
         lists: {
             overdueActivities,
@@ -225,7 +236,8 @@ export function useDashboardData() {
             handleActivityGoalChange,
 
             // Revenue
-            toggleMonthFilter,
+            setRevenueFilter,
+            setRevenueCustomRange,
             handleRevenueGoalChange,
 
             // General
