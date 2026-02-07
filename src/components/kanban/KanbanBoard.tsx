@@ -120,6 +120,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     // Suggestion Modal State
     const [dragStartStageId, setDragStartStageId] = useState<string | null>(null);
+    const [dragStartDeals, setDragStartDeals] = useState<Deal[]>([]);
     const [suggestionModal, setSuggestionModal] = useState<{ isOpen: boolean; deal: Deal | null; stageName: string }>({
         isOpen: false, deal: null, stageName: ''
     });
@@ -331,10 +332,15 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         }
 
         if (event.active.data.current?.type === "Deal") {
-            const deal = event.active.data.current.deal;
-            setActiveDeal(deal);
-            setDragStartStageId(deal.stageId);
-            return;
+            const dealId = event.active.id as string;
+            const deal = deals.find(d => d.id === dealId);
+
+            // Capture snapshot of ALL deals at start of drag
+            // This ensures onDragEnd calculations use original positions
+            setDragStartDeals(deals);
+
+            setActiveDeal(deal || null);
+            setDragStartStageId(deal?.stageId || null);
         }
     }
 
