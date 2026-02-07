@@ -82,23 +82,23 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
                     <InlineEditableField
                         value={column.title}
                         onSave={(val) => updateColumn(column.id, val)}
-                        className="text-[14px] font-bold text-foreground w-full truncate"
+                        className="text-[14px] font-semibold text-foreground w-full truncate"
                         placeholder="Nome da etapa"
                     />
-                    <span className="text-[11px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded-md border border-border/50">
+                    <span className="text-[11px] font-medium text-muted-foreground/70 bg-background/80 px-1.5 py-0.5 rounded-md border border-border/40">
                         {tasks.length}
                     </span>
                 </div>
 
                 {/* SubHeader: Value */}
                 <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-semibold text-muted-foreground">
+                    <span className="text-[12px] font-medium text-muted-foreground/80">
                         {formatDynamicCurrency(totalValue)}
                     </span>
                 </div>
 
                 {/* Progress Bar / Color Indicator */}
-                <div className={`h-[2px] w-full mt-1 rounded-full ${tasks.length > 0 ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
+                <div className={`h-[2px] w-full mt-2 rounded-full ${tasks.length > 0 ? 'bg-primary/70' : 'bg-muted-foreground/10'}`} />
             </div>
 
             {/* Task List */}
