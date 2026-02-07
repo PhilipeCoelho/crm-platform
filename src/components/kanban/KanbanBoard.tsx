@@ -449,8 +449,10 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     alert(`Erro direto no banco: ${error.message}`);
                 } else {
                     console.log('✅ Direct Update Success');
-                    // No local optimistic update. Force DB sync.
-                    setTimeout(refresh, 200);
+                    // 1. Update UI immediately with confirmed values (Zero Latency)
+                    moveDeal(activeId, targetStageId, newPos);
+                    // 2. Refresh purely for data integrity (Background)
+                    refresh();
                 }
             });
         } else {
