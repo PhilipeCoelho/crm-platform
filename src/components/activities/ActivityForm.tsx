@@ -78,18 +78,18 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-2">
                 <input
                     type="text"
                     placeholder="O que você precisa fazer?"
-                    className="w-full p-2 bg-transparent border-b border-border focus:border-primary outline-none font-medium text-lg"
+                    className="w-full py-1.5 px-2 bg-transparent border-b border-border focus:border-primary outline-none font-medium text-base"
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     autoFocus
                 />
 
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-1.5 pt-1">
                     {QUICK_ACTIONS.map(action => {
                         const Icon = action.icon;
                         const isSelected = selectedType === action.type;
@@ -99,61 +99,61 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                                 type="button"
                                 onClick={() => handleQuickAction(action)}
                                 className={`
-                                    p-2 rounded-full border transition-all flex items-center justify-center
+                                    p-1.5 rounded-full border transition-all flex items-center justify-center
                                     ${isSelected
                                         ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-105'
                                         : 'bg-background text-muted-foreground border-transparent hover:bg-muted hover:scale-110'}
                                 `}
                                 title={action.label}
                             >
-                                <Icon size={16} />
+                                <Icon size={14} />
                             </button>
                         );
                     })}
-                    <span className="text-xs text-muted-foreground ml-2">
+                    <span className="text-xs text-muted-foreground ml-2 font-medium">
                         {QUICK_ACTIONS.find(a => a.type === selectedType)?.label}
                     </span>
                 </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-3">
                 <div
-                    className="flex-1 flex items-center gap-2 border rounded-md p-2 bg-background cursor-pointer hover:border-primary transition-colors"
+                    className="flex-1 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => dateInputRef.current?.showPicker()}
                 >
-                    <Calendar size={16} className="text-muted-foreground" />
+                    <Calendar size={14} className="text-muted-foreground shrink-0" />
                     <input
                         ref={dateInputRef}
                         type="date"
-                        className="bg-transparent outline-none flex-1 text-sm cursor-pointer"
+                        className="bg-transparent outline-none flex-1 text-xs cursor-pointer"
                         value={date}
                         onChange={e => setDate(e.target.value)}
                     />
                 </div>
                 <div
-                    className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background cursor-pointer hover:border-primary transition-colors"
+                    className="w-28 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => timeInputRef.current?.showPicker()}
                 >
-                    <Clock size={16} className="text-muted-foreground" />
+                    <Clock size={14} className="text-muted-foreground shrink-0" />
                     <input
                         ref={timeInputRef}
                         type="time"
-                        className="bg-transparent outline-none flex-1 text-sm cursor-pointer"
+                        className="bg-transparent outline-none flex-1 text-xs cursor-pointer"
                         value={time}
                         onChange={e => setTime(e.target.value)}
                     />
                 </div>
-                <div className="w-32 flex items-center gap-2 border rounded-md p-2 bg-background">
+                <div className="w-24 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background">
                     <select
-                        className="bg-transparent outline-none flex-1 text-sm appearance-none cursor-pointer"
+                        className="bg-transparent outline-none flex-1 text-xs appearance-none cursor-pointer"
                         value={duration}
                         onChange={e => setDuration(Number(e.target.value))}
                         title="Duração"
                     >
                         <option value={15}>15 min</option>
                         <option value={30}>30 min</option>
-                        <option value={60}>1 hora</option>
-                        <option value={120}>2 horas</option>
+                        <option value={60}>1h</option>
+                        <option value={120}>2h</option>
                     </select>
                 </div>
             </div>
@@ -162,9 +162,9 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 <button
                     type="submit"
                     disabled={!title.trim() || isSubmitting}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium text-sm flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium text-xs flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <CheckCircle2 size={16} />
+                    <CheckCircle2 size={14} />
                     {isSubmitting ? 'Salvando...' : `${submitLabel} ${QUICK_ACTIONS.find(a => a.type === selectedType)?.label}`}
                 </button>
             </div>
