@@ -35,7 +35,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
     const [time, setTime] = useState(initialData?.time || '10:00');
     const [duration, setDuration] = useState(initialData?.duration || 30);
-    const [selectedType, setSelectedType] = useState(initialData?.type || 'task');
+    const [selectedType, setSelectedType] = useState(initialData?.type || 'message');
 
     const dateInputRef = useRef<HTMLInputElement>(null);
     const timeInputRef = useRef<HTMLInputElement>(null);
@@ -77,7 +77,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             // Only clear if not editing (initialData absent)
             if (!initialData) {
                 setTitle('');
-                setSelectedType('task');
+                setSelectedType('message');
             }
         } catch (error) {
             console.error("Error submitting activity:", error);
