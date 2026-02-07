@@ -1,5 +1,5 @@
 import { Activity } from '@/types/schema';
-import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil } from 'lucide-react';
+import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare } from 'lucide-react';
 import { format, isBefore, isToday, startOfDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -18,6 +18,7 @@ const typeIcons = {
     followup: Calendar,
     note: StickyNote,
     fileUpload: Paperclip,
+    message: MessageSquare,
 };
 
 const getActivityStatus = (dateString?: string) => {
