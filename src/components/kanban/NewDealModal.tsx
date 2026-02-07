@@ -22,9 +22,7 @@ const LABELS = [
 
 const parseCurrency = (value: string): number => {
     if (!value) return 0;
-    // Remove dots (thousands separator) and replace comma with dot (decimal)
-    const normalized = value.replace(/\./g, '').replace(',', '.');
-    return parseFloat(normalized) || 0;
+    return parseFloat(value) || 0;
 };
 
 export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToEdit, currency = 'BRL' }: NewDealModalProps) {
@@ -32,6 +30,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
 
     // --- Form State ---
     const [title, setTitle] = useState('');
+    const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false);
     const [value, setValue] = useState('');
     // Default to today
     const [expectedCloseDate, setExpectedCloseDate] = useState(new Date().toISOString().split('T')[0]);
@@ -74,6 +73,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
             if (dealToEdit) {
                 // Edit Mode
                 setTitle(dealToEdit.title);
+                setIsTitleManuallyEdited(true); // Treat existing deals as manually edited to prevent overwrite
                 setValue(dealToEdit.value.toString());
                 setExpectedCloseDate(dealToEdit.expectedCloseDate || '');
                 setSelectedLabels(dealToEdit.tags || []);
@@ -114,20 +114,20 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         }
     }, [contactSearch, companyId, companyManuallyEdited, dealToEdit]);
 
-    // Title Mirroring Logic: Always 'Negócio [Contact Name]' if not editing an existing custom title (or always if user insists?)
-    // User said: "quero que seja sempre a palavra 'negócio ' e o mesmo nome da pessoa de contato."
-    // I will force it for new deals. For edits, I'll respect existing, unless they change the contact?
-    // Let's make it reactive to contactSearch for now.
+    // Title Mirroring Logic: Always 'Negócio [Contact Name]' ONLY if user hasn't customized the title
     useEffect(() => {
-        if (contactSearch) {
-            setTitle(`Negócio ${contactSearch}`);
-        } else {
-            setTitle('Negócio');
+        if (!isTitleManuallyEdited) {
+            if (contactSearch) {
+                setTitle(`Negócio ${contactSearch}`);
+            } else {
+                setTitle('Negócio');
+            }
         }
-    }, [contactSearch]);
+    }, [contactSearch, isTitleManuallyEdited]);
 
     const resetForm = () => {
         setTitle('Negócio');
+        setIsTitleManuallyEdited(false);
         setValue('');
         setExpectedCloseDate(new Date().toISOString().split('T')[0]);
         setSelectedLabels([]);
@@ -326,7 +326,10 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                             className="w-full px-3 py-1.5 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50"
                             placeholder="Ex: Venda de Licença Enterprise"
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={(e) => {
+                                setTitle(e.target.value);
+                                setIsTitleManuallyEdited(true);
+                            }}
                         />
                     </div>
 
@@ -338,6 +341,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                                 <span className="absolute left-3 top-2.5 text-muted-foreground text-xs font-medium">{currency === 'BRL' ? 'R$' : currency}</span>
                                 <input
                                     type="number"
+                                    step="0.01"
                                     className="w-full pl-12 pr-3 py-1.5 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-primary/50 outline-none text-sm placeholder:text-muted-foreground/50"
                                     placeholder="0,00"
                                     value={value}
