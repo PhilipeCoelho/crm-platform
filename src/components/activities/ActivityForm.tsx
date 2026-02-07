@@ -87,8 +87,8 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-2 p-4">
-            <div className="space-y-1.5">
+        <form onSubmit={handleSubmit} className="space-y-2">
+            <div className="space-y-1.5 px-4 pt-3">
                 <input
                     type="text"
                     placeholder="O que você precisa fazer?"
@@ -129,7 +129,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 px-4">
                 <div
                     className="flex-1 flex items-center gap-1.5 border rounded-md px-2 py-1 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => dateInputRef.current?.showPicker()}
@@ -171,7 +171,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end px-4 pb-3">
                 <button
                     type="submit"
                     disabled={!title.trim() || isSubmitting}

@@ -107,7 +107,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
     return (
         <div className={`flex flex-col overflow-hidden bg-background w-full max-w-[780px] mx-auto ${isModal ? 'h-full max-h-[85vh] rounded-lg shadow-2xl' : 'h-full'}`}>
             {/* Header */}
-            <div className="bg-card border-b border-border p-2 flex flex-col gap-2 shrink-0">
+            <div className="bg-background border-b border-border p-2 flex flex-col gap-2 shrink-0">
 
                 {/* Top Row: Navigation & Actions */}
                 <div className="flex items-center justify-between">
