@@ -108,21 +108,21 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
                         <KanbanCard key={task.id} deal={task} currency={currency} onPreview={onPreview} />
                     ))}
                 </SortableContext>
-            </div>
 
-            {/* Quick Add Button Footer */}
-            <div className="p-2 pt-0 shrink-0">
+                {/* Inline Add Button */}
                 <button
-                    className="w-full flex items-center justify-center gap-1 text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-md transition-all text-xs font-medium"
+                    className="w-fit flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-[13px] font-medium mt-1 px-1"
                     onClick={() => {
                         onAdd(column.id);
                     }}
-                    title="Adicionar negócio"
+                    title="Adicionar novo negócio"
                 >
                     <Plus size={14} />
-                    <span>Novo</span>
+                    <span>Novo Negócio</span>
                 </button>
             </div>
+
+
         </div>
     );
 }
