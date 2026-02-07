@@ -111,7 +111,7 @@ export default function Timeline({ activities, onReopen, onEdit }: Props) {
                                 )
                             ) : (
                                 <div className="text-sm text-foreground">
-                                    <span className={activity.type !== 'note' ? "font-medium" : ""}>{activity.title}</span>
+                                    <span className="font-medium bg-transparent">{activity.title}</span>
                                     {activity.duration && <span className="text-muted-foreground ml-2 text-xs">({activity.duration} min)</span>}
                                     {activity.result && (
                                         <div className="mt-1.5 p-2 bg-muted/30 rounded border border-border/40 text-xs italic text-muted-foreground">

@@ -60,7 +60,7 @@ export interface Deal {
 
 export interface Activity {
     id: Id;
-    type: 'call' | 'meeting' | 'task' | 'email' | 'followup' | 'note' | 'fileUpload';
+    type: 'call' | 'meeting' | 'task' | 'email' | 'followup' | 'note' | 'fileUpload' | 'message';
     title: string;
     description?: string;
     result?: string; // Outcome of the activity
