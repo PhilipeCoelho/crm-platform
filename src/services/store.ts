@@ -338,14 +338,17 @@ export function useCRMStore(): CRMStore {
         };
 
         // Optimistic
+        console.log('👤 addContact: Generated ID:', tempId);
         const optimisticContact = { ...data, id: tempId, userId: user.id, createdAt: new Date().toISOString() } as Contact;
         setContacts(prev => [...prev, optimisticContact]);
 
         const { data: inserted, error } = await supabase.from('contacts').insert(newContact).select().single();
         if (error) {
+            console.error('❌ addContact DB Error:', error);
             setContacts(prev => prev.filter(c => c.id !== tempId));
             throw error;
         }
+        console.log('✅ addContact Success. DB ID matches:', inserted.id === tempId);
         return { ...optimisticContact, id: inserted.id };
     };
 
