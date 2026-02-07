@@ -238,14 +238,12 @@ export function useCRMStore(): CRMStore {
         const nextDeals = [optimisticDeal, ...deals];
         setDeals(nextDeals); // Update Deals State
 
-        // Automatic Contact Status Update
-        if (data.contactId) {
+        // Automatic Contact Status Update (Disabled: DB Missing Column)
+        /* if (data.contactId) {
             const newStatus = await recalculateContactStatus(data.contactId, nextDeals);
-            // Optimistic Contact Update
             setContacts(prev => prev.map(c => c.id === data.contactId ? { ...c, status: newStatus } : c));
-            // Fire & Forget DB update for contact status
-            supabase.from('contacts').update({ status: newStatus }).eq('id', data.contactId);
-        }
+            // supabase.from('contacts').update({ status: newStatus }).eq('id', data.contactId);
+        } */
 
         // DB Insert Deal
         const { error } = await supabase.from('deals').insert(newDeal);
@@ -263,13 +261,13 @@ export function useCRMStore(): CRMStore {
         setDeals(nextDeals);
 
         // Check if status changed or contact changed
-        const targetDeal = nextDeals.find(d => d.id === id);
+        /* const targetDeal = nextDeals.find(d => d.id === id);
         if (targetDeal && targetDeal.contactId) {
             // Recalculate status for the contact
             const newStatus = await recalculateContactStatus(targetDeal.contactId, nextDeals);
             setContacts(prev => prev.map(c => c.id === targetDeal.contactId ? { ...c, status: newStatus } : c));
             supabase.from('contacts').update({ status: newStatus }).eq('id', targetDeal.contactId);
-        }
+        } */
 
         // DB Map
         const dbUpdates: Record<string, unknown> = {};
@@ -300,12 +298,12 @@ export function useCRMStore(): CRMStore {
         setDeals(nextDeals);
         setActivities(prev => prev.filter(a => a.dealId !== id));
 
-        // Recalculate Contact Status
-        if (dealToDelete && dealToDelete.contactId) {
+        // Recalculate Contact Status (Disabled)
+        /* if (dealToDelete && dealToDelete.contactId) {
             const newStatus = await recalculateContactStatus(dealToDelete.contactId, nextDeals);
             setContacts(prev => prev.map(c => c.id === dealToDelete.contactId ? { ...c, status: newStatus } : c));
             supabase.from('contacts').update({ status: newStatus }).eq('id', dealToDelete.contactId);
-        }
+        } */
 
         // DB
         const { error: actError } = await supabase.from('activities').delete().eq('deal_id', id);
@@ -333,8 +331,8 @@ export function useCRMStore(): CRMStore {
             phone: data.phone,
             role: data.role,
             user_id: user.id,
-            company_id: data.companyId,
-            status: data.status || 'lead'
+            company_id: data.companyId
+            // Status removed as column missing in DB
         };
 
         // Optimistic
