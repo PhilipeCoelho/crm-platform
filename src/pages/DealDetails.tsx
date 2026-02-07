@@ -105,7 +105,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
     };
 
     return (
-        <div className={`flex flex-col overflow-hidden bg-background w-full max-w-[780px] mx-auto ${isModal ? 'h-full max-h-[85vh] rounded-lg shadow-2xl' : 'h-full'}`}>
+        <div className={`flex flex-col overflow-hidden w-full ${isModal ? 'h-full bg-transparent' : 'bg-background max-w-[780px] mx-auto'}`}>
             {/* Header */}
             <div className="bg-background border-b border-border p-2 flex flex-col gap-2 shrink-0">
 
