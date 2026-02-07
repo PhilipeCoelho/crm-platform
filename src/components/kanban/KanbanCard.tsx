@@ -15,7 +15,7 @@ interface Props {
 }
 
 function DealCard({ deal, currency, onPreview }: Props) {
-    const { companies, contacts, activities, deleteDeal } = useCRM();
+    const { contacts, activities, deleteDeal } = useCRM();
     const navigate = useNavigate();
 
     const {
