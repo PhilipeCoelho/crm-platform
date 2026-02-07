@@ -252,27 +252,29 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             </div>
 
             {/* Kanban Content */}
-            <div className="flex-1 p-0 w-full h-full overflow-hidden bg-transparent">
+            <div className="flex-1 w-full h-full overflow-hidden bg-transparent relative">
                 <DndContext
                     sensors={sensors}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
                     onDragOver={onDragOver}
                 >
-                    <div className="grid grid-flow-col auto-cols-[minmax(280px,1fr)] overflow-x-auto overflow-y-hidden pb-2 px-2 pt-2 gap-2 h-full w-full">
-                        <SortableContext items={columnsId}>
-                            {columns.map((col) => (
-                                <KanbanColumn
-                                    key={col.id}
-                                    column={col}
-                                    tasks={filteredDeals.filter(d => d.stageId === col.id)}
-                                    updateColumn={() => { }}
-                                    onAdd={openNewDealModal}
-                                    currency={currency}
-                                    onPreview={handleDealClick}
-                                />
-                            ))}
-                        </SortableContext>
+                    <div className="h-full w-full overflow-x-auto overflow-y-hidden">
+                        <div className="flex h-full min-w-max px-6 pb-4 pt-4 gap-3 mx-auto max-w-[1600px]">
+                            <SortableContext items={columnsId}>
+                                {columns.map((col) => (
+                                    <KanbanColumn
+                                        key={col.id}
+                                        column={col}
+                                        tasks={filteredDeals.filter(d => d.stageId === col.id)}
+                                        updateColumn={() => { }}
+                                        onAdd={openNewDealModal}
+                                        currency={currency}
+                                        onPreview={handleDealClick}
+                                    />
+                                ))}
+                            </SortableContext>
+                        </div>
                     </div>
 
                     {createPortal(

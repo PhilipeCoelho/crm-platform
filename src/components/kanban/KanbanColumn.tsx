@@ -53,7 +53,7 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
             <div
                 ref={setNodeRef}
                 style={style}
-                className="bg-muted/50 w-full h-[500px] max-h-[500px] rounded-lg border-2 border-primary opacity-40"
+                className="bg-muted/50 w-[300px] h-[500px] max-h-[500px] rounded-lg border-2 border-primary opacity-40 shrink-0"
             />
         );
     }
@@ -70,40 +70,35 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
         <div
             ref={setNodeRef}
             style={style}
-            className="flex flex-col rounded-xl bg-muted/40 backdrop-blur-md border border-border/40 transition-colors h-full w-full min-w-0 shadow-sm overflow-hidden"
+            className="flex flex-col rounded-lg bg-muted/20 border border-border/60 transition-colors h-full min-w-[300px] w-[300px] shrink-0 shadow-sm overflow-hidden"
         >
             <div
                 {...attributes}
                 {...listeners}
-                className="p-3 pb-2 flex flex-col gap-1 shrink-0 cursor-grab group/header hover:bg-black/5 dark:hover:bg-white/5 rounded-t-md transition-colors"
+                className="p-3 flex flex-col gap-1.5 shrink-0 cursor-grab group/header hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
                 {/* Header Row: Title & Count */}
                 <div className="flex items-center justify-between w-full">
-                    <div className="flex gap-2 items-center flex-1 min-w-0">
-                        <InlineEditableField
-                            value={column.title}
-                            onSave={(val) => updateColumn(column.id, val)}
-                            className="text-[15px] font-bold text-foreground w-full truncate"
-                            placeholder="Nome da etapa"
-                        />
-                        <span className="text-muted-foreground text-xs font-medium">
-                            {tasks.length}
-                        </span>
-                    </div>
+                    <InlineEditableField
+                        value={column.title}
+                        onSave={(val) => updateColumn(column.id, val)}
+                        className="text-[14px] font-bold text-foreground w-full truncate"
+                        placeholder="Nome da etapa"
+                    />
+                    <span className="text-[11px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded-md border border-border/50">
+                        {tasks.length}
+                    </span>
                 </div>
 
-                {/* SubHeader: Value & Add Button (Hidden mostly) */}
-                <div className="flex items-center justify-between h-4">
-                    <span className="text-[11px] font-semibold text-muted-foreground bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                {/* SubHeader: Value */}
+                <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-muted-foreground">
                         {formatDynamicCurrency(totalValue)}
                     </span>
-                    {/* <button className="opacity-0 group-hover/header:opacity-100 text-gray-400 hover:text-gray-600 transition-opacity">
-                        <MoreHorizontal size={14} />
-                    </button> */}
                 </div>
 
-                {/* Progress Bar / Color Indicator (Optional Pipedrive touch) */}
-                <div className={`h-[2px] w-full mt-2 rounded-full ${tasks.length > 0 ? 'bg-primary/40' : 'bg-muted'}`} />
+                {/* Progress Bar / Color Indicator */}
+                <div className={`h-[2px] w-full mt-1 rounded-full ${tasks.length > 0 ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
             </div>
 
             {/* Task List */}
