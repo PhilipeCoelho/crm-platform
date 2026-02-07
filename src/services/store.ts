@@ -175,8 +175,8 @@ export function useCRMStore(): CRMStore {
 
     // --- Actions (Optimistic + Async) ---
 
-    // --- Helpers for Status Logic ---
-    const recalculateContactStatus = async (contactId: string, currentDeals: Deal[]) => {
+    // --- Helpers for Status Logic (Disabled) ---
+    /* const recalculateContactStatus = async (contactId: string, currentDeals: Deal[]) => {
         // Filter deals for this contact
         const contactDeals = currentDeals.filter(d => d.contactId === contactId);
 
@@ -184,20 +184,13 @@ export function useCRMStore(): CRMStore {
         if (contactDeals.some(d => d.status === 'won')) return 'active';
 
         // 2. If ALL deals are LOST (and has > 0 deals) -> INACTIVE
-        // The requirement says: "Se todos os negócios forem PERDIDOS: -> status contato = INATIVO"
-        // But what if they have mixed Lost and Open?
-        // "Se tiver negócio ABERTO: -> status contato = LEAD"
-        // So priority: Won -> Active. Open -> Lead. All Lost -> Inactive.
         if (contactDeals.some(d => d.status === 'open')) return 'lead';
 
         if (contactDeals.length > 0 && contactDeals.every(d => d.status === 'lost')) return 'inactive';
 
         // 3. If no deals? Keep current or default to Lead? 
-        // "Se excluir um contato..." no, what if I delete the only deal?
-        // Let's default to 'lead' if they have no deals, or maybe keep as is.
-        // For now, let's return 'lead' as a safe fallback for "Prospect".
         return 'lead';
-    };
+    }; */
 
 
 
@@ -291,7 +284,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const deleteDeal = async (id: string) => {
-        const dealToDelete = deals.find(d => d.id === id);
+        // const dealToDelete = deals.find(d => d.id === id);
 
         // Optimistic Update
         const nextDeals = deals.filter(d => d.id !== id);
