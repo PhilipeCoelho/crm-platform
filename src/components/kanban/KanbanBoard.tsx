@@ -26,7 +26,7 @@ interface KanbanBoardProps {
 }
 
 function KanbanBoard({ currency }: KanbanBoardProps) {
-    const { deals, pipelines, updateDeal, activities } = useCRM();
+    const { deals, pipelines, updateDeal, moveDeal, activities } = useCRM();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId] = useState('sales');
 
@@ -445,9 +445,10 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         if (isOverColumn) {
             const deal = deals.find(d => d.id === activeId);
             if (deal && deal.stageId !== overId) {
+                // Optimistic visual move only
                 const targetDeals = deals.filter(d => d.stageId === overId);
                 const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
-                updateDeal(deal.id, { stageId: overId as string, position: maxPos + 1 });
+                moveDeal(deal.id, overId as string, maxPos + 1024);
             }
         }
 
@@ -456,7 +457,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         if (overDeal && active.data.current?.deal) {
             const activeDeal = active.data.current.deal;
             if (activeDeal.stageId !== overDeal.stageId) {
-                updateDeal(activeDeal.id, { stageId: overDeal.stageId });
+                // Optimistic visual move to new stage
+                moveDeal(activeDeal.id, overDeal.stageId);
             }
         }
     }

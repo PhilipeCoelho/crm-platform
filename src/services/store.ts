@@ -18,6 +18,7 @@ export interface CRMStore {
     // Actions
     addDeal: (deal: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
     updateDeal: (id: string, updates: Partial<Deal>) => Promise<void>;
+    moveDeal: (id: string, stageId: string, position?: number) => void;
     deleteDeal: (id: string) => Promise<void>;
 
     addCompany: (company: Omit<Company, 'id' | 'createdAt'>) => Promise<Company>;
@@ -286,6 +287,15 @@ export function useCRMStore(): CRMStore {
         };
     };
 
+    const moveDeal = (id: string, stageId: string, position?: number) => {
+        setDeals(prev => prev.map(d => {
+            if (d.id === id) {
+                return { ...d, stageId, columnId: stageId, position: position !== undefined ? position : d.position };
+            }
+            return d;
+        }));
+    };
+
     const deleteDeal = async (id: string) => {
         // const dealToDelete = deals.find(d => d.id === id);
 
@@ -497,7 +507,7 @@ export function useCRMStore(): CRMStore {
         deals,
         activities,
         pipelines,
-        addDeal, updateDeal, deleteDeal,
+        addDeal, updateDeal, moveDeal, deleteDeal,
         addContact, updateContact, deleteContact,
         addActivity, updateActivity, deleteActivity,
         addCompany, updateCompany,
