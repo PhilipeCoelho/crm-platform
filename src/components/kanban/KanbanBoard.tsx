@@ -352,7 +352,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             }
 
             if (potentialNewStageId && potentialNewStageId !== dragStartStageId) {
-                const newStage = columns.find(c => c.id === potentialNewStageId);
+                // const newStage = columns.find(c => c.id === potentialNewStageId);
                 // Optional: Trigger suggestion (commented out or kept if useful)
                 // setSuggestionModal({ isOpen: true, deal: deals.find(d => d.id === active.id)!, stageName: newStage?.title || '' });
             }
