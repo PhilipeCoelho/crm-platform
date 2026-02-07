@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Deal } from '@/types/schema';
-import { Calendar, Clock, CheckCircle2, Phone, Mail, Users, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Phone, Mail, Users, MessageSquare, Timer } from 'lucide-react';
 import {
     Tooltip,
     TooltipContent,
@@ -134,7 +134,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                     className="flex-1 flex items-center gap-1.5 border rounded-md px-2 py-1 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => dateInputRef.current?.showPicker()}
                 >
-                    <Calendar size={14} className="text-muted-foreground shrink-0" />
+                    <Calendar size={14} className="text-foreground shrink-0" />
                     <input
                         ref={dateInputRef}
                         type="date"
@@ -147,7 +147,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                     className="w-28 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => timeInputRef.current?.showPicker()}
                 >
-                    <Clock size={14} className="text-muted-foreground shrink-0" />
+                    <Clock size={14} className="text-foreground shrink-0" />
                     <input
                         ref={timeInputRef}
                         type="time"
@@ -157,6 +157,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                     />
                 </div>
                 <div className="w-24 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background">
+                    <Timer size={14} className="text-foreground shrink-0" />
                     <select
                         className="bg-transparent outline-none flex-1 text-xs appearance-none cursor-pointer"
                         value={duration}
