@@ -103,6 +103,11 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
         const matchesStatus = statusFilter === 'all' ? true : deal.status === statusFilter;
         return matchesSearch && matchesValue && matchesView && matchesStatus;
+    }).sort((a, b) => {
+        const posA = a.position || 0;
+        const posB = b.position || 0;
+        if (posA !== posB) return posA - posB;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
     const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
@@ -384,18 +389,37 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             const prev = newOrderDeals[newIndex - 1];
             const next = newOrderDeals[newIndex + 1];
 
+            const prevPos = prev?.position || 0;
+            const nextPos = next?.position || 0;
+
+            // Check for Collision (Collision/Zero/Legacy)
+            const isCollision = prev && next && Math.abs(prevPos - nextPos) < 0.0001;
+
+            if (isCollision) {
+                console.log('⚠️ Collision/Legacy detected. Re-indexing column...');
+                // Heal the column by reindexing strictly
+                newOrderDeals.forEach((d, idx) => {
+                    const cleanPos = (idx + 1) * 1024;
+                    if (d.position !== cleanPos) {
+                        updateDeal(d.id, { position: cleanPos });
+                    }
+                });
+                return;
+            }
+
+            // Standard Logic
             let newPos = 0;
             if (!prev && !next) {
                 newPos = 0;
             } else if (!prev) {
                 // Top
-                newPos = (next.position || 0) - 1; // Put before next
+                newPos = nextPos - 1024;
             } else if (!next) {
                 // Bottom
-                newPos = (prev.position || 0) + 1; // Put after prev
+                newPos = prevPos + 1024;
             } else {
                 // Middle
-                newPos = ((prev.position || 0) + (next.position || 0)) / 2;
+                newPos = (prevPos + nextPos) / 2;
             }
 
             console.log(`🔄 Reordering: ${activeDeal.title} to index ${newIndex} (Pos: ${newPos})`);
