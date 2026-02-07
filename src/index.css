@@ -44,15 +44,21 @@
   }
 
   .dark {
-    /* Premium SaaS Tokens (Dark Mode) - Slate Theme */
-    --bg-main: 222 47% 11%;     /* #0F172A (Slate 900) */
-    --surface: 222 47% 11%;     /* #0F172A (Slate 900) */
-    --card: 215 28% 17%;        /* #1E293B (Slate 800) */
-    --border: 215 25% 27%;      /* #334155 (Slate 700) - Visible border */
+    /* Deep Neutral Tokens (Dark Mode) - No Blue Tint */
+    --bg-main: 213 29% 6%;
+    /* #0B0F14 */
+    --surface: 213 29% 6%;
+    /* #0B0F14 */
+    --card: 214 17% 8%;
+    /* #111418 (Cards) */
+    --border: 215 14% 15%;
+    /* ~#212429 (Subtle Border) */
 
     /* Typography */
-    --text-primary: 210 40% 98%;   /* #F8FAFC (Slate 50) */
-    --text-secondary: 215 20% 65%; /* #94A3B8 (Slate 400) */
+    --text-primary: 216 8% 91%;
+    /* #E6E8EB */
+    --text-secondary: 211 11% 65%;
+    /* #9AA4AF */
 
     /* Shadcn Mappings */
     --background: var(--bg-main);
@@ -61,22 +67,28 @@
     --popover: var(--card);
     --popover-foreground: var(--text-primary);
 
-    --primary: 225 100% 65%;       /* Keep Accent Blue */
+    --primary: 225 100% 65%;
+    /* Keep Accent Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 28% 17%;      /* Slate 800 */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 214 17% 8%;
+    /* Match Card Surface */
+    --secondary-foreground: 216 8% 91%;
 
-    --muted: 215 28% 17%;          /* Slate 800 */
-    --muted-foreground: 215 16% 47%; /* Slate 500 */
-    
-    --accent: 215 28% 17%;         /* Slate 800 */
-    --accent-foreground: 210 40% 98%;
+    --muted: 214 17% 8%;
+    /* Match Card Surface */
+    --muted-foreground: 220 9% 46%;
+    /* #6B7280 */
+
+    --accent: 214 17% 8%;
+    /* Match Card Surface */
+    --accent-foreground: 216 8% 91%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --input: 215 28% 17%;          /* Slate 800 */
+    --input: 214 17% 8%;
+    /* Match Card Surface */
     --ring: 225 100% 65%;
   }
 }
