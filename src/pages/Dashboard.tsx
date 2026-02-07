@@ -1,7 +1,7 @@
-import { useDashboardData, PeriodFilter } from '@/hooks/useDashboardData';
+import { useDashboardData, ProductivityFilter } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, Filter, CalendarDays, Target, Euro } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, Filter, CalendarDays, Target, Euro, CheckSquare } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { format, subMonths, eachMonthOfInterval, parseISO } from 'date-fns';
@@ -9,20 +9,20 @@ import { ptBR } from 'date-fns/locale';
 
 // --- Components ---
 
-function PeriodSelector({ value, onChange, customRange, onCustomRangeChange }: {
-    value: PeriodFilter,
-    onChange: (v: PeriodFilter) => void,
+function ProductivityFilterSelector({ value, onChange, customRange, onCustomRangeChange }: {
+    value: ProductivityFilter,
+    onChange: (v: ProductivityFilter) => void,
     customRange: { start: Date | null, end: Date | null },
     onCustomRangeChange: (r: { start: Date | null, end: Date | null }) => void
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
-    const options: { label: string, value: PeriodFilter }[] = [
-        { label: 'Últimos 7 dias', value: '7d' },
+    const options: { label: string, value: ProductivityFilter }[] = [
+        { label: 'Hoje', value: 'today' },
+        { label: 'Este Mês', value: 'month' },
         { label: 'Últimos 30 dias', value: '30d' },
         { label: 'Últimos 90 dias', value: '90d' },
-        { label: 'Este Mês', value: 'month' },
         { label: 'Personalizado', value: 'custom' },
     ];
 
@@ -40,16 +40,16 @@ function PeriodSelector({ value, onChange, customRange, onCustomRangeChange }: {
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-background hover:bg-muted/50 text-foreground rounded-md transition-all border border-border/60 shadow-sm active:scale-95"
+                className="flex items-center gap-2 px-2 py-1 text-xs font-medium bg-secondary/50 hover:bg-secondary text-foreground rounded transition-colors border border-border/50"
             >
-                <Filter size={14} className="text-muted-foreground" />
-                <span>{currentLabel}</span>
-                <ChevronDown size={14} className="opacity-50" />
+                <Calendar size={12} className="text-muted-foreground" />
+                <span className="capitalize max-w-[100px] truncate">{currentLabel}</span>
+                <ChevronDown size={12} className="opacity-50" />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-popover/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl overflow-hidden p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="grid grid-cols-1 gap-1 mb-2">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="p-1 grid grid-cols-1 gap-0.5">
                         {options.map(opt => (
                             <button
                                 key={opt.value}
@@ -58,10 +58,10 @@ function PeriodSelector({ value, onChange, customRange, onCustomRangeChange }: {
                                     if (opt.value !== 'custom') setIsOpen(false);
                                 }}
                                 className={`
-                                    w-full text-left px-3 py-2 text-sm rounded-lg transition-colors
+                                    w-full text-left px-3 py-2 text-sm rounded-md transition-colors
                                     ${value === opt.value
                                         ? 'bg-primary/10 text-primary font-medium'
-                                        : 'hover:bg-muted/50 text-foreground'}
+                                        : 'hover:bg-muted text-foreground'}
                                 `}
                             >
                                 {opt.label}
@@ -70,7 +70,7 @@ function PeriodSelector({ value, onChange, customRange, onCustomRangeChange }: {
                     </div>
 
                     {value === 'custom' && (
-                        <div className="pt-2 border-t border-border/50 space-y-3 p-1">
+                        <div className="p-2 border-t border-border/50 space-y-2 bg-muted/20">
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="space-y-1">
                                     <label className="text-[10px] uppercase text-muted-foreground font-semibold">Início</label>
@@ -93,9 +93,9 @@ function PeriodSelector({ value, onChange, customRange, onCustomRangeChange }: {
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="w-full bg-primary text-primary-foreground text-xs py-2 rounded-md font-medium hover:bg-primary/90 transition-colors"
+                                className="w-full bg-primary text-primary-foreground text-xs py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
                             >
-                                Aplicar Filtro
+                                Aplicar
                             </button>
                         </div>
                     )}
@@ -202,6 +202,11 @@ export default function Dashboard() {
         return MOTIVATIONAL_QUOTES[index];
     }, []);
 
+    // Determine what to show in Productivity Card
+    const isTodayView = stats.productivityFilter === 'today';
+    const displayCount = isTodayView ? stats.todayProductivityScore : stats.productivityCount;
+    const progressPercent = Math.min((stats.todayProductivityScore / stats.activityGoal) * 100, 100);
+
     return (
         <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
             <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-8">
@@ -218,15 +223,8 @@ export default function Dashboard() {
                         </p>
                     </div>
 
-                    {/* Actions & Global Filter */}
+                    {/* Actions ONLY - Filter is gone */}
                     <div className="flex items-center gap-3">
-                        <PeriodSelector
-                            value={stats.periodFilter}
-                            onChange={actions.setPeriodFilter}
-                            customRange={stats.customDateRange}
-                            onCustomRangeChange={actions.setCustomDateRange}
-                        />
-
                         <button
                             onClick={() => setIsNewActivityModalOpen(true)}
                             className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 shadow-sm transition-all active:scale-95"
@@ -240,41 +238,80 @@ export default function Dashboard() {
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                    {/* 1. Daily Activity Goal */}
+                    {/* 1. Productivity Goal (Meta Diária / Produtividade) */}
                     <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <div className="flex items-center gap-2 mb-2">
+                            <div className="w-full">
+                                <div className="flex items-center justify-between mb-2 w-full">
                                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <Target size={16} className="text-blue-500" />
-                                        Meta Diária
+                                        {isTodayView ? 'Meta Diária' : 'Produtividade'}
                                     </p>
-                                    <input
-                                        type="number"
-                                        value={stats.activityGoal}
-                                        onChange={(e) => actions.handleActivityGoalChange(Number(e.target.value))}
-                                        className="text-right text-xs text-muted-foreground bg-transparent border-b border-dashed border-border focus:border-primary focus:text-foreground outline-none w-12"
+                                    <ProductivityFilterSelector
+                                        value={stats.productivityFilter}
+                                        onChange={actions.setProductivityFilter}
+                                        customRange={stats.productivityCustomRange}
+                                        onCustomRangeChange={actions.setProductivityCustomRange}
                                     />
                                 </div>
-                                <div className="flex items-baseline gap-2">
-                                    <h3 className="text-3xl font-bold text-foreground">{stats.completedTodayCount}</h3>
-                                    <span className="text-sm text-muted-foreground/60 font-medium">/ {stats.activityGoal}</span>
+
+                                {isTodayView ? (
+                                    // Today: Input for Goal + Comparison
+                                    <div>
+                                        <div className="hidden"> {/* Hidden input placeholder for accessibility or if we want to toggle edit */} </div>
+                                        <div className="flex items-baseline gap-2 mt-1">
+                                            <h3 className="text-3xl font-bold text-foreground">{displayCount}</h3>
+                                            <span className="text-sm text-muted-foreground/60 font-medium flex items-center gap-1">
+                                                /
+                                                <input
+                                                    type="number"
+                                                    value={stats.activityGoal}
+                                                    onChange={(e) => actions.handleActivityGoalChange(Number(e.target.value))}
+                                                    className="w-10 bg-transparent border-b border-dashed border-border focus:border-primary outline-none text-center"
+                                                />
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // Range: Show Total
+                                    <div className="flex items-baseline gap-2 mt-1">
+                                        <h3 className="text-3xl font-bold text-foreground">{displayCount}</h3>
+                                        <span className="text-sm text-muted-foreground font-medium">atividades concluídas</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Icon Indicator */}
+                            {isTodayView && (
+                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                    {displayCount >= stats.activityGoal ? <CheckCircle2 size={24} /> : <TrendingUp size={24} />}
                                 </div>
-                            </div>
-                            <div className={`p-3 rounded-lg ${stats.completedTodayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}`}>
-                                {stats.completedTodayCount >= stats.activityGoal ? <CheckCircle2 size={24} /> : <TrendingUp size={24} />}
-                            </div>
+                            )}
+                            {!isTodayView && (
+                                <div className="ml-4 p-3 rounded-lg bg-indigo-500/10 text-indigo-500">
+                                    <CheckSquare size={24} />
+                                </div>
+                            )}
                         </div>
-                        <div className="space-y-2 mt-auto">
-                            <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.completedTodayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-blue-500'}`}
-                                    style={{ width: `${Math.min((stats.completedTodayCount / stats.activityGoal) * 100, 100)}%` }}
-                                />
-                            </div>
-                            <p className="text-xs text-muted-foreground/80 text-right">
-                                {stats.completedTodayCount >= stats.activityGoal ? 'Meta batida! 🚀' : `${stats.activityGoal - stats.completedTodayCount} restantes`}
-                            </p>
+
+                        <div className="space-y-2 mt-auto min-h-[1.5rem] flex items-end">
+                            {isTodayView ? (
+                                <div className="w-full">
+                                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-blue-500'}`}
+                                            style={{ width: `${progressPercent}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground/80 text-right mt-1">
+                                        {displayCount >= stats.activityGoal ? 'Meta batida! 🚀' : `${stats.activityGoal - displayCount} restantes`}
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">
+                                    Negócios relacionados: <span className="font-medium text-foreground">{/* Potentially filtering deals dealt with? Keeping simple for now */} -</span>
+                                </p>
+                            )}
                         </div>
                     </div>
 
