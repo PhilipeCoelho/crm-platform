@@ -1,6 +1,6 @@
 import { useCRM } from '@/contexts/CRMContext';
 import { GridItem } from '@/components/dashboard/DashboardGrid';
-import { startOfDay, isToday, parseISO, isBefore, subDays, startOfMonth, isAfter } from 'date-fns';
+import { startOfDay, isToday, parseISO, isBefore, subDays, startOfMonth, isAfter, isWithinInterval, endOfDay } from 'date-fns';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,6 +24,7 @@ export function useDashboardData() {
     // --- Date Filtering State ---
     const [monthFilter, setMonthFilter] = useState<string[]>([startOfDay(new Date()).toISOString().slice(0, 7)]); // ['YYYY-MM']
     const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d');
+    const [customDateRange, setCustomDateRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
 
     const toggleMonthFilter = useCallback((monthStr: string) => {
         setMonthFilter(prev => {
@@ -52,10 +53,15 @@ export function useDashboardData() {
             case '30d': return isAfter(date, subDays(now, 30));
             case '90d': return isAfter(date, subDays(now, 90));
             case 'month': return isAfter(date, startOfMonth(now));
-            case 'custom': return true; // TODO: Implement if needed
+            case 'custom':
+                if (!customDateRange.start) return true; // Show all if no start (or limit?)
+                return isWithinInterval(date, {
+                    start: startOfDay(customDateRange.start),
+                    end: endOfDay(customDateRange.end || now)
+                });
             default: return true;
         }
-    }, [periodFilter]);
+    }, [periodFilter, customDateRange]);
 
     // --- Stats Calculation ---
     const today = startOfDay(new Date());
@@ -66,10 +72,7 @@ export function useDashboardData() {
 
     // Filter Logic:
     const totalPipelineValue = deals
-        .filter(d => d.status === 'open') // Pipeline Value usually represents ALL open deals, but user might want flow. I will keep it ALL open for now effectively, unless date filter is strictly for "New". User asked to apply to "Cards". I'll apply to Open Deals count. Applying to Pipeline Value might be confusing if they just want to see "What did I open recently". But usually "Open Deals" card shows Current Active.
-        // Wait, "Negócios Abertos" (Open Deals) - 30 days. Does it mean "Opened in last 30 days" or "Active in last 30 days"?
-        // Most CRMs: "Created" in period.
-        // If I filter by created, I must filter the value too.
+        .filter(d => d.status === 'open')
         .filter(d => matchesPeriod(d.createdAt))
         .reduce((sum, d) => sum + d.value, 0);
 
@@ -100,12 +103,6 @@ export function useDashboardData() {
     const adjustedActivityGoal = activityGoal;
 
     // --- Lists Processing ---
-    // Lists are likely operational and shouldn't disappear when filtering historical data,
-    // BUT user context might imply "Show me activities from that month?".
-    // Usually "Today's Agenda" is always today. "Overdue" is always overdue.
-    // "Deals Without Action" is current state.
-    // So we Keep lists independent of the month filter (standard dashboard behavior).
-
     const openActivities = activities.filter(a => !a.completed).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
 
     const overdueActivities = openActivities.filter(a => {
@@ -178,7 +175,8 @@ export function useDashboardData() {
             revenueGoal: adjustedRevenueGoal,
             activityGoal: adjustedActivityGoal,
             monthFilter,
-            periodFilter
+            periodFilter,
+            customDateRange
         },
         lists: {
             overdueActivities,
@@ -188,6 +186,7 @@ export function useDashboardData() {
         actions: {
             toggleMonthFilter,
             setPeriodFilter,
+            setCustomDateRange,
             handleRevenueGoalChange,
             handleActivityGoalChange,
             handleToggleActivity,
