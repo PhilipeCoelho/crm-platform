@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ArrowLeft, User, Building, Mail, Phone, Briefcase, Calendar, Clock, Pencil, Tag, ExternalLink, Trash2, Plus, MessageSquare } from 'lucide-react';
+import { ArrowLeft, User, Building, Mail, Phone, Briefcase, Calendar, Pencil, Tag, ExternalLink, Trash2, Plus, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NewContactModal from '@/components/contacts/NewContactModal';

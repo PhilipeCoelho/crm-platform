@@ -190,15 +190,7 @@ export function useCRMStore(): CRMStore {
         return 'lead';
     };
 
-    const refreshContactStatus = async (contactId: string) => {
-        // We need the *latest* deals. state 'deals' might be stale in the closure if we just modified it? 
-        // React state updates are scheduled.
-        // For safety, we should pass the *next* state of deals to logic, or fetch from DB.
-        // Since we are doing Optimistic updates in the actions, we should use the optimistic list.
-        // But actions like 'addDeal' update state *then* DB.
-        // Let's rely on the state *after* the update. 
-        // We will call this helper passing the new list of deals.
-    };
+
 
     // --- Actions ---
 

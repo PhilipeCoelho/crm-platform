@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, CheckCircle2, X } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Activity } from '@/types/schema';
@@ -6,15 +6,21 @@ import { Activity } from '@/types/schema';
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    preselectedContactId?: string;
 }
 
-export default function NewActivityModal({ isOpen, onClose }: Props) {
-    const { addActivity, deals } = useCRM();
+export default function NewActivityModal({ isOpen, onClose, preselectedContactId }: Props) {
+    const { addActivity, deals, contacts } = useCRM(); // Get contacts too if needed
     const [title, setTitle] = useState('');
     const [type, setType] = useState<Activity['type']>('task');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
     const [dealId, setDealId] = useState('');
+
+    // Derived State for filtering deals
+    const availableDeals = preselectedContactId
+        ? deals.filter(d => d.contactId === preselectedContactId)
+        : deals;
 
     if (!isOpen) return null;
 
@@ -25,6 +31,7 @@ export default function NewActivityModal({ isOpen, onClose }: Props) {
             title,
             type,
             dealId: dealId || undefined,
+            contactId: preselectedContactId || undefined, // Link to contact directly
             date: date,
             dueDate: date,
             notes,
@@ -42,10 +49,17 @@ export default function NewActivityModal({ isOpen, onClose }: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="bg-background w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-border">
                 <div className="p-4 border-b border-border flex justify-between items-center bg-muted/30">
-                    <h3 className="font-bold text-foreground flex items-center gap-2">
-                        <CheckCircle2 size={18} className="text-primary" />
-                        Nova Atividade
-                    </h3>
+                    <div>
+                        <h3 className="font-bold text-foreground flex items-center gap-2">
+                            <CheckCircle2 size={18} className="text-primary" />
+                            Nova Atividade
+                        </h3>
+                        {preselectedContactId && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                Para: {contacts.find(c => c.id === preselectedContactId)?.name || 'Contato'}
+                            </p>
+                        )}
+                    </div>
                     <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
                         <X size={20} />
                     </button>
@@ -100,12 +114,15 @@ export default function NewActivityModal({ isOpen, onClose }: Props) {
                             onChange={e => setDealId(e.target.value)}
                         >
                             <option value="">-- Sem vínculo --</option>
-                            {deals.map(deal => (
+                            {availableDeals.map(deal => (
                                 <option key={deal.id} value={deal.id}>
                                     {deal.title}
                                 </option>
                             ))}
                         </select>
+                        {preselectedContactId && availableDeals.length === 0 && (
+                            <p className="text-[10px] text-muted-foreground mt-1">Este contato não possui negócios abertos.</p>
+                        )}
                     </div>
 
                     <div>
