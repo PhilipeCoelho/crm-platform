@@ -86,10 +86,8 @@ export function useDashboardData() {
         matchesProductivityPeriod(a.dueDate)
     );
 
-    const matchToday = (dateStr?: string) => dateStr ? isToday(parseISO(dateStr)) : false;
-
-    // We also need "Today's Count" regardless of the filter, IF the user switches views, 
-    // BUT the request says "When switching period: show accumulated". 
+    // We also need "Today's Count" regardless of the filter, IF the user switches views,
+    // BUT the request says "When switching period: show accumulated".
     // So `stats.productivityCount` will follow the filter.
 
     // For the specific "Today" view (Progress Bar), we might need a specific "Today Count" if the filter IS 'today'.
