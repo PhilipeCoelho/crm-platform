@@ -233,8 +233,25 @@ export function useCRMStore(): CRMStore {
     };
 
     const deleteDeal = async (id: string) => {
+        // Optimistic Update
         setDeals(prev => prev.filter(d => d.id !== id));
-        await supabase.from('deals').delete().eq('id', id);
+        setActivities(prev => prev.filter(a => a.dealId !== id)); // Also remove activities locally
+
+        // 1. Delete associated activities manually (to ensure clean deletion if no CASCADE on DB)
+        const { error: actError } = await supabase.from('activities').delete().eq('deal_id', id);
+        if (actError) {
+            console.warn('Warning deleting activities for deal:', actError);
+        }
+
+        // 2. Delete the Deal
+        const { error } = await supabase.from('deals').delete().eq('id', id);
+
+        if (error) {
+            console.error('Error deleting deal:', error);
+            alert(`Erro ao excluir negócio: ${error.message}`);
+            // Revert by refetching
+            fetchAll();
+        }
     };
 
     const addContact = async (data: Omit<Contact, 'id' | 'createdAt' | 'userId'>) => {
