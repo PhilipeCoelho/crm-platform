@@ -4,8 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, CalendarDays, Target, Euro, CheckSquare } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { format, subMonths, eachMonthOfInterval, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, parseISO } from 'date-fns';
 
 // --- Components ---
 
