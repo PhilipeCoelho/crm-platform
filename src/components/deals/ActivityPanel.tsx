@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Deal, Activity } from '@/types/schema';
-import { CheckSquare, FileText, Calendar, Phone, Mail, File, FileCode, Receipt, Check } from 'lucide-react';
+import { CheckSquare, FileText, Mail, File, Check } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import Timeline from '../activities/Timeline';
 import ActivityList from '../activities/ActivityList';
@@ -9,9 +9,7 @@ import EditActivityModal from '../activities/EditActivityModal';
 // Tab Components
 import ActivityTab from './tabs/ActivityTab';
 import NoteTab from './tabs/NoteTab';
-import CallTab from './tabs/CallTab';
 import EmailTab from './tabs/EmailTab';
-import MeetingTab from './tabs/MeetingTab';
 import FilesTab from './tabs/FilesTab';
 
 interface ActivityPanelProps {
@@ -19,7 +17,7 @@ interface ActivityPanelProps {
     readOnly?: boolean;
 }
 
-type TabType = 'activity' | 'note' | 'meeting' | 'call' | 'email' | 'files' | 'documents' | 'invoice';
+type TabType = 'activity' | 'note' | 'email' | 'files';
 
 export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     const { activities, updateActivity, deleteActivity } = useCRM();
@@ -39,12 +37,8 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     const tabs = [
         { id: 'activity', label: 'Atividade', icon: CheckSquare },
         { id: 'note', label: 'Anotações', icon: FileText },
-        { id: 'meeting', label: 'Agendador', icon: Calendar },
-        { id: 'call', label: 'Chamada', icon: Phone },
         { id: 'email', label: 'E-mail', icon: Mail },
         { id: 'files', label: 'Arquivos', icon: File },
-        { id: 'documents', label: 'Documentos', icon: FileCode },
-        { id: 'invoice', label: 'Fatura', icon: Receipt },
     ];
 
     const handleActivityToggle = (id: string) => {
@@ -84,17 +78,8 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
         switch (activeTab) {
             case 'activity': return <ActivityTab deal={deal} />;
             case 'note': return <NoteTab deal={deal} />;
-            case 'meeting': return <MeetingTab deal={deal} />;
-            case 'call': return <CallTab deal={deal} />;
             case 'email': return <EmailTab deal={deal} />;
             case 'files': return <FilesTab deal={deal} />;
-            case 'documents':
-            case 'invoice':
-                return (
-                    <div className="p-8 text-center border-2 border-dashed border-border rounded-lg bg-muted/20">
-                        <p className="text-muted-foreground">Funcionalidade de {activeTab === 'documents' ? 'Documentos' : 'Faturas'} em breve.</p>
-                    </div>
-                );
             default: return null;
         }
     };
