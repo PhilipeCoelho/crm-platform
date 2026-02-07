@@ -41,6 +41,7 @@ export interface Deal {
     tags?: string[];
     source?: string;
     sourceId?: string;
+    position?: number;
 
     // Relations
     contactId?: Id;

@@ -83,26 +83,37 @@ export function useCRMStore(): CRMStore {
         if (!user) return;
 
         // Fetch Deals
-        const { data: dealsData } = await supabase.from('deals').select('*').order('created_at', { ascending: false });
+        const { data: dealsData } = await supabase.from('deals').select('*');
         if (dealsData) {
             // Map SQL columns to Frontend types if needed (snake_case to camelCase)
-            // Our SQL uses same names mostly, but let's ensure mapping
             const mappedDeals: Deal[] = dealsData.map(d => ({
                 ...d,
-                columnId: d.stage_id, // Map stage_id back to UI's expected 'columnId' or 'stageId'
+                columnId: d.stage_id,
                 stageId: d.stage_id,
                 contactId: d.contact_id,
                 userId: d.user_id,
                 createdAt: d.created_at,
-                updatedAt: d.created_at, // SQL doesn't have updated_at yet, use created_at
-                pipelineId: 'sales', // Default
+                updatedAt: d.created_at,
+                pipelineId: 'sales',
                 companyId: d.company_id,
                 tags: d.tags || [],
                 source: d.source,
                 currency: d.currency || 'BRL',
                 status: d.status || 'open',
-                value: Number(d.value)
+                value: Number(d.value),
+                position: d.position || 0
             }));
+
+            // Sort: Position ASC, then CreatedAt DESC (Newest on top for same position)
+            // But User wants Newest at Bottom? No, "New Deal" gets High Position -> Bottom.
+            // Existing deals (Pos 0) -> Sorted by Date.
+            mappedDeals.sort((a, b) => {
+                const posA = a.position || 0;
+                const posB = b.position || 0;
+                if (posA !== posB) return posA - posB;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            });
+
             setDeals(mappedDeals);
         }
 
@@ -205,6 +216,11 @@ export function useCRMStore(): CRMStore {
 
         const tempId = generateId();
 
+        // Calculate Position (End of Column)
+        const stageDeals = deals.filter(d => d.stageId === data.stageId);
+        const maxPos = stageDeals.length > 0 ? Math.max(...stageDeals.map(d => d.position || 0)) : 0;
+        const newPos = maxPos + 1;
+
         const newDeal = {
             id: tempId,
             title: data.title,
@@ -216,7 +232,8 @@ export function useCRMStore(): CRMStore {
             company_id: data.companyId,
             tags: data.tags,
             source: data.source,
-            currency: data.currency
+            currency: data.currency,
+            position: newPos
         };
 
         // Optimistic Deal
@@ -225,18 +242,12 @@ export function useCRMStore(): CRMStore {
             id: tempId,
             userId: user.id,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            position: newPos
         } as Deal;
 
         const nextDeals = [optimisticDeal, ...deals];
         setDeals(nextDeals); // Update Deals State
-
-        // Automatic Contact Status Update (Disabled: DB Missing Column)
-        /* if (data.contactId) {
-            const newStatus = await recalculateContactStatus(data.contactId, nextDeals);
-            setContacts(prev => prev.map(c => c.id === data.contactId ? { ...c, status: newStatus } : c));
-            // supabase.from('contacts').update({ status: newStatus }).eq('id', data.contactId);
-        } */
 
         // DB Insert Deal
         const { error } = await supabase.from('deals').insert(newDeal);
@@ -253,15 +264,6 @@ export function useCRMStore(): CRMStore {
         const nextDeals = deals.map(d => d.id === id ? { ...d, ...updates } : d);
         setDeals(nextDeals);
 
-        // Check if status changed or contact changed
-        /* const targetDeal = nextDeals.find(d => d.id === id);
-        if (targetDeal && targetDeal.contactId) {
-            // Recalculate status for the contact
-            const newStatus = await recalculateContactStatus(targetDeal.contactId, nextDeals);
-            setContacts(prev => prev.map(c => c.id === targetDeal.contactId ? { ...c, status: newStatus } : c));
-            supabase.from('contacts').update({ status: newStatus }).eq('id', targetDeal.contactId);
-        } */
-
         // DB Map
         const dbUpdates: Record<string, unknown> = {};
         if (updates.title !== undefined) dbUpdates.title = updates.title;
@@ -276,6 +278,7 @@ export function useCRMStore(): CRMStore {
         if (updates.wonAt !== undefined) dbUpdates.won_at = updates.wonAt;
         if (updates.lostAt !== undefined) dbUpdates.lost_at = updates.lostAt;
         if (updates.lostReason !== undefined) dbUpdates.lost_reason = updates.lostReason;
+        if (updates.position !== undefined) dbUpdates.position = updates.position;
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('deals').update(dbUpdates).eq('id', id);

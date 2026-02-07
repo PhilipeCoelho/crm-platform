@@ -333,18 +333,15 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     }
 
     function onDragEnd(event: DragEndEvent) {
-        const { active } = event;
+        const { active, over } = event;
         setActiveColumnId(null);
         setActiveDeal(null);
 
-        // Detect Stage Change
+        // Detect Stage Change for Suggestion Modal (Logic separated)
         if (active.data.current?.type === "Deal") {
             const dealId = active.id as string;
-            // Get current state of deal (should be updated by onDragOver)
             const currentDeal = deals.find(d => d.id === dealId);
-
             if (currentDeal && dragStartStageId && currentDeal.stageId !== dragStartStageId) {
-                // Change detected!
                 const newStage = columns.find(c => c.id === currentDeal.stageId);
                 setSuggestionModal({
                     isOpen: true,
@@ -354,6 +351,56 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             }
         }
         setDragStartStageId(null);
+
+        if (!over) return;
+
+        const activeId = active.id as string;
+        const overId = over.id as string;
+
+        if (activeId === overId) return;
+
+        const activeDeal = deals.find(d => d.id === activeId);
+        if (!activeDeal) return;
+
+        // If dropped over a column (handled in DragOver, but good to be safe)
+        if (over.data.current?.type === "Column") return;
+
+        // Reordering Logic
+        const stageDeals = deals
+            .filter(d => d.stageId === activeDeal.stageId)
+            // Use local sort to match visual order
+            .sort((a, b) => (a.position || 0) - (b.position || 0));
+
+        const oldIndex = stageDeals.findIndex(d => d.id === activeId);
+        const newIndex = stageDeals.findIndex(d => d.id === overId);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+            // Re-order visually
+            const newOrderDeals = [...stageDeals];
+            const [moved] = newOrderDeals.splice(oldIndex, 1);
+            newOrderDeals.splice(newIndex, 0, moved);
+
+            // Calculate new position based on neighbors
+            const prev = newOrderDeals[newIndex - 1];
+            const next = newOrderDeals[newIndex + 1];
+
+            let newPos = 0;
+            if (!prev && !next) {
+                newPos = 0;
+            } else if (!prev) {
+                // Top
+                newPos = (next.position || 0) - 1; // Put before next
+            } else if (!next) {
+                // Bottom
+                newPos = (prev.position || 0) + 1; // Put after prev
+            } else {
+                // Middle
+                newPos = ((prev.position || 0) + (next.position || 0)) / 2;
+            }
+
+            console.log(`🔄 Reordering: ${activeDeal.title} to index ${newIndex} (Pos: ${newPos})`);
+            updateDeal(activeDeal.id, { position: newPos });
+        }
     }
 
     function onDragOver(event: DragOverEvent) {
@@ -370,14 +417,17 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
         if (!isActiveDeal) return;
 
-        // Dropping over a column
+        // Dropping over a column (Empty Space) -> Move to End
         if (isOverColumn) {
             const deal = deals.find(d => d.id === activeId);
             if (deal && deal.stageId !== overId) {
-                updateDeal(deal.id, { stageId: overId as string });
+                const targetDeals = deals.filter(d => d.stageId === overId);
+                const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
+                updateDeal(deal.id, { stageId: overId as string, position: maxPos + 1 });
             }
         }
 
+        // Dropping over another Deal -> Move to Column (Position handled in DragEnd)
         const overDeal = deals.find(d => d.id === overId);
         if (overDeal && active.data.current?.deal) {
             const activeDeal = active.data.current.deal;
