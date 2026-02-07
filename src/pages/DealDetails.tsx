@@ -105,19 +105,19 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
     };
 
     return (
-        <div className={`flex flex-col overflow-hidden bg-background w-full max-w-[950px] mx-auto ${isModal ? 'h-full max-h-[85vh] rounded-lg shadow-2xl' : 'h-full'}`}>
+        <div className={`flex flex-col overflow-hidden bg-background w-full max-w-[780px] mx-auto ${isModal ? 'h-full max-h-[85vh] rounded-lg shadow-2xl' : 'h-full'}`}>
             {/* Header */}
-            <div className="bg-card border-b border-border p-3 flex flex-col gap-3 shrink-0">
+            <div className="bg-card border-b border-border p-2 flex flex-col gap-2 shrink-0">
 
                 {/* Top Row: Navigation & Actions */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => isModal ? onClose?.() : navigate(-1)} className="p-1.5 hover:bg-muted rounded-full transition-colors">
-                            {isModal ? <X size={18} className="text-muted-foreground" /> : <ArrowLeft size={18} className="text-muted-foreground" />}
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => isModal ? onClose?.() : navigate(-1)} className="p-1 hover:bg-muted rounded-full transition-colors">
+                            {isModal ? <X size={16} className="text-muted-foreground" /> : <ArrowLeft size={16} className="text-muted-foreground" />}
                         </button>
                         <div>
                             <div className="flex items-center gap-2 mb-0.5">
-                                <h1 className="text-lg font-bold text-foreground truncate max-w-[200px] sm:max-w-[400px]">{deal.title}</h1>
+                                <h1 className="text-base font-bold text-foreground truncate max-w-[180px] sm:max-w-[300px]">{deal.title}</h1>
 
                                 {/* Status Badge */}
                                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase border ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200' :
@@ -127,9 +127,9 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                                     {deal.status === 'open' ? 'Em Aberto' : deal.status === 'won' ? 'Ganho' : 'Perdido'}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                                 <span className="font-semibold text-foreground flex items-center gap-1">
-                                    <DollarSign size={12} />
+                                    <DollarSign size={10} />
                                     {deal.value.toLocaleString('pt-BR', { style: 'currency', currency: deal.currency })}
                                 </span>
                                 <span>•</span>
@@ -138,56 +138,56 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                         {deal.status === 'open' ? (
                             <>
                                 <button
                                     onClick={handleWon}
-                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                                    className="px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors shadow-sm"
                                 >
-                                    <Check size={14} />
+                                    <Check size={12} />
                                     <span className="hidden sm:inline">Ganho</span>
                                 </button>
                                 <button
                                     onClick={handleLost}
-                                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                                    className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors shadow-sm"
                                 >
-                                    <X size={14} />
+                                    <X size={12} />
                                     <span className="hidden sm:inline">Perdido</span>
                                 </button>
                             </>
                         ) : (
                             <button
                                 onClick={handleReopen}
-                                className="px-3 py-1.5 bg-muted hover:bg-muted/80 border border-border rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors"
+                                className="px-2.5 py-1 bg-muted hover:bg-muted/80 border border-border rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors"
                             >
-                                <Ban size={14} />
+                                <Ban size={12} />
                                 <span className="hidden sm:inline">Reabrir</span>
                             </button>
                         )}
 
-                        <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
+                        <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
 
                         <button
                             onClick={handleDeleteDeal}
-                            className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors text-muted-foreground"
+                            className="p-1 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors text-muted-foreground"
                             title="Excluir Negócio"
                         >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} />
                         </button>
 
                         <button
                             onClick={() => setIsEditModalOpen(true)}
-                            className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground"
+                            className="p-1 hover:bg-muted rounded-md transition-colors text-muted-foreground"
                             title="Editar Negócio"
                         >
-                            <Pencil size={14} />
+                            <Pencil size={12} />
                         </button>
                     </div>
                 </div>
 
                 {/* Pipeline Progress Bar */}
-                <div className="flex items-center gap-1 mt-1 overflow-x-auto no-scrollbar pb-1">
+                <div className="flex items-center gap-0.5 mt-0.5 overflow-x-auto no-scrollbar pb-1">
                     {pipeline.stages.map((stage, index) => {
                         // Logic for stage color
                         let colorClass = "bg-muted"; // Future
@@ -199,10 +199,10 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                         return (
                             <div
                                 key={stage.id}
-                                className={`h-1.5 flex-1 min-w-[20px] first:rounded-l-full last:rounded-r-full relative group cursor-pointer transition-colors ${colorClass}`}
+                                className={`h-1 flex-1 min-w-[20px] first:rounded-l-full last:rounded-r-full relative group cursor-pointer transition-colors ${colorClass}`}
                                 onClick={() => handleStageChange(stage.id)}
                             >
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-popover text-popover-foreground text-xs px-2 py-1 rounded border shadow-sm whitespace-nowrap z-50">
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-popover text-popover-foreground text-[10px] px-1.5 py-0.5 rounded border shadow-sm whitespace-nowrap z-50">
                                     {stage.title}
                                 </div>
                             </div>
@@ -211,22 +211,22 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                 </div>
             </div>
 
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-[260px_1fr] overflow-hidden">
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-[220px_1fr] overflow-hidden">
                 {/* Left Column: Info */}
-                <div className="border-b lg:border-b-0 lg:border-r border-border p-4 overflow-y-auto bg-card/30">
-                    <div className="space-y-4">
+                <div className="border-b lg:border-b-0 lg:border-r border-border p-3 overflow-y-auto bg-card/30">
+                    <div className="space-y-3">
                         {/* Status Info Card (if closed) */}
                         {isClosed && (
-                            <div className={`p-3 rounded-lg border ${deal.status === 'won' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                <h3 className={`text-xs font-bold flex items-center gap-1.5 ${deal.status === 'won' ? 'text-green-800' : 'text-red-800'}`}>
-                                    {deal.status === 'won' ? <Check size={14} /> : <X size={14} />}
+                            <div className={`p-2 rounded-md border ${deal.status === 'won' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                <h3 className={`text-[10px] font-bold flex items-center gap-1 ${deal.status === 'won' ? 'text-green-800' : 'text-red-800'}`}>
+                                    {deal.status === 'won' ? <Check size={12} /> : <X size={12} />}
                                     Negócio {deal.status === 'won' ? 'Ganho' : 'Perdido'}
                                 </h3>
                                 <p className="text-[10px] mt-0.5 opacity-80">
                                     Em {format(new Date(deal.status === 'won' ? deal.wonAt! : deal.lostAt!), "dd/MM 'às' HH:mm", { locale: ptBR })}
                                 </p>
                                 {deal.status === 'lost' && deal.lostReason && (
-                                    <p className="text-xs mt-1.5 font-medium text-red-900">
+                                    <p className="text-[10px] mt-1 font-medium text-red-900">
                                         "{deal.lostReason}"
                                     </p>
                                 )}
@@ -234,19 +234,19 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                         )}
 
                         {/* Company Card */}
-                        <div className="p-3 bg-card rounded-lg border border-border shadow-sm">
-                            <h3 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
-                                <Building size={14} />
+                        <div className="p-2 bg-card rounded-md border border-border shadow-sm">
+                            <h3 className="text-[10px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                                <Building size={12} />
                                 Organização
                             </h3>
                             {company ? (
                                 <Link to={`/companies/${company.id}`} className="group block">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0 text-sm">
+                                        <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0 text-xs">
                                             {company.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-medium text-sm group-hover:text-primary transition-colors truncate">{company.name}</p>
+                                            <p className="font-medium text-xs group-hover:text-primary transition-colors truncate">{company.name}</p>
                                             <p className="text-[10px] text-muted-foreground truncate">{company.website || 'Sem website'}</p>
                                         </div>
                                     </div>
@@ -254,27 +254,27 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                             ) : (
                                 <button
                                     onClick={() => setIsEditModalOpen(true)}
-                                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                                    className="text-[10px] text-primary hover:underline flex items-center gap-1"
                                 >
-                                    <Plus size={12} /> Vincular Organização
+                                    <Plus size={10} /> Vincular Organização
                                 </button>
                             )}
                         </div>
 
                         {/* Contact Card */}
-                        <div className="p-3 bg-card rounded-lg border border-border shadow-sm">
-                            <h3 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
-                                <User size={14} />
+                        <div className="p-2 bg-card rounded-md border border-border shadow-sm">
+                            <h3 className="text-[10px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                                <User size={12} />
                                 Contacto Principal
                             </h3>
                             {contact ? (
                                 <Link to={`/contacts/${contact.id}`} className="group block">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold shrink-0 text-sm">
+                                        <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold shrink-0 text-xs">
                                             {contact.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-medium text-sm group-hover:text-primary transition-colors truncate">{contact.name}</p>
+                                            <p className="font-medium text-xs group-hover:text-primary transition-colors truncate">{contact.name}</p>
                                             <p className="text-[10px] text-muted-foreground truncate">{contact.email}</p>
                                         </div>
                                     </div>
@@ -282,9 +282,9 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                             ) : (
                                 <button
                                     onClick={() => setIsEditModalOpen(true)}
-                                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                                    className="text-[10px] text-primary hover:underline flex items-center gap-1"
                                 >
-                                    <Plus size={12} /> Vincular Contato
+                                    <Plus size={10} /> Vincular Contato
                                 </button>
                             )}
                         </div>

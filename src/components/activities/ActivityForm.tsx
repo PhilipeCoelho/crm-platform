@@ -78,18 +78,18 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-2">
+            <div className="space-y-1.5">
                 <input
                     type="text"
                     placeholder="O que você precisa fazer?"
-                    className="w-full py-1.5 px-2 bg-transparent border-b border-border focus:border-primary outline-none font-medium text-base"
+                    className="w-full py-1 px-1 bg-transparent border-b border-border focus:border-primary outline-none font-medium text-sm"
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     autoFocus
                 />
 
-                <div className="flex items-center gap-1.5 pt-1">
+                <div className="flex items-center gap-1 pt-0.5">
                     {QUICK_ACTIONS.map(action => {
                         const Icon = action.icon;
                         const isSelected = selectedType === action.type;
@@ -106,19 +106,19 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                                 `}
                                 title={action.label}
                             >
-                                <Icon size={14} />
+                                <Icon size={13} />
                             </button>
                         );
                     })}
-                    <span className="text-xs text-muted-foreground ml-2 font-medium">
+                    <span className="text-[10px] text-muted-foreground ml-1.5 font-medium">
                         {QUICK_ACTIONS.find(a => a.type === selectedType)?.label}
                     </span>
                 </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
                 <div
-                    className="flex-1 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background cursor-pointer hover:border-primary transition-colors"
+                    className="flex-1 flex items-center gap-1.5 border rounded-md px-2 py-1 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => dateInputRef.current?.showPicker()}
                 >
                     <Calendar size={14} className="text-muted-foreground shrink-0" />

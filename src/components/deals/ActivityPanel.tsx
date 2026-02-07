@@ -102,7 +102,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     return (
         <div className="flex flex-col h-full bg-background relative">
             {/* Tabs Header */}
-            <div className="flex items-center gap-1 p-2 border-b border-border overflow-x-auto no-scrollbar bg-card/50">
+            <div className="flex items-center gap-0.5 p-1 border-b border-border overflow-x-auto no-scrollbar bg-card/50">
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -110,13 +110,13 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap
                                       ${isActive
                                     ? 'bg-background shadow-sm text-primary ring-1 ring-border'
                                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                 }`}
                         >
-                            <Icon size={16} />
+                            <Icon size={14} />
                             {tab.label}
                         </button>
                     );
@@ -124,20 +124,20 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
             </div>
 
             {/* Content Area */}
-            <div className="p-4 bg-muted/10 border-b border-border shadow-inner shrink-0">
+            <div className="p-3 bg-muted/10 border-b border-border shadow-inner shrink-0">
                 {renderContent()}
             </div>
 
             {/* Activities List (Scrollable) */}
             <div className="flex-1 overflow-y-auto bg-background">
-                <div className="p-6 space-y-8">
+                <div className="p-4 space-y-6">
 
                     {/* Focus / Planned Section */}
                     {openActivities.length > 0 && (
                         <section>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                                     Planejado
                                 </h3>
                                 <span className="text-xs text-muted-foreground">{openActivities.length} atividades</span>
