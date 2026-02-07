@@ -342,17 +342,19 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         setActiveColumnId(null);
         setActiveDeal(null);
 
-        // Detect Stage Change for Suggestion Modal (Logic separated)
-        if (active.data.current?.type === "Deal") {
-            const dealId = active.id as string;
-            const currentDeal = deals.find(d => d.id === dealId);
-            if (currentDeal && dragStartStageId && currentDeal.stageId !== dragStartStageId) {
-                const newStage = columns.find(c => c.id === currentDeal.stageId);
-                setSuggestionModal({
-                    isOpen: true,
-                    deal: currentDeal,
-                    stageName: newStage?.title || 'Novo Estágio'
-                });
+        // Detect Stage Change based on Drag Start
+        if (dragStartStageId && active.data.current?.type === "Deal" && over) {
+            let potentialNewStageId = null;
+            if (over.data.current?.type === "Column") potentialNewStageId = over.id as string;
+            else if (over.data.current?.type === "Deal") {
+                const overD = deals.find(d => d.id === over.id);
+                if (overD) potentialNewStageId = overD.stageId;
+            }
+
+            if (potentialNewStageId && potentialNewStageId !== dragStartStageId) {
+                const newStage = columns.find(c => c.id === potentialNewStageId);
+                // Optional: Trigger suggestion (commented out or kept if useful)
+                // setSuggestionModal({ isOpen: true, deal: deals.find(d => d.id === active.id)!, stageName: newStage?.title || '' });
             }
         }
         setDragStartStageId(null);
@@ -367,76 +369,47 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         const activeDeal = deals.find(d => d.id === activeId);
         if (!activeDeal) return;
 
-        // If dropped over a column -> Persist move to End of Column
-        if (over.data.current?.type === "Column") {
-            const targetStageId = over.id as string;
+        let targetStageId = activeDeal.stageId;
+        let newPos = activeDeal.position || 0;
+        let shouldUpdate = false;
 
-            // Calculate safe position at bottom of target column
-            // Filter out self to ensure we get the max of *other* items
+        // 1. Determine Target & Position
+        if (over.data.current?.type === "Column") {
+            // Dropped on Column -> Move to End
+            targetStageId = over.id as string;
             const targetDeals = deals.filter(d => d.stageId === targetStageId && d.id !== activeId);
             const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
+            newPos = maxPos + 1024;
+            shouldUpdate = true;
+        } else if (over.data.current?.type === "Deal") {
+            const overDeal = deals.find(d => d.id === overId);
+            if (overDeal) {
+                targetStageId = overDeal.stageId;
 
-            updateDeal(activeId, {
-                stageId: targetStageId,
-                position: maxPos + 1024
-            });
-            return;
+                // Calculate Insert Position relative to neighbors in target column
+                const stageDeals = deals
+                    .filter(d => d.stageId === targetStageId && d.id !== activeId)
+                    .sort((a, b) => (a.position || 0) - (b.position || 0));
+
+                const overIndex = stageDeals.findIndex(d => d.id === overId);
+
+                if (overIndex !== -1) {
+                    const next = stageDeals[overIndex]; // The one we are over
+                    const prev = stageDeals[overIndex - 1]; // The one before it
+
+                    const nextPos = next.position || 0;
+                    const prevPos = prev ? (prev.position || 0) : (nextPos - 2048);
+
+                    // Insert between Prev and Next (or before Next if first)
+                    newPos = (prevPos + nextPos) / 2;
+                    shouldUpdate = true;
+                }
+            }
         }
 
-        // Reordering Logic
-        const stageDeals = deals
-            .filter(d => d.stageId === activeDeal.stageId)
-            // Use local sort to match visual order
-            .sort((a, b) => (a.position || 0) - (b.position || 0));
-
-        const oldIndex = stageDeals.findIndex(d => d.id === activeId);
-        const newIndex = stageDeals.findIndex(d => d.id === overId);
-
-        if (oldIndex !== -1 && newIndex !== -1) {
-            // Re-order visually
-            const newOrderDeals = [...stageDeals];
-            const [moved] = newOrderDeals.splice(oldIndex, 1);
-            newOrderDeals.splice(newIndex, 0, moved);
-
-            // Calculate new position based on neighbors
-            const prev = newOrderDeals[newIndex - 1];
-            const next = newOrderDeals[newIndex + 1];
-
-            const prevPos = prev?.position || 0;
-            const nextPos = next?.position || 0;
-
-            // Check for Collision (Collision/Zero/Legacy)
-            const isCollision = prev && next && Math.abs(prevPos - nextPos) < 0.0001;
-
-            if (isCollision) {
-                console.log('⚠️ Collision/Legacy detected. Re-indexing column...');
-                // Heal the column by reindexing strictly
-                newOrderDeals.forEach((d, idx) => {
-                    const cleanPos = (idx + 1) * 1024;
-                    if (d.position !== cleanPos) {
-                        updateDeal(d.id, { position: cleanPos, stageId: d.stageId });
-                    }
-                });
-                return;
-            }
-
-            // Standard Logic
-            let newPos = 0;
-            if (!prev && !next) {
-                newPos = 0;
-            } else if (!prev) {
-                // Top
-                newPos = nextPos - 1024;
-            } else if (!next) {
-                // Bottom
-                newPos = prevPos + 1024;
-            } else {
-                // Middle
-                newPos = (prevPos + nextPos) / 2;
-            }
-
-            console.log(`🔄 Reordering: ${activeDeal.title} to index ${newIndex} (Pos: ${newPos})`);
-            updateDeal(activeDeal.id, { position: newPos, stageId: activeDeal.stageId });
+        if (shouldUpdate) {
+            console.log(`💾 Persisting Update -> Stage: ${targetStageId}, Pos: ${newPos}`);
+            updateDeal(activeId, { stageId: targetStageId, position: newPos });
         }
     }
 
