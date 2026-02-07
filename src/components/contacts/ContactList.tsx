@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Contact } from '@/types/schema';
 
 export default function ContactList() {
-    const { contacts, companies, deleteContact } = useCRM();
+    const { contacts, companies, activities, deleteContact } = useCRM();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
@@ -21,7 +21,8 @@ export default function ContactList() {
     }, []);
 
     const filteredContacts = contacts.filter(contact => {
-        const company = companies.find(c => c.id === contact.companyId);
+        const companyId = contact.companyId || (contact as any).company_id;
+        const company = companies.find(c => c.id === companyId);
         const companyName = company?.name || '';
         const searchLower = searchTerm.toLowerCase();
 
@@ -36,6 +37,17 @@ export default function ContactList() {
         if (!id) return '-';
         return companies.find(c => c.id === id)?.name || '-';
     };
+
+    const getNextActivity = (contactId: string) => {
+        return activities
+            .filter(a => a.contactId === contactId && !a.completed)
+            .sort((a, b) => {
+                if (!a.dueDate) return 1;
+                if (!b.dueDate) return -1;
+                return a.dueDate.localeCompare(b.dueDate);
+            })[0];
+    };
+
 
     const handleEditClick = (contact: Contact, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent row click
@@ -89,7 +101,7 @@ export default function ContactList() {
                                 <th className="px-6 py-3">Nome</th>
                                 <th className="px-6 py-3">Empresa</th>
                                 <th className="px-6 py-3">Status</th>
-                                <th className="px-6 py-3">Última Atividade</th>
+                                <th className="px-6 py-3">Próxima Ação</th>
                                 <th className="px-6 py-3 text-right">Ações</th>
                             </tr>
                         </thead>
@@ -121,7 +133,7 @@ export default function ContactList() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-foreground">{getCompanyName(contact.companyId)}</span>
+                                                <span className="text-foreground">{getCompanyName(contact.companyId || (contact as any).company_id)}</span>
                                                 <span className="text-muted-foreground text-xs">{contact.role || '-'}</span>
                                             </div>
                                         </td>
@@ -133,8 +145,20 @@ export default function ContactList() {
                                                 {contact.status === 'active' ? 'Ativo' : (contact.status === 'lead' || !contact.status) ? 'Lead' : 'Inativo'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-muted-foreground">
-                                            {contact.lastActivity ? new Date(contact.lastActivity).toLocaleDateString('pt-BR') : '-'}
+                                        <td className="px-6 py-4">
+                                            {(() => {
+                                                const nextAct = getNextActivity(contact.id);
+                                                if (!nextAct) return <span className="text-muted-foreground text-xs">-</span>;
+                                                const isOverdue = nextAct.dueDate && nextAct.dueDate < new Date().toISOString().split('T')[0];
+                                                return (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-foreground truncate max-w-[150px]" title={nextAct.title}>{nextAct.title}</span>
+                                                        <span className={`text-[11px] ${isOverdue ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
+                                                            {nextAct.dueDate ? new Date(nextAct.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4 text-right relative">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
