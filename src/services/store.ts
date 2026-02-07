@@ -292,12 +292,14 @@ export function useCRMStore(): CRMStore {
             // Select count to verify if row was actually touched
             const { error, count } = await supabase.from('deals').update(dbUpdates).eq('id', id).select('id', { count: 'exact' });
 
-            if (error || count === 0) {
+            if (error || (count === 0)) {
                 console.error('❌ Error updating deal:', error || 'No rows affected (Permission denied?)');
-                if (!error && count === 0) alert('Erro: Parece que você não tem permissão para editar este negócio (RLS). Verifique se você é o dono dele.');
-                else if (error) alert(`Erro ao salvar alteração: ${error.message}`);
-                console.error('❌ Error updating deal:', error);
-                alert(`Erro ao salvar alteração: ${error.message}\nVerifique o console para mais detalhes.`);
+
+                if (count === 0 && !error) {
+                    alert('Erro: Parece que você não tem permissão para editar este negócio (RLS). Verifique se você criou este negócio.');
+                } else if (error) {
+                    alert(`Erro ao salvar alteração: ${error.message}`);
+                }
 
                 // Revert Optimistic Update
                 setDeals(prev => prev.map(d => d.id === id ? originalDeal : d));
