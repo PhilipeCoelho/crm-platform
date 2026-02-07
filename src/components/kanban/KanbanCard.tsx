@@ -78,8 +78,8 @@ function DealCard({ deal, currency, onPreview }: Props) {
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className={`group relative bg-white dark:bg-card p-3 rounded-lg border border-border/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-0.5
-                ${!hasNextAction ? 'border-l-red-500' : isOverdue ? 'border-l-orange-500' : 'border-l-primary/40'}
+            className={`group relative bg-white dark:bg-card p-3 rounded-lg border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
+                ${!hasNextAction ? 'border-l-red-500/70' : isOverdue ? 'border-l-orange-500/70' : 'border-l-primary/50'}
             `}
         >
             {/* Title */}
@@ -100,27 +100,27 @@ function DealCard({ deal, currency, onPreview }: Props) {
 
             {/* Contact */}
             {contact && (
-                <div className="flex items-center gap-1.5 text-muted-foreground mb-3 pl-0.5" title={contact.name}>
+                <div className="flex items-center gap-1.5 text-muted-foreground/70 mb-3 pl-0.5" title={contact.name}>
                     <User size={13} className="shrink-0" />
                     <span className="text-[12px] truncate">{contact.name}</span>
                 </div>
             )}
 
             {/* Footer: Action & Value */}
-            <div className="flex items-center justify-between pt-2.5 mt-auto border-t border-dashed border-border/40">
-                {/* Left: Action Indicator */}
-                <div className={`flex items-center gap-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded
-                    ${!hasNextAction ? 'text-red-600 bg-red-50 dark:bg-red-900/20' :
-                        isOverdue ? 'text-orange-600 bg-orange-50 dark:bg-orange-900/20' :
-                            'text-muted-foreground bg-muted/50'}`}>
+            <div className="flex items-center justify-between pt-3 mt-auto border-t border-dashed border-border/30">
+                {/* Left: Action Indicator (Priority) */}
+                <div className={`flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded
+                    ${!hasNextAction ? 'text-red-700 bg-red-50 dark:bg-red-900/20' :
+                        isOverdue ? 'text-orange-700 bg-orange-50 dark:bg-orange-900/20' :
+                            'text-foreground/80 bg-muted/60'}`}>
                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${!hasNextAction ? 'bg-red-500' : isOverdue ? 'bg-orange-500' : 'hidden'}`} />
                     <span className="truncate max-w-[100px]">
                         {!hasNextAction ? "Definir ação" : isOverdue ? "Atrasado" : nextActivity.title}
                     </span>
                 </div>
 
-                {/* Right: Value */}
-                <span className="text-[13px] font-bold text-foreground">
+                {/* Right: Value (Secondary) */}
+                <span className="text-[12px] font-medium text-muted-foreground/60">
                     {new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(deal.value)}
                 </span>
             </div>
