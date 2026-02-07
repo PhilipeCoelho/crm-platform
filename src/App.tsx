@@ -46,8 +46,8 @@ function Layout({ children }: { children: React.ReactNode }) {
             <aside
                 className={`group flex flex-col items-center py-3 z-50 shrink-0 border-r border-border transition-all duration-300 ease-in-out relative
                     ${isSidebarExpanded ? 'w-56 items-start px-3' : 'w-14 items-center'}
-                     !bg-white dark:!bg-slate-900
-                    !text-slate-900 dark:!text-slate-300
+                     !bg-white dark:!bg-[#0E1116]
+                    !text-slate-900 dark:!text-[#E6E8EB]
                     `}
                 onMouseEnter={() => setIsSidebarHovered(true)}
                 onMouseLeave={() => setIsSidebarHovered(false)}
@@ -78,8 +78,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'dashboard'
-                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm dark:border-l-[3px] dark:border-primary'
-                                : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                                ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
+                                : 'hover:bg-slate-100 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-900 dark:text-[#9AA4AF] dark:hover:text-[#E6E8EB]'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -92,8 +92,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'pipelines'
-                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm dark:border-l-[3px] dark:border-primary'
-                                : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                                ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
+                                : 'hover:bg-slate-100 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-900 dark:text-[#9AA4AF] dark:hover:text-[#E6E8EB]'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -106,8 +106,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'contacts'
-                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm dark:border-l-[3px] dark:border-primary'
-                                : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                                ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
+                                : 'hover:bg-slate-100 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-900 dark:text-[#9AA4AF] dark:hover:text-[#E6E8EB]'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">

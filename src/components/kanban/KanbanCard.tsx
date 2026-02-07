@@ -87,13 +87,13 @@ function DealCard({ deal, currency, onPreview }: Props) {
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className={`group relative bg-white dark:bg-slate-800 p-3 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-md dark:shadow-black/20 hover:shadow-md dark:hover:bg-slate-700 transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
-                ${!hasNextAction ? 'border-l-red-500' : isOverdue ? 'border-l-orange-500' : 'border-l-transparent border-l-slate-300 dark:border-l-slate-600'}
+            className={`group relative bg-white dark:bg-[#111418] p-3 rounded-md border border-slate-200 dark:border-white/[0.06] shadow-sm dark:shadow-[0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-md dark:hover:bg-[#1A1D21] transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
+                ${!hasNextAction ? 'border-l-red-500' : isOverdue ? 'border-l-orange-500' : 'border-l-transparent border-l-slate-300 dark:border-l-gray-700'}
             `}
         >
             {/* Title */}
             <div className="mb-2 pr-5 relative">
-                <h4 className="font-semibold text-[14px] text-slate-800 dark:text-slate-100 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                <h4 className="font-semibold text-[14px] text-slate-800 dark:text-[#E6E8EB] leading-snug group-hover:text-primary transition-colors line-clamp-2">
                     {deal.title}
                 </h4>
 

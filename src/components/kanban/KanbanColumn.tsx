@@ -70,12 +70,12 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
         <div
             ref={setNodeRef}
             style={style}
-            className="flex flex-col rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 transition-colors h-full min-w-[300px] w-[300px] shrink-0 overflow-hidden"
+            className="flex flex-col rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] transition-colors h-full min-w-[300px] w-[300px] shrink-0 overflow-hidden"
         >
             <div
                 {...attributes}
                 {...listeners}
-                className="p-3 flex flex-col gap-1.5 shrink-0 cursor-grab group/header bg-slate-100/50 dark:bg-slate-900 border-b border-transparent dark:border-slate-800"
+                className="p-3 flex flex-col gap-1.5 shrink-0 cursor-grab group/header bg-slate-100/50 dark:bg-transparent border-b border-transparent dark:border-white/[0.05]"
             >
                 {/* Header Row: Title & Count */}
                 <div className="flex items-center justify-between w-full">
