@@ -367,59 +367,62 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
         if (activeId === overId) return;
 
-        const activeDeal = deals.find(d => d.id === activeId);
-        if (!activeDeal) return;
+        // Use SNAPSHOT for calculations to avoid optimistic state pollution
+        const sourceDeal = dragStartDeals.find(d => d.id === activeId);
+        if (!sourceDeal) return;
 
-        let targetStageId = activeDeal.stageId;
-        let newPos = activeDeal.position || 0;
+        let targetStageId = sourceDeal.stageId; // Start with original stage
+        let newPos = sourceDeal.position || 0;
         let shouldUpdate = false;
 
-        // 1. Determine Target & Position
+        // 1. Determine Target & Position (Using Snapshot Neighbors)
         if (over.data.current?.type === "Column") {
             // Dropped on Column -> Move to End
             targetStageId = over.id as string;
-            const targetDeals = deals.filter(d => d.stageId === targetStageId && d.id !== activeId);
+            // Filter neighbors from SNAPSHOT to get stable positions
+            const targetDeals = dragStartDeals.filter(d => d.stageId === targetStageId && d.id !== activeId);
             const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
             newPos = maxPos + 1024;
+            // Always update if dropped on different column or forced move
             shouldUpdate = true;
         } else if (over.data.current?.type === "Deal") {
-            const overDeal = deals.find(d => d.id === overId);
+            // Dropped on Deal -> Calculate relative to snapshot neighbors
+            const overDeal = dragStartDeals.find(d => d.id === overId);
+
             if (overDeal) {
                 targetStageId = overDeal.stageId;
 
-                // Calculate Insert Position relative to neighbors in target column
-                const stageDeals = deals
+                const stageDeals = dragStartDeals
                     .filter(d => d.stageId === targetStageId && d.id !== activeId)
                     .sort((a, b) => (a.position || 0) - (b.position || 0));
 
                 const overIndex = stageDeals.findIndex(d => d.id === overId);
 
                 if (overIndex !== -1) {
-                    const next = stageDeals[overIndex]; // The one we are over
-                    const prev = stageDeals[overIndex - 1]; // The one before it
+                    const next = stageDeals[overIndex];
+                    const prev = stageDeals[overIndex - 1];
 
                     const nextPos = next.position || 0;
                     const prevPos = prev ? (prev.position || 0) : (nextPos - 2048);
 
-                    // Check for Collision/Tight Gap
                     if (Math.abs(nextPos - prevPos) < 0.01) {
-                        console.log('⚠️ Collision/Tight Gap detected. Re-indexing column...');
+                        // Collision logic remains similar but triggers re-index
+                        // For collision, we might want to use current deals or snapshot? 
+                        // Snapshot is safer for calculation, but update needs to affect current DB.
+                        console.log('⚠️ Collision/Tight Gap based on snapshot. Triggering re-index...');
+
+                        // We re-index the CURRENT list effectively by updating everyone
+                        // But finding "everyone" from snapshot is safer order.
                         const fullList = [...stageDeals];
-                        // Insert Active Deal at the new position
-                        fullList.splice(overIndex, 0, activeDeal);
+                        fullList.splice(overIndex, 0, sourceDeal);
 
                         const updates = fullList.map((d, idx) => {
                             const cleanPos = (idx + 1) * 1024;
-                            // Only update if changed
-                            console.log(`Re-indexing ${d.title} to ${cleanPos}`);
                             return updateDeal(d.id, { position: cleanPos, stageId: targetStageId });
                         });
-
-                        // Collision fixes (Optimistic + BG Update) - No auto-refresh
                         Promise.all(updates);
-                        shouldUpdate = false; // Handled by loop
+                        shouldUpdate = false;
                     } else {
-                        // Insert between Prev and Next
                         newPos = (prevPos + nextPos) / 2;
                         shouldUpdate = true;
                     }
