@@ -27,7 +27,7 @@ interface KanbanBoardProps {
 }
 
 function KanbanBoard({ currency }: KanbanBoardProps) {
-    const { deals, pipelines, updateDeal, moveDeal, activities, refresh } = useCRM();
+    const { deals, pipelines, updateDeal, moveDeal, activities, refresh, addStage, updateStage } = useCRM();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId] = useState('sales');
 
@@ -143,6 +143,17 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     const handleDealClick = (dealId: string) => {
         setSelectedDealId(dealId);
+    };
+
+    // --- Add Column State ---
+    const [isAddingColumn, setIsAddingColumn] = useState(false);
+    const [newColumnTitle, setNewColumnTitle] = useState('');
+
+    const handleAddColumn = async () => {
+        if (!newColumnTitle.trim()) return;
+        await addStage(currentPipelineId, newColumnTitle);
+        setNewColumnTitle('');
+        setIsAddingColumn(false);
     };
 
     const activeColumn = columns.find(c => c.id === activeColumnId);
@@ -274,13 +285,58 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                         key={col.id}
                                         column={col}
                                         tasks={filteredDeals.filter(d => d.stageId === col.id)}
-                                        updateColumn={() => { }}
+                                        updateColumn={(id, title) => updateStage(id, { title })}
                                         onAdd={openNewDealModal}
                                         currency={currency}
                                         onPreview={handleDealClick}
                                     />
                                 ))}
                             </SortableContext>
+
+                            {/* Add New Column Button / Input */}
+                            <div className="shrink-0 w-[260px] h-full rounded-xl border-2 border-dashed border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors flex flex-col items-center justify-start p-2">
+                                {isAddingColumn ? (
+                                    <div className="w-full bg-background border border-border rounded-md p-2 shadow-sm animate-in fade-in zoom-in-95">
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            placeholder="Nome da coluna..."
+                                            className="w-full text-sm font-medium bg-transparent outline-none mb-2"
+                                            value={newColumnTitle}
+                                            onChange={(e) => setNewColumnTitle(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleAddColumn();
+                                                if (e.key === 'Escape') setIsAddingColumn(false);
+                                            }}
+                                        />
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => setIsAddingColumn(false)}
+                                                className="text-xs text-muted-foreground hover:text-foreground px-2 py-1"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={handleAddColumn}
+                                                className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-md font-medium"
+                                            >
+                                                Adicionar
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            setIsAddingColumn(true);
+                                            setNewColumnTitle('');
+                                        }}
+                                        className="w-full h-[40px] flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm font-medium rounded-md"
+                                    >
+                                        <Plus size={16} />
+                                        <span>Nova Coluna</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
