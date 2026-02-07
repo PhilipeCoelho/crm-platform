@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ArrowLeft, Building, User, DollarSign, Plus, Pencil, Trash2, Check, X, Ban, Save } from 'lucide-react';
+import { ArrowLeft, Building, User, DollarSign, Plus, Pencil, Trash2, Check, X, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NewDealModal from '@/components/kanban/NewDealModal';
