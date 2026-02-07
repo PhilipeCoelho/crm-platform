@@ -459,41 +459,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     }
 
     function onDragOver(event: DragOverEvent) {
-        const { active, over } = event;
-        if (!over) return;
-
-        const activeId = active.id as string;
-        const overId = over.id as string;
-
-        if (activeId === overId) return;
-
-        const isActiveDeal = active.data.current?.type === "Deal";
-        const isOverColumn = over.data.current?.type === "Column";
-
-        if (!isActiveDeal) return;
-
-        // Find the active deal in current state
-        const activeDeal = deals.find(d => d.id === activeId);
-        if (!activeDeal) return;
-
-        // 1. Moving over a Column (Empty space)
-        if (isOverColumn) {
-            if (activeDeal.stageId !== overId) {
-                // Move to that column (preserve position for now, standard auto-sort handles placement)
-                moveDeal(activeId, overId, activeDeal.position);
-            }
-        }
-        // 2. Moving over another Deal
-        else {
-            const overDeal = deals.find(d => d.id === overId);
-            if (overDeal && activeDeal.stageId !== overDeal.stageId) {
-                // If crossing stages, adopt the new stage immediately for visual feedback
-                moveDeal(activeId, overDeal.stageId, overDeal.position);
-            }
-            // Note: Intra-column reordering (same stage) is handled by dnd-kit's SortableContext?
-            // Actually, for dnd-kit to show the gap properly, we often need arrayMove.
-            // But changing stageId is the most critical visual feedback for the user (The "Blue Line" inverted issue).
-        }
+        // Optimistic updates DISABLED to ensure DB-driven state persistence
+        return;
     }
 }
 
