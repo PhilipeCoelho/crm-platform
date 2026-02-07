@@ -40,89 +40,87 @@ export default function Timeline({ activities, onReopen, onEdit }: Props) {
     }
 
     return (
-        <div className="relative pl-4 border-l border-border space-y-6 ml-2">
+        <div className="relative pl-6 sm:pl-8 border-l border-border/60 ml-3 space-y-8 py-2">
             {sorted.map(activity => (
                 <div key={activity.id} className="relative group">
-                    <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full border-2 border-background bg-muted-foreground/30 ring-4 ring-background group-hover:bg-primary group-hover:ring-primary/20 transition-all" />
+                    {/* Timeline Dot */}
+                    <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 h-3 w-3 rounded-full border-2 border-background bg-muted-foreground/30 ring-4 ring-background group-hover:bg-primary group-hover:ring-primary/10 transition-all" />
 
-                    <div className="text-sm flex justify-between items-start">
-                        <div className="flex-1">
-                            <span className="font-medium text-foreground">{activity.type === 'note' && editingId !== activity.id ? 'Nota' : activity.title}</span>
-                            {/* Keep date for non-notes or if title is generic */}
-                            {activity.type !== 'note' && (
-                                <>
-                                    <span className="text-muted-foreground mx-1">•</span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true, locale: ptBR })}
-                                    </span>
-                                </>
-                            )}
-                            {/* For notes, show date always */}
-                            {activity.type === 'note' && (
-                                <span className="text-xs text-muted-foreground ml-2">
+                    <div className="flex flex-col gap-2">
+                        {/* Header Row */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-foreground">
+                                    {activity.type === 'note' ? 'Nota' :
+                                        activity.type === 'call' ? 'Chamada' :
+                                            activity.type === 'email' ? 'Email' :
+                                                activity.type === 'meeting' ? 'Reunião' : 'Atividade'}
+                                </span>
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">
                                     {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true, locale: ptBR })}
                                 </span>
-                            )}
+                            </div>
+
+                            {/* Actions (Edit/Reopen) */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {onEdit && activity.type === 'note' && editingId !== activity.id && (
+                                    <button
+                                        onClick={() => handleStartEdit(activity)}
+                                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors"
+                                        title="Editar nota"
+                                    >
+                                        <Pencil size={12} />
+                                    </button>
+                                )}
+                                {onReopen && activity.type !== 'note' && (
+                                    <button
+                                        onClick={() => onReopen(activity.id)}
+                                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors"
+                                        title="Reabrir"
+                                    >
+                                        <RotateCcw size={12} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background px-2 -mt-1 shadow-sm border rounded">
-                            {/* Edit Button for Notes */}
-                            {onEdit && activity.type === 'note' && editingId !== activity.id && (
-                                <button
-                                    onClick={() => handleStartEdit(activity)}
-                                    className="p-1 hover:bg-muted rounded text-xs text-muted-foreground hover:text-primary transition-colors"
-                                    title="Editar nota"
-                                >
-                                    <Pencil size={12} />
-                                </button>
-                            )}
-
-                            {onReopen && activity.type !== 'note' && (
-                                <button
-                                    onClick={() => onReopen(activity.id)}
-                                    className="p-1 hover:bg-muted rounded text-xs text-primary hover:underline flex items-center gap-1"
-                                    title="Reabrir atividade"
-                                >
-                                    <RotateCcw size={12} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="mt-1 text-xs text-muted-foreground">
-                        {activity.type === 'note' ? (
-                            editingId === activity.id ? (
-                                <div className="mt-2 space-y-2">
-                                    <textarea
-                                        value={editContent}
-                                        onChange={e => setEditContent(e.target.value)}
-                                        className="w-full p-2 text-sm border rounded-md focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-background text-foreground min-h-[80px]"
-                                        autoFocus
-                                    />
-                                    <div className="flex gap-2 justify-end">
-                                        <button onClick={handleCancelEdit} className="p-1 px-2 hover:bg-muted rounded text-muted-foreground flex items-center gap-1">
-                                            <X size={14} /> Cancelar
-                                        </button>
-                                        <button onClick={() => handleSaveEdit(activity.id)} className="p-1 px-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 flex items-center gap-1">
-                                            <Check size={14} /> Salvar
-                                        </button>
+                        {/* Content Card */}
+                        <div className="w-full">
+                            {activity.type === 'note' ? (
+                                editingId === activity.id ? (
+                                    <div className="space-y-2">
+                                        <textarea
+                                            value={editContent}
+                                            onChange={e => setEditContent(e.target.value)}
+                                            className="w-full p-3 text-sm border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-background text-foreground min-h-[80px]"
+                                            autoFocus
+                                        />
+                                        <div className="flex gap-2 justify-end">
+                                            <button onClick={handleCancelEdit} className="text-xs px-2 py-1 hover:bg-muted rounded text-muted-foreground flex items-center gap-1">
+                                                <X size={12} /> Cancelar
+                                            </button>
+                                            <button onClick={() => handleSaveEdit(activity.id)} className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 flex items-center gap-1">
+                                                <Check size={12} /> Salvar
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="p-3 bg-muted/40 border border-border/50 rounded-lg text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed shadow-sm">
+                                        {activity.title}
+                                    </div>
+                                )
                             ) : (
-                                <div className="mt-2 p-3 bg-yellow-50/50 border border-yellow-100 rounded text-foreground/90 whitespace-pre-wrap font-normal">
-                                    {activity.title}
+                                <div className="text-sm text-foreground">
+                                    <span className={activity.type !== 'note' ? "font-medium" : ""}>{activity.title}</span>
+                                    {activity.duration && <span className="text-muted-foreground ml-2 text-xs">({activity.duration} min)</span>}
+                                    {activity.result && (
+                                        <div className="mt-1.5 p-2 bg-muted/30 rounded border border-border/40 text-xs italic text-muted-foreground">
+                                            "{activity.result}"
+                                        </div>
+                                    )}
                                 </div>
-                            )
-                        ) : (
-                            <>
-                                {activity.type === 'call' && 'Chamada realizada'}
-                                {activity.type === 'email' && 'Email enviado'}
-                                {activity.type === 'meeting' && 'Reunião'}
-                                {activity.type === 'task' && 'Tarefa concluída'}
-                                {activity.duration && <span className="ml-1">• Duração: {activity.duration} minutos</span>}
-                                {activity.result && <span className="block mt-1 text-foreground italic">"{activity.result}"</span>}
-                            </>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             ))}
