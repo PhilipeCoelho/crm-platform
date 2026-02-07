@@ -451,7 +451,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     console.log('✅ Direct Update Success');
                     // Sync local state
                     moveDeal(activeId, targetStageId, newPos);
-                    // setTimeout(refresh, 500); // Removed to prevent race conditions
+                    setTimeout(refresh, 1000); // Verify state after animation
                 }
             });
         } else {
