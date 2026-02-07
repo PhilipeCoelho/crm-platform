@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { useCRM } from "@/contexts/CRMContext";
 import { Deal } from "@/types/schema";
 import KanbanColumn from "./KanbanColumn";
@@ -428,8 +429,22 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
         if (shouldUpdate) {
             console.log(`💾 Persisting Update -> ID: ${activeId}, Stage: ${targetStageId}, Pos: ${newPos}`);
-            updateDeal(activeId, { stageId: targetStageId, position: newPos })
-                .then(() => setTimeout(refresh, 500));
+
+            // DIRECT SUPABASE UPDATE FOR DEBUGGING
+            supabase.from('deals').update({
+                stage_id: targetStageId,
+                position: newPos
+            }).eq('id', activeId).then(({ error }) => {
+                if (error) {
+                    console.error('Direct Update Error:', error);
+                    alert(`Erro direto no banco: ${error.message}`);
+                } else {
+                    console.log('✅ Direct Update Success');
+                    // Sync local state
+                    updateDeal(activeId, { stageId: targetStageId, position: newPos });
+                    setTimeout(refresh, 500);
+                }
+            });
         } else {
             console.warn('⚠️ DragEnd detected but no update required?', { activeId, overId: over.id, overType: over.data.current?.type });
         }
