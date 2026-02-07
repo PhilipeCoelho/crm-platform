@@ -183,13 +183,16 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                     console.log('✅ New contact created:', newCt);
                     finalContactId = newCt.id;
                 }
-            } else if (finalContactId && !dealToEdit) {
-                // Update existing contact info if different (and provided)
-                if (phone || email) {
-                    await updateContact(finalContactId, {
-                        phone: phone || undefined,
-                        email: email || undefined
-                    });
+            } else if (finalContactId) {
+                // Update existing contact info (Link organization, update phone/email)
+                const contactUpdates: any = {};
+                if (phone) contactUpdates.phone = phone;
+                if (email) contactUpdates.email = email;
+                if (finalCompanyId) contactUpdates.companyId = finalCompanyId;
+
+                if (Object.keys(contactUpdates).length > 0) {
+                    console.log('🔄 Updating existing contact with new info:', contactUpdates);
+                    await updateContact(finalContactId, contactUpdates);
                 }
             }
 

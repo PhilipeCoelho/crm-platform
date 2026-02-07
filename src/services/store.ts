@@ -345,7 +345,18 @@ export function useCRMStore(): CRMStore {
 
     const updateContact = async (id: string, updates: Partial<Contact>) => {
         setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-        await supabase.from('contacts').update(updates).eq('id', id);
+
+        const dbUpdates: any = {};
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.email !== undefined) dbUpdates.email = updates.email;
+        if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+        if (updates.role !== undefined) dbUpdates.role = updates.role;
+        if (updates.companyId !== undefined) dbUpdates.company_id = updates.companyId;
+
+        if (Object.keys(dbUpdates).length > 0) {
+            const { error } = await supabase.from('contacts').update(dbUpdates).eq('id', id);
+            if (error) console.error('Error updating contact:', error);
+        }
     };
 
     const deleteContact = async (id: string) => {
