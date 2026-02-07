@@ -148,70 +148,82 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        let finalCompanyId = companyId;
-        let finalContactId = contactId;
+        try {
+            console.log('📝 Submitting Deal Form...');
+            console.log('State:', { title, value, contactSearch, contactId, companySearch, companyId });
 
-        // 1. Resolve Company
-        if (!finalCompanyId && companySearch) {
-            // Check if exists by name
-            const existingCo = companies.find(c => c.name.toLowerCase() === companySearch.toLowerCase());
-            if (existingCo) finalCompanyId = existingCo.id;
-            else {
-                const newCo = await addCompany({ name: companySearch });
-                finalCompanyId = newCo.id;
+            let finalCompanyId = companyId;
+            let finalContactId = contactId;
+
+            // 1. Resolve Company
+            if (!finalCompanyId && companySearch) {
+                // Check if exists by name
+                const existingCo = companies.find(c => c.name.toLowerCase() === companySearch.toLowerCase());
+                if (existingCo) finalCompanyId = existingCo.id;
+                else {
+                    const newCo = await addCompany({ name: companySearch });
+                    finalCompanyId = newCo.id;
+                }
             }
-        }
 
-        // 2. Resolve Contact
-        if (!finalContactId && contactSearch) {
-            const existingCt = contacts.find(c => c.name.toLowerCase() === contactSearch.toLowerCase());
-            if (existingCt) finalContactId = existingCt.id;
-            else {
-                const newCt = await addContact({
-                    name: contactSearch,
-                    email,
-                    phone,
-                    companyId: finalCompanyId, // Link to company
-                    status: 'lead'
+            // 2. Resolve Contact
+            if (!finalContactId && contactSearch) {
+                const existingCt = contacts.find(c => c.name.toLowerCase() === contactSearch.toLowerCase());
+                if (existingCt) {
+                    finalContactId = existingCt.id;
+                } else {
+                    console.log('🆕 Creating new contact:', contactSearch);
+                    const newCt = await addContact({
+                        name: contactSearch,
+                        email,
+                        phone,
+                        companyId: finalCompanyId, // Link to company
+                        status: 'lead'
+                    });
+                    console.log('✅ New contact created:', newCt);
+                    finalContactId = newCt.id;
+                }
+            } else if (finalContactId && !dealToEdit) {
+                // Update existing contact info if different (and provided)
+                if (phone || email) {
+                    await updateContact(finalContactId, {
+                        phone: phone || undefined,
+                        email: email || undefined
+                    });
+                }
+            }
+
+            const numericValue = parseCurrency(value);
+            console.log('💰 Parsed Value:', numericValue);
+
+            const dealData = {
+                title: title || (contactSearch ? `Negócio ${contactSearch}` : 'Novo Negócio'),
+                value: numericValue,
+                currency: currency,
+                pipelineId: selectedPipelineId,
+                stageId: selectedStageId,
+                companyId: finalCompanyId || undefined,
+                contactId: finalContactId || undefined,
+                expectedCloseDate: expectedCloseDate || undefined,
+                tags: selectedLabels,
+                source,
+            };
+
+            if (dealToEdit) {
+                await updateDeal(dealToEdit.id, dealData);
+            } else {
+                await addDeal({
+                    ...dealData,
+                    status: 'open',
+                    priority: 'medium',
                 });
-                finalContactId = newCt.id;
             }
-        } else if (finalContactId && !dealToEdit) {
-            // Update existing contact info if different (and provided)
-            // This ensures "detailment of saved contacts" gets updated with new info from the deal form
-            if (phone || email) {
-                await updateContact(finalContactId, {
-                    phone: phone || undefined,
-                    email: email || undefined
-                });
-            }
+
+            onClose();
+        } catch (error: any) {
+            console.error('❌ Error submitting deal:', error);
+            alert(`Erro ao salvar negócio: ${error.message || 'Erro desconhecido'}`);
         }
-
-        const dealData = {
-            title: title || (contactSearch ? `Negócio com ${contactSearch}` : 'Novo Negócio'),
-            value: parseCurrency(value),
-            currency: currency,
-            pipelineId: selectedPipelineId,
-            stageId: selectedStageId,
-            companyId: finalCompanyId || undefined,
-            contactId: finalContactId || undefined,
-            expectedCloseDate: expectedCloseDate || undefined,
-            tags: selectedLabels,
-            source,
-            // sourceId removed
-        };
-
-        if (dealToEdit) {
-            updateDeal(dealToEdit.id, dealData);
-        } else {
-            addDeal({
-                ...dealData,
-                status: 'open',
-                priority: 'medium',
-            });
-        }
-
-        onClose();
     };
 
     // Derived Stages based on selected Pipeline
