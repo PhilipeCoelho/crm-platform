@@ -14,28 +14,25 @@ interface Props {
     onPreview?: (dealId: string, position: { x: number; y: number }) => void;
 }
 
-function DealCard({ deal, currency, onPreview }: Props) {
+// Interface for the Base component that handles rendering logic
+export interface DealCardBaseProps extends Props {
+    dndProps?: {
+        setNodeRef?: (node: HTMLElement | null) => void;
+        attributes?: any;
+        listeners?: any;
+        transform?: any;
+        transition?: any;
+        isDragging?: boolean;
+    };
+    style?: React.CSSProperties; // Allow overriding style
+}
+
+export function DealCardBase({ deal, currency, onPreview, dndProps, style: propStyle }: DealCardBaseProps) {
     const { contacts, activities, deleteDeal } = useCRM();
     const navigate = useNavigate();
 
-    const {
-        setNodeRef,
-        attributes,
-        listeners,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
-        id: deal.id,
-        data: {
-            type: "Deal",
-            deal,
-        },
-    });
-
     // Activity Logic
     const openActivities = activities.filter(a => a.dealId === deal.id && !a.completed);
-    // Sort by date (asc) to find the immediate next one
     const nextActivity = openActivities.sort((a, b) => {
         if (!a.dueDate) return 1;
         if (!b.dueDate) return -1;
@@ -45,9 +42,20 @@ function DealCard({ deal, currency, onPreview }: Props) {
     const hasNextAction = !!nextActivity;
     const isOverdue = nextActivity?.dueDate && nextActivity.dueDate < new Date().toISOString().split('T')[0];
 
+    // Dnd Props
+    const {
+        setNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging
+    } = dndProps || {};
+
     const style = {
         transition,
-        transform: CSS.Transform.toString(transform),
+        transform: transform ? CSS.Transform.toString(transform) : undefined,
+        ...propStyle
     };
 
     // Resolve Relations
@@ -87,8 +95,8 @@ function DealCard({ deal, currency, onPreview }: Props) {
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className={`group relative bg-white dark:bg-[#111418] p-2 px-3 rounded-md border border-slate-200 dark:border-white/[0.06] shadow-sm dark:shadow-[0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-md dark:hover:bg-[#1A1D21] transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
-                ${!hasNextAction ? 'border-l-red-500' : isOverdue ? 'border-l-orange-500' : 'border-l-transparent border-l-slate-300 dark:border-l-gray-700'}
+            className={`group relative bg-white dark:bg-neutral-900 p-3 rounded-[10px] border border-black/[0.06] dark:border-white/[0.04] shadow-sm hover:shadow-md transition-all duration-[120ms] ease-out cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[1px]
+                ${!hasNextAction ? 'border-l-red-500/70' : isOverdue ? 'border-l-orange-500/70' : 'border-l-transparent'}
             `}
         >
             {/* Title */}
@@ -134,6 +142,37 @@ function DealCard({ deal, currency, onPreview }: Props) {
                 </span>
             </div>
         </div>
+    );
+}
+
+function DealCard(props: Props) {
+    const {
+        setNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: props.deal.id,
+        data: {
+            type: "Deal",
+            deal: props.deal,
+        },
+    });
+
+    return (
+        <DealCardBase
+            {...props}
+            dndProps={{
+                setNodeRef,
+                attributes,
+                listeners,
+                transform,
+                transition,
+                isDragging
+            }}
+        />
     );
 }
 

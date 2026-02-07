@@ -13,9 +13,9 @@ import {
     useSensor,
     useSensors,
 } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+
 import { createPortal } from "react-dom";
-import DealCard from "./KanbanCard";
+import { DealCardBase } from "./KanbanCard";
 import NewDealModal from "./NewDealModal";
 import SuggestionModal from "./SuggestionModal";
 import { Filter, Search, DollarSign, Plus } from "lucide-react";
@@ -27,14 +27,14 @@ interface KanbanBoardProps {
 }
 
 function KanbanBoard({ currency }: KanbanBoardProps) {
-    const { deals, pipelines, updateDeal, moveDeal, activities, refresh, addStage, updateStage } = useCRM();
+    const { deals, pipelines, moveDeal, activities, refresh, isLoading, setPipelineSettingsOpen } = useCRM();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId] = useState('sales');
 
     const currentPipeline = pipelines[currentPipelineId];
     // Helper to get columns (stages)
     const columns = currentPipeline?.stages || [];
-    const columnsId = columns.map(col => col.id);
+
 
     // --- Filters State ---
     const [searchTerm, setSearchTerm] = useState('');
@@ -111,7 +111,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+
     const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
 
     // New Deal Modal State
@@ -119,7 +119,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     const [newDealStageId, setNewDealStageId] = useState<string | null>(null);
 
     // Suggestion Modal State
-    const [dragStartStageId, setDragStartStageId] = useState<string | null>(null);
+
     const [dragStartDeals, setDragStartDeals] = useState<Deal[]>([]);
     const [suggestionModal, setSuggestionModal] = useState<{ isOpen: boolean; deal: Deal | null; stageName: string }>({
         isOpen: false, deal: null, stageName: ''
@@ -145,131 +145,161 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         setSelectedDealId(dealId);
     };
 
-    // --- Add Column State ---
-    const [isAddingColumn, setIsAddingColumn] = useState(false);
-    const [newColumnTitle, setNewColumnTitle] = useState('');
 
-    const handleAddColumn = async () => {
-        if (!newColumnTitle.trim()) return;
-        await addStage(currentPipelineId, newColumnTitle);
-        setNewColumnTitle('');
-        setIsAddingColumn(false);
-    };
 
-    const activeColumn = columns.find(c => c.id === activeColumnId);
+
 
     return (
         <div className="flex flex-col h-full w-full overflow-hidden">
-            {/* Single Line Toolbar (Pipedrive Style) - Responsive Wrapper */}
-            <div className="min-h-[3.5rem] py-2 border-b border-border flex flex-wrap items-center justify-between px-4 bg-transparent shrink-0 gap-2 z-40">
-                {/* Left: Pipeline Title/Selector */}
-                <div className="flex items-center gap-2 mr-auto mb-1 sm:mb-0">
-                    <h1 className="text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors whitespace-nowrap">
-                        {currentPipeline?.name}
-                    </h1>
-                </div>
-
-                {/* Right: Controls */}
-                <div className="flex flex-wrap items-center gap-2 flex-1 justify-end">
-
-                    {/* Status Filter */}
-                    <div className="flex items-center gap-2 mr-2 bg-muted/50 rounded-md px-2 border border-transparent hover:border-border transition-all">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                            className={`bg-transparent text-sm font-medium outline-none cursor-pointer py-1 border-none focus:ring-0 ${statusFilter === 'won' ? 'text-green-600' :
-                                statusFilter === 'lost' ? 'text-red-600' : 'text-muted-foreground'
-                                }`}
-                        >
-                            <option value="open">🟢 Abertos</option>
-                            <option value="won">🏆 Ganhos</option>
-                            <option value="lost">❌ Perdidos</option>
-                            <option value="all">📑 Todos</option>
-                        </select>
+            {/* Toolbar - Aligned with Dashboard */}
+            <div className="min-h-[3.5rem] py-2 border-b border-border flex items-center justify-center px-4 bg-transparent shrink-0 z-40">
+                <div className="w-full max-w-[1600px] flex flex-wrap items-center justify-between gap-2">
+                    {/* Check Pipedrive Style Toolbar */}
+                    <div className="flex items-center gap-2 mr-auto mb-1 sm:mb-0">
+                        <h1 className="text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors whitespace-nowrap">
+                            {currentPipeline?.name}
+                        </h1>
                     </div>
 
-                    {/* Saved Views Selector */}
-                    <div className="flex items-center gap-2 mr-2 bg-muted/50 rounded-md px-2 border border-transparent hover:border-border transition-all">
-                        <select
-                            value={viewMode}
-                            onChange={(e) => setViewMode(e.target.value as ViewMode)}
-                            className="bg-transparent text-sm font-medium text-muted-foreground outline-none cursor-pointer py-1 border-none focus:ring-0"
-                            title="Filtrar por Visão"
-                        >
-                            <option value="all">Todas as Oportunidades</option>
-                            <option value="today">📅 Para Hoje</option>
-                            <option value="overdue">🚨 Atrasados</option>
-                            <option value="no-action">⚠️ Sem Próximo Passo</option>
-                            <option value="high-value">🔥 Alto Valor ({'>'} 10k)</option>
-                        </select>
-                    </div>
+                    <div className="flex flex-wrap items-center gap-2 flex-1 justify-end">
 
-                    {/* Search Inline */}
-                    <div className="relative group w-48 transition-all focus-within:w-64">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary" />
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="h-9 w-full pl-9 pr-4 rounded-md bg-muted/50 border border-transparent focus:bg-background focus:border-primary/30 focus:ring-2 focus:ring-primary/20 focus:outline-none text-sm transition-all placeholder:text-muted-foreground/60 text-foreground"
-                        />
-                    </div>
 
-                    <div className="h-6 w-px bg-border mx-2" />
+                        <div className="h-6 w-px bg-border mx-1" />
 
-                    {/* Filter Toggle (with indicator if active) */}
-                    <div className="relative">
+                        {/* Filters (Status) */}
+                        <div className="flex items-center gap-2 mr-2 bg-muted/50 rounded-md px-2 border border-transparent hover:border-border transition-all">
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                                className={`bg-transparent text-sm font-medium outline-none cursor-pointer py-1 border-none focus:ring-0 ${statusFilter === 'won' ? 'text-green-600' :
+                                    statusFilter === 'lost' ? 'text-red-600' : 'text-muted-foreground'
+                                    }`}
+                            >
+                                <option value="open">🟢 Abertos</option>
+                                <option value="won">🏆 Ganhos</option>
+                                <option value="lost">❌ Perdidos</option>
+                                <option value="all">📑 Todos</option>
+                            </select>
+                        </div>
+
+                        {/* View Mode Selector */}
+                        <div className="flex items-center gap-1 bg-muted/50 rounded-md p-1 border border-transparent hover:border-border transition-all">
+                            <button
+                                onClick={() => setViewMode('all')}
+                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'all'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                title="Mostrar todos os negócios"
+                            >
+                                Todos
+                            </button>
+                            <button
+                                onClick={() => setViewMode('today')}
+                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'today'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                title="Atividades para hoje"
+                            >
+                                Hoje
+                            </button>
+                            <button
+                                onClick={() => setViewMode('overdue')}
+                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'overdue'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                title="Atividades atrasadas"
+                            >
+                                Atrasado
+                            </button>
+                            <button
+                                onClick={() => setViewMode('no-action')}
+                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'no-action'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                title="Sem próxima ação"
+                            >
+                                Sem Ação
+                            </button>
+                            <button
+                                onClick={() => setViewMode('high-value')}
+                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'high-value'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                title="Alto valor (>5000)"
+                            >
+                                Alto Valor
+                            </button>
+                        </div>
+
+                        {/* Search */}
+                        <div className="relative">
+                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Buscar negócios..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-8 pr-3 py-1.5 text-sm border border-border/60 rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-48 transition-all"
+                            />
+                        </div>
+
+                        {/* Advanced Filters Toggle */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${showFilters || minValue ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}
+                            className={`p-1.5 rounded-md transition-colors ${showFilters || minValue
+                                ? 'bg-primary text-primary-foreground'
+                                : 'hover:bg-muted text-muted-foreground'
+                                }`}
+                            title="Filtros avançados"
                         >
                             <Filter size={16} />
-                            <span>Filtros</span>
                         </button>
 
-                        {/* Absolute Filter Popover */}
+                        {/* Advanced Filters Dropdown */}
                         {showFilters && (
-                            <div className="absolute right-0 top-full mt-2 w-72 bg-popover border border-border shadow-lg rounded-lg p-4 z-50 animate-in fade-in zoom-in-95">
-                                <div className="space-y-3">
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-semibold text-muted-foreground uppercase">Valor Mínimo</label>
-                                        <div className="relative">
-                                            <DollarSign size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                                            <input
-                                                type="number"
-                                                value={minValue}
-                                                onChange={(e) => setMinValue(e.target.value)}
-                                                className="w-full pl-8 pr-3 py-1.5 text-sm bg-transparent border border-border rounded-md focus:ring-2 focus:ring-primary/50 outline-none text-foreground"
-                                                placeholder="0.00"
-                                            />
-                                        </div>
+                            <div className="absolute right-4 top-16 w-64 bg-popover border border-border rounded-lg shadow-xl z-50 p-3 space-y-3">
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Valor Mínimo</label>
+                                    <div className="relative">
+                                        <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            value={minValue}
+                                            onChange={(e) => setMinValue(e.target.value)}
+                                            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        />
                                     </div>
-                                    <div className="flex justify-end pt-2 border-t border-border">
-                                        <button
-                                            onClick={() => { setMinValue(''); setShowFilters(false); }}
-                                            className="text-xs text-red-600 hover:text-red-700 font-medium"
-                                        >
-                                            Limpar e Fechar
-                                        </button>
-                                    </div>
+                                </div>
+                                <div className="flex justify-end pt-2 border-t border-border">
+                                    <button
+                                        onClick={() => { setMinValue(''); setShowFilters(false); }}
+                                        className="text-xs text-red-600 hover:text-red-700 font-medium"
+                                    >
+                                        Limpar e Fechar
+                                    </button>
                                 </div>
                             </div>
                         )}
-                    </div>
 
-                    {/* Add Deal Button (Primary Action) */}
-                    <button
-                        onClick={() => openNewDealModal(columns[0]?.id)}
-                        className="ml-2 bg-[#00875A] hover:bg-[#00704a] text-white px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 shadow-sm transition-all"
-                    >
-                        <Plus size={16} />
-                        <span>Novo Negócio</span>
-                    </button>
+                        {/* New Deal */}
+                        <button
+                            onClick={() => openNewDealModal(columns[0]?.id)}
+                            className="ml-2 bg-[#00875A] hover:bg-[#00704a] text-white px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 shadow-sm transition-all"
+                        >
+                            <Plus size={16} />
+                            <span>Novo Negócio</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Kanban Content */}
+            {/* Board Content - Professional Horizontal Scroll Layout */}
             <div className="flex-1 w-full h-full overflow-hidden bg-transparent relative">
                 <DndContext
                     sensors={sensors}
@@ -277,81 +307,62 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     onDragEnd={onDragEnd}
                     onDragOver={onDragOver}
                 >
-                    <div className="h-full w-full overflow-x-auto overflow-y-hidden">
-                        <div className="flex h-full min-w-max px-4 pb-2 pt-2 gap-4 mx-auto max-w-[1600px]">
-                            <SortableContext items={columnsId}>
-                                {columns.map((col) => (
-                                    <KanbanColumn
-                                        key={col.id}
-                                        column={col}
-                                        tasks={filteredDeals.filter(d => d.stageId === col.id)}
-                                        updateColumn={(id, title) => updateStage(id, { title })}
-                                        onAdd={openNewDealModal}
-                                        currency={currency}
-                                        onPreview={handleDealClick}
-                                    />
-                                ))}
-                            </SortableContext>
-
-                            {/* Add New Column Button / Input */}
-                            <div className="shrink-0 w-[260px] h-full rounded-xl border-2 border-dashed border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors flex flex-col items-center justify-start p-2">
-                                {isAddingColumn ? (
-                                    <div className="w-full bg-background border border-border rounded-md p-2 shadow-sm animate-in fade-in zoom-in-95">
-                                        <input
-                                            autoFocus
-                                            type="text"
-                                            placeholder="Nome da coluna..."
-                                            className="w-full text-sm font-medium bg-transparent outline-none mb-2"
-                                            value={newColumnTitle}
-                                            onChange={(e) => setNewColumnTitle(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleAddColumn();
-                                                if (e.key === 'Escape') setIsAddingColumn(false);
-                                            }}
-                                        />
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                onClick={() => setIsAddingColumn(false)}
-                                                className="text-xs text-muted-foreground hover:text-foreground px-2 py-1"
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                onClick={handleAddColumn}
-                                                className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-md font-medium"
-                                            >
-                                                Adicionar
-                                            </button>
+                    {/* Horizontal Scroll Container with Controlled Width */}
+                    <div className="h-full w-full overflow-x-auto overflow-y-hidden pb-3 custom-scrollbar">
+                        {/* Columns Container - Fixed Width, Centered */}
+                        <div className="flex h-full min-w-max px-6 gap-6 mx-auto max-w-[1600px]">
+                            {isLoading && columns.length === 0 ? (
+                                /* Skeleton Loader */
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="flex flex-col h-full min-w-[270px] w-[270px] shrink-0 rounded-xl bg-muted/10 animate-pulse border border-border/30">
+                                        <div className="h-14 bg-muted/20 rounded-t-xl mb-2 border-b border-border/20" />
+                                        <div className="flex-1 p-3 space-y-4">
+                                            <div className="h-28 bg-muted/20 rounded-lg" />
+                                            <div className="h-28 bg-muted/20 rounded-lg" />
+                                            <div className="h-28 bg-muted/20 rounded-lg" />
                                         </div>
                                     </div>
-                                ) : (
+                                ))
+                            ) : (
+                                <>
+                                    {/* Static Columns Render */}
+                                    {columns.map((col) => (
+                                        <KanbanColumn
+                                            key={col.id}
+                                            column={col}
+                                            tasks={filteredDeals.filter(d => d.stageId === col.id)}
+                                            onAdd={openNewDealModal}
+                                            currency={currency}
+                                            onPreview={handleDealClick}
+                                            onEditStage={() => setPipelineSettingsOpen(true)}
+                                        />
+                                    ))}
+
+                                    {/* Add Column Ghost - Professional Pipeline Style */}
                                     <button
-                                        onClick={() => {
-                                            setIsAddingColumn(true);
-                                            setNewColumnTitle('');
-                                        }}
-                                        className="w-full h-[40px] flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm font-medium rounded-md"
+                                        onClick={() => setPipelineSettingsOpen(true)}
+                                        className="group/ghost shrink-0 min-w-[280px] w-[280px] h-full rounded-xl border border-dashed border-slate-300/40 dark:border-white/12 bg-transparent hover:bg-slate-100/30 dark:hover:bg-white/[0.03] hover:border-slate-400/60 dark:hover:border-white/25 transition-all duration-200 flex flex-col items-center justify-center cursor-pointer"
+                                        title="Adicionar Nova Etapa"
                                     >
-                                        <Plus size={16} />
-                                        <span>Nova Coluna</span>
+                                        {/* Circular + Button Inside Ghost Column */}
+                                        <div className="w-[36px] h-[36px] rounded-full bg-neutral-800 group-hover/ghost:bg-neutral-700 dark:bg-neutral-800 dark:group-hover/ghost:bg-neutral-700 text-neutral-300 border border-neutral-700 dark:border-neutral-600 flex items-center justify-center transition-all duration-200 group-hover/ghost:scale-110 shadow-lg">
+                                            <Plus size={18} strokeWidth={2.5} />
+                                        </div>
+
+                                        {/* Optional Label */}
+                                        <span className="mt-3 text-xs font-medium text-muted-foreground group-hover/ghost:text-foreground transition-colors">
+                                            Nova Etapa
+                                        </span>
                                     </button>
-                                )}
-                            </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
                     {createPortal(
                         <DragOverlay>
-                            {activeColumn && (
-                                <KanbanColumn
-                                    column={activeColumn!}
-                                    tasks={filteredDeals.filter(d => d.stageId === activeColumn.id)}
-                                    updateColumn={() => { }}
-                                    onAdd={() => { }}
-                                    currency={currency}
-                                />
-                            )}
-                            {activeDeal && <DealCard deal={activeDeal!} currency={currency} />}
+                            {/* Only Deal Overlay */}
+                            {activeDeal && <DealCardBase deal={activeDeal!} currency={currency} />}
                         </DragOverlay>,
                         document.body
                     )}
@@ -371,154 +382,97 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     newStageTitle={suggestionModal.stageName}
                 />
 
-                {/* Deal Details Modal (Full View) */}
                 <DealDetailsModal
                     isOpen={!!selectedDealId}
                     dealId={selectedDealId}
                     onClose={() => setSelectedDealId(null)}
+                    currency={currency}
                 />
             </div>
         </div>
     );
 
     function onDragStart(event: DragStartEvent) {
-        if (event.active.data.current?.type === "Column") {
-            setActiveColumnId(event.active.id as string);
-            return;
-        }
-
+        // Only handle Deal dragging
         if (event.active.data.current?.type === "Deal") {
             const dealId = event.active.id as string;
             const deal = deals.find(d => d.id === dealId);
 
-            // Capture snapshot of ALL deals at start of drag
-            // This ensures onDragEnd calculations use original positions
             setDragStartDeals(deals);
-
             setActiveDeal(deal || null);
-            setDragStartStageId(deal?.stageId || null);
+
         }
     }
 
     function onDragEnd(event: DragEndEvent) {
         const { active, over } = event;
-        setActiveColumnId(null);
+
         setActiveDeal(null);
-
-        // Detect Stage Change based on Drag Start
-        if (dragStartStageId && active.data.current?.type === "Deal" && over) {
-            let potentialNewStageId = null;
-            if (over.data.current?.type === "Column") potentialNewStageId = over.id as string;
-            else if (over.data.current?.type === "Deal") {
-                const overD = deals.find(d => d.id === over.id);
-                if (overD) potentialNewStageId = overD.stageId;
-            }
-
-            if (potentialNewStageId && potentialNewStageId !== dragStartStageId) {
-                // const newStage = columns.find(c => c.id === potentialNewStageId);
-                // Optional: Trigger suggestion (commented out or kept if useful)
-                // setSuggestionModal({ isOpen: true, deal: deals.find(d => d.id === active.id)!, stageName: newStage?.title || '' });
-            }
-        }
-        setDragStartStageId(null);
 
         if (!over) return;
 
+        // Deal Drop Logic
         const activeId = active.id as string;
         const overId = over.id as string;
 
         if (activeId === overId) return;
 
-        // Use SNAPSHOT for calculations to avoid optimistic state pollution
+        // Use SNAPSHOT
         const sourceDeal = dragStartDeals.find(d => d.id === activeId);
         if (!sourceDeal) return;
 
-        let targetStageId = sourceDeal.stageId; // Start with original stage
+        let targetStageId = sourceDeal.stageId;
         let newPos = sourceDeal.position || 0;
         let shouldUpdate = false;
 
-        // 1. Determine Target & Position (Using Snapshot Neighbors)
+        // Check if dropped on Column (Droppable Container)
         if (over.data.current?.type === "Column") {
-            // Dropped on Column -> Move to End
             targetStageId = over.id as string;
-            // Filter neighbors from SNAPSHOT to get stable positions
+            // Calculate position at end
             const targetDeals = dragStartDeals.filter(d => d.stageId === targetStageId && d.id !== activeId);
             const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
             newPos = maxPos + 1024;
-            // Always update if dropped on different column or forced move
             shouldUpdate = true;
         } else if (over.data.current?.type === "Deal") {
-            // Dropped on Deal -> Calculate relative to snapshot neighbors
+            // Dropped on Deal
             const overDeal = dragStartDeals.find(d => d.id === overId);
-
             if (overDeal) {
                 targetStageId = overDeal.stageId;
 
+                // Same calculation logic as before...
                 const stageDeals = dragStartDeals
                     .filter(d => d.stageId === targetStageId && d.id !== activeId)
                     .sort((a, b) => (a.position || 0) - (b.position || 0));
 
                 const overIndex = stageDeals.findIndex(d => d.id === overId);
 
+                // Same midpoint logic...
                 if (overIndex !== -1) {
                     const next = stageDeals[overIndex];
                     const prev = stageDeals[overIndex - 1];
-
                     const nextPos = next.position || 0;
                     const prevPos = prev ? (prev.position || 0) : (nextPos - 2048);
 
-                    if (Math.abs(nextPos - prevPos) < 0.01) {
-                        // Collision logic remains similar but triggers re-index
-                        // For collision, we might want to use current deals or snapshot? 
-                        // Snapshot is safer for calculation, but update needs to affect current DB.
-                        console.log('⚠️ Collision/Tight Gap based on snapshot. Triggering re-index...');
-
-                        // We re-index the CURRENT list effectively by updating everyone
-                        // But finding "everyone" from snapshot is safer order.
-                        const fullList = [...stageDeals];
-                        fullList.splice(overIndex, 0, sourceDeal);
-
-                        const updates = fullList.map((d, idx) => {
-                            const cleanPos = (idx + 1) * 1024;
-                            return updateDeal(d.id, { position: cleanPos, stageId: targetStageId });
-                        });
-                        Promise.all(updates);
-                        shouldUpdate = false;
-                    } else {
-                        newPos = (prevPos + nextPos) / 2;
-                        shouldUpdate = true;
-                    }
+                    newPos = (prevPos + nextPos) / 2;
+                    shouldUpdate = true;
                 }
             }
         }
 
         if (shouldUpdate) {
-            console.log(`💾 Persisting Update -> ID: ${activeId}, Stage: ${targetStageId}, Pos: ${newPos}`);
-
-            // DIRECT SUPABASE UPDATE FOR DEBUGGING
+            moveDeal(activeId, targetStageId, newPos);
             supabase.from('deals').update({
                 stage_id: targetStageId,
                 position: newPos
             }).eq('id', activeId).then(({ error }) => {
-                if (error) {
-                    console.error('Direct Update Error:', error);
-                    alert(`Erro direto no banco: ${error.message}`);
-                } else {
-                    console.log('✅ Direct Update Success');
-                    // 1. Update UI immediately with confirmed values (Zero Latency)
-                    moveDeal(activeId, targetStageId, newPos);
-                    // 2. Refresh purely for data integrity (Background)
-                    refresh();
-                }
+                if (error) console.error(error);
+                else refresh();
             });
-        } else {
-            console.warn('⚠️ DragEnd detected but no update required?', { activeId, overId: over.id, overType: over.data.current?.type });
         }
     }
 
-    function onDragOver(event: DragOverEvent) {
-        // Optimistic updates DISABLED to ensure DB-driven state persistence
-        return;
+    function onDragOver(_event: DragOverEvent) {
+        // Empty
     }
 }
 

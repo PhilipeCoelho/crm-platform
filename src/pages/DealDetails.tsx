@@ -7,14 +7,16 @@ import { pt } from 'date-fns/locale';
 import NewDealModal from '@/components/kanban/NewDealModal';
 import ActivityPanel from '@/components/deals/ActivityPanel';
 import LostReasonModal from '@/components/deals/LostReasonModal';
+import { Currency } from '@/data/currencies';
 
 interface DealDetailsProps {
     dealId?: string;
     onClose?: () => void;
     isModal?: boolean;
+    currency: Currency;
 }
 
-export default function DealDetails({ dealId: propId, onClose, isModal = false }: DealDetailsProps) {
+export default function DealDetails({ dealId: propId, onClose, isModal = false, currency }: DealDetailsProps) {
     const { id: paramId } = useParams();
     const navigate = useNavigate();
     const { deals, companies, contacts, updateDeal, deleteDeal, pipelines } = useCRM();
@@ -199,7 +201,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground px-1">
                                 <span className="font-semibold text-foreground flex items-center gap-1">
                                     <DollarSign size={10} />
-                                    {deal.value.toLocaleString('pt-PT', { style: 'currency', currency: deal.currency || 'EUR' })}
+                                    {deal.value.toLocaleString(currency.locale, { style: 'currency', currency: currency.code })}
                                 </span>
                                 <span>•</span>
                                 <span>Criado em {format(new Date(deal.createdAt), "d MMM", { locale: pt })}</span>
@@ -332,7 +334,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                                                 <span
                                                     className="font-bold text-foreground text-lg group-hover:text-primary transition-colors border border-transparent rounded px-1 group-hover:border-border/50 group-hover:bg-muted/50"
                                                 >
-                                                    {deal.value.toLocaleString('pt-PT', { style: 'currency', currency: deal.currency || 'EUR' })}
+                                                    {deal.value.toLocaleString(currency.locale, { style: 'currency', currency: currency.code })}
                                                 </span>
                                                 <Pencil size={12} className="opacity-0 group-hover:opacity-100 text-muted-foreground transition-opacity" />
                                             </div>

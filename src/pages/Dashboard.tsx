@@ -5,6 +5,7 @@ import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, Tr
 import ActivityList from '@/components/activities/ActivityList';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { format, parseISO } from 'date-fns';
+import { Currency } from '@/data/currencies';
 
 // --- Components ---
 
@@ -57,11 +58,12 @@ function ProductivityFilterSelector({ value, onChange, customRange, onCustomRang
                                     if (opt.value !== 'custom') setIsOpen(false);
                                 }}
                                 className={`
-                                    w-full text-left px-3 py-2 text-sm rounded-md transition-colors
+w - full text - left px - 3 py - 2 text - sm rounded - md transition - colors
                                     ${value === opt.value
                                         ? 'bg-primary/10 text-primary font-medium'
-                                        : 'hover:bg-muted text-foreground'}
-                                `}
+                                        : 'hover:bg-muted text-foreground'
+                                    }
+`}
                             >
                                 {opt.label}
                             </button>
@@ -153,11 +155,12 @@ function RevenueFilterSelector({ value, onChange, customRange, onCustomRangeChan
                                     if (opt.value !== 'custom') setIsOpen(false);
                                 }}
                                 className={`
-                                    w-full text-left px-3 py-2 text-sm rounded-md transition-colors
+w - full text - left px - 3 py - 2 text - sm rounded - md transition - colors
                                     ${value === opt.value
                                         ? 'bg-primary/10 text-primary font-medium'
-                                        : 'hover:bg-muted text-foreground'}
-                                `}
+                                        : 'hover:bg-muted text-foreground'
+                                    }
+`}
                             >
                                 {opt.label}
                             </button>
@@ -213,7 +216,7 @@ const MOTIVATIONAL_QUOTES = [
     "Acredite no seu potencial e os resultados virão."
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ currency }: { currency: Currency }) {
     const { user } = useSupabaseAuth();
     const {
         stats,
@@ -313,7 +316,7 @@ export default function Dashboard() {
 
                             {/* Icon Indicator */}
                             {isTodayView && (
-                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                <div className={`ml - 4 p - 3 rounded - lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'} `}>
                                     {displayCount >= stats.activityGoal ? <CheckCircle2 size={24} /> : <TrendingUp size={24} />}
                                 </div>
                             )}
@@ -329,8 +332,8 @@ export default function Dashboard() {
                                 <div className="w-full">
                                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-blue-500'}`}
-                                            style={{ width: `${progressPercent}%` }}
+                                            className={`h - full rounded - full transition - all duration - 1000 ease - out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-blue-500'} `}
+                                            style={{ width: `${progressPercent}% ` }}
                                         />
                                     </div>
                                     <p className="text-xs text-muted-foreground/80 text-right mt-1">
@@ -375,14 +378,14 @@ export default function Dashboard() {
                                             <span className="text-[10px] text-muted-foreground uppercase">Meta</span>
                                         </div>
                                         <div className="flex items-baseline gap-2">
-                                            <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' }).format(stats.currentRevenue)}</h3>
-                                            <span className="text-sm text-muted-foreground/60 font-medium">/ {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR', notation: 'compact' }).format(stats.revenueGoal)}</span>
+                                            <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(stats.currentRevenue)}</h3>
+                                            <span className="text-sm text-muted-foreground/60 font-medium">/ {new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code, notation: 'compact' }).format(stats.revenueGoal)}</span>
                                         </div>
                                     </>
                                 ) : (
                                     // Historical View: Just Total
                                     <div className="mt-4">
-                                        <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' }).format(stats.currentRevenue)}</h3>
+                                        <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(stats.currentRevenue)}</h3>
                                         <p className="text-sm text-muted-foreground font-medium mt-1">faturado no período</p>
                                     </div>
                                 )}
@@ -394,8 +397,8 @@ export default function Dashboard() {
                                 <>
                                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden relative">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-green-500' : 'bg-yellow-500'}`}
-                                            style={{ width: `${Math.min((stats.currentRevenue / stats.revenueGoal) * 100, 100)}%` }}
+                                            className={`h - full rounded - full transition - all duration - 1000 ease - out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-green-500' : 'bg-yellow-500'} `}
+                                            style={{ width: `${Math.min((stats.currentRevenue / stats.revenueGoal) * 100, 100)}% ` }}
                                         />
                                     </div>
                                     <p className="text-xs text-muted-foreground/80 text-right">
@@ -416,7 +419,7 @@ export default function Dashboard() {
                         <div>
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Valor em Pipeline</p>
                             <p className="text-xl font-bold text-foreground mt-0.5">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' }).format(stats.totalPipelineValue)}
+                                {new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(stats.totalPipelineValue)}
                             </p>
                         </div>
                     </div>
@@ -484,7 +487,7 @@ export default function Dashboard() {
                                 onClick={() => setShowAllOverdue(!showAllOverdue)}
                                 className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 self-start"
                             >
-                                {showAllOverdue ? 'Mostrar menos' : `Ver todas (${lists.overdueActivities.length - 3} mais)`} <ArrowRight size={12} />
+                                {showAllOverdue ? 'Mostrar menos' : `Ver todas(${lists.overdueActivities.length - 3} mais)`} <ArrowRight size={12} />
                             </button>
                         )}
                     </div>
@@ -515,7 +518,7 @@ export default function Dashboard() {
                                 onClick={() => setShowAllToday(!showAllToday)}
                                 className="mt-3 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 self-start"
                             >
-                                {showAllToday ? 'Mostrar menos' : `Ver todas (${lists.todayActivities.length - 3} mais)`} <ArrowRight size={12} />
+                                {showAllToday ? 'Mostrar menos' : `Ver todas(${lists.todayActivities.length - 3} mais)`} <ArrowRight size={12} />
                             </button>
                         )}
                     </div>
