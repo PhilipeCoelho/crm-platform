@@ -53,7 +53,7 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
             <div
                 ref={setNodeRef}
                 style={style}
-                className="bg-muted/50 flex-1 h-[500px] max-h-[500px] rounded-lg border-2 border-primary opacity-40 min-w-0"
+                className="bg-muted/50 w-full h-[500px] max-h-[500px] rounded-lg border-2 border-primary opacity-40"
             />
         );
     }
@@ -70,7 +70,7 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
         <div
             ref={setNodeRef}
             style={style}
-            className="flex flex-col rounded-xl bg-muted/40 backdrop-blur-md border border-border/40 transition-colors h-full min-w-[220px] w-[280px] shadow-sm overflow-hidden"
+            className="flex flex-col rounded-xl bg-muted/40 backdrop-blur-md border border-border/40 transition-colors h-full w-full min-w-0 shadow-sm overflow-hidden"
         >
             <div
                 {...attributes}

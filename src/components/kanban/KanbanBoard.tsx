@@ -142,17 +142,17 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     return (
         <div className="flex flex-col h-full w-full overflow-hidden">
-            {/* Single Line Toolbar (Pipedrive Style) */}
-            <div className="h-14 border-b border-border flex items-center justify-between px-4 bg-transparent shrink-0 gap-4 z-40">
+            {/* Single Line Toolbar (Pipedrive Style) - Responsive Wrapper */}
+            <div className="min-h-[3.5rem] py-2 border-b border-border flex flex-wrap items-center justify-between px-4 bg-transparent shrink-0 gap-2 z-40">
                 {/* Left: Pipeline Title/Selector */}
-                <div className="flex items-center gap-2">
-                    <h1 className="text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors">
+                <div className="flex items-center gap-2 mr-auto mb-1 sm:mb-0">
+                    <h1 className="text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors whitespace-nowrap">
                         {currentPipeline?.name}
                     </h1>
                 </div>
 
                 {/* Right: Controls */}
-                <div className="flex items-center gap-2 flex-1 justify-end">
+                <div className="flex flex-wrap items-center gap-2 flex-1 justify-end">
 
                     {/* Status Filter */}
                     <div className="flex items-center gap-2 mr-2 bg-muted/50 rounded-md px-2 border border-transparent hover:border-border transition-all">
@@ -259,7 +259,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     onDragEnd={onDragEnd}
                     onDragOver={onDragOver}
                 >
-                    <div className="flex h-full w-full overflow-x-auto overflow-y-hidden pb-2 px-2 pt-2 gap-2">
+                    <div className="grid grid-flow-col auto-cols-[minmax(280px,1fr)] overflow-x-auto overflow-y-hidden pb-2 px-2 pt-2 gap-2 h-full w-full">
                         <SortableContext items={columnsId}>
                             {columns.map((col) => (
                                 <KanbanColumn
