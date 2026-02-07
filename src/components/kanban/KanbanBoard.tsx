@@ -468,10 +468,10 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         if (isOverColumn) {
             const deal = deals.find(d => d.id === activeId);
             if (deal && deal.stageId !== overId) {
-                // Optimistic visual move only
-                const targetDeals = deals.filter(d => d.stageId === overId);
-                const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
-                moveDeal(deal.id, overId as string, maxPos + 1024);
+                // Optimistic visual move only - DISABLED TEMPORARILY TO FIX PERSISTENCE BUGS
+                // const targetDeals = deals.filter(d => d.stageId === overId);
+                // const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
+                // moveDeal(deal.id, overId as string, maxPos + 1024);
             }
         }
 
