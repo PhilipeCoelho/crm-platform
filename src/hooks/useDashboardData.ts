@@ -25,7 +25,7 @@ export function useDashboardData() {
     const [monthFilter, setMonthFilter] = useState<string[]>([startOfDay(new Date()).toISOString().slice(0, 7)]); // ['YYYY-MM'] for Revenue
 
     // Productivity Filter
-    const [productivityFilter, setProductivityFilter] = useState<ProductivityFilter>('month');
+    const [productivityFilter, setProductivityFilter] = useState<ProductivityFilter>('today');
     const [productivityCustomRange, setProductivityCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
 
     const toggleMonthFilter = useCallback((monthStr: string) => {
