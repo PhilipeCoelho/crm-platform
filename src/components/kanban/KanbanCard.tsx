@@ -101,12 +101,7 @@ function DealCard({ deal, currency, onPreview }: Props) {
 
             {/* Subtitle */}
             <div className="flex flex-col gap-0.5 mb-3">
-                {company ? (
-                    <div className="flex items-center gap-1.5 text-muted-foreground" title={company.name}>
-                        <Building size={12} className="shrink-0" />
-                        <span className="text-[12px] truncate">{company.name}</span>
-                    </div>
-                ) : contact ? (
+                {contact ? (
                     <div className="flex items-center gap-1.5 text-muted-foreground" title={contact.name}>
                         <User size={12} className="shrink-0" />
                         <span className="text-[12px] truncate">{contact.name}</span>
@@ -126,9 +121,7 @@ function DealCard({ deal, currency, onPreview }: Props) {
             {/* Footer */}
             <div className="flex items-center justify-between pt-2 border-t border-border mt-1">
                 <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center text-[10px] font-bold text-muted-foreground" title={contact?.name || 'Sem contato'}>
-                        {contact?.name?.substring(0, 1).toUpperCase() || '?'}
-                    </div>
+                    {/* Avatar removed as requested */}
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-[13px] font-bold text-card-foreground">
