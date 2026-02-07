@@ -201,7 +201,10 @@ export function useCRMStore(): CRMStore {
             return;
         }
 
+        const tempId = generateId();
+
         const newDeal = {
+            id: tempId,
             title: data.title,
             value: data.value,
             contact_id: data.contactId,
@@ -215,7 +218,6 @@ export function useCRMStore(): CRMStore {
         };
 
         // Optimistic Deal
-        const tempId = generateId();
         const optimisticDeal: Deal = {
             ...data,
             id: tempId,
@@ -243,7 +245,6 @@ export function useCRMStore(): CRMStore {
             alert(`Erro ao salvar negócio: ${error.message}`);
             // Revert
             setDeals(prev => prev.filter(d => d.id !== tempId));
-            // Note: Reverting contact status is hard without prev state. We ignore for now or refetch.
         }
     };
 
@@ -256,7 +257,6 @@ export function useCRMStore(): CRMStore {
         const targetDeal = nextDeals.find(d => d.id === id);
         if (targetDeal && targetDeal.contactId) {
             // Recalculate status for the contact
-            // Only strictly necessary if 'status' or 'contactId' changed, but cheap to do always
             const newStatus = await recalculateContactStatus(targetDeal.contactId, nextDeals);
             setContacts(prev => prev.map(c => c.id === targetDeal.contactId ? { ...c, status: newStatus } : c));
             supabase.from('contacts').update({ status: newStatus }).eq('id', targetDeal.contactId);
@@ -315,18 +315,20 @@ export function useCRMStore(): CRMStore {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("No user");
 
+        const tempId = generateId();
+
         const newContact = {
+            id: tempId,
             name: data.name,
             email: data.email,
             phone: data.phone,
             role: data.role,
             user_id: user.id,
             company_id: data.companyId,
-            status: data.status || 'lead' // Default to lead
+            status: data.status || 'lead'
         };
 
         // Optimistic
-        const tempId = generateId();
         const optimisticContact = { ...data, id: tempId, userId: user.id, createdAt: new Date().toISOString() } as Contact;
         setContacts(prev => [...prev, optimisticContact]);
 
@@ -352,27 +354,17 @@ export function useCRMStore(): CRMStore {
         setDeals(prev => prev.filter(d => d.contactId !== id));
 
         // 3. Delete Activities linked to Contact OR deleted Deals
-        // We need to identify dealIds that are being deleted
         const dealIdsToDelete = deals.filter(d => d.contactId === id).map(d => d.id);
 
         setActivities(prev => prev.filter(a => {
-            // Remove if linked to this contact OR linked to one of the deleted deals
             if (a.contactId === id) return false;
             if (a.dealId && dealIdsToDelete.includes(a.dealId)) return false;
             return true;
         }));
 
         // --- Database ---
+        await supabase.from('activities').delete().eq('contact_id', id);
 
-        // 1. Delete Deals (Activities should ideally cascade, but we delete them for safety)
-        await supabase.from('activities').delete().eq('contact_id', id); // Delete direct contact activities
-        // Note: Activities linked to deals will be deleted? Supabase usually doesn't cascade by default unless set. 
-        // Let's assume we need to delete them. 
-        // Ideally we would delete activities via deal_id IN (...), but Supabase JS doesn't support IN easily for delete on joins.
-        // If we delete deals, and activities have ON DELETE CASCADE, it's fine.
-        // Let's assume User has set up CASCADE or we do best effort.
-
-        // Delete Deals
         const { error: deleteDealsError } = await supabase
             .from('deals')
             .delete()
@@ -380,15 +372,14 @@ export function useCRMStore(): CRMStore {
 
         if (deleteDealsError) {
             console.error('Error deleting deals:', deleteDealsError);
-            fetchAll(); // Revert
+            fetchAll();
             return;
         }
 
-        // 2. Delete Contact
         const { error } = await supabase.from('contacts').delete().eq('id', id);
         if (error) {
             console.error('Error deleting contact:', error);
-            fetchAll(); // Revert
+            fetchAll();
         }
     };
 
@@ -398,10 +389,13 @@ export function useCRMStore(): CRMStore {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
+        const tempId = generateId();
+
         const newActivity = {
+            id: tempId,
             title: data.title,
             type: data.type,
-            date: data.dueDate, // Mapped from frontend dueDate
+            date: data.dueDate,
             duration: data.duration,
             deal_id: data.dealId,
             user_id: user.id,
@@ -410,7 +404,6 @@ export function useCRMStore(): CRMStore {
             completed: data.completed !== undefined ? data.completed : false
         };
 
-        const tempId = generateId();
         const optimisticActivity = {
             ...data,
             id: tempId,
@@ -440,7 +433,6 @@ export function useCRMStore(): CRMStore {
         const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
         if (error) {
             console.error('Update activity error', error);
-            // Revert optimistic update if needed, effectively we reload on error usually or alert
         }
     };
 
@@ -453,7 +445,10 @@ export function useCRMStore(): CRMStore {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("No user");
 
+        const tempId = generateId();
+
         const newCompany = {
+            id: tempId,
             name: data.name,
             website: data.website,
             phone: data.phone,
@@ -461,7 +456,6 @@ export function useCRMStore(): CRMStore {
             user_id: user.id
         };
 
-        const tempId = generateId();
         const optimisticCompany = { ...data, id: tempId, createdAt: new Date().toISOString() } as Company;
         setCompanies(prev => [...prev, optimisticCompany]);
 
