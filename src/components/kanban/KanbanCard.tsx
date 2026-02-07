@@ -78,8 +78,8 @@ function DealCard({ deal, currency, onPreview }: Props) {
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className={`group relative bg-white dark:bg-card p-3 rounded-lg border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
-                ${!hasNextAction ? 'border-l-red-500/70' : isOverdue ? 'border-l-orange-500/70' : 'border-l-primary/50'}
+            className={`group relative bg-white dark:bg-card p-3 rounded-lg border border-border/50 shadow-sm hover:shadow transition-all duration-200 cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[2px]
+                ${!hasNextAction ? 'border-l-red-500/70' : isOverdue ? 'border-l-orange-500/70' : 'border-l-transparent border-l-gray-300/50'}
             `}
         >
             {/* Title */}
