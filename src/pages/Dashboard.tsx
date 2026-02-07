@@ -72,7 +72,23 @@ function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m:
     );
 }
 
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+
+const MOTIVATIONAL_QUOTES = [
+    "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
+    "A persistência é o caminho do êxito.",
+    "Não espere por oportunidades, crie-as.",
+    "Grandes resultados requerem grandes ambições.",
+    "Seu único limite é você mesmo.",
+    "Foco no objetivo, força na luta e fé na vitória.",
+    "A disciplina é a mãe do sucesso.",
+    "Hoje é um dia perfeito para começar.",
+    "Transforme seus obstáculos em degraus para o sucesso.",
+    "Acredite no seu potencial e os resultados virão."
+];
+
 export default function Dashboard() {
+    const { user } = useSupabaseAuth();
     const {
         stats,
         lists,
@@ -82,6 +98,13 @@ export default function Dashboard() {
 
     const [isNewActivityModalOpen, setIsNewActivityModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+
+    // Daily Quote Logic
+    const dailyQuote = useMemo(() => {
+        const day = new Date().getDate();
+        const index = day % MOTIVATIONAL_QUOTES.length;
+        return MOTIVATIONAL_QUOTES[index];
+    }, []);
 
     // --- Card Content Factories ---
     const cardContents: Record<string, ReactNode> = {
@@ -214,17 +237,21 @@ export default function Dashboard() {
     return (
         <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Minha Agenda</h1>
-                        <p className="text-muted-foreground mt-1 text-sm">Foque no que precisa ser feito hoje.</p>
-                    </div>
+                {/* Welcome Section */}
+                <div className="max-w-4xl mx-auto mb-8">
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                        Olá, {user?.user_metadata?.name?.split(' ')[0] || 'Visitante'}.
+                    </h1>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                        {dailyQuote}
+                    </p>
+                </div>
 
+                {/* Actions Toolbar */}
+                <div className="flex flex-col md:flex-row items-center justify-end mb-8 gap-4">
                     <div className="flex items-center gap-2">
                         {/* Date Filter */}
                         <MonthFilter selected={stats.monthFilter} onToggle={actions.toggleMonthFilter} />
-
 
                         {/* Edit Mode Toggle */}
                         {isEditMode ? (
