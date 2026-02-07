@@ -26,7 +26,7 @@ interface KanbanBoardProps {
 }
 
 function KanbanBoard({ currency }: KanbanBoardProps) {
-    const { deals, pipelines, updateDeal, moveDeal, activities } = useCRM();
+    const { deals, pipelines, updateDeal, moveDeal, activities, refresh } = useCRM();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId] = useState('sales');
 
