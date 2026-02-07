@@ -1,5 +1,5 @@
 import { useDashboardData, ProductivityFilter, RevenueFilter } from '@/hooks/useDashboardData';
-import NewActivityModal from '@/components/activities/NewActivityModal';
+import NewDealModal from '@/components/kanban/NewDealModal';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, CalendarDays, Target, Euro, CheckSquare } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
@@ -221,7 +221,7 @@ export default function Dashboard() {
         actions,
     } = useDashboardData();
 
-    const [isNewActivityModalOpen, setIsNewActivityModalOpen] = useState(false);
+    const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
     const [showAllOverdue, setShowAllOverdue] = useState(false);
     const [showAllToday, setShowAllToday] = useState(false);
 
@@ -256,11 +256,11 @@ export default function Dashboard() {
                     {/* Actions ONLY - Filter is gone */}
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => setIsNewActivityModalOpen(true)}
+                            onClick={() => setIsNewDealModalOpen(true)}
                             className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 shadow-sm transition-all active:scale-95"
                         >
                             <Plus size={16} />
-                            Nova Atividade
+                            Novo Negócio
                         </button>
                     </div>
                 </div>
@@ -521,9 +521,10 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <NewActivityModal
-                    isOpen={isNewActivityModalOpen}
-                    onClose={() => setIsNewActivityModalOpen(false)}
+                <NewDealModal
+                    isOpen={isNewDealModalOpen}
+                    onClose={() => setIsNewDealModalOpen(false)}
+                    initialColumnId="new" // Forces "Lead Novo" stage
                 />
             </div>
         </div>
