@@ -69,7 +69,16 @@ function DealCard({ deal, currency, onPreview }: Props) {
         }
     };
 
-    if (isDragging) return <div ref={setNodeRef} style={style} className="bg-muted/20 p-3 rounded-lg border-2 border-primary opacity-30 h-[100px]" />;
+    // Hide original card while dragging (Ghost)
+    if (isDragging) {
+        return (
+            <div
+                ref={setNodeRef}
+                style={style}
+                className="opacity-0 pointer-events-none h-[100px] bg-transparent"
+            />
+        );
+    }
 
     return (
         <div
