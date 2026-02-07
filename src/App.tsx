@@ -44,10 +44,10 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex h-screen text-foreground overflow-hidden">
             {/* Expandable Sidebar */}
             <aside
-                className={`group flex flex-col items-center py-3 z-50 shrink-0 border-r border-[color:var(--border)] transition-all duration-300 ease-in-out relative
+                className={`group flex flex-col items-center py-3 z-50 shrink-0 border-r border-border transition-all duration-300 ease-in-out relative
                     ${isSidebarExpanded ? 'w-56 items-start px-3' : 'w-14 items-center'}
-                     !bg-white dark:!bg-[#1a1d21] dark:backdrop-blur-md
-                    !text-slate-900 dark:!text-gray-200
+                     !bg-white dark:!bg-slate-900
+                    !text-slate-900 dark:!text-slate-300
                     `}
                 onMouseEnter={() => setIsSidebarHovered(true)}
                 onMouseLeave={() => setIsSidebarHovered(false)}
@@ -78,8 +78,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'dashboard'
-                                ? '!bg-slate-100 dark:!bg-[#2A3241] !text-slate-900 dark:!text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:!bg-slate-100 dark:hover:!bg-[#151C25] !text-slate-500 hover:!text-slate-900 dark:!text-[#9BA7B4] dark:hover:!text-white'
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm dark:border-l-[3px] dark:border-primary'
+                                : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -92,8 +92,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'pipelines'
-                                ? '!bg-slate-100 dark:!bg-[#2A3241] !text-slate-900 dark:!text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:!bg-slate-100 dark:hover:!bg-[#151C25] !text-slate-500 hover:!text-slate-900 dark:!text-[#9BA7B4] dark:hover:!text-white'
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm dark:border-l-[3px] dark:border-primary'
+                                : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -106,8 +106,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${currentView === 'contacts'
-                                ? '!bg-slate-100 dark:!bg-[#2A3241] !text-slate-900 dark:!text-white shadow-sm dark:border-l-[3px] dark:border-[#4F7CFF]'
-                                : 'hover:!bg-slate-100 dark:hover:!bg-[#151C25] !text-slate-500 hover:!text-slate-900 dark:!text-[#9BA7B4] dark:hover:!text-white'
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm dark:border-l-[3px] dark:border-primary'
+                                : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -124,8 +124,8 @@ function Layout({ children }: { children: React.ReactNode }) {
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-200 min-h-[40px] relative
                         ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto rounded-lg'}
                         ${isSettingsOpen
-                                ? 'bg-slate-100 dark:bg-[#2A3241] text-slate-900 dark:text-white'
-                                : 'hover:bg-slate-100 dark:hover:bg-[#151C25] text-slate-500 hover:text-slate-900 dark:text-[#9BA7B4] dark:hover:text-white'
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100'
+                                : 'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
@@ -137,7 +137,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                     <button
                         onClick={() => signOut()}
                         title={!isSidebarExpanded ? "Sair" : ""}
-                        className={`group flex items-center gap-3 rounded-lg hover:bg-slate-100 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-gray-400 transition-all duration-200 min-h-[40px] ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto'}`}
+                        className={`group flex items-center gap-3 rounded-lg hover:bg-slate-100 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 transition-all duration-200 min-h-[40px] ${isSidebarExpanded ? 'px-3 w-full justify-start' : 'justify-center w-10 mx-auto'}`}
                     >
                         <div className="shrink-0 flex items-center justify-center w-5 h-5">
                             <LogOut size={20} />
