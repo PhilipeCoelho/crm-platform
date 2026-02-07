@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
 import { ArrowLeft, Building, User, DollarSign, Plus, Pencil, Trash2, Check, X, Ban } from 'lucide-react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { pt } from 'date-fns/locale';
 import NewDealModal from '@/components/kanban/NewDealModal';
 import ActivityPanel from '@/components/deals/ActivityPanel';
 import LostReasonModal from '@/components/deals/LostReasonModal';
@@ -199,10 +199,10 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground px-1">
                                 <span className="font-semibold text-foreground flex items-center gap-1">
                                     <DollarSign size={10} />
-                                    {deal.value.toLocaleString('pt-BR', { style: 'currency', currency: deal.currency })}
+                                    {deal.value.toLocaleString('pt-PT', { style: 'currency', currency: deal.currency || 'EUR' })}
                                 </span>
                                 <span>•</span>
-                                <span>Criado em {format(new Date(deal.createdAt), "d MMM", { locale: ptBR })}</span>
+                                <span>Criado em {format(new Date(deal.createdAt), "d MMM", { locale: pt })}</span>
                             </div>
                         </div>
                     </div>
@@ -243,7 +243,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                                 className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors text-muted-foreground"
                                 title="Excluir Negócio"
                             >
-                                <Trash2 size={14} /> // Increased size slightly and padding
+                                <Trash2 size={14} />
                             </button>
 
                             <button
@@ -332,7 +332,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                                                 <span
                                                     className="font-bold text-foreground text-lg group-hover:text-primary transition-colors border border-transparent rounded px-1 group-hover:border-border/50 group-hover:bg-muted/50"
                                                 >
-                                                    {deal.value.toLocaleString('pt-BR', { style: 'currency', currency: deal.currency })}
+                                                    {deal.value.toLocaleString('pt-PT', { style: 'currency', currency: deal.currency || 'EUR' })}
                                                 </span>
                                                 <Pencil size={12} className="opacity-0 group-hover:opacity-100 text-muted-foreground transition-opacity" />
                                             </div>
@@ -385,7 +385,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                                         </div>
                                     </Link>
                                 ) : (
-                                    <p className="text-xs text-muted-foreground italic">Nenhuma pessoa vinculada</p>
+                                    <p
+                                        className="text-xs text-muted-foreground italic cursor-pointer hover:text-primary hover:underline"
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        title="Clique para vincular uma pessoa"
+                                    >
+                                        Nenhuma pessoa vinculada
+                                    </p>
                                 )}
                             </div>
 
@@ -418,7 +424,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                                         </div>
                                     </Link>
                                 ) : (
-                                    <p className="text-xs text-muted-foreground italic">Nenhuma organização vinculada</p>
+                                    <p
+                                        className="text-xs text-muted-foreground italic cursor-pointer hover:text-primary hover:underline"
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        title="Clique para vincular uma organização"
+                                    >
+                                        Nenhuma organização vinculada
+                                    </p>
                                 )}
                             </div>
                         </div>
