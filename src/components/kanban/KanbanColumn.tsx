@@ -102,24 +102,24 @@ function KanbanColumn({ column, tasks, updateColumn, onAdd, currency, initialEdi
             </div>
 
             {/* Task List */}
-            <div className="flex-grow flex flex-col gap-2 p-2 overflow-x-hidden overflow-y-auto scrollbar-thin scrollbar-thumb-border">
+            <div className="flex-grow flex flex-col gap-2 p-2 overflow-x-hidden overflow-y-auto scrollbar-thin scrollbar-thumb-border group">
+                {/* Inline Add Button (Top, Hover Only) */}
+                <button
+                    className="w-full flex items-center justify-center gap-1.5 text-muted-foreground hover:text-primary transition-all text-[13px] font-medium py-1.5 opacity-0 group-hover:opacity-100 mb-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5"
+                    onClick={() => onAdd(column.id)}
+                    title="Adicionar novo negócio"
+                >
+                    <Plus size={14} />
+                    <span>Novo</span>
+                </button>
+
                 <SortableContext items={tasksIds}>
                     {tasks.map((task) => (
                         <KanbanCard key={task.id} deal={task} currency={currency} onPreview={onPreview} />
                     ))}
                 </SortableContext>
 
-                {/* Inline Add Button */}
-                <button
-                    className="w-fit flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-[13px] font-medium mt-1 px-1"
-                    onClick={() => {
-                        onAdd(column.id);
-                    }}
-                    title="Adicionar novo negócio"
-                >
-                    <Plus size={14} />
-                    <span>Novo Negócio</span>
-                </button>
+
             </div>
 
 
