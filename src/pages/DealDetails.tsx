@@ -321,7 +321,6 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                                         <div className="min-w-0">
                                             <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">{company.name}</p>
                                             <p className="text-xs text-muted-foreground truncate mt-0.5">{company.website || 'Sem website'}</p>
-                                            <p className="text-xs text-muted-foreground truncate mt-0.5">{company.address || 'Sem endereço'}</p>
                                         </div>
                                     </div>
                                 </Link>

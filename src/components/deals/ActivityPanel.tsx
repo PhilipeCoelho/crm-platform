@@ -102,7 +102,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     return (
         <div className="flex flex-col h-full bg-background relative">
             {/* Tabs Header */}
-            <div className="flex items-center gap-0.5 p-1 border-b border-border overflow-x-auto no-scrollbar bg-card/50">
+            <div className="flex items-center gap-4 px-4 border-b border-border overflow-x-auto no-scrollbar bg-background">
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -110,13 +110,13 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap
+                            className={`flex items-center gap-2 py-3 text-sm font-medium transition-all whitespace-nowrap border-b-2
                                       ${isActive
-                                    ? 'bg-background shadow-sm text-primary ring-1 ring-border'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                    ? 'border-primary text-foreground'
+                                    : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                         >
-                            <Icon size={14} />
+                            <Icon size={16} />
                             {tab.label}
                         </button>
                     );
