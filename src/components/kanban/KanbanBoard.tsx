@@ -410,6 +410,9 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         if (shouldUpdate) {
             console.log(`💾 Persisting Update -> ID: ${activeId}, Stage: ${targetStageId}, Pos: ${newPos}`);
             updateDeal(activeId, { stageId: targetStageId, position: newPos });
+
+            // Safety: Force refresh after 500ms to ensure DB sync
+            setTimeout(() => refresh(), 500);
         } else {
             console.warn('⚠️ DragEnd detected but no update required?', { activeId, overId: over.id, overType: over.data.current?.type });
         }
