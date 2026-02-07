@@ -414,7 +414,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                 newOrderDeals.forEach((d, idx) => {
                     const cleanPos = (idx + 1) * 1024;
                     if (d.position !== cleanPos) {
-                        updateDeal(d.id, { position: cleanPos });
+                        updateDeal(d.id, { position: cleanPos, stageId: d.stageId });
                     }
                 });
                 return;
@@ -436,7 +436,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             }
 
             console.log(`🔄 Reordering: ${activeDeal.title} to index ${newIndex} (Pos: ${newPos})`);
-            updateDeal(activeDeal.id, { position: newPos });
+            updateDeal(activeDeal.id, { position: newPos, stageId: activeDeal.stageId });
         }
     }
 
