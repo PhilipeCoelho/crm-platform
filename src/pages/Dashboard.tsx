@@ -1,7 +1,7 @@
 import { useDashboardData, PeriodFilter } from '@/hooks/useDashboardData';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, Filter, CalendarDays } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, Filter, CalendarDays, Target, Euro } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { format, subMonths } from 'date-fns';
@@ -35,7 +35,7 @@ function PeriodSelector({ value, onChange }: { value: PeriodFilter, onChange: (v
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-background hover:bg-muted text-foreground rounded-md transition-colors border border-border shadow-sm"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-background hover:bg-muted text-foreground rounded-md transition-all border border-border shadow-sm active:scale-95"
             >
                 <Filter size={14} className="text-muted-foreground" />
                 <span>{currentLabel}</span>
@@ -43,7 +43,7 @@ function PeriodSelector({ value, onChange }: { value: PeriodFilter, onChange: (v
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-popover border border-border rounded-lg shadow-lg overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-popover/95 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
                     {options.map(opt => (
                         <button
                             key={opt.value}
@@ -51,8 +51,8 @@ function PeriodSelector({ value, onChange }: { value: PeriodFilter, onChange: (v
                             className={`
                                 w-full text-left px-4 py-2 text-sm transition-colors
                                 ${value === opt.value
-                                    ? 'bg-primary/10 text-primary font-medium'
-                                    : 'hover:bg-muted text-foreground'}
+                                    ? 'bg-primary/5 text-primary font-medium'
+                                    : 'hover:bg-muted/50 text-foreground'}
                             `}
                         >
                             {opt.label}
@@ -68,13 +68,13 @@ function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m:
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
-    // Generate last 12 months
     const months = useMemo(() => {
         return Array.from({ length: 12 }, (_, i) => {
             const d = subMonths(new Date(), i);
             return {
                 id: format(d, 'yyyy-MM'),
                 label: format(d, 'MMMM', { locale: ptBR }),
+                full: format(d, 'MMMM yyyy', { locale: ptBR }),
                 year: format(d, 'yyyy')
             };
         });
@@ -91,7 +91,7 @@ function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m:
     const selectedLabels = selected
         .map(s => {
             const m = months.find(x => x.id === s);
-            return m ? m.label.substring(0, 3) : s;
+            return m ? m.label : s;
         })
         .join(', ');
 
@@ -99,28 +99,28 @@ function MonthFilter({ selected, onToggle }: { selected: string[], onToggle: (m:
         <div className="relative z-50" ref={ref}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-2 py-1 text-xs font-medium bg-secondary/50 hover:bg-secondary text-foreground rounded transition-colors border border-border/50"
+                className="group flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-background hover:bg-muted text-foreground rounded-full transition-all border border-dashed border-border hover:border-primary/50"
             >
-                <Calendar size={12} className="text-muted-foreground" />
-                <span className="capitalize max-w-[100px] truncate">{selectedLabels || 'Filtrar'}</span>
-                <ChevronDown size={12} className="opacity-50" />
+                <Calendar size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                <span className="capitalize text-muted-foreground group-hover:text-foreground">{selectedLabels || 'Selecionar Mês'}</span>
+                <ChevronDown size={14} className="text-muted-foreground/50 group-hover:text-primary/50" />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-xl overflow-hidden p-1 grid grid-cols-2 gap-1 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-popover/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden p-2 grid grid-cols-2 gap-1 animate-in fade-in zoom-in-95 duration-200">
                     {months.map(m => (
                         <button
                             key={m.id}
                             onClick={() => onToggle(m.id)}
                             className={`
-                                text-xs px-3 py-2 rounded-lg capitalize flex items-center justify-between transition-colors
+                                text-xs px-3 py-2 rounded-lg capitalize flex flex-col items-start justify-center transition-all border border-transparent
                                 ${selected.includes(m.id)
-                                    ? 'bg-primary text-primary-foreground font-medium shadow-sm'
+                                    ? 'bg-primary/10 text-primary font-semibold border-primary/20'
                                     : 'hover:bg-muted text-muted-foreground hover:text-foreground'}
                             `}
                         >
                             <span>{m.label}</span>
-                            {selected.includes(m.id) && <span className="opacity-60 text-[10px]">{m.year}</span>}
+                            <span className={`text-[10px] ${selected.includes(m.id) ? 'text-primary/60' : 'text-muted-foreground/50'}`}>{m.year}</span>
                         </button>
                     ))}
                 </div>
@@ -200,7 +200,7 @@ export default function Dashboard() {
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <CheckCircle2 size={16} className="text-blue-500" />
+                                        <Target size={16} className="text-blue-500" />
                                         Meta Diária
                                     </p>
                                     <input
@@ -238,7 +238,7 @@ export default function Dashboard() {
                             <div className="w-full">
                                 <div className="flex justify-between items-center w-full mb-2">
                                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <DollarSign size={16} className="text-yellow-500" />
+                                        <Euro size={16} className="text-yellow-500" />
                                         Receita ({stats.monthFilter.length > 1 ? 'Múltiplos' : 'Mensal'})
                                     </p>
                                     <MonthFilter selected={stats.monthFilter} onToggle={actions.toggleMonthFilter} />
