@@ -289,9 +289,13 @@ export function useCRMStore(): CRMStore {
 
         if (Object.keys(dbUpdates).length > 0) {
             console.log('📝 Sending Update to DB:', { id, ...dbUpdates });
-            const { error } = await supabase.from('deals').update(dbUpdates).eq('id', id);
+            // Select count to verify if row was actually touched
+            const { error, count } = await supabase.from('deals').update(dbUpdates).eq('id', id).select('id', { count: 'exact' });
 
-            if (error) {
+            if (error || count === 0) {
+                console.error('❌ Error updating deal:', error || 'No rows affected (Permission denied?)');
+                if (!error && count === 0) alert('Erro: Parece que você não tem permissão para editar este negócio (RLS). Verifique se você é o dono dele.');
+                else if (error) alert(`Erro ao salvar alteração: ${error.message}`);
                 console.error('❌ Error updating deal:', error);
                 alert(`Erro ao salvar alteração: ${error.message}\nVerifique o console para mais detalhes.`);
 
