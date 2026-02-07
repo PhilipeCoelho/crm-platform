@@ -367,8 +367,21 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         const activeDeal = deals.find(d => d.id === activeId);
         if (!activeDeal) return;
 
-        // If dropped over a column (handled in DragOver, but good to be safe)
-        if (over.data.current?.type === "Column") return;
+        // If dropped over a column -> Persist move to End of Column
+        if (over.data.current?.type === "Column") {
+            const targetStageId = over.id as string;
+
+            // Calculate safe position at bottom of target column
+            // Filter out self to ensure we get the max of *other* items
+            const targetDeals = deals.filter(d => d.stageId === targetStageId && d.id !== activeId);
+            const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
+
+            updateDeal(activeId, {
+                stageId: targetStageId,
+                position: maxPos + 1024
+            });
+            return;
+        }
 
         // Reordering Logic
         const stageDeals = deals
