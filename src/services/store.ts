@@ -170,17 +170,19 @@ export function useCRMStore(): CRMStore {
             }
         });
 
-        // Listen for DB Changes
-        const channel = supabase.channel('crm_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+        // Listen for DB Changes (Disabled temporarily to debug Drag & Drop race conditions)
+        /* const channel = supabase.channel('crm_realtime')
+            .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+                 // Optimization: Ignore if it's our own update? 
+                 // Supabase Realtime doesn't easily distinguish 'who' made the change without extra columns
                 console.log('⚡ Realtime update detected. Refetching...');
                 fetchAll();
             })
-            .subscribe();
+            .subscribe(); */
 
         return () => {
             authListener.unsubscribe();
-            supabase.removeChannel(channel);
+            // supabase.removeChannel(channel);
         };
     }, [fetchAll]);
 
