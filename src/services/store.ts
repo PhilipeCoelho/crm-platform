@@ -282,8 +282,13 @@ export function useCRMStore(): CRMStore {
         if (updates.position !== undefined) dbUpdates.position = updates.position;
 
         if (Object.keys(dbUpdates).length > 0) {
+            console.log('📝 Sending Update to DB:', { id, ...dbUpdates });
             const { error } = await supabase.from('deals').update(dbUpdates).eq('id', id);
-            if (error) console.error('Error updating deal:', error);
+            if (error) {
+                console.error('❌ Error updating deal:', error);
+            } else {
+                console.log('✅ Update successful for:', id);
+            }
         };
     };
 
