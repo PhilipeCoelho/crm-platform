@@ -449,9 +449,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     alert(`Erro direto no banco: ${error.message}`);
                 } else {
                     console.log('✅ Direct Update Success');
-                    // Sync local state
-                    moveDeal(activeId, targetStageId, newPos);
-                    setTimeout(refresh, 1000); // Verify state after animation
+                    // No local optimistic update. Force DB sync.
+                    setTimeout(refresh, 200);
                 }
             });
         } else {
@@ -460,38 +459,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     }
 
     function onDragOver(event: DragOverEvent) {
-        const { active, over } = event;
-        if (!over) return;
-
-        const activeId = active.id;
-        const overId = over.id;
-
-        if (activeId === overId) return;
-
-        const isActiveDeal = active.data.current?.type === "Deal";
-        const isOverColumn = over.data.current?.type === "Column";
-
-        if (!isActiveDeal) return;
-
-        // Dropping over a column (Empty Space) -> Move to End
-        if (isOverColumn) {
-            const deal = deals.find(d => d.id === activeId);
-            if (deal && deal.stageId !== overId) {
-                // Optimistic visual move for UX
-                const targetDeals = deals.filter(d => d.stageId === overId);
-                const maxPos = targetDeals.length > 0 ? Math.max(...targetDeals.map(d => d.position || 0)) : 0;
-                moveDeal(deal.id, overId as string, maxPos + 1024);
-            }
-        }
-
-        // Dropping over another Deal -> Move to Column (Position handled in DragEnd)
-        const overDeal = deals.find(d => d.id === overId);
-        if (overDeal && active.data.current?.deal) {
-            const activeDeal = active.data.current.deal;
-            if (activeDeal.stageId !== overDeal.stageId) {
-                moveDeal(activeDeal.id, overDeal.stageId);
-            }
-        }
+        // Optimistic updates DISABLED to ensure DB-driven state
+        return;
     }
 }
 
