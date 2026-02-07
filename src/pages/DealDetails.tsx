@@ -187,105 +187,146 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false }
                 </div>
 
                 {/* Pipeline Progress Bar */}
-                <div className="flex items-center gap-0.5 mt-0.5 overflow-x-auto no-scrollbar pb-1">
+                <div className="flex items-center w-full mt-2 bg-muted/30 rounded-full p-0.5 overflow-hidden">
                     {pipeline.stages.map((stage, index) => {
                         // Logic for stage color
-                        let colorClass = "bg-muted"; // Future
-                        if (deal.status === 'lost' && index === currentStageIndex) colorClass = "bg-red-500";
-                        else if (deal.status === 'won') colorClass = "bg-green-500";
-                        else if (index < currentStageIndex) colorClass = "bg-green-500"; // Past
-                        else if (index === currentStageIndex) colorClass = "bg-primary"; // Current
+                        let bgColor = "bg-muted text-muted-foreground"; // Future
+                        if (deal.status === 'lost' && index === currentStageIndex) bgColor = "bg-red-500 text-white";
+                        else if (deal.status === 'won') bgColor = "bg-green-500 text-white";
+                        else if (index < currentStageIndex) bgColor = "bg-green-500 text-white"; // Past
+                        else if (index === currentStageIndex) bgColor = "bg-primary text-primary-foreground"; // Current
 
+                        // Chevron shape using clip-path for that "arrow" look
+                        // First item is rounded left, last item rounded right
+                        // Inner items are arrows
                         return (
                             <div
                                 key={stage.id}
-                                className={`h-1 flex-1 min-w-[20px] first:rounded-l-full last:rounded-r-full relative group cursor-pointer transition-colors ${colorClass}`}
+                                className={`
+                                    flex-1 h-7 flex items-center justify-center relative cursor-pointer transition-colors text-[10px] font-medium px-2
+                                    ${bgColor}
+                                    ${index === 0 ? 'rounded-l-full pl-3' : ''} 
+                                    ${index === pipeline.stages.length - 1 ? 'rounded-r-full pr-3' : ''}
+                                    ${index !== 0 ? '-ml-2 pl-4 clip-path-arrow-left' : ''}
+                                    hover:brightness-95
+                                `}
+                                style={{
+                                    clipPath: index === 0
+                                        ? 'polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%)'
+                                        : index === pipeline.stages.length - 1
+                                            ? 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 5% 50%)'
+                                            : 'polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%)',
+                                    zIndex: 10 - index // Stack properly
+                                }}
                                 onClick={() => handleStageChange(stage.id)}
                             >
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-popover text-popover-foreground text-[10px] px-1.5 py-0.5 rounded border shadow-sm whitespace-nowrap z-50">
-                                    {stage.title}
-                                </div>
+                                <span className="truncate max-w-full">{stage.title}</span>
                             </div>
                         );
                     })}
                 </div>
             </div>
 
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-[220px_1fr] overflow-hidden">
-                {/* Left Column: Info */}
-                <div className="border-b lg:border-b-0 lg:border-r border-border p-3 overflow-y-auto bg-card/30">
-                    <div className="space-y-3">
-                        {/* Status Info Card (if closed) */}
-                        {isClosed && (
-                            <div className={`p-2 rounded-md border ${deal.status === 'won' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                <h3 className={`text-[10px] font-bold flex items-center gap-1 ${deal.status === 'won' ? 'text-green-800' : 'text-red-800'}`}>
-                                    {deal.status === 'won' ? <Check size={12} /> : <X size={12} />}
-                                    Negócio {deal.status === 'won' ? 'Ganho' : 'Perdido'}
-                                </h3>
-                                <p className="text-[10px] mt-0.5 opacity-80">
-                                    Em {format(new Date(deal.status === 'won' ? deal.wonAt! : deal.lostAt!), "dd/MM 'às' HH:mm", { locale: ptBR })}
-                                </p>
-                                {deal.status === 'lost' && deal.lostReason && (
-                                    <p className="text-[10px] mt-1 font-medium text-red-900">
-                                        "{deal.lostReason}"
-                                    </p>
-                                )}
-                            </div>
-                        )}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-[240px_1fr] overflow-hidden">
+                {/* Left Column: Info (Resumo) */}
+                <div className="border-b lg:border-b-0 lg:border-r border-border p-4 overflow-y-auto bg-background">
+                    <div className="space-y-6">
 
-                        {/* Company Card */}
-                        <div className="p-2 bg-card rounded-md border border-border shadow-sm">
-                            <h3 className="text-[10px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                                <Building size={12} />
-                                Organização
+                        {/* Summary Section */}
+                        <div>
+                            <h3 className="text-xs font-bold text-foreground mb-3 flex items-center gap-2">
+                                <span className="w-1 h-3 bg-primary rounded-full" />
+                                Resumo
                             </h3>
-                            {company ? (
-                                <Link to={`/companies/${company.id}`} className="group block">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0 text-xs">
-                                            {company.name.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-xs group-hover:text-primary transition-colors truncate">{company.name}</p>
-                                            <p className="text-[10px] text-muted-foreground truncate">{company.website || 'Sem website'}</p>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ) : (
-                                <button
-                                    onClick={() => setIsEditModalOpen(true)}
-                                    className="text-[10px] text-primary hover:underline flex items-center gap-1"
-                                >
-                                    <Plus size={10} /> Vincular Organização
-                                </button>
-                            )}
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-sm">
+                                    <DollarSign size={14} className="text-muted-foreground" />
+                                    <span className="font-semibold text-foreground">
+                                        {deal.value.toLocaleString('pt-BR', { style: 'currency', currency: deal.currency })}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Building size={14} />
+                                    <span>Funil de vendas &rarr; <strong>{pipeline.name}</strong></span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <User size={14} />
+                                    <span>Criado por <strong>Você</strong></span>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Contact Card */}
-                        <div className="p-2 bg-card rounded-md border border-border shadow-sm">
-                            <h3 className="text-[10px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                                <User size={12} />
-                                Contacto Principal
-                            </h3>
+                        <div className="h-px bg-border/50" />
+
+                        {/* Person Section */}
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
+                                    <User size={14} />
+                                    Pessoa
+                                </h3>
+                                {!contact && (
+                                    <button onClick={() => setIsEditModalOpen(true)} className="text-primary hover:bg-primary/10 p-1 rounded">
+                                        <Plus size={12} />
+                                    </button>
+                                )}
+                            </div>
+
                             {contact ? (
                                 <Link to={`/contacts/${contact.id}`} className="group block">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold shrink-0 text-xs">
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                                             {contact.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-medium text-xs group-hover:text-primary transition-colors truncate">{contact.name}</p>
-                                            <p className="text-[10px] text-muted-foreground truncate">{contact.email}</p>
+                                            <p className="font-medium text-sm text-blue-600 group-hover:underline truncate">{contact.name}</p>
+                                            <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                                                <p className="flex items-center gap-1">
+                                                    <span className="opacity-70">Email:</span> {contact.email}
+                                                </p>
+                                                <p className="flex items-center gap-1">
+                                                    <span className="opacity-70">Tel:</span> {contact.phone || '-'}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>
                             ) : (
-                                <button
-                                    onClick={() => setIsEditModalOpen(true)}
-                                    className="text-[10px] text-primary hover:underline flex items-center gap-1"
-                                >
-                                    <Plus size={10} /> Vincular Contato
-                                </button>
+                                <p className="text-xs text-muted-foreground italic">Nenhuma pessoa vinculada</p>
+                            )}
+                        </div>
+
+                        <div className="h-px bg-border/50" />
+
+                        {/* Organization Section */}
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
+                                    <Building size={14} />
+                                    Organização
+                                </h3>
+                                {!company && (
+                                    <button onClick={() => setIsEditModalOpen(true)} className="text-primary hover:bg-primary/10 p-1 rounded">
+                                        <Plus size={12} />
+                                    </button>
+                                )}
+                            </div>
+
+                            {company ? (
+                                <Link to={`/companies/${company.id}`} className="group block">
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-8 h-8 rounded bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                                            {company.name.substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">{company.name}</p>
+                                            <p className="text-xs text-muted-foreground truncate mt-0.5">{company.website || 'Sem website'}</p>
+                                            <p className="text-xs text-muted-foreground truncate mt-0.5">{company.address || 'Sem endereço'}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ) : (
+                                <p className="text-xs text-muted-foreground italic">Nenhuma organização vinculada</p>
                             )}
                         </div>
                     </div>
