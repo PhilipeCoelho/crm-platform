@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
-import { Building, User, Phone, Mail, Check, AlertTriangle } from 'lucide-react';
+import { Building, User, Phone, Mail, Check } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Deal } from '@/types/schema';
 
