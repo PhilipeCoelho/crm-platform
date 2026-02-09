@@ -1,6 +1,6 @@
 import { Activity } from '@/types/schema';
 import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare } from 'lucide-react';
-import { format, isBefore, isToday, startOfDay, parseISO } from 'date-fns';
+import { format, isBefore, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Props {
@@ -22,38 +22,37 @@ const typeIcons = {
 };
 
 const getActivityStatus = (dateString?: string) => {
-    if (!dateString) return 'future'; // Default fallback
+    if (!dateString) return 'future';
 
     const date = parseISO(dateString);
-    const today = startOfDay(new Date());
-    const activityDate = startOfDay(date);
+    const now = new Date();
 
-    if (isBefore(activityDate, today)) return 'late';
-    if (isToday(activityDate)) return 'today';
+    if (isBefore(date, now)) return 'late';
+    if (isToday(date)) return 'today';
     return 'future';
 };
 
 const statusStyles = {
     late: {
-        bg: 'bg-red-100',
-        text: 'text-red-700',
+        bg: 'bg-red-500/10',
+        text: 'text-red-600',
         border: 'border-red-200',
         dot: 'bg-red-500',
         label: 'Atrasada'
     },
     today: {
-        bg: 'bg-green-100',
-        text: 'text-green-700',
-        border: 'border-green-200',
-        dot: 'bg-green-500',
+        bg: 'bg-emerald-500/10',
+        text: 'text-emerald-600',
+        border: 'border-emerald-200',
+        dot: 'bg-emerald-500',
         label: 'Para hoje'
     },
     future: {
-        bg: 'bg-slate-100',
-        text: 'text-slate-600',
-        border: 'border-slate-200',
-        dot: 'bg-slate-400',
-        label: 'Agendada'
+        bg: 'bg-white dark:bg-slate-900',
+        text: 'text-slate-600 dark:text-slate-400',
+        border: 'border-slate-200 dark:border-slate-800',
+        dot: 'bg-slate-300 dark:bg-slate-600',
+        label: 'Planejado'
     }
 };
 

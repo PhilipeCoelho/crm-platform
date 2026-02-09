@@ -1,9 +1,11 @@
 import { useDashboardData, ProductivityFilter, RevenueFilter } from '@/hooks/useDashboardData';
 import NewDealModal from '@/components/kanban/NewDealModal';
+import NewActivityModal from '@/components/activities/NewActivityModal';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, CalendarDays, Target, Euro, CheckSquare } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, CalendarDays, Target, Euro, CheckSquare, Sparkles } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useCRM } from '@/contexts/CRMContext';
 import { format, parseISO } from 'date-fns';
 import { Currency } from '@/data/currencies';
 
@@ -218,22 +220,85 @@ const MOTIVATIONAL_QUOTES = [
 
 export default function Dashboard({ currency }: { currency: Currency }) {
     const { user } = useSupabaseAuth();
-    const {
-        stats,
-        lists,
-        actions,
-    } = useDashboardData();
+    const { stats, lists, actions } = useDashboardData();
+    const { activities, pipelines } = useCRM();
 
     const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
     const [showAllOverdue, setShowAllOverdue] = useState(false);
     const [showAllToday, setShowAllToday] = useState(false);
+    const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+    const [showAllNoAction, setShowAllNoAction] = useState(false);
 
-    // Daily Quote Logic
+    // Follow-up suggestion state
+    const [dealToSuggestActivity, setDealToSuggestActivity] = useState<string | null>(null);
+    const [isNewActivityModalOpen, setIsNewActivityModalOpen] = useState(false);
+
+    // Identify the default stage for new deals from dashboard (Default to "Prospect")
+    const defaultStageId = useMemo(() => {
+        const stages = pipelines['sales']?.stages || [];
+        // Priority 1: A stage named "Prospect"
+        const prospect = stages.find(s => s.title.toLowerCase().includes('prospect'));
+        if (prospect) return prospect.id;
+
+        // Priority 2: Traditional second stage if 'new' is the first
+        if (stages.length > 1 && stages[0].id === 'new') return stages[1].id;
+
+        // Fallback to literal 'contacted' ID if it exists in the list
+        if (stages.some(s => s.id === 'contacted')) return 'contacted';
+
+        // Final fallback
+        return stages[0]?.id || 'new';
+    }, [pipelines]);
+
+    // Override toggle function to detect completion and suggest next action
+    const handleToggleWithSuggestion = (id: string) => {
+        const activity = activities.find(a => a.id === id);
+        const wasCompleted = activity?.completed;
+
+        // Perform the toggle
+        actions.handleToggleActivity(id);
+
+        // If it was open and now is completed, check for next steps
+        if (!wasCompleted && activity?.dealId) {
+            // Wait for state to update (using activities from CRM context)
+            // Or better, check the current open activities for this deal
+            const openRemaining = activities.filter(a => a.dealId === activity.dealId && !a.completed && a.id !== id);
+
+            if (openRemaining.length === 0) {
+                // Delay slightly to allow the checkmark animation to finish
+                setTimeout(() => {
+                    setDealToSuggestActivity(activity.dealId || null);
+                }, 500);
+            }
+        }
+    };
+
+    // Daily Quote Logic - Random selection on each mount/refresh
     const dailyQuote = useMemo(() => {
-        const day = new Date().getDate();
-        const index = day % MOTIVATIONAL_QUOTES.length;
-        return MOTIVATIONAL_QUOTES[index];
+        const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+        return MOTIVATIONAL_QUOTES[randomIndex];
     }, []);
+
+    // Greeting logic based on time of day
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Bom dia";
+        if (hour < 18) return "Boa tarde";
+        return "Boa noite";
+    }, []);
+
+    // Welcome Section - Fast name resolution
+    const firstName = useMemo(() => {
+        const metadataName = user?.user_metadata?.name?.split(' ')[0];
+        if (metadataName) {
+            localStorage.setItem('cached_user_name', metadataName);
+            return metadataName;
+        }
+        const cached = localStorage.getItem('cached_user_name');
+        return cached || '';
+    }, [user]);
+
+    const showGreeting = firstName !== '';
 
     // Determine what to show in Productivity Card
     const isTodayView = stats.productivityFilter === 'today';
@@ -247,9 +312,9 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     {/* Welcome */}
-                    <div>
+                    <div className={`transition-opacity duration-200 ${showGreeting ? 'opacity-100' : 'opacity-0'}`}>
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                            Olá, {user?.user_metadata?.name?.split(' ')[0] || 'Visitante'}.
+                            {greeting}, {firstName}.
                         </h1>
                         <p className="text-muted-foreground mt-1 text-sm">
                             {dailyQuote}
@@ -458,78 +523,231 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                     </div>
                 </div>
 
-                {/* Activities Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Activities Grid - Prioritized Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-                    {/* Atrasadas */}
-                    <div className="bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
-                        <div className="flex items-center gap-2 mb-4">
-                            <h3 className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-2">
-                                <AlertTriangle size={18} />
-                                Atrasadas ({lists.overdueActivities.length})
-                            </h3>
-                        </div>
+                    {/* Left Column: Immediate Focus (Atrasadas + Hoje) */}
+                    <div className="space-y-6">
+                        {/* 1. Atrasadas */}
+                        <div className="bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                            <div className="flex items-center gap-2 mb-4">
+                                <h3 className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-2">
+                                    <AlertTriangle size={18} />
+                                    Atrasadas ({lists.overdueActivities.length})
+                                </h3>
+                            </div>
 
-                        <div className="flex-1 min-h-0 space-y-1">
-                            {lists.overdueActivities.length === 0 ? (
-                                <p className="text-sm text-muted-foreground italic p-2">Nenhuma atividade atrasada.</p>
-                            ) : (
-                                <ActivityList
-                                    activities={lists.overdueActivities.slice(0, showAllOverdue ? undefined : 3)}
-                                    onToggle={actions.handleToggleActivity}
-                                    onDelete={actions.handleDeleteActivity}
-                                />
+                            <div className="flex-1 min-h-0 space-y-1">
+                                {lists.overdueActivities.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground italic p-2">Nenhuma atividade atrasada.</p>
+                                ) : (
+                                    <ActivityList
+                                        activities={lists.overdueActivities.slice(0, showAllOverdue ? undefined : 3)}
+                                        onToggle={handleToggleWithSuggestion}
+                                        onDelete={actions.handleDeleteActivity}
+                                    />
+                                )}
+                            </div>
+
+                            {lists.overdueActivities.length > 3 && (
+                                <button
+                                    onClick={() => setShowAllOverdue(!showAllOverdue)}
+                                    className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 self-start"
+                                >
+                                    {showAllOverdue ? 'Mostrar menos' : `Ver todas(${lists.overdueActivities.length - 3} mais)`} <ArrowRight size={12} />
+                                </button>
                             )}
                         </div>
 
-                        {lists.overdueActivities.length > 3 && (
-                            <button
-                                onClick={() => setShowAllOverdue(!showAllOverdue)}
-                                className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 self-start"
-                            >
-                                {showAllOverdue ? 'Mostrar menos' : `Ver todas(${lists.overdueActivities.length - 3} mais)`} <ArrowRight size={12} />
-                            </button>
-                        )}
+                        {/* 2. Para Hoje */}
+                        <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                            <div className="flex items-center gap-2 mb-4">
+                                <h3 className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-2">
+                                    <CalendarDays size={18} />
+                                    Para Hoje ({lists.todayActivities.length})
+                                </h3>
+                            </div>
+
+                            <div className="flex-1 min-h-0 space-y-1">
+                                {lists.todayActivities.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground italic p-2">Tudo limpo por hoje!</p>
+                                ) : (
+                                    <ActivityList
+                                        activities={lists.todayActivities.slice(0, showAllToday ? undefined : 3)}
+                                        onToggle={handleToggleWithSuggestion}
+                                        onDelete={actions.handleDeleteActivity}
+                                    />
+                                )}
+                            </div>
+
+                            {lists.todayActivities.length > 3 && (
+                                <button
+                                    onClick={() => setShowAllToday(!showAllToday)}
+                                    className="mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 self-start"
+                                >
+                                    {showAllToday ? 'Mostrar menos' : `Ver todas(${lists.todayActivities.length - 3} mais)`} <ArrowRight size={12} />
+                                </button>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Para Hoje */}
-                    <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
-                        <div className="flex items-center gap-2 mb-4">
-                            <h3 className="text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-2">
-                                <CalendarDays size={18} />
-                                Para Hoje ({lists.todayActivities.length})
-                            </h3>
-                        </div>
+                    {/* Right Column: Secondary Balance (Sem Atividade + Futuras) */}
+                    <div className="space-y-6">
+                        {/* 3. Sem Atividade (Deals without action) */}
+                        <div className="bg-slate-500/5 dark:bg-slate-500/10 border border-slate-500/10 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                            <div className="flex items-center gap-2 mb-4">
+                                <h3 className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-2">
+                                    <AlertTriangle size={18} />
+                                    Sem Atividade ({lists.dealsWithoutAction.length})
+                                </h3>
+                            </div>
 
-                        <div className="flex-1 min-h-0 space-y-1">
-                            {lists.todayActivities.length === 0 ? (
-                                <p className="text-sm text-muted-foreground italic p-2">Tudo limpo por hoje!</p>
-                            ) : (
-                                <ActivityList
-                                    activities={lists.todayActivities.slice(0, showAllToday ? undefined : 3)}
-                                    onToggle={actions.handleToggleActivity}
-                                    onDelete={actions.handleDeleteActivity}
-                                />
+                            <div className="flex-1 min-h-0 space-y-1">
+                                {lists.dealsWithoutAction.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground italic p-2">Todos os negócios têm ações.</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {lists.dealsWithoutAction.slice(0, showAllNoAction ? undefined : 3).map(deal => (
+                                            <div
+                                                key={deal.id}
+                                                onClick={() => actions.navigate(`/deals/${deal.id}`)}
+                                                className="flex items-center justify-between p-3 rounded-lg border border-slate-500/10 bg-card hover:shadow-md transition-all cursor-pointer group"
+                                            >
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                                                        <AlertTriangle size={14} className="text-amber-600" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-medium text-foreground truncate">{deal.title}</p>
+                                                        <p className="text-[10px] text-muted-foreground mt-0.5">Sem atividade agendada</p>
+                                                    </div>
+                                                </div>
+                                                <ArrowRight size={14} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {lists.dealsWithoutAction.length > 3 && (
+                                <button
+                                    onClick={() => setShowAllNoAction(!showAllNoAction)}
+                                    className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1 self-start"
+                                >
+                                    {showAllNoAction ? 'Mostrar menos' : `Ver todas(${lists.dealsWithoutAction.length - 3} mais)`} <ArrowRight size={12} />
+                                </button>
                             )}
                         </div>
 
-                        {lists.todayActivities.length > 3 && (
-                            <button
-                                onClick={() => setShowAllToday(!showAllToday)}
-                                className="mt-3 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 self-start"
-                            >
-                                {showAllToday ? 'Mostrar menos' : `Ver todas(${lists.todayActivities.length - 3} mais)`} <ArrowRight size={12} />
-                            </button>
-                        )}
+                        {/* 4. Futuras (Upcoming) */}
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                            <div className="flex items-center gap-2 mb-4">
+                                <h3 className="text-slate-600 dark:text-slate-400 font-semibold flex items-center gap-2">
+                                    <Calendar size={18} />
+                                    Planejado ({lists.upcomingActivities.length})
+                                </h3>
+                            </div>
+
+                            <div className="flex-1 min-h-0 space-y-1">
+                                {lists.upcomingActivities.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground italic p-2">Nenhuma atividade futura agendada.</p>
+                                ) : (
+                                    <ActivityList
+                                        activities={lists.upcomingActivities.slice(0, showAllUpcoming ? undefined : 3)}
+                                        onToggle={handleToggleWithSuggestion}
+                                        onDelete={actions.handleDeleteActivity}
+                                    />
+                                )}
+                            </div>
+
+                            {lists.upcomingActivities.length > 3 && (
+                                <button
+                                    onClick={() => setShowAllUpcoming(!showAllUpcoming)}
+                                    className="mt-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1 self-start"
+                                >
+                                    {showAllUpcoming ? 'Mostrar menos' : `Ver todas(${lists.upcomingActivities.length - 3} mais)`} <ArrowRight size={12} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* 5. Histórico Recente (History - Completed) */}
+                        <div className="bg-slate-50/50 dark:bg-slate-900/20 border border-slate-200/50 dark:border-white/5 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                            <div className="flex items-center gap-2 mb-4">
+                                <h3 className="text-slate-500 dark:text-slate-500 font-semibold flex items-center gap-2">
+                                    <CheckCircle2 size={18} />
+                                    Concluídas Recentemente
+                                </h3>
+                            </div>
+
+                            <div className="flex-1 min-h-0 space-y-1 opacity-70 hover:opacity-100 transition-opacity">
+                                {(lists as any).completedActivities?.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground italic p-2">Nenhuma atividade concluída.</p>
+                                ) : (
+                                    <ActivityList
+                                        activities={(lists as any).completedActivities}
+                                        onToggle={handleToggleWithSuggestion}
+                                        onDelete={actions.handleDeleteActivity}
+                                    />
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <NewDealModal
-                    isOpen={isNewDealModalOpen}
-                    onClose={() => setIsNewDealModalOpen(false)}
-                    initialColumnId="new" // Forces "Lead Novo" stage
-                />
             </div>
+
+            <NewDealModal
+                isOpen={isNewDealModalOpen}
+                onClose={() => setIsNewDealModalOpen(false)}
+                initialColumnId={defaultStageId}
+            />
+
+            {/* Follow-up Suggestion Prompt */}
+            {dealToSuggestActivity && (
+                <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-right-full duration-300">
+                    <div className="bg-primary text-primary-foreground p-4 rounded-xl shadow-2xl border border-primary-foreground/10 flex flex-col gap-3 min-w-[300px]">
+                        <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-2">
+                                <Sparkles size={18} className="text-yellow-300 animate-pulse" />
+                                <h4 className="font-bold text-sm">Ótimo trabalho!</h4>
+                            </div>
+                            <button onClick={() => setDealToSuggestActivity(null)} className="text-primary-foreground/60 hover:text-primary-foreground">
+                                <XCircle size={16} />
+                            </button>
+                        </div>
+                        <p className="text-xs text-primary-foreground/90 leading-relaxed">
+                            Você completou a última atividade deste negócio. <br />
+                            <strong>Que tal agendar o próximo passo agora?</strong>
+                        </p>
+                        <div className="flex gap-2 mt-1">
+                            <button
+                                onClick={() => {
+                                    setIsNewActivityModalOpen(true);
+                                    // Keeping dealToSuggestActivity set so we know which deal to use
+                                }}
+                                className="flex-1 bg-white text-primary text-xs font-bold py-2 rounded-lg hover:bg-white/90 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Plus size={14} />
+                                Agendar Próxima
+                            </button>
+                            <button
+                                onClick={() => setDealToSuggestActivity(null)}
+                                className="px-3 py-2 text-xs font-medium text-white/80 hover:text-white transition-colors"
+                            >
+                                Depois
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <NewActivityModal
+                isOpen={isNewActivityModalOpen}
+                onClose={() => {
+                    setIsNewActivityModalOpen(false);
+                    setDealToSuggestActivity(null);
+                }}
+                preselectedDealId={dealToSuggestActivity || undefined}
+            />
         </div>
     );
 }

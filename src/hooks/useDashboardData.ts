@@ -88,7 +88,7 @@ export function useDashboardData() {
     }, [revenueFilter, revenueCustomRange]);
 
     // --- Stats Calculation ---
-    const today = startOfDay(new Date());
+
 
     // 1. Productivity Stats
     const completedActivities = activities.filter(a =>
@@ -143,14 +143,24 @@ export function useDashboardData() {
     // --- Lists Processing ---
     const openActivities = activities.filter(a => !a.completed).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
 
+    const now = new Date();
+
     const overdueActivities = openActivities.filter(a => {
         if (!a.dueDate) return false;
-        return isBefore(parseISO(a.dueDate), today);
+        const dueDate = parseISO(a.dueDate);
+        return isBefore(dueDate, now);
     });
 
     const todayActivities = openActivities.filter(a => {
         if (!a.dueDate) return false;
-        return isToday(parseISO(a.dueDate));
+        const dueDate = parseISO(a.dueDate);
+        return isToday(dueDate) && isAfter(dueDate, now);
+    });
+
+    const upcomingActivities = openActivities.filter(a => {
+        if (!a.dueDate) return false;
+        const dueDate = parseISO(a.dueDate);
+        return isAfter(dueDate, endOfDay(now));
     });
 
     const dealsWithoutAction = deals.filter(deal => {
@@ -227,7 +237,12 @@ export function useDashboardData() {
         lists: {
             overdueActivities,
             todayActivities,
-            dealsWithoutAction
+            upcomingActivities,
+            dealsWithoutAction,
+            completedActivities: activities
+                .filter(a => a.completed)
+                .sort((a, b) => (b.dueDate || b.createdAt).localeCompare(a.dueDate || a.createdAt))
+                .slice(0, 10) // Only last 10 for dashboard
         },
         actions: {
             // Productivity

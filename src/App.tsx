@@ -91,7 +91,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     onClick={() => setIsSidebarPinned(!isSidebarPinned)}
                     className={`fixed left-2 top-1/2 -translate-y-1/2 z-[60] w-[28px] h-[28px] rounded-full flex items-center justify-center transition-all duration-[160ms] ease-out
                         ${isSidebarPinned
-                            ? 'bg-neutral-800/50 dark:bg-neutral-800/50 opacity-100'
+                            ? 'bg-white dark:bg-neutral-800/50 opacity-100 shadow-sm'
                             : 'bg-slate-50/90 dark:bg-neutral-800/50 opacity-60 hover:opacity-100'
                         }
                         border border-slate-300/80 dark:border-white/25

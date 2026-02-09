@@ -7,15 +7,16 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     preselectedContactId?: string;
+    preselectedDealId?: string;
 }
 
-export default function NewActivityModal({ isOpen, onClose, preselectedContactId }: Props) {
+export default function NewActivityModal({ isOpen, onClose, preselectedContactId, preselectedDealId }: Props) {
     const { addActivity, deals, contacts } = useCRM(); // Get contacts too if needed
     const [title, setTitle] = useState('');
     const [type, setType] = useState<Activity['type']>('task');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
-    const [dealId, setDealId] = useState('');
+    const [dealId, setDealId] = useState(preselectedDealId || '');
 
     // Derived State for filtering deals
     const availableDeals = preselectedContactId

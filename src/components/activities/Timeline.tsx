@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { Activity } from '@/types/schema';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { RotateCcw, Pencil, Check, X } from 'lucide-react';
+import { RotateCcw, Pencil, Check, X, Trash2 } from 'lucide-react';
 
 interface Props {
     activities: Activity[];
     onReopen?: (id: string) => void;
     onEdit?: (id: string, newTitle: string) => Promise<void> | void;
+    onDelete?: (id: string) => void;
 }
 
-export default function Timeline({ activities, onReopen, onEdit }: Props) {
+export default function Timeline({ activities, onReopen, onEdit, onDelete }: Props) {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editContent, setEditContent] = useState('');
 
@@ -61,7 +62,7 @@ export default function Timeline({ activities, onReopen, onEdit }: Props) {
                                 </span>
                             </div>
 
-                            {/* Actions (Edit/Reopen) */}
+                            {/* Actions (Edit/Reopen/Delete) */}
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 {onEdit && activity.type === 'note' && editingId !== activity.id && (
                                     <button
@@ -79,6 +80,19 @@ export default function Timeline({ activities, onReopen, onEdit }: Props) {
                                         title="Reabrir"
                                     >
                                         <RotateCcw size={12} />
+                                    </button>
+                                )}
+                                {onDelete && (
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('Excluir este item do histórico?')) {
+                                                onDelete(activity.id);
+                                            }
+                                        }}
+                                        className="p-1 hover:bg-red-50 rounded text-muted-foreground hover:text-red-600 transition-colors"
+                                        title="Excluir do histórico"
+                                    >
+                                        <Trash2 size={12} />
                                     </button>
                                 )}
                             </div>

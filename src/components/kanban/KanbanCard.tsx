@@ -1,17 +1,18 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Deal } from "@/types/schema";
-import { User, Trash2 } from "lucide-react";
+import { User, Trash2, ChevronRight, AlertTriangle, Clock, Building2, DollarSign } from "lucide-react";
 
 import { Currency } from "@/data/currencies";
 import { useCRM } from "@/contexts/CRMContext";
 import { useNavigate } from "react-router-dom";
-
+import { parseISO, isBefore, isToday } from "date-fns";
 
 interface Props {
     deal: Deal;
     currency: Currency;
     onPreview?: (dealId: string, position: { x: number; y: number }) => void;
+    searchTerm?: string;
 }
 
 // Interface for the Base component that handles rendering logic
@@ -27,8 +28,8 @@ export interface DealCardBaseProps extends Props {
     style?: React.CSSProperties; // Allow overriding style
 }
 
-export function DealCardBase({ deal, currency, onPreview, dndProps, style: propStyle }: DealCardBaseProps) {
-    const { contacts, activities, deleteDeal } = useCRM();
+export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, style: propStyle }: DealCardBaseProps) {
+    const { contacts, companies, activities, deleteDeal } = useCRM();
     const navigate = useNavigate();
 
     // Activity Logic
@@ -40,7 +41,50 @@ export function DealCardBase({ deal, currency, onPreview, dndProps, style: propS
     })[0];
 
     const hasNextAction = !!nextActivity;
-    const isOverdue = nextActivity?.dueDate && nextActivity.dueDate < new Date().toISOString().split('T')[0];
+
+    const now = new Date();
+    const rawActivityDate = nextActivity?.dueDate;
+    const dueDate = rawActivityDate ? parseISO(rawActivityDate) : undefined;
+
+    // Priority Status Determination (Time-sensitive)
+    const isOverdue = dueDate && isBefore(dueDate, now);
+    const isTodayActivity = dueDate && !isOverdue && isToday(dueDate);
+    const noActivity = !hasNextAction;
+
+    // Color System (Clean Pipedrive Style - Discrete Indicators Only)
+    const getStatusIndicator = () => {
+        if (isOverdue) {
+            return {
+                dot: 'bg-red-500',
+                text: 'text-red-600 dark:text-red-400',
+                icon: Clock,
+                label: 'Atrasado'
+            };
+        }
+        if (isTodayActivity) {
+            return {
+                dot: 'bg-emerald-500',
+                icon: ChevronRight,
+                label: 'Hoje'
+            };
+        }
+        if (noActivity) {
+            return {
+                dot: 'bg-amber-400',
+                icon: AlertTriangle,
+                label: 'Sem atividade'
+            };
+        }
+        // Future (neutral)
+        return {
+            dot: 'bg-slate-400',
+            icon: ChevronRight,
+            label: nextActivity?.title || 'Futuro'
+        };
+    };
+
+    const status = getStatusIndicator();
+    const StatusIcon = status.icon;
 
     // Dnd Props
     const {
@@ -60,6 +104,25 @@ export function DealCardBase({ deal, currency, onPreview, dndProps, style: propS
 
     // Resolve Relations
     const contact = deal.contactId ? contacts.find(c => c.id === deal.contactId) : undefined;
+    const company = deal.companyId ? companies.find(c => c.id === deal.companyId) : undefined;
+
+    // Search Logic
+    const normalizeText = (text: string) =>
+        text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+
+    const normalizeDigits = (text: string) => text.replace(/\D/g, "");
+
+    const searchNorm = searchTerm ? normalizeText(searchTerm) : "";
+    const isSearching = !!searchTerm && searchTerm.length > 0;
+    const searchDigits = normalizeDigits(searchTerm || "");
+
+    const matchesTitle = isSearching && normalizeText(deal.title).includes(searchNorm);
+    const matchesPerson = isSearching && contact && (
+        normalizeText(contact.name).includes(searchNorm) ||
+        (contact.email && contact.email.toLowerCase().includes(searchNorm)) ||
+        (searchDigits.length >= 7 && normalizeDigits(contact.phone || "").includes(searchDigits))
+    );
+    const matchesCompany = isSearching && company && normalizeText(company.name).includes(searchNorm);
 
     const handleClick = (e: React.MouseEvent) => {
         if (onPreview) {
@@ -95,15 +158,54 @@ export function DealCardBase({ deal, currency, onPreview, dndProps, style: propS
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className={`group relative bg-white dark:bg-neutral-900 p-3 rounded-[10px] border border-black/[0.06] dark:border-white/[0.04] shadow-sm hover:shadow-md transition-all duration-[120ms] ease-out cursor-pointer touch-none select-none border-l-[3px] hover:-translate-y-[1px]
-                ${!hasNextAction ? 'border-l-red-500/70' : isOverdue ? 'border-l-orange-500/70' : 'border-l-transparent'}
-            `}
+            className="group relative p-2.5 rounded-[10px] border transition-all duration-[120ms] ease-out cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-white dark:bg-neutral-900 border-black/[0.06] dark:border-white/[0.04] shadow-sm hover:shadow-md"
         >
-            {/* Title */}
-            <div className="mb-1 pr-5 relative">
-                <h4 className="font-semibold text-[13px] text-slate-800 dark:text-[#E6E8EB] leading-snug group-hover:text-primary transition-colors line-clamp-2">
+            {/* Status Icon - Bottom Right Corner */}
+            {status.icon === AlertTriangle ? (
+                <div
+                    className="absolute bottom-1 right-1 p-0.5 flex items-center justify-center"
+                    title={status.label}
+                >
+                    <AlertTriangle size={18} className="text-amber-500 fill-amber-500/10" strokeWidth={2.5} />
+                </div>
+            ) : (
+                <div
+                    className={`absolute bottom-2 right-2 w-[18px] h-[18px] rounded-full shrink-0 flex items-center justify-center ${status.dot} shadow-sm`}
+                    title={status.label}
+                >
+                    <StatusIcon size={11} strokeWidth={3} className="text-white" />
+                </div>
+            )}
+
+            {/* Title Area */}
+            <div className="mb-2 pr-5 relative">
+                <h4 className="font-semibold text-[13px] leading-snug group-hover:text-primary transition-colors line-clamp-2 text-slate-800 dark:text-[#E6E8EB]">
                     {deal.title}
                 </h4>
+
+                {/* Match Indicators (Search specific) */}
+                {isSearching && (
+                    <div className="flex flex-wrap gap-1 mt-1.5 leading-none">
+                        {matchesTitle && (
+                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-bold" title="Título correspondente">
+                                <DollarSign size={8} />
+                                NEGÓCIO
+                            </div>
+                        )}
+                        {matchesPerson && (
+                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold" title="Pessoa correspondente">
+                                <User size={8} />
+                                PESSOA
+                            </div>
+                        )}
+                        {matchesCompany && (
+                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[9px] font-bold" title="Empresa correspondente">
+                                <Building2 size={8} />
+                                EMPRESA
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Delete Button (Hover only) */}
                 <button
@@ -117,27 +219,15 @@ export function DealCardBase({ deal, currency, onPreview, dndProps, style: propS
 
             {/* Contact */}
             {contact && (
-                <div className="flex items-center gap-1.5 text-muted-foreground/50 mb-2 pl-0.5" title={contact.name}>
+                <div className="flex items-center gap-1.5 mb-1 pl-0.5 text-muted-foreground/50" title={contact.name}>
                     <User size={12} className="shrink-0" />
                     <span className="text-[11px] truncate">{contact.name}</span>
                 </div>
             )}
 
-            {/* Footer: Action & Value */}
-            <div className="flex items-center justify-between pt-2 mt-auto border-t border-dashed border-border/30">
-                {/* Left: Action Indicator (Priority) */}
-                <div className={`flex items-center gap-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded
-                    ${!hasNextAction ? 'text-red-700 bg-red-50 dark:bg-red-900/20' :
-                        isOverdue ? 'text-orange-700 bg-orange-50 dark:bg-orange-900/20' :
-                            'text-foreground/80 bg-muted/60'}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${!hasNextAction ? 'bg-red-500' : isOverdue ? 'bg-orange-500' : 'hidden'}`} />
-                    <span className="truncate max-w-[100px]">
-                        {!hasNextAction ? "Definir ação" : isOverdue ? "Atrasado" : nextActivity.title}
-                    </span>
-                </div>
-
-                {/* Right: Value (Secondary) */}
-                <span className="text-[12px] font-medium text-muted-foreground/60">
+            {/* Value - Bottom Row */}
+            <div className="pl-0.5 mt-1 flex items-center justify-between">
+                <span className="text-[11px] font-medium text-muted-foreground/50">
                     {new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(deal.value)}
                 </span>
             </div>

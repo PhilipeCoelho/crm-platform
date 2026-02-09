@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
-import { Building, User, Phone, Mail, Check } from 'lucide-react';
+import { Building, User, Phone, Mail, Check, AlertTriangle } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Deal } from '@/types/schema';
 
@@ -26,7 +26,7 @@ const parseCurrency = (value: string): number => {
 };
 
 export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToEdit, currency = 'BRL' }: NewDealModalProps) {
-    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, addContact, updateContact } = useCRM();
+    const { addDeal, updateDeal, companies, contacts, deals, pipelines, addCompany, addContact, updateContact } = useCRM();
 
     // --- Form State ---
     const [title, setTitle] = useState('');
@@ -244,10 +244,49 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         return companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase()) && c.id !== companyId).slice(0, 5);
     }, [companySearch, companies, companyId]);
 
+    // --- Duplicate Detection ---
+    const activeDuplicateDeals = useMemo(() => {
+        if (!isOpen) return [];
+
+        // Normalize helper for strings
+        const normalize = (val: string) => val.replace(/\D/g, '').toLowerCase().trim();
+        const normPhone = normalize(phone);
+        const normEmail = email.toLowerCase().trim();
+
+        // 1. Find all contacts that match selected ID, phone, email or NAME (as requested)
+        const potentialContactIds = contacts
+            .filter(c => {
+                const matchesId = contactId && c.id === contactId;
+                const matchesPhone = normPhone && normalize(c.phone || '') === normPhone;
+                const matchesEmail = normEmail && (c.email || '').toLowerCase().trim() === normEmail;
+                const matchesName = contactSearch.toLowerCase().trim() && c.name.toLowerCase().trim() === contactSearch.toLowerCase().trim();
+                return matchesId || matchesPhone || matchesEmail || matchesName;
+            })
+            .map(c => c.id);
+
+        // 2. Filter deals that match these contacts or the selected company
+        return deals.filter(d =>
+            d.status === 'open' &&
+            d.id !== dealToEdit?.id && (
+                (potentialContactIds.includes(d.contactId || '')) ||
+                (companyId && d.companyId === companyId)
+            )
+        );
+    }, [deals, contactId, companyId, phone, email, contactSearch, isOpen, dealToEdit, contacts]);
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={dealToEdit ? "Editar Negócio" : "Adicionar lead"} maxWidth="max-w-md">
             <form onSubmit={handleSubmit} className="flex flex-col h-[80vh] md:h-auto overflow-hidden">
                 <div className="flex-1 overflow-y-auto p-1 space-y-2">
+
+                    {/* Duplicate Alert */}
+                    {activeDuplicateDeals.length > 0 && (
+                        <div className="mb-4 animate-in fade-in slide-in-from-top-2">
+                            <p className="text-[11px] font-bold text-red-600">
+                                Atenção: Já existe um negócio aberto para este contato/empresa!
+                            </p>
+                        </div>
+                    )}
 
                     {/* Person Input */}
                     <div className="relative group z-20">
@@ -429,9 +468,6 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                                     placeholder="Telefone"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    readOnly={!!contactId} // Read only if selected from existing? Maybe editable is better. Pipedrive allows edit.
-                                // Actually user might want to update it. Let's keep it editable but maybe warn it updates contact? 
-                                // For simplicity, just editable.
                                 />
                             </div>
                         </div>

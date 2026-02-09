@@ -27,7 +27,7 @@ interface KanbanBoardProps {
 }
 
 function KanbanBoard({ currency }: KanbanBoardProps) {
-    const { deals, pipelines, moveDeal, activities, refresh, isLoading, setPipelineSettingsOpen } = useCRM();
+    const { deals, contacts, companies, pipelines, moveDeal, activities, refresh, isLoading, setPipelineSettingsOpen } = useCRM();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId] = useState('sales');
 
@@ -75,8 +75,32 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     const pipelineDeals = deals.filter(deal => deal.pipelineId === currentPipelineId);
 
     // --- Filter Logic ---
+    const normalizeText = (text: string) =>
+        text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+
+    const normalizeDigits = (text: string) => text.replace(/\D/g, "");
+    const searchUpper = normalizeText(searchTerm);
+    const searchDigits = normalizeDigits(searchTerm);
+
     const filteredDeals = pipelineDeals.filter(deal => {
-        const matchesSearch = deal.title.toLowerCase().includes(searchTerm.toLowerCase());
+        // Find linked info for deeper search
+        const contact = contacts.find(c => c.id === deal.contactId);
+        const company = companies.find(c => c.id === deal.companyId);
+
+        const dealTitle = normalizeText(deal.title);
+        const contactName = contact ? normalizeText(contact.name) : '';
+        const companyName = company ? normalizeText(company.name) : '';
+        const contactPhone = contact?.phone ? normalizeText(contact.phone) : '';
+        const contactEmail = contact?.email ? normalizeText(contact.email) : '';
+        const contactPhoneDigits = contact?.phone ? normalizeDigits(contact.phone) : '';
+
+        const matchesSearch = dealTitle.includes(searchUpper) ||
+            contactName.includes(searchUpper) ||
+            companyName.includes(searchUpper) ||
+            contactPhone.includes(searchUpper) ||
+            contactEmail.includes(searchUpper) ||
+            (searchDigits.length >= 7 && contactPhoneDigits.includes(searchDigits));
+
         const matchesValue = minValue ? deal.value >= Number(minValue) : true;
 
         // View Mode Logic
@@ -335,6 +359,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                             currency={currency}
                                             onPreview={handleDealClick}
                                             onEditStage={() => setPipelineSettingsOpen(true)}
+                                            searchTerm={searchTerm}
                                         />
                                     ))}
 

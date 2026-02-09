@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Deal, Activity } from '@/types/schema';
-import { CheckSquare, FileText, Mail, File, Check } from 'lucide-react';
+import { CheckSquare, FileText, Mail, File, Check, Plus } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import Timeline from '../activities/Timeline';
 import ActivityList from '../activities/ActivityList';
@@ -146,7 +146,14 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                             </div>
                             <div>
                                 <p className="font-medium">Tudo limpo por aqui!</p>
-                                <p className="text-xs opacity-80">Nenhuma atividade pendente. Que tal agendar o próximo passo acima?</p>
+                                <p className="text-xs opacity-80 mb-2">Nenhuma atividade pendente. Que tal agendar o próximo passo?</p>
+                                <button
+                                    onClick={() => setActiveTab('activity')}
+                                    className="text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 rounded-md transition-all shadow-sm border border-yellow-300/30"
+                                >
+                                    <Plus size={12} />
+                                    Agendar próxima etapa
+                                </button>
                             </div>
                         </div>
                     )}
@@ -165,6 +172,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                                     activities={historyActivities}
                                     onReopen={readOnly ? undefined : handleActivityToggle}
                                     onEdit={readOnly ? undefined : (id, newTitle) => updateActivity(id, { title: newTitle })}
+                                    onDelete={readOnly ? undefined : handleDeleteActivity}
                                 />
                             </div>
                         </section>
