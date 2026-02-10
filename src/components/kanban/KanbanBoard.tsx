@@ -29,7 +29,14 @@ interface KanbanBoardProps {
 function KanbanBoard({ currency }: KanbanBoardProps) {
     const { deals, contacts, companies, pipelines, moveDeal, activities, refresh, isLoading, setPipelineSettingsOpen } = useCRM();
     // Default to 'sales' pipeline for now, can be dynamic
-    const [currentPipelineId] = useState('sales');
+    const [currentPipelineId, setCurrentPipelineId] = useState(() => {
+        const saved = localStorage.getItem('kanban_pipeline_id');
+        return saved || 'sales_pipeline';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('kanban_pipeline_id', currentPipelineId);
+    }, [currentPipelineId]);
 
     const currentPipeline = pipelines[currentPipelineId];
     // Helper to get columns (stages)
@@ -286,9 +293,28 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
                         {/* Advanced Filters Dropdown */}
                         {showFilters && (
-                            <div className="absolute right-4 top-16 w-64 bg-popover border border-border rounded-lg shadow-xl z-50 p-3 space-y-3">
+                            <div className="absolute right-4 top-16 w-64 bg-popover border border-border rounded-lg shadow-xl z-50 p-3 space-y-4">
                                 <div>
-                                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Valor Mínimo</label>
+                                    <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase tracking-wider">Funil</label>
+                                    <div className="grid grid-cols-1 gap-1">
+                                        {Object.values(pipelines).map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => setCurrentPipelineId(p.id)}
+                                                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-all flex items-center justify-between ${currentPipelineId === p.id
+                                                    ? 'bg-primary/10 text-primary font-bold border border-primary/20'
+                                                    : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                                    }`}
+                                            >
+                                                <span>{p.name}</span>
+                                                {currentPipelineId === p.id && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 border-t border-border">
+                                    <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase tracking-wider">Valor Mínimo</label>
                                     <div className="relative">
                                         <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                         <input
@@ -300,6 +326,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                         />
                                     </div>
                                 </div>
+
                                 <div className="flex justify-end pt-2 border-t border-border">
                                     <button
                                         onClick={() => { setMinValue(''); setShowFilters(false); }}
@@ -398,6 +425,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     onClose={() => setIsNewDealModalOpen(false)}
                     initialColumnId={newDealStageId || undefined}
                     currency={currency.code}
+                    activePipelineId={currentPipelineId}
                 />
 
                 <SuggestionModal

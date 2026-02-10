@@ -95,24 +95,24 @@ export interface Pipeline {
 
 // Initial Pipelines Configuration
 export const DEFAULT_PIPELINES: Record<string, Pipeline> = {
-    'sales': {
-        id: 'sales',
+    'sales_pipeline': {
+        id: 'sales_pipeline',
         name: 'Funil de Vendas (Padrão)',
         stages: [
-            { id: "new", pipelineId: 'sales', title: "Lead Novo", probability: 10 },
-            { id: "contacted", pipelineId: 'sales', title: "Contactado", probability: 30 },
-            { id: "proposal", pipelineId: 'sales', title: "Proposta Enviada", probability: 60 },
-            { id: "negotiation", pipelineId: 'sales', title: "Negociação", probability: 80 },
+            { id: "new", pipelineId: 'sales_pipeline', title: "Lead Novo", probability: 10 },
+            { id: "contacted", pipelineId: 'sales_pipeline', title: "Contactado", probability: 30 },
+            { id: "proposal", pipelineId: 'sales_pipeline', title: "Proposta Enviada", probability: 60 },
+            { id: "negotiation", pipelineId: 'sales_pipeline', title: "Negociação", probability: 80 },
         ]
     },
-    'onboarding': {
-        id: 'onboarding',
-        name: 'Onboarding de Clientes',
+    'cold_leads_pipeline': {
+        id: 'cold_leads_pipeline',
+        name: 'Leads Frios',
         stages: [
-            { id: "welcome", pipelineId: 'onboarding', title: "Boas Vindas" },
-            { id: "setup", pipelineId: 'onboarding', title: "Configuração" },
-            { id: "training", pipelineId: 'onboarding', title: "Treinamento" },
-            { id: "live", pipelineId: 'onboarding', title: "Em Produção" },
+            { id: "new", pipelineId: 'cold_leads_pipeline', title: "Lead Novo", probability: 10 },
+            { id: "contacted", pipelineId: 'cold_leads_pipeline', title: "Contactado", probability: 30 },
+            { id: "proposal", pipelineId: 'cold_leads_pipeline', title: "Proposta Enviada", probability: 60 },
+            { id: "negotiation", pipelineId: 'cold_leads_pipeline', title: "Negociação", probability: 80 },
         ]
     }
 };

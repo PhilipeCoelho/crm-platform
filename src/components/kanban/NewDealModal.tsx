@@ -25,7 +25,7 @@ const parseCurrency = (value: string): number => {
     return parseFloat(value) || 0;
 };
 
-export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToEdit, currency = 'BRL' }: NewDealModalProps) {
+export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToEdit, currency = 'BRL', activePipelineId }: NewDealModalProps & { activePipelineId?: string }) {
     const { addDeal, updateDeal, companies, contacts, deals, pipelines, addCompany, addContact, updateContact } = useCRM();
 
     // --- Form State ---
@@ -37,7 +37,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
     const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
 
     // Pipeline & Stage State
-    const [selectedPipelineId, setSelectedPipelineId] = useState('sales'); // Default
+    const [selectedPipelineId, setSelectedPipelineId] = useState(activePipelineId || 'sales_pipeline');
     const [selectedStageId, setSelectedStageId] = useState(''); // Validated effect will set this
 
     const [source, setSource] = useState('Google Maps');
@@ -102,10 +102,12 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                     const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === initialColumnId));
                     if (pipe) setSelectedPipelineId(pipe.id);
                     setSelectedStageId(initialColumnId);
+                } else if (activePipelineId) {
+                    setSelectedPipelineId(activePipelineId);
                 }
             }
         }
-    }, [isOpen, dealToEdit, initialColumnId, pipelines, contacts, companies]);
+    }, [isOpen, dealToEdit, initialColumnId, pipelines, contacts, companies, activePipelineId]);
 
     // Mirroring Logic: If Contact Name changes and Company wasn't manually edited, update Company Name
     useEffect(() => {
@@ -132,8 +134,9 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         setExpectedCloseDate(new Date().toISOString().split('T')[0]);
         setSelectedLabels([]);
         // Default pipeline reset
-        setSelectedPipelineId('sales');
-        if (pipelines['sales']?.stages?.length > 0) setSelectedStageId(pipelines['sales'].stages[0].id);
+        setSelectedPipelineId(activePipelineId || 'sales_pipeline');
+        const defaultPipeline = activePipelineId ? pipelines[activePipelineId] : pipelines['sales_pipeline'];
+        if (defaultPipeline?.stages?.length > 0) setSelectedStageId(defaultPipeline.stages[0].id);
 
         setSource('Google Maps');
         setContactSearch('');

@@ -69,7 +69,8 @@ export function useCRMStore(): CRMStore {
     // Let's create a local mock for companies to avoid breaking UI, or sync if table existed.
 
     const [pipelines, setPipelines] = useState<Record<string, Pipeline>>({
-        'sales': { id: 'sales', name: 'Funil de Vendas', stages: [] }
+        'sales_pipeline': { id: 'sales_pipeline', name: 'Funil de Vendas', stages: [] },
+        'cold_leads_pipeline': { id: 'cold_leads_pipeline', name: 'Leads Frios', stages: [] }
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isPipelineSettingsOpen, setPipelineSettingsOpen] = useState(false);
@@ -91,7 +92,7 @@ export function useCRMStore(): CRMStore {
                 userId: d.user_id,
                 createdAt: d.created_at,
                 updatedAt: d.created_at,
-                pipelineId: 'sales',
+                pipelineId: d.pipeline_type || d.pipeline_id || 'sales_pipeline',
                 companyId: d.company_id,
                 tags: d.tags || [],
                 source: d.source,
@@ -158,25 +159,55 @@ export function useCRMStore(): CRMStore {
             .order('order_index', { ascending: true });
 
         if (stagesData && !stagesError) {
-            // Group by pipeline_id (assuming 'sales' is default for now if null)
-            const salesStages = stagesData
-                .filter(s => s.pipeline_id === 'sales' || !s.pipeline_id)
-                .map(s => ({
+            // Group stages by pipeline_id
+            const stagesByPipeline: Record<string, Stage[]> = {};
+
+            stagesData.forEach(s => {
+                const pid = s.pipeline_id || 'sales_pipeline';
+                if (!stagesByPipeline[pid]) stagesByPipeline[pid] = [];
+                stagesByPipeline[pid].push({
                     id: s.id,
-                    pipelineId: 'sales',
-                    title: s.name, // Map 'name' from DB to 'title' in UI
+                    pipelineId: pid,
+                    title: s.name,
                     color: s.color,
                     probability: s.probability
-                }));
+                });
+            });
 
-            // Update Pipelines State
-            setPipelines(prev => ({
-                ...prev,
-                'sales': {
-                    ...prev['sales'],
-                    stages: salesStages.length > 0 ? salesStages : prev['sales'].stages // Fallback if DB empty
+            // Update Pipelines State with fetched stages
+            setPipelines(prev => {
+                const nextPipelines = { ...prev };
+                // If a pipeline has stages in DB, use those. 
+                // If not, it might still have the default ones from DEFAULT_PIPELINES 
+                // (though here we are initialising stages as empty array if fetched)
+                Object.keys(stagesByPipeline).forEach(pid => {
+                    if (nextPipelines[pid]) {
+                        nextPipelines[pid].stages = stagesByPipeline[pid];
+                    } else {
+                        // Dynamically add new pipeline if found in DB stages
+                        nextPipelines[pid] = {
+                            id: pid,
+                            name: pid === 'sales_pipeline' ? 'Funil de Vendas' :
+                                pid === 'cold_leads_pipeline' ? 'Leads Frios' : pid,
+                            stages: stagesByPipeline[pid]
+                        };
+                    }
+                });
+
+                // Fallback: If cold_leads_pipeline exists but has no stages, 
+                // replicate stages from sales_pipeline as requested ("same structure")
+                if (nextPipelines['cold_leads_pipeline'] && nextPipelines['cold_leads_pipeline'].stages.length === 0) {
+                    const salesStages = nextPipelines['sales_pipeline']?.stages || [];
+                    if (salesStages.length > 0) {
+                        nextPipelines['cold_leads_pipeline'].stages = salesStages.map(s => ({
+                            ...s,
+                            pipelineId: 'cold_leads_pipeline'
+                        }));
+                    }
                 }
-            }));
+
+                return nextPipelines;
+            });
         } else if (stagesError) {
             console.error('Error fetching stages:', stagesError);
         }
@@ -262,7 +293,8 @@ export function useCRMStore(): CRMStore {
             tags: data.tags,
             source: data.source,
             currency: data.currency,
-            position: newPos
+            position: newPos,
+            pipeline_type: data.pipelineId // Save as pipeline_type
         };
 
         // Optimistic Deal
@@ -312,6 +344,7 @@ export function useCRMStore(): CRMStore {
         if (updates.lostAt !== undefined) dbUpdates.lost_at = updates.lostAt;
         if (updates.lostReason !== undefined) dbUpdates.lost_reason = updates.lostReason;
         if (updates.position !== undefined) dbUpdates.position = updates.position;
+        if (updates.pipelineId !== undefined) dbUpdates.pipeline_type = updates.pipelineId;
 
         if (Object.keys(dbUpdates).length > 0) {
             console.log('📝 Sending Update to DB:', { id, ...dbUpdates });

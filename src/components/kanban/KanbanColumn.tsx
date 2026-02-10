@@ -103,14 +103,14 @@ export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview
                         </span>
                         <Settings2 size={12} className="text-muted-foreground/40 opacity-0 group-hover/column:opacity-100 group-hover/title:text-primary transition-all" />
                     </div>
-                    <span className="text-[11px] font-medium text-muted-foreground/60">
-                        {tasks.length}
-                    </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground/60">
                         {formatDynamicCurrency(totalValue)}
+                    </span>
+                    <span className="text-[11px] font-medium text-muted-foreground/60">
+                        {tasks.length}
                     </span>
                 </div>
 
