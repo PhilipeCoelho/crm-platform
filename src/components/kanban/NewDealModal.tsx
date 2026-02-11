@@ -20,6 +20,8 @@ const LABELS = [
     { id: '3', name: 'Frio', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900' },
 ];
 
+const DRAFT_STORAGE_KEY = 'crm_new_deal_draft';
+
 const parseCurrency = (value: string): number => {
     if (!value) return 0;
     return parseFloat(value) || 0;
@@ -67,13 +69,13 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         }
     }, [selectedPipelineId, pipelines, selectedStageId]);
 
-    // Initial load
+    // Initial load & Draft Loading
     useEffect(() => {
         if (isOpen) {
             if (dealToEdit) {
                 // Edit Mode
                 setTitle(dealToEdit.title);
-                setIsTitleManuallyEdited(true); // Treat existing deals as manually edited to prevent overwrite
+                setIsTitleManuallyEdited(true);
                 setValue(dealToEdit.value.toString());
                 setExpectedCloseDate(dealToEdit.expectedCloseDate || '');
                 setSelectedLabels(dealToEdit.tags || []);
@@ -82,7 +84,6 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                 setSelectedStageId(dealToEdit.stageId);
 
                 setSource(dealToEdit.source || 'Google Maps');
-                // Removed sourceId
 
                 const linkedContact = contacts.find(c => c.id === dealToEdit.contactId);
                 setContactId(dealToEdit.contactId || '');
@@ -95,19 +96,74 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                 setCompanySearch(linkedCompany?.name || '');
                 setCompanyManuallyEdited(true);
             } else {
-                // New Mode
-                resetForm();
-                if (initialColumnId) {
-                    // Find which pipeline this col belongs to
-                    const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === initialColumnId));
-                    if (pipe) setSelectedPipelineId(pipe.id);
-                    setSelectedStageId(initialColumnId);
-                } else if (activePipelineId) {
-                    setSelectedPipelineId(activePipelineId);
+                // New Mode - Check for Draft
+                const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+                if (savedDraft) {
+                    try {
+                        const draft = JSON.parse(savedDraft);
+                        setTitle(draft.title || 'Negócio');
+                        setIsTitleManuallyEdited(draft.isTitleManuallyEdited || false);
+                        setValue(draft.value || '');
+                        setExpectedCloseDate(draft.expectedCloseDate || new Date().toISOString().split('T')[0]);
+                        setSelectedLabels(draft.selectedLabels || []);
+                        setSelectedPipelineId(draft.selectedPipelineId || activePipelineId || 'sales');
+                        setSelectedStageId(draft.selectedStageId || '');
+                        setSource(draft.source || 'Google Maps');
+                        setContactSearch(draft.contactSearch || '');
+                        setContactId(draft.contactId || '');
+                        setPhone(draft.phone || '');
+                        setEmail(draft.email || '');
+                        setCompanySearch(draft.companySearch || '');
+                        setCompanyId(draft.companyId || '');
+                        setCompanyManuallyEdited(draft.companyManuallyEdited || false);
+
+                        // Override pipeline/stage if specifically opened from a column
+                        if (initialColumnId) {
+                            const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === initialColumnId));
+                            if (pipe) {
+                                setSelectedPipelineId(pipe.id);
+                                setSelectedStageId(initialColumnId);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error parsing draft", e);
+                        resetForm();
+                    }
+                } else {
+                    resetForm();
+                    // Apply defaults if no draft
+                    if (initialColumnId) {
+                        const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === initialColumnId));
+                        if (pipe) setSelectedPipelineId(pipe.id);
+                        setSelectedStageId(initialColumnId);
+                    } else if (activePipelineId) {
+                        setSelectedPipelineId(activePipelineId);
+                    }
                 }
             }
         }
     }, [isOpen, dealToEdit, initialColumnId, pipelines, contacts, companies, activePipelineId]);
+
+    // --- Draft Persistence ---
+    useEffect(() => {
+        if (!dealToEdit && isOpen) {
+            const hasData = (title && title !== 'Negócio') || value || contactSearch || companySearch || phone || email || selectedLabels.length > 0;
+
+            if (hasData) {
+                const draft = {
+                    title, isTitleManuallyEdited, value, expectedCloseDate, selectedLabels,
+                    selectedPipelineId, selectedStageId, source, contactSearch, contactId,
+                    phone, email, companySearch, companyId, companyManuallyEdited
+                };
+                localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+            }
+        }
+    }, [
+        title, isTitleManuallyEdited, value, expectedCloseDate, selectedLabels,
+        selectedPipelineId, selectedStageId, source, contactSearch, contactId,
+        phone, email, companySearch, companyId, companyManuallyEdited,
+        dealToEdit, isOpen
+    ]);
 
     // Mirroring Logic: If Contact Name changes and Company wasn't manually edited, update Company Name
     useEffect(() => {
@@ -146,6 +202,9 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         setCompanySearch('');
         setCompanyId('');
         setCompanyManuallyEdited(false);
+
+        // Clear draft when reset
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -223,6 +282,8 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                     status: 'open',
                     priority: 'medium',
                 });
+                // Success! Clear draft
+                localStorage.removeItem(DRAFT_STORAGE_KEY);
             }
 
             onClose();
