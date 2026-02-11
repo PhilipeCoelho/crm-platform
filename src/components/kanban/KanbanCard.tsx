@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Deal } from "@/types/schema";
-import { User, Trash2, ChevronRight, AlertTriangle, Clock, Building2, DollarSign } from "lucide-react";
+import { User, Trash2, ChevronRight, AlertTriangle, Clock, Building2, DollarSign, ArrowRightLeft } from "lucide-react";
 
 import { Currency } from "@/data/currencies";
 import { useCRM } from "@/contexts/CRMContext";
@@ -29,7 +29,7 @@ export interface DealCardBaseProps extends Props {
 }
 
 export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, style: propStyle }: DealCardBaseProps) {
-    const { contacts, companies, activities, deleteDeal } = useCRM();
+    const { contacts, companies, activities, deleteDeal, moveDeal, pipelines } = useCRM();
     const navigate = useNavigate();
 
     // Activity Logic
@@ -133,6 +133,23 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
         }
     };
 
+    const handleMovePipeline = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const otherPipelineId = deal.pipelineId === 'sales' ? 'cold_leads' : 'sales';
+        const otherPipeline = pipelines[otherPipelineId];
+        if (!otherPipeline) return;
+
+        const firstStageId = otherPipeline.stages[0]?.id;
+        if (!firstStageId) {
+            alert(`O funil "${otherPipeline.name}" não possui etapas configuradas.`);
+            return;
+        }
+
+        if (window.confirm(`Mover este negócio para o funil "${otherPipeline.name}"?`)) {
+            moveDeal(deal.id, firstStageId, 0, otherPipelineId);
+        }
+    };
+
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (window.confirm('Tem certeza que deseja excluir este negócio?')) {
@@ -207,14 +224,23 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
                     </div>
                 )}
 
-                {/* Delete Button (Hover only) */}
-                <button
-                    onClick={handleDelete}
-                    className="absolute top-[-2px] right-[-6px] p-1 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-all z-10"
-                    title="Excluir"
-                >
-                    <Trash2 size={13} />
-                </button>
+                {/* Action Buttons (Hover only) */}
+                <div className="absolute top-[-2px] right-[-6px] flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all z-10">
+                    <button
+                        onClick={handleMovePipeline}
+                        className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded"
+                        title="Mover de Funil"
+                    >
+                        <ArrowRightLeft size={13} />
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        title="Excluir"
+                    >
+                        <Trash2 size={13} />
+                    </button>
+                </div>
             </div>
 
             {/* Contact */}

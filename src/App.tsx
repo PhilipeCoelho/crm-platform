@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CRMProvider } from './contexts/CRMContext';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, CheckSquare, Settings, LogOut, ChevronRight, CheckSquare as CheckIcon, Loader2, Moon, Sun, Laptop } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, Settings, LogOut, ChevronRight, CheckSquare as CheckIcon, Loader2, Moon, Sun, Laptop, Menu, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
 import KanbanBoard from '@/components/kanban/KanbanBoard';
 import ContactList from '@/components/contacts/ContactList';
@@ -21,6 +22,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     const location = useLocation();
     const { setTheme, theme } = useTheme();
     const { isPipelineSettingsOpen, setPipelineSettingsOpen } = useCRM();
+    const isMobile = useIsMobile();
 
     const currentView = location.pathname.includes('contacts') ? 'contacts' :
         location.pathname.includes('activities') ? 'activities' :
@@ -29,22 +31,14 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
     // const [selectedCurrency, setSelectedCurrency] = React.useState<Currency>(currencies[0]); // Removed local state
 
-    // Submenu Control
-    const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
-    const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Mobile Menu State
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    const handleMouseEnter = (menu: string) => {
-        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-        hoverTimeoutRef.current = setTimeout(() => {
-            setHoveredMenu(menu);
-        }, 120);
-    };
+    // Submenu Control (Click-based toggle)
+    const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
 
-    const handleMouseLeave = () => {
-        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-        hoverTimeoutRef.current = setTimeout(() => {
-            setHoveredMenu(null);
-        }, 50);
+    const toggleSubmenu = (menu: string) => {
+        setActiveSubmenu(prev => prev === menu ? null : menu);
     };
 
     // Sidebar State - Auto-Collapsed with Hover Reveal
@@ -67,56 +61,98 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
 
     return (
         <div className="flex h-screen text-foreground overflow-hidden">
-            {/* Hover Detection Area - Invisible 20px zone on left edge */}
-            <div
-                className="absolute left-0 top-0 bottom-0 w-5 z-[45]"
-                onMouseEnter={() => setIsSidebarHovered(true)}
-                onMouseLeave={() => setIsSidebarHovered(false)}
-            />
+            {/* Mobile Header */}
+            {isMobile && (
+                <div className="fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-40 flex items-center px-4">
+                    <button
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="p-2 hover:bg-muted rounded-lg transition-colors"
+                        aria-label="Abrir menu"
+                    >
+                        <Menu size={20} className="text-foreground" />
+                    </button>
+                    <span className="ml-3 font-bold text-foreground">CRM Pro</span>
+                </div>
+            )}
 
-            {/* Auto-Collapsed Sidebar with Hover Reveal */}
+            {/* Mobile Overlay */}
+            {isMobile && isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-[60] animate-in fade-in duration-200"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+            {/* Hover Detection Area - Invisible 20px zone on left edge (Desktop only) */}
+            {!isMobile && (
+                <div
+                    className="absolute left-0 top-0 bottom-0 w-5 z-[45]"
+                    onMouseEnter={() => setIsSidebarHovered(true)}
+                    onMouseLeave={() => setIsSidebarHovered(false)}
+                />
+            )}
+
+            {/* Sidebar - Desktop: Auto-Collapsed with Hover | Mobile: Drawer */}
             <aside
-                className={`group flex flex-col py-3 z-50 shrink-0 border-r border-border relative overflow-hidden
-                    ${sidebarWidth}
-                    ${isSidebarPinned ? 'items-start px-3' : 'items-center'}
-                     !bg-white dark:!bg-[#0E1116]
+                className={`group flex flex-col py-3 z-[70] shrink-0 border-r border-border relative overflow-hidden
+                    !bg-white dark:!bg-[#0E1116]
                     !text-slate-900 dark:!text-[#E6E8EB]
-                    transition-[width] duration-[180ms] ease-in-out
+                    ${isMobile
+                        ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                        }`
+                        : `${sidebarWidth} ${isSidebarPinned ? 'items-start px-3' : 'items-center'} transition-[width] duration-[180ms] ease-in-out`
+                    }
                     `}
-                onMouseEnter={() => setIsSidebarHovered(true)}
-                onMouseLeave={() => setIsSidebarHovered(false)}
+                onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
+                onMouseLeave={() => !isMobile && setIsSidebarHovered(false)}
             >
-                {/* Discrete Floating Toggle Button - Clean UX */}
-                <button
-                    onClick={() => setIsSidebarPinned(!isSidebarPinned)}
-                    className={`fixed left-2 top-1/2 -translate-y-1/2 z-[60] w-[28px] h-[28px] rounded-full flex items-center justify-center transition-all duration-[160ms] ease-out
-                        ${isSidebarPinned
-                            ? 'bg-white dark:bg-neutral-800/50 opacity-100 shadow-sm'
-                            : 'bg-slate-50/90 dark:bg-neutral-800/50 opacity-60 hover:opacity-100'
-                        }
-                        border border-slate-300/80 dark:border-white/25
-                        hover:bg-slate-100 dark:hover:bg-neutral-700/70
-                        hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]
-                        hover:scale-105
-                        active:scale-95
-                    `}
-                    title={isSidebarPinned ? "Recolher sidebar" : "Expandir sidebar"}
-                >
-                    <ChevronRight
-                        size={14}
-                        strokeWidth={2}
-                        className={`text-slate-500 dark:text-slate-300 transition-transform duration-[160ms] ${isSidebarPinned ? 'rotate-180' : 'rotate-0'}`}
-                    />
-                </button>
+                {/* Mobile Close Button */}
+                {isMobile && (
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="self-end p-2 hover:bg-muted rounded-lg mb-2 transition-colors"
+                        aria-label="Fechar menu"
+                    >
+                        <X size={20} className="text-foreground" />
+                    </button>
+                )}
+                {/* Discrete Floating Toggle Button - Desktop Only */}
+                {!isMobile && (
+                    <button
+                        onClick={() => setIsSidebarPinned(!isSidebarPinned)}
+                        className={`fixed left-2 top-1/2 -translate-y-1/2 z-[60] w-[28px] h-[28px] rounded-full flex items-center justify-center transition-all duration-[160ms] ease-out
+                            ${isSidebarPinned
+                                ? 'bg-white dark:bg-neutral-800/50 opacity-100 shadow-sm'
+                                : 'bg-slate-50/90 dark:bg-neutral-800/50 opacity-60 hover:opacity-100'
+                            }
+                            border border-slate-300/80 dark:border-white/25
+                            hover:bg-slate-100 dark:hover:bg-neutral-700/70
+                            hover:shadow-[0_2px_8px_rgba(0,0,0,0.15)]
+                            hover:scale-105
+                            active:scale-95
+                        `}
+                        title={isSidebarPinned ? "Recolher sidebar" : "Expandir sidebar"}
+                    >
+                        <ChevronRight
+                            size={14}
+                            strokeWidth={2}
+                            className={`text-slate-500 dark:text-slate-300 transition-transform duration-[160ms] ${isSidebarPinned ? 'rotate-180' : 'rotate-0'}`}
+                        />
+                    </button>
+                )}
 
                 {/* App Logo / Brand */}
-                <Link to="/dashboard" className={`mb-6 h-8 flex items-center transition-all duration-[180ms] ${isSidebarPinned ? 'w-full px-2 gap-3' : (showIcons ? 'w-8 justify-center' : 'w-0 opacity-0')}`}>
-                    {showIcons && (
+                <Link
+                    to="/dashboard"
+                    onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                    className={`mb-6 h-8 flex items-center transition-all duration-[180ms] ${isMobile ? 'w-full px-2 gap-3' : (isSidebarPinned ? 'w-full px-2 gap-3' : (showIcons ? 'w-8 justify-center' : 'w-0 opacity-0'))
+                        }`}
+                >
+                    {(showIcons || isMobile) && (
                         <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold text-xs shrink-0 select-none">
                             CP
                         </div>
                     )}
-                    {showLabels && (
+                    {(showLabels || isMobile) && (
                         <span className="font-bold !text-slate-900 dark:!text-white whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">
                             CRM Pro
                         </span>
@@ -124,56 +160,65 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                 </Link>
 
                 <nav className="flex-1 flex flex-col w-full space-y-2">
-                    <Link to="/dashboard" title={!showLabels ? "Dashboard" : ""}
+                    <Link
+                        to="/dashboard"
+                        onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                        title={!showLabels && !isMobile ? "Dashboard" : ""}
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-[180ms] min-h-[36px] relative
-                        ${isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none')}
+                        ${isMobile ? 'px-3 w-full justify-start' : (isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none'))}
                         ${currentView === 'dashboard'
                                 ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
                                 : 'hover:bg-slate-100 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-900 dark:text-[#9AA4AF] dark:hover:text-[#E6E8EB]'
                             }`}
                     >
-                        {showIcons && (
+                        {(showIcons || isMobile) && (
                             <div className="shrink-0 flex items-center justify-center w-5 h-5">
                                 <LayoutDashboard strokeWidth={currentView === 'dashboard' ? 2.5 : 2} size={18} />
                             </div>
                         )}
-                        {showLabels && (
+                        {(showLabels || isMobile) && (
                             <span className="text-[13px] whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">Dashboard</span>
                         )}
                     </Link>
 
-                    <Link to="/pipeline" title={!showLabels ? "Pipeline" : ""}
+                    <Link
+                        to="/pipeline"
+                        onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                        title={!showLabels && !isMobile ? "Pipeline" : ""}
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-[180ms] min-h-[36px] relative
-                        ${isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none')}
+                        ${isMobile ? 'px-3 w-full justify-start' : (isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none'))}
                         ${currentView === 'pipelines'
                                 ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
                                 : 'hover:bg-slate-100 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-900 dark:text-[#9AA4AF] dark:hover:text-[#E6E8EB]'
                             }`}
                     >
-                        {showIcons && (
+                        {(showIcons || isMobile) && (
                             <div className="shrink-0 flex items-center justify-center w-5 h-5">
                                 <CheckSquare strokeWidth={currentView === 'pipelines' ? 2.5 : 2} size={18} />
                             </div>
                         )}
-                        {showLabels && (
+                        {(showLabels || isMobile) && (
                             <span className="text-[13px] whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">Pipeline</span>
                         )}
                     </Link>
 
-                    <Link to="/contacts" title={!showLabels ? "Contatos" : ""}
+                    <Link
+                        to="/contacts"
+                        onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                        title={!showLabels && !isMobile ? "Contatos" : ""}
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-[180ms] min-h-[36px] relative
-                        ${isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none')}
+                        ${isMobile ? 'px-3 w-full justify-start' : (isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none'))}
                         ${currentView === 'contacts'
                                 ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
                                 : 'hover:bg-slate-100 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-900 dark:text-[#9AA4AF] dark:hover:text-[#E6E8EB]'
                             }`}
                     >
-                        {showIcons && (
+                        {(showIcons || isMobile) && (
                             <div className="shrink-0 flex items-center justify-center w-5 h-5">
                                 <Users strokeWidth={currentView === 'contacts' ? 2.5 : 2} size={18} />
                             </div>
                         )}
-                        {showLabels && (
+                        {(showLabels || isMobile) && (
                             <span className="text-[13px] whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">Contatos</span>
                         )}
                     </Link>
@@ -242,17 +287,16 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
 
                         <div className="p-2 space-y-1">
                             {/* Dashboard Group */}
-                            <div
-                                className="relative w-full"
-                                onMouseEnter={() => handleMouseEnter('dashboard')}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                                <button className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${hoveredMenu === 'dashboard' ? 'bg-slate-100 dark:bg-white/10 text-foreground' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'}`}>
+                            <div className="relative w-full">
+                                <button
+                                    onClick={() => toggleSubmenu('dashboard')}
+                                    className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'dashboard' ? 'bg-slate-100 dark:bg-white/10 text-foreground' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'}`}
+                                >
                                     <span className="flex items-center gap-2"><div className="w-1 h-4 bg-primary rounded-full"></div>Dashboard</span>
-                                    <ChevronRight size={14} className="text-muted-foreground/70" />
+                                    <ChevronRight size={14} className={`text-muted-foreground/70 transition-transform ${activeSubmenu === 'dashboard' ? 'rotate-90' : ''}`} />
                                 </button>
                                 {/* Dashboard Submenu */}
-                                <div className={`absolute left-full top-0 -ml-1 pl-4 w-44 z-[100] transition-all duration-200 ease-in-out ${hoveredMenu === 'dashboard' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
+                                <div className={`absolute left-full top-0 -ml-1 pl-4 w-44 z-[100] transition-all duration-200 ease-in-out ${activeSubmenu === 'dashboard' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
                                     <div className="bg-popover dark:bg-[#0E1116] border border-border/60 dark:border-white/10 shadow-xl rounded-md p-1">
                                         <button
                                             onClick={() => { setPipelineSettingsOpen(true); setIsSettingsOpen(false); }}
@@ -268,17 +312,16 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                             <div className="h-px bg-border my-1 mx-2" />
 
                             {/* Appearance Group */}
-                            <div
-                                className="relative w-full"
-                                onMouseEnter={() => handleMouseEnter('appearance')}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                                <button className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${hoveredMenu === 'appearance' ? 'bg-slate-100 dark:bg-white/10 text-foreground' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'}`}>
+                            <div className="relative w-full">
+                                <button
+                                    onClick={() => toggleSubmenu('appearance')}
+                                    className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'appearance' ? 'bg-slate-100 dark:bg-white/10 text-foreground' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'}`}
+                                >
                                     <span className="flex items-center gap-2"><div className="w-1 h-4 bg-primary/30 rounded-full"></div>Aparência</span>
-                                    <ChevronRight size={14} className="text-muted-foreground/70" />
+                                    <ChevronRight size={14} className={`text-muted-foreground/70 transition-transform ${activeSubmenu === 'appearance' ? 'rotate-90' : ''}`} />
                                 </button>
                                 {/* Appearance Submenu */}
-                                <div className={`absolute left-full top-0 -ml-1 pl-4 w-40 z-[100] transition-all duration-200 ease-in-out ${hoveredMenu === 'appearance' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
+                                <div className={`absolute left-full top-0 -ml-1 pl-4 w-40 z-[100] transition-all duration-200 ease-in-out ${activeSubmenu === 'appearance' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
                                     <div className="bg-popover dark:bg-[#0E1116] border border-border/60 dark:border-white/10 shadow-xl rounded-md p-1">
                                         <button onClick={() => setTheme("light")} className="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
                                             <span className="flex items-center gap-2"><Sun size={12} /> Claro</span>
@@ -297,17 +340,16 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                             </div>
 
                             {/* Currency Group */}
-                            <div
-                                className="relative w-full"
-                                onMouseEnter={() => handleMouseEnter('currency')}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                                <button className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${hoveredMenu === 'currency' ? 'bg-slate-100 dark:bg-white/10 text-foreground' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'}`}>
+                            <div className="relative w-full">
+                                <button
+                                    onClick={() => toggleSubmenu('currency')}
+                                    className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'currency' ? 'bg-slate-100 dark:bg-white/10 text-foreground' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground'}`}
+                                >
                                     <span className="flex items-center gap-2"><div className="w-1 h-4 bg-primary/50 rounded-full"></div>Moedas</span>
-                                    <ChevronRight size={14} className="text-muted-foreground/70" />
+                                    <ChevronRight size={14} className={`text-muted-foreground/70 transition-transform ${activeSubmenu === 'currency' ? 'rotate-90' : ''}`} />
                                 </button>
                                 {/* Currency Submenu */}
-                                <div className={`absolute left-full bottom-0 top-auto -ml-1 pl-4 w-48 z-[100] origin-bottom-left transition-all duration-200 ease-in-out ${hoveredMenu === 'currency' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
+                                <div className={`absolute left-full bottom-0 top-auto -ml-1 pl-4 w-48 z-[100] origin-bottom-left transition-all duration-200 ease-in-out ${activeSubmenu === 'currency' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
                                     <div className="bg-popover dark:bg-[#0E1116] border border-border/60 dark:border-white/10 shadow-xl rounded-md p-1 max-h-[300px] overflow-y-auto custom-scrollbar">
                                         {currencies.map(c => (
                                             <button key={c.code} onClick={() => { setCurrency(c); setIsSettingsOpen(false); }} className="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground"

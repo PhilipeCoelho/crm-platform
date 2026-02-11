@@ -37,7 +37,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
     const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
 
     // Pipeline & Stage State
-    const [selectedPipelineId, setSelectedPipelineId] = useState(activePipelineId || 'sales_pipeline');
+    const [selectedPipelineId, setSelectedPipelineId] = useState(activePipelineId || 'sales');
     const [selectedStageId, setSelectedStageId] = useState(''); // Validated effect will set this
 
     const [source, setSource] = useState('Google Maps');
@@ -134,8 +134,8 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         setExpectedCloseDate(new Date().toISOString().split('T')[0]);
         setSelectedLabels([]);
         // Default pipeline reset
-        setSelectedPipelineId(activePipelineId || 'sales_pipeline');
-        const defaultPipeline = activePipelineId ? pipelines[activePipelineId] : pipelines['sales_pipeline'];
+        setSelectedPipelineId(activePipelineId || 'sales');
+        const defaultPipeline = activePipelineId ? pipelines[activePipelineId] : pipelines['sales'];
         if (defaultPipeline?.stages?.length > 0) setSelectedStageId(defaultPipeline.stages[0].id);
 
         setSource('Google Maps');

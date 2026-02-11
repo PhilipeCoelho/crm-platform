@@ -41,6 +41,7 @@ create table deals (
   value numeric,
   priority text,
   stage_id text, -- 'lead', 'qualified', etc. (mapped in frontend)
+  pipeline_id text default 'sales', -- Added for Multiple Pipelines
   status text default 'active', -- 'active', 'won', 'lost'
   position float8 default 0, -- Added for Order
   expected_date timestamp with time zone,

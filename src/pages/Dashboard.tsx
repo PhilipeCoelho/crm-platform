@@ -235,7 +235,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
     // Identify the default stage for new deals from dashboard (Default to "Prospect")
     const defaultStageId = useMemo(() => {
-        const stages = pipelines['sales_pipeline']?.stages || [];
+        const stages = pipelines['sales']?.stages || [];
         // Priority 1: A stage named "Prospect"
         const prospect = stages.find(s => s.title.toLowerCase().includes('prospect'));
         if (prospect) return prospect.id;

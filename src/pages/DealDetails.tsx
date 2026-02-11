@@ -56,7 +56,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
         );
     }
 
-    const pipeline = pipelines[deal.pipelineId] || pipelines['sales_pipeline'];
+    const pipeline = pipelines[deal.pipelineId] || pipelines['sales'];
 
     if (!pipeline) {
         return (

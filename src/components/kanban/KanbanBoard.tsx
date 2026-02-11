@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+
+import { useState, useEffect, useRef } from "react";
 import { useCRM } from "@/contexts/CRMContext";
 import { Deal } from "@/types/schema";
 import KanbanColumn from "./KanbanColumn";
@@ -18,20 +18,23 @@ import { createPortal } from "react-dom";
 import { DealCardBase } from "./KanbanCard";
 import NewDealModal from "./NewDealModal";
 import SuggestionModal from "./SuggestionModal";
-import { Filter, Search, DollarSign, Plus } from "lucide-react";
+import { Filter, Search, Plus } from "lucide-react";
 import { Currency } from "@/data/currencies";
 import DealDetailsModal from "./DealDetailsModal";
+import MobileKanbanView from "./MobileKanbanView";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 
 interface KanbanBoardProps {
     currency: Currency;
 }
 
 function KanbanBoard({ currency }: KanbanBoardProps) {
-    const { deals, contacts, companies, pipelines, moveDeal, activities, refresh, isLoading, setPipelineSettingsOpen } = useCRM();
+    const { deals, contacts, companies, pipelines, moveDeal, activities, isLoading, setPipelineSettingsOpen } = useCRM();
+    const isMobile = useIsMobile();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId, setCurrentPipelineId] = useState(() => {
         const saved = localStorage.getItem('kanban_pipeline_id');
-        return saved || 'sales_pipeline';
+        return saved || 'sales';
     });
 
     useEffect(() => {
@@ -46,7 +49,26 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     // --- Filters State ---
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
-    const [minValue, setMinValue] = useState<string>('');
+    const filterRef = useRef<HTMLDivElement>(null);
+
+    // Handle click outside filters
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+                // Check if the click was on the toggle button
+                const toggleButton = document.getElementById('filter-toggle-button');
+                if (toggleButton && toggleButton.contains(event.target as Node)) return;
+
+                setShowFilters(false);
+            }
+        }
+        if (showFilters) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showFilters]);
 
     // Strict Types for Local State
     type ViewMode = 'all' | 'today' | 'overdue' | 'no-action' | 'high-value';
@@ -108,7 +130,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             contactEmail.includes(searchUpper) ||
             (searchDigits.length >= 7 && contactPhoneDigits.includes(searchDigits));
 
-        const matchesValue = minValue ? deal.value >= Number(minValue) : true;
+
 
         // View Mode Logic
         let matchesView = true;
@@ -134,7 +156,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         }
 
         const matchesStatus = statusFilter === 'all' ? true : deal.status === statusFilter;
-        return matchesSearch && matchesValue && matchesView && matchesStatus;
+        return matchesSearch && matchesView && matchesStatus;
     }).sort((a, b) => {
         const posA = a.position || 0;
         const posB = b.position || 0;
@@ -180,6 +202,174 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
 
 
+    // Mobile View
+    if (isMobile) {
+        return (
+            <div className="flex flex-col h-full w-full overflow-hidden pt-14">
+                {/* Mobile Toolbar */}
+                <div className="min-h-[3rem] py-2 border-b border-border flex items-center justify-between px-3 bg-background shrink-0 z-30">
+                    {/* Search */}
+                    <div className="relative flex-1 max-w-[200px]">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                        <input
+                            type="text"
+                            placeholder="Buscar..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-8 pr-2 py-1.5 text-sm border border-border/60 rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-full"
+                        />
+                    </div>
+
+                    {/* Filters Toggle */}
+                    <button
+                        id="filter-toggle-button"
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 border ml-2 ${showFilters
+                                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                : 'hover:bg-muted text-muted-foreground border-border/60'
+                            }`}
+                    >
+                        <Filter size={14} />
+                    </button>
+                </div>
+
+                {/* Filters Dropdown (Mobile) */}
+                {showFilters && (
+                    <div
+                        ref={filterRef}
+                        className="absolute right-3 top-[7.5rem] w-[calc(100%-1.5rem)] max-w-sm bg-popover border border-border rounded-xl shadow-2xl z-50 p-3 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+                    >
+                        {/* Status Filter */}
+                        <div className="space-y-2">
+                            <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Status do negócio</h3>
+                            <div className="grid grid-cols-2 gap-1">
+                                {[
+                                    { id: 'open', label: 'Abertos', icon: '🟢' },
+                                    { id: 'won', label: 'Ganhos', icon: '🏆' },
+                                    { id: 'lost', label: 'Perdidos', icon: '❌' },
+                                    { id: 'all', label: 'Todos', icon: '📑' }
+                                ].map((s) => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => {
+                                            if (statusFilter === s.id) setStatusFilter('all');
+                                            else setStatusFilter(s.id as StatusFilter);
+                                        }}
+                                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all ${statusFilter === s.id
+                                                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                                : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-xs">{s.icon}</span>
+                                            <span>{s.label}</span>
+                                        </div>
+                                        {statusFilter === s.id && <div className="w-1 h-1 rounded-full bg-primary" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* View Mode Filter */}
+                        <div className="space-y-2">
+                            <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Prioridade</h3>
+                            <div className="grid grid-cols-2 gap-1">
+                                {[
+                                    { id: 'all', label: 'Ver tudo' },
+                                    { id: 'today', label: 'Hoje' },
+                                    { id: 'overdue', label: 'Atrasado' },
+                                    { id: 'high-value', label: 'Alto Valor' }
+                                ].map((v) => (
+                                    <button
+                                        key={v.id}
+                                        onClick={() => {
+                                            if (viewMode === v.id) setViewMode('all');
+                                            else setViewMode(v.id as ViewMode);
+                                        }}
+                                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all ${viewMode === v.id
+                                                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                                : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                            }`}
+                                    >
+                                        <span>{v.label}</span>
+                                        {viewMode === v.id && <div className="w-1 h-1 rounded-full bg-primary" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Pipeline Filter */}
+                        <div className="space-y-2">
+                            <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Funil</h3>
+                            <div className="grid grid-cols-1 gap-1">
+                                {Object.values(pipelines).map(p => (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => setCurrentPipelineId(p.id)}
+                                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-all flex items-center justify-between ${currentPipelineId === p.id
+                                                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                                : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                            }`}
+                                    >
+                                        <span>{p.name}</span>
+                                        {currentPipelineId === p.id && <div className="w-1 h-1 rounded-full bg-primary" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-between border-t border-border/50">
+                            <button
+                                onClick={() => {
+                                    setStatusFilter('open');
+                                    setViewMode('all');
+                                    setSearchTerm('');
+                                }}
+                                className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
+                            >
+                                Limpar filtros
+                            </button>
+                            <button
+                                onClick={() => setShowFilters(false)}
+                                className="text-[11px] font-bold text-foreground hover:bg-muted px-2 py-1 rounded transition-all"
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Mobile Kanban View */}
+                <MobileKanbanView
+                    columns={columns}
+                    filteredDeals={filteredDeals}
+                    currency={currency}
+                    onDealClick={handleDealClick}
+                    onAddDeal={openNewDealModal}
+                />
+
+                {/* Modals */}
+                <NewDealModal
+                    isOpen={isNewDealModalOpen}
+                    onClose={() => setIsNewDealModalOpen(false)}
+                    initialColumnId={newDealStageId || undefined}
+                    currency={currency.code}
+                    activePipelineId={currentPipelineId}
+                />
+
+                {selectedDealId && (
+                    <DealDetailsModal
+                        dealId={selectedDealId}
+                        isOpen={!!selectedDealId}
+                        onClose={() => setSelectedDealId(null)}
+                        currency={currency}
+                    />
+                )}
+            </div>
+        );
+    }
+
+    // Desktop View
     return (
         <div className="flex flex-col h-full w-full overflow-hidden">
             {/* Toolbar - Aligned with Dashboard */}
@@ -193,80 +383,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 flex-1 justify-end">
-
-
-                        <div className="h-6 w-px bg-border mx-1" />
-
-                        {/* Filters (Status) */}
-                        <div className="flex items-center gap-2 mr-2 bg-muted/50 rounded-md px-2 border border-transparent hover:border-border transition-all">
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                                className={`bg-transparent text-sm font-medium outline-none cursor-pointer py-1 border-none focus:ring-0 ${statusFilter === 'won' ? 'text-green-600' :
-                                    statusFilter === 'lost' ? 'text-red-600' : 'text-muted-foreground'
-                                    }`}
-                            >
-                                <option value="open">🟢 Abertos</option>
-                                <option value="won">🏆 Ganhos</option>
-                                <option value="lost">❌ Perdidos</option>
-                                <option value="all">📑 Todos</option>
-                            </select>
-                        </div>
-
-                        {/* View Mode Selector */}
-                        <div className="flex items-center gap-1 bg-muted/50 rounded-md p-1 border border-transparent hover:border-border transition-all">
-                            <button
-                                onClick={() => setViewMode('all')}
-                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'all'
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                title="Mostrar todos os negócios"
-                            >
-                                Todos
-                            </button>
-                            <button
-                                onClick={() => setViewMode('today')}
-                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'today'
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                title="Atividades para hoje"
-                            >
-                                Hoje
-                            </button>
-                            <button
-                                onClick={() => setViewMode('overdue')}
-                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'overdue'
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                title="Atividades atrasadas"
-                            >
-                                Atrasado
-                            </button>
-                            <button
-                                onClick={() => setViewMode('no-action')}
-                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'no-action'
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                title="Sem próxima ação"
-                            >
-                                Sem Ação
-                            </button>
-                            <button
-                                onClick={() => setViewMode('high-value')}
-                                className={`px-2 py-1 rounded text-xs font-medium transition-all ${viewMode === 'high-value'
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                title="Alto valor (>5000)"
-                            >
-                                Alto Valor
-                            </button>
-                        </div>
-
                         {/* Search */}
                         <div className="relative">
                             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -281,58 +397,119 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
                         {/* Advanced Filters Toggle */}
                         <button
+                            id="filter-toggle-button"
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`p-1.5 rounded-md transition-colors ${showFilters || minValue
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-muted text-muted-foreground'
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 border ${showFilters
+                                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                : 'hover:bg-muted text-muted-foreground border-border/60'
                                 }`}
-                            title="Filtros avançados"
                         >
-                            <Filter size={16} />
+                            <Filter size={14} />
+                            <span>Filtros</span>
                         </button>
 
                         {/* Advanced Filters Dropdown */}
                         {showFilters && (
-                            <div className="absolute right-4 top-16 w-64 bg-popover border border-border rounded-lg shadow-xl z-50 p-3 space-y-4">
-                                <div>
-                                    <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase tracking-wider">Funil</label>
+                            <div
+                                ref={filterRef}
+                                className="absolute right-4 top-16 w-72 bg-popover border border-border rounded-xl shadow-2xl z-50 p-4 space-y-5 animate-in fade-in zoom-in-95 duration-200"
+                            >
+                                {/* GRUPO 1 — Status do negócio */}
+                                <div className="space-y-2">
+                                    <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Status do negócio</h3>
                                     <div className="grid grid-cols-1 gap-1">
-                                        {Object.values(pipelines).map(p => (
+                                        {[
+                                            { id: 'open', label: 'Abertos', icon: '🟢' },
+                                            { id: 'won', label: 'Ganhos', icon: '🏆' },
+                                            { id: 'lost', label: 'Perdidos', icon: '❌' },
+                                            { id: 'all', label: 'Todos', icon: '📑' }
+                                        ].map((s) => (
                                             <button
-                                                key={p.id}
-                                                onClick={() => setCurrentPipelineId(p.id)}
-                                                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-all flex items-center justify-between ${currentPipelineId === p.id
-                                                    ? 'bg-primary/10 text-primary font-bold border border-primary/20'
+                                                key={s.id}
+                                                onClick={() => {
+                                                    if (statusFilter === s.id) setStatusFilter('all');
+                                                    else setStatusFilter(s.id as StatusFilter);
+                                                }}
+                                                className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${statusFilter === s.id
+                                                    ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
                                                     : 'hover:bg-muted text-muted-foreground border border-transparent'
                                                     }`}
                                             >
-                                                <span>{p.name}</span>
-                                                {currentPipelineId === p.id && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                                                <div className="flex items-center gap-2">
+                                                    <span>{s.icon}</span>
+                                                    <span>{s.label}</span>
+                                                </div>
+                                                {statusFilter === s.id && <div className="w-1 h-1 rounded-full bg-primary" />}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-border">
-                                    <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase tracking-wider">Valor Mínimo</label>
-                                    <div className="relative">
-                                        <DollarSign size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                                        <input
-                                            type="number"
-                                            placeholder="0"
-                                            value={minValue}
-                                            onChange={(e) => setMinValue(e.target.value)}
-                                            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                        />
+                                {/* GRUPO 2 — Prioridade das atividades */}
+                                <div className="space-y-2">
+                                    <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Prioridade das atividades</h3>
+                                    <div className="grid grid-cols-1 gap-1">
+                                        {[
+                                            { id: 'all', label: 'Ver tudo' },
+                                            { id: 'today', label: 'Hoje' },
+                                            { id: 'overdue', label: 'Atrasado' },
+                                            { id: 'no-action', label: 'Sem ação' },
+                                            { id: 'high-value', label: 'Alto Valor' }
+                                        ].map((v) => (
+                                            <button
+                                                key={v.id}
+                                                onClick={() => {
+                                                    if (viewMode === v.id) setViewMode('all');
+                                                    else setViewMode(v.id as ViewMode);
+                                                }}
+                                                className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${viewMode === v.id
+                                                    ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                                    : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                                    }`}
+                                            >
+                                                <span>{v.label}</span>
+                                                {viewMode === v.id && <div className="w-1 h-1 rounded-full bg-primary" />}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end pt-2 border-t border-border">
+                                {/* GRUPO 3 — Visualização de funil */}
+                                <div className="space-y-2">
+                                    <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Visualização de funil</h3>
+                                    <div className="grid grid-cols-1 gap-1">
+                                        {Object.values(pipelines).map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => setCurrentPipelineId(p.id)}
+                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-between ${currentPipelineId === p.id
+                                                    ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                                    : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                                    }`}
+                                            >
+                                                <span>{p.name}</span>
+                                                {currentPipelineId === p.id && <div className="w-1 h-1 rounded-full bg-primary" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex items-center justify-between border-t border-border/50">
                                     <button
-                                        onClick={() => { setMinValue(''); setShowFilters(false); }}
-                                        className="text-xs text-red-600 hover:text-red-700 font-medium"
+                                        onClick={() => {
+                                            setStatusFilter('open');
+                                            setViewMode('all');
+                                            setSearchTerm('');
+                                        }}
+                                        className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
                                     >
-                                        Limpar e Fechar
+                                        Limpar filtros
+                                    </button>
+                                    <button
+                                        onClick={() => setShowFilters(false)}
+                                        className="text-[11px] font-bold text-foreground hover:bg-muted px-2 py-1 rounded transition-all"
+                                    >
+                                        Fechar
                                     </button>
                                 </div>
                             </div>
@@ -514,13 +691,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
         if (shouldUpdate) {
             moveDeal(activeId, targetStageId, newPos);
-            supabase.from('deals').update({
-                stage_id: targetStageId,
-                position: newPos
-            }).eq('id', activeId).then(({ error }) => {
-                if (error) console.error(error);
-                else refresh();
-            });
         }
     }
 

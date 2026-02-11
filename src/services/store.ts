@@ -20,7 +20,7 @@ export interface CRMStore {
     // Actions
     addDeal: (deal: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
     updateDeal: (id: string, updates: Partial<Deal>) => Promise<void>;
-    moveDeal: (id: string, stageId: string, position?: number) => void;
+    moveDeal: (id: string, stageId: string, position?: number, pipelineId?: string) => Promise<void>;
     deleteDeal: (id: string) => Promise<void>;
 
     addCompany: (company: Omit<Company, 'id' | 'createdAt'>) => Promise<Company>;
@@ -69,8 +69,8 @@ export function useCRMStore(): CRMStore {
     // Let's create a local mock for companies to avoid breaking UI, or sync if table existed.
 
     const [pipelines, setPipelines] = useState<Record<string, Pipeline>>({
-        'sales_pipeline': { id: 'sales_pipeline', name: 'Funil de Vendas', stages: [] },
-        'cold_leads_pipeline': { id: 'cold_leads_pipeline', name: 'Leads Frios', stages: [] }
+        'sales': { id: 'sales', name: 'Funil de Prospeção', stages: [] },
+        'cold_leads': { id: 'cold_leads', name: 'Leads Frios', stages: [] }
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isPipelineSettingsOpen, setPipelineSettingsOpen] = useState(false);
@@ -92,7 +92,7 @@ export function useCRMStore(): CRMStore {
                 userId: d.user_id,
                 createdAt: d.created_at,
                 updatedAt: d.created_at,
-                pipelineId: d.pipeline_type || d.pipeline_id || 'sales_pipeline',
+                pipelineId: d.pipeline_id || 'sales',
                 companyId: d.company_id,
                 tags: d.tags || [],
                 source: d.source,
@@ -163,7 +163,7 @@ export function useCRMStore(): CRMStore {
             const stagesByPipeline: Record<string, Stage[]> = {};
 
             stagesData.forEach(s => {
-                const pid = s.pipeline_id || 'sales_pipeline';
+                const pid = s.pipeline_id || 'sales';
                 if (!stagesByPipeline[pid]) stagesByPipeline[pid] = [];
                 stagesByPipeline[pid].push({
                     id: s.id,
@@ -187,21 +187,21 @@ export function useCRMStore(): CRMStore {
                         // Dynamically add new pipeline if found in DB stages
                         nextPipelines[pid] = {
                             id: pid,
-                            name: pid === 'sales_pipeline' ? 'Funil de Vendas' :
-                                pid === 'cold_leads_pipeline' ? 'Leads Frios' : pid,
+                            name: pid === 'sales' ? 'Funil de Prospeção' :
+                                pid === 'cold_leads' ? 'Leads Frios' : pid,
                             stages: stagesByPipeline[pid]
                         };
                     }
                 });
 
-                // Fallback: If cold_leads_pipeline exists but has no stages, 
-                // replicate stages from sales_pipeline as requested ("same structure")
-                if (nextPipelines['cold_leads_pipeline'] && nextPipelines['cold_leads_pipeline'].stages.length === 0) {
-                    const salesStages = nextPipelines['sales_pipeline']?.stages || [];
+                // Fallback: If cold_leads exists but has no stages, 
+                // replicate stages from sales as requested ("same structure")
+                if (nextPipelines['cold_leads'] && nextPipelines['cold_leads'].stages.length === 0) {
+                    const salesStages = nextPipelines['sales']?.stages || [];
                     if (salesStages.length > 0) {
-                        nextPipelines['cold_leads_pipeline'].stages = salesStages.map(s => ({
+                        nextPipelines['cold_leads'].stages = salesStages.map(s => ({
                             ...s,
-                            pipelineId: 'cold_leads_pipeline'
+                            pipelineId: 'cold_leads'
                         }));
                     }
                 }
@@ -294,7 +294,7 @@ export function useCRMStore(): CRMStore {
             source: data.source,
             currency: data.currency,
             position: newPos,
-            pipeline_type: data.pipelineId // Save as pipeline_type
+            pipeline_id: data.pipelineId
         };
 
         // Optimistic Deal
@@ -344,7 +344,7 @@ export function useCRMStore(): CRMStore {
         if (updates.lostAt !== undefined) dbUpdates.lost_at = updates.lostAt;
         if (updates.lostReason !== undefined) dbUpdates.lost_reason = updates.lostReason;
         if (updates.position !== undefined) dbUpdates.position = updates.position;
-        if (updates.pipelineId !== undefined) dbUpdates.pipeline_type = updates.pipelineId;
+        if (updates.pipelineId !== undefined) dbUpdates.pipeline_id = updates.pipelineId;
 
         if (Object.keys(dbUpdates).length > 0) {
             console.log('📝 Sending Update to DB:', { id, ...dbUpdates });
@@ -368,13 +368,34 @@ export function useCRMStore(): CRMStore {
         };
     };
 
-    const moveDeal = (id: string, stageId: string, position?: number) => {
+    const moveDeal = async (id: string, stageId: string, position?: number, pipelineId?: string) => {
+        // Optimistic
         setDeals(prev => prev.map(d => {
             if (d.id === id) {
-                return { ...d, stageId, columnId: stageId, position: position !== undefined ? position : d.position };
+                return {
+                    ...d,
+                    stageId,
+                    columnId: stageId,
+                    position: position !== undefined ? position : d.position,
+                    pipelineId: pipelineId || d.pipelineId
+                };
             }
             return d;
         }));
+
+        // DB Update
+        const updates: any = { stage_id: stageId };
+        if (position !== undefined) updates.position = position;
+        if (pipelineId) updates.pipeline_id = pipelineId;
+
+        console.log('📦 Persistence: Moving deal', { id, ...updates });
+        const { error } = await supabase.from('deals').update(updates).eq('id', id);
+
+        if (error) {
+            console.error('❌ Error moving deal:', error);
+            alert(`Erro ao salvar movimento: ${error.message}`);
+            fetchAll(); // Revert from DB
+        }
     };
 
     const deleteDeal = async (id: string) => {

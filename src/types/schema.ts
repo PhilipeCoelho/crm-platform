@@ -95,24 +95,24 @@ export interface Pipeline {
 
 // Initial Pipelines Configuration
 export const DEFAULT_PIPELINES: Record<string, Pipeline> = {
-    'sales_pipeline': {
-        id: 'sales_pipeline',
-        name: 'Funil de Vendas (Padrão)',
+    'sales': {
+        id: 'sales',
+        name: 'Funil de Prospeção',
         stages: [
-            { id: "new", pipelineId: 'sales_pipeline', title: "Lead Novo", probability: 10 },
-            { id: "contacted", pipelineId: 'sales_pipeline', title: "Contactado", probability: 30 },
-            { id: "proposal", pipelineId: 'sales_pipeline', title: "Proposta Enviada", probability: 60 },
-            { id: "negotiation", pipelineId: 'sales_pipeline', title: "Negociação", probability: 80 },
+            { id: "new", pipelineId: 'sales', title: "Lead Novo", probability: 10 },
+            { id: "contacted", pipelineId: 'sales', title: "Contactado", probability: 30 },
+            { id: "proposal", pipelineId: 'sales', title: "Proposta Enviada", probability: 60 },
+            { id: "negotiation", pipelineId: 'sales', title: "Negociação", probability: 80 },
         ]
     },
-    'cold_leads_pipeline': {
-        id: 'cold_leads_pipeline',
+    'cold_leads': {
+        id: 'cold_leads',
         name: 'Leads Frios',
         stages: [
-            { id: "new", pipelineId: 'cold_leads_pipeline', title: "Lead Novo", probability: 10 },
-            { id: "contacted", pipelineId: 'cold_leads_pipeline', title: "Contactado", probability: 30 },
-            { id: "proposal", pipelineId: 'cold_leads_pipeline', title: "Proposta Enviada", probability: 60 },
-            { id: "negotiation", pipelineId: 'cold_leads_pipeline', title: "Negociação", probability: 80 },
+            { id: "new", pipelineId: 'cold_leads', title: "Lead Novo", probability: 10 },
+            { id: "contacted", pipelineId: 'cold_leads', title: "Contactado", probability: 30 },
+            { id: "proposal", pipelineId: 'cold_leads', title: "Proposta Enviada", probability: 60 },
+            { id: "negotiation", pipelineId: 'cold_leads', title: "Negociação", probability: 80 },
         ]
     }
 };
