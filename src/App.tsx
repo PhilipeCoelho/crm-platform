@@ -93,13 +93,11 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
 
             {/* Sidebar - Desktop: Auto-Collapsed with Hover | Mobile: Drawer */}
             <aside
-                className={`group flex flex-col py-3 z-[70] shrink-0 border-r border-border relative overflow-hidden
-                    !bg-white dark:!bg-[#0E1116]
-                    !text-slate-900 dark:!text-[#E6E8EB]
+                className={`group flex flex-col py-3 z-[70] overflow-hidden !bg-white dark:!bg-[#0E1116] !text-slate-900 dark:!text-[#E6E8EB]
                     ${isMobile
-                        ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                        ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                         }`
-                        : `${sidebarWidth} ${isSidebarPinned ? 'items-start px-3' : 'items-center'} transition-[width] duration-[180ms] ease-in-out`
+                        : `relative shrink-0 border-r border-border transition-[width] duration-[180ms] ease-in-out ${sidebarWidth} ${isSidebarPinned ? 'items-start px-3' : 'items-center'}`
                     }
                     `}
                 onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
@@ -374,7 +372,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+            <main className={`flex-1 flex flex-col h-screen overflow-hidden relative ${isMobile ? 'pt-14 w-full' : ''}`}>
                 {/* No Global Header - Views define their own toolbars */}
                 <div className="flex-1 overflow-hidden">
                     <div className="h-full w-full max-w-[1700px] mx-auto flex flex-col">

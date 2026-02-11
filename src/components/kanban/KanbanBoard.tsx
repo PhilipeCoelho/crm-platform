@@ -205,7 +205,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     // Mobile View
     if (isMobile) {
         return (
-            <div className="flex flex-col h-full w-full overflow-hidden pt-14">
+            <div className="flex flex-col h-full w-full overflow-hidden">
                 {/* Mobile Toolbar */}
                 <div className="min-h-[3rem] py-2 border-b border-border flex items-center justify-between px-3 bg-background shrink-0 z-30">
                     {/* Search */}
@@ -225,8 +225,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         id="filter-toggle-button"
                         onClick={() => setShowFilters(!showFilters)}
                         className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 border ml-2 ${showFilters
-                                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                                : 'hover:bg-muted text-muted-foreground border-border/60'
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'hover:bg-muted text-muted-foreground border-border/60'
                             }`}
                     >
                         <Filter size={14} />
@@ -256,8 +256,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                             else setStatusFilter(s.id as StatusFilter);
                                         }}
                                         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all ${statusFilter === s.id
-                                                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
-                                                : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                            ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                            : 'hover:bg-muted text-muted-foreground border border-transparent'
                                             }`}
                                     >
                                         <div className="flex items-center gap-1.5">
@@ -287,8 +287,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                             else setViewMode(v.id as ViewMode);
                                         }}
                                         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all ${viewMode === v.id
-                                                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
-                                                : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                            ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                            : 'hover:bg-muted text-muted-foreground border border-transparent'
                                             }`}
                                     >
                                         <span>{v.label}</span>
@@ -307,8 +307,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                         key={p.id}
                                         onClick={() => setCurrentPipelineId(p.id)}
                                         className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-all flex items-center justify-between ${currentPipelineId === p.id
-                                                ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
-                                                : 'hover:bg-muted text-muted-foreground border border-transparent'
+                                            ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
+                                            : 'hover:bg-muted text-muted-foreground border border-transparent'
                                             }`}
                                     >
                                         <span>{p.name}</span>
