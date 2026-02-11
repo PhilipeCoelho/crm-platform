@@ -129,12 +129,12 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 </div>
             </div>
 
-            <div className="flex gap-2 px-4">
+            <div className="flex flex-wrap gap-2 px-3 sm:px-4">
                 <div
-                    className="flex-1 flex items-center gap-1.5 border rounded-md px-2 py-1 bg-background cursor-pointer hover:border-primary transition-colors"
+                    className="flex-1 min-w-[130px] flex items-center gap-1.5 border rounded-md px-2 py-1.5 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => dateInputRef.current?.showPicker()}
                 >
-                    <Calendar size={14} className="text-foreground shrink-0" />
+                    <Calendar size={14} className="text-muted-foreground shrink-0" />
                     <input
                         ref={dateInputRef}
                         type="date"
@@ -144,10 +144,10 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                     />
                 </div>
                 <div
-                    className="w-28 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background cursor-pointer hover:border-primary transition-colors"
+                    className="flex-1 sm:w-28 min-w-[100px] flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background cursor-pointer hover:border-primary transition-colors"
                     onClick={() => timeInputRef.current?.showPicker()}
                 >
-                    <Clock size={14} className="text-foreground shrink-0" />
+                    <Clock size={14} className="text-muted-foreground shrink-0" />
                     <input
                         ref={timeInputRef}
                         type="time"
@@ -156,8 +156,8 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                         onChange={e => setTime(e.target.value)}
                     />
                 </div>
-                <div className="w-24 flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background">
-                    <Timer size={14} className="text-foreground shrink-0" />
+                <div className="flex-1 sm:w-24 min-w-[90px] flex items-center gap-2 border rounded-md px-2 py-1.5 bg-background">
+                    <Timer size={14} className="text-muted-foreground shrink-0" />
                     <select
                         className="bg-transparent outline-none flex-1 text-xs appearance-none cursor-pointer"
                         value={duration}
@@ -171,6 +171,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                     </select>
                 </div>
             </div>
+
 
             <div className="flex justify-end px-4 pb-3">
                 <button

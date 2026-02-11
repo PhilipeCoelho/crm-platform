@@ -163,13 +163,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             <div className="bg-background border-b border-border p-2 flex flex-col gap-2 shrink-0">
 
                 {/* Top Row: Navigation & Actions */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <button onClick={() => isModal ? onClose?.() : navigate(-1)} className="p-1 hover:bg-muted rounded-full transition-colors shrink-0">
+                <div className="flex items-center justify-between gap-2 overflow-hidden">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <button onClick={() => isModal ? onClose?.() : navigate(-1)} className="p-2 hover:bg-muted rounded-full transition-colors shrink-0">
                             {isModal ? <X size={20} className="text-muted-foreground" /> : <ArrowLeft size={20} className="text-muted-foreground" />}
                         </button>
-                        <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-0.5">
+                        <div className="min-w-0 flex-1 py-1">
+                            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                                 {/* Editable Title */}
                                 {editingField === 'title' ? (
                                     <input
@@ -178,12 +178,12 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         onChange={(e) => setTempTitle(e.target.value)}
                                         onBlur={saveEditing}
                                         onKeyDown={handleKeyDown}
-                                        className="text-base font-bold text-foreground bg-muted/30 border border-primary/20 rounded px-1 py-0.5 outline-none focus:ring-2 focus:ring-primary/50 w-full max-w-[300px]"
+                                        className="text-sm sm:text-base font-bold text-foreground bg-muted/30 border border-primary/20 rounded px-1 py-0.5 outline-none focus:ring-2 focus:ring-primary/50 w-full max-w-[300px]"
                                     />
                                 ) : (
                                     <h1
                                         onClick={() => startEditing('title')}
-                                        className="text-base font-bold text-foreground truncate max-w-[180px] sm:max-w-[300px] hover:bg-muted/50 hover:text-primary cursor-pointer rounded px-1 transition-colors select-none"
+                                        className="text-sm sm:text-base font-bold text-foreground truncate max-w-[140px] sm:max-w-[300px] hover:bg-muted/50 hover:text-primary cursor-pointer rounded px-1 transition-colors select-none"
                                         title="Clique para editar"
                                     >
                                         {deal.title}
@@ -191,59 +191,61 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                 )}
 
                                 {/* Status Badge */}
-                                <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase border ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200' :
+                                <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase border ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200' :
                                     deal.status === 'lost' ? 'bg-red-100 text-red-700 border-red-200' :
                                         'bg-blue-100 text-blue-700 border-blue-200'
                                     }`}>
-                                    {deal.status === 'open' ? 'Em Aberto' : deal.status === 'won' ? 'Ganho' : 'Perdido'}
+                                    {deal.status === 'open' ? 'Aberto' : deal.status === 'won' ? 'Ganho' : 'Perdido'}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground px-1">
+                            <div className="flex items-center gap-2 text-[9px] sm:text-[10px] text-muted-foreground px-1 mt-0.5 truncate">
                                 <span className="font-semibold text-foreground flex items-center gap-1">
                                     <DollarSign size={10} />
                                     {deal.value.toLocaleString(currency.locale, { style: 'currency', currency: currency.code })}
                                 </span>
                                 <span>•</span>
-                                <span>Criado em {format(new Date(deal.createdAt), "d MMM", { locale: pt })}</span>
+                                <span className="hidden xs:inline">Criado em {format(new Date(deal.createdAt), "d MMM", { locale: pt })}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 pl-2">
+                    <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                         {deal.status === 'open' ? (
-                            <>
+                            <div className="flex items-center gap-1 group-actions">
                                 <button
                                     onClick={handleWon}
-                                    className="px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors shadow-sm"
+                                    className="p-1.5 sm:px-2.5 sm:py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors shadow-sm"
+                                    title="Ganho"
                                 >
-                                    <Check size={12} />
-                                    <span className="hidden sm:inline">Ganho</span>
+                                    <Check size={14} className="sm:w-3 sm:h-3" />
+                                    <span className="hidden md:inline">Ganho</span>
                                 </button>
                                 <button
                                     onClick={handleLost}
-                                    className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors shadow-sm"
+                                    className="p-1.5 sm:px-2.5 sm:py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors shadow-sm"
+                                    title="Perdido"
                                 >
-                                    <X size={12} />
-                                    <span className="hidden sm:inline">Perdido</span>
+                                    <X size={14} className="sm:w-3 sm:h-3" />
+                                    <span className="hidden md:inline">Perdido</span>
                                 </button>
-                            </>
+                            </div>
                         ) : (
                             <button
                                 onClick={handleReopen}
-                                className="px-2.5 py-1 bg-muted hover:bg-muted/80 border border-border rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors"
+                                className="px-2 py-1 sm:px-2.5 sm:py-1 bg-muted hover:bg-muted/80 border border-border rounded-md text-[10px] font-medium flex items-center gap-1 transition-colors"
                             >
                                 <Ban size={12} />
                                 <span className="hidden sm:inline">Reabrir</span>
                             </button>
                         )}
 
-                        <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
+                        <div className="w-px h-4 bg-border mx-0.5 sm:mx-1" />
 
-                        <div className='flex items-center gap-1'>
+                        <div className='flex items-center gap-0.5 sm:gap-1'>
                             <button
                                 onClick={handleDeleteDeal}
                                 className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors text-muted-foreground"
-                                title="Excluir Negócio"
+                                title="Excluir"
                             >
                                 <Trash2 size={14} />
                             </button>
@@ -251,7 +253,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                             <button
                                 onClick={() => setIsEditModalOpen(true)}
                                 className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground"
-                                title="Editar Tudo"
+                                title="Editar"
                             >
                                 <Pencil size={14} />
                             </button>
@@ -259,43 +261,54 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                     </div>
                 </div>
 
-                {/* Pipeline Progress Bar */}
-                <div className="flex items-center w-full mt-2 bg-muted/30 rounded-full p-0.5 overflow-hidden">
-                    {pipeline.stages.map((stage, index) => {
-                        // Logic for stage color
-                        let bgColor = "bg-muted text-muted-foreground"; // Future
-                        if (deal.status === 'lost' && index === currentStageIndex) bgColor = "bg-red-500 text-white";
-                        else if (deal.status === 'won') bgColor = "bg-green-500 text-white";
-                        else if (index < currentStageIndex) bgColor = "bg-green-500 text-white"; // Past
-                        else if (index === currentStageIndex) bgColor = "bg-primary text-primary-foreground"; // Current
 
-                        // Chevron shape using clip-path
-                        return (
-                            <div
-                                key={stage.id}
-                                className={`
-                                    flex-1 h-7 flex items-center justify-center relative cursor-pointer transition-colors text-[10px] font-medium px-2
+                {/* Pipeline Progress Bar */}
+                <div className="flex items-center w-full mt-2 bg-muted/30 rounded-full p-0.5 overflow-x-auto scrollbar-hide">
+                    <div className="flex items-center min-w-max sm:min-w-0 sm:w-full">
+                        {pipeline.stages.map((stage, index) => {
+                            // Logic for stage color
+                            let bgColor = "bg-muted text-muted-foreground"; // Future
+                            if (deal.status === 'lost' && index === currentStageIndex) bgColor = "bg-red-500 text-white";
+                            else if (deal.status === 'won') bgColor = "bg-green-500 text-white";
+                            else if (index < currentStageIndex) bgColor = "bg-green-500 text-white"; // Past
+                            else if (index === currentStageIndex) bgColor = "bg-primary text-primary-foreground"; // Current
+
+                            // Responsive view: on small screens, we might want something more compact if there are many stages
+                            const isActive = index === currentStageIndex;
+
+                            // Chevron shape using clip-path
+                            return (
+                                <div
+                                    key={stage.id}
+                                    className={`
+                                    flex-1 h-7 flex items-center justify-center relative cursor-pointer transition-colors text-[9px] sm:text-[10px] font-medium px-2 sm:px-3
                                     ${bgColor}
                                     ${index === 0 ? 'rounded-l-full pl-3' : ''} 
                                     ${index === pipeline.stages.length - 1 ? 'rounded-r-full pr-3' : ''}
                                     ${index !== 0 ? '-ml-2 pl-4 clip-path-arrow-left' : ''}
-                                    hover:brightness-95
+                                    hover:brightness-95 shrink-0 sm:shrink
+                                    ${!isActive && 'hidden xs:flex'}
                                 `}
-                                style={{
-                                    clipPath: index === 0
-                                        ? 'polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%)'
-                                        : index === pipeline.stages.length - 1
-                                            ? 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 5% 50%)'
-                                            : 'polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%)',
-                                    zIndex: 10 - index // Stack properly
-                                }}
-                                onClick={() => handleStageChange(stage.id)}
-                            >
-                                <span className="truncate max-w-full">{stage.title}</span>
-                            </div>
-                        );
-                    })}
+                                    style={{
+                                        clipPath: index === 0
+                                            ? 'polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%)'
+                                            : index === pipeline.stages.length - 1
+                                                ? 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 5% 50%)'
+                                                : 'polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%)',
+                                        zIndex: 10 - index, // Stack properly
+                                        minWidth: isActive ? 'auto' : '60px'
+                                    }}
+                                    onClick={() => handleStageChange(stage.id)}
+                                >
+                                    <span className="truncate max-w-full text-center">
+                                        {isActive ? stage.title : (stage.title.length > 8 ? stage.title.substring(0, 6) + '..' : stage.title)}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
+
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-muted/5">

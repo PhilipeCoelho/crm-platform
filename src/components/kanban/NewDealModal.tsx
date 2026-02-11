@@ -460,14 +460,14 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                     </div>
 
                     {/* Phone & Email */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-2">
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Telefone</label>
                             <div className="relative">
                                 <Phone size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
                                 <input
                                     type="tel"
-                                    className="w-full pl-8 pr-3 py-1.5 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50"
+                                    className="w-full pl-8 pr-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50"
                                     placeholder="Telefone"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
@@ -480,7 +480,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                                 <Mail size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
                                 <input
                                     type="email"
-                                    className="w-full pl-8 pr-3 py-1.5 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50"
+                                    className="w-full pl-8 pr-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50"
                                     placeholder="Email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -489,13 +489,14 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                         </div>
                     </div>
 
+
                     {/* Date & Source */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-2">
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Data de adição</label>
                             <input
                                 type="date"
-                                className="w-full px-3 py-1.5 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none"
+                                className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none"
                                 value={expectedCloseDate}
                                 onChange={(e) => setExpectedCloseDate(e.target.value)}
                             />
@@ -503,7 +504,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Origem</label>
                             <select
-                                className="w-full px-3 py-1.5 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none"
+                                className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none"
                                 value={source}
                                 onChange={(e) => setSource(e.target.value)}
                             >
@@ -512,6 +513,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                             </select>
                         </div>
                     </div>
+
 
                     {/* Labels */}
                     <div>
@@ -538,21 +540,22 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                 </div>
 
                 {/* Footer Actions */}
-                <div className="mt-2 flex justify-end gap-3 pt-2 border-t border-border shrink-0">
+                <div className="mt-4 sm:mt-2 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-2 border-t border-border shrink-0 bg-background/80 backdrop-blur-sm sm:bg-transparent">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors"
+                        className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors order-2 sm:order-1"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
-                        className="px-6 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-sm"
+                        className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-md order-1 sm:order-2"
                     >
                         Salvar
                     </button>
                 </div>
+
             </form>
         </Modal>
     );

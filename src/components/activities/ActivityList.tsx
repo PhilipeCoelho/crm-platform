@@ -108,7 +108,7 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                                     {onEdit && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onEdit(activity); }}
-                                            className="opacity-0 group-hover/item:opacity-100 p-1 hover:bg-blue-50 hover:text-blue-500 rounded text-muted-foreground transition-all"
+                                            className="sm:opacity-0 sm:group-hover/item:opacity-100 p-1.5 hover:bg-blue-50 hover:text-blue-500 rounded text-muted-foreground transition-all"
                                             title="Editar atividade"
                                         >
                                             <Pencil size={14} />
@@ -117,12 +117,13 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                                     {onDelete && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onDelete(activity.id); }}
-                                            className="opacity-0 group-hover/item:opacity-100 p-1 hover:bg-red-50 hover:text-red-500 rounded text-muted-foreground transition-all"
+                                            className="sm:opacity-0 sm:group-hover/item:opacity-100 p-1.5 hover:bg-red-50 hover:text-red-500 rounded text-muted-foreground transition-all"
                                             title="Excluir atividade"
                                         >
                                             <Trash2 size={14} />
                                         </button>
                                     )}
+
                                 </div>
                             </div>
 
