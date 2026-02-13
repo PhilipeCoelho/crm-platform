@@ -21,7 +21,7 @@ interface DealDetailsProps {
 export default function DealDetails({ dealId: propId, onClose, isModal = false, currency }: DealDetailsProps) {
     const { id: paramId } = useParams();
     const navigate = useNavigate();
-    const { deals, companies, contacts, updateDeal, deleteDeal, pipelines, openNewDealModal, updateContact, updateCompany } = useCRM();
+    const { deals, companies, contacts, updateDeal, deleteDeal, pipelines, openNewDealModal, updateContact } = useCRM();
 
 
     const id = propId || paramId;
