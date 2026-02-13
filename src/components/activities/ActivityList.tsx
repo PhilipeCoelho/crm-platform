@@ -1,5 +1,5 @@
 import { Activity } from '@/types/schema';
-import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare } from 'lucide-react';
+import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare, History } from 'lucide-react';
 import { format, isBefore, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -10,7 +10,7 @@ interface Props {
     onEdit?: (activity: Activity) => void;
 }
 
-const typeIcons = {
+const typeIcons: Record<string, any> = {
     call: Phone,
     meeting: Users,
     email: Mail,
@@ -19,6 +19,7 @@ const typeIcons = {
     note: StickyNote,
     fileUpload: Paperclip,
     message: MessageSquare,
+    status_change: History,
 };
 
 const getActivityStatus = (dateString?: string) => {
