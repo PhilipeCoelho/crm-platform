@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
 import { X, Calendar, User, Building, DollarSign, Tag, ExternalLink, Pencil } from 'lucide-react';
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import InlineEditableField from '@/components/ui/InlineEditableField';
-import NewDealModal from './NewDealModal';
+
 
 interface DealPreviewPopoverProps {
     dealId: string;
@@ -15,9 +16,10 @@ interface DealPreviewPopoverProps {
 
 export default function DealPreviewPopover({ dealId, onClose, position }: DealPreviewPopoverProps) {
     const navigate = useNavigate();
-    const { deals, companies, contacts, activities, pipelines, updateDeal, updateCompany, updateContact } = useCRM();
+    const { deals, companies, contacts, activities, pipelines, updateDeal, updateCompany, updateContact, openNewDealModal, isNewDealModalOpen } = useCRM();
     const popoverRef = useRef<HTMLDivElement>(null);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+
 
     const deal = deals.find(d => d.id === dealId);
 
@@ -56,14 +58,16 @@ export default function DealPreviewPopover({ dealId, onClose, position }: DealPr
                 // because the user might be interacting with the modal which is technically "outside" the popover.
                 // However, usually we want the popover to stay legally "open" behind the modal or close?
                 // Let's keep it simple: if editing, don't close.
-                if (!isEditModalOpen) {
+                if (!isNewDealModalOpen) {
                     onClose();
                 }
+
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [onClose, isEditModalOpen]);
+    }, [onClose, isNewDealModalOpen]);
+
 
     if (!deal) return null;
 
@@ -132,10 +136,11 @@ export default function DealPreviewPopover({ dealId, onClose, position }: DealPr
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                             <button
-                                onClick={() => setIsEditModalOpen(true)}
+                                onClick={() => openNewDealModal(undefined, deal)}
                                 className="text-muted-foreground hover:text-primary transition-colors p-1 hover:bg-muted rounded"
                                 title="Editar tudo"
                             >
+
                                 <Pencil size={16} />
                             </button>
                             <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-muted rounded">
@@ -265,13 +270,7 @@ export default function DealPreviewPopover({ dealId, onClose, position }: DealPr
                 </div>
             </div>
 
-            {isEditModalOpen && (
-                <NewDealModal
-                    isOpen={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
-                    dealToEdit={deal}
-                />
-            )}
         </>
+
     );
 }

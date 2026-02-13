@@ -2,15 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
 import { Building, User, Phone, Mail, Check } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
-import { Deal } from '@/types/schema';
 
 interface NewDealModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    initialColumnId?: string;
-    dealToEdit?: Deal | null;
     currency?: string;
 }
+
 
 const SOURCES = ['Google Maps', 'Indicação', 'Website', 'LinkedIn', 'Instagram', 'Cold Call', 'Eventos', 'Outros'];
 
@@ -20,168 +16,36 @@ const LABELS = [
     { id: '3', name: 'Frio', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900' },
 ];
 
-const DRAFT_STORAGE_KEY = 'crm_new_deal_draft';
-
 const parseCurrency = (value: string): number => {
     if (!value) return 0;
     return parseFloat(value) || 0;
 };
 
-export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToEdit, currency = 'BRL', activePipelineId }: NewDealModalProps & { activePipelineId?: string }) {
-    const { addDeal, updateDeal, companies, contacts, deals, pipelines, addCompany, addContact, updateContact } = useCRM();
+export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
+    const {
+        addDeal, updateDeal, companies, contacts, deals, pipelines,
+        addCompany, addContact, updateContact,
+        isNewDealModalOpen, closeNewDealModal, newDealStageId,
+        dealToEdit
+    } = useCRM();
+
 
     // --- Form State ---
-    const [title, setTitle] = useState('');
+    const [title, setTitle] = useState('Negócio');
     const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false);
     const [value, setValue] = useState('');
-    // Default to today
     const [expectedCloseDate, setExpectedCloseDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-
-    // Pipeline & Stage State
-    const [selectedPipelineId, setSelectedPipelineId] = useState(activePipelineId || 'sales');
-    const [selectedStageId, setSelectedStageId] = useState(''); // Validated effect will set this
-
+    const [selectedPipelineId, setSelectedPipelineId] = useState('sales');
+    const [selectedStageId, setSelectedStageId] = useState('');
     const [source, setSource] = useState('Google Maps');
-    // Removed sourceId state
-
-    // --- Smart Contact/Org State ---
     const [contactSearch, setContactSearch] = useState('');
     const [contactId, setContactId] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
-
     const [companySearch, setCompanySearch] = useState('');
     const [companyId, setCompanyId] = useState('');
-    // Track if user manually edited company name to stop mirroring
     const [companyManuallyEdited, setCompanyManuallyEdited] = useState(false);
-
-    // Update selectedStageId when pipeline changes or on init
-    useEffect(() => {
-        const pipeline = pipelines[selectedPipelineId];
-        if (pipeline && pipeline.stages.length > 0) {
-            // If current stage is valid for this pipeline, keep it (unless we switched pipelines and IDs dont match)
-            // simplified: just default to first stage if switching, or keep if editing and matches
-            const isValid = pipeline.stages.find(s => s.id === selectedStageId);
-            if (!isValid) {
-                setSelectedStageId(pipeline.stages[0].id);
-            }
-        }
-    }, [selectedPipelineId, pipelines, selectedStageId]);
-
-    // Initial load & Draft Loading
-    useEffect(() => {
-        if (isOpen) {
-            if (dealToEdit) {
-                // Edit Mode
-                setTitle(dealToEdit.title);
-                setIsTitleManuallyEdited(true);
-                setValue(dealToEdit.value.toString());
-                setExpectedCloseDate(dealToEdit.expectedCloseDate || '');
-                setSelectedLabels(dealToEdit.tags || []);
-
-                if (dealToEdit.pipelineId) setSelectedPipelineId(dealToEdit.pipelineId);
-                setSelectedStageId(dealToEdit.stageId);
-
-                setSource(dealToEdit.source || 'Google Maps');
-
-                const linkedContact = contacts.find(c => c.id === dealToEdit.contactId);
-                setContactId(dealToEdit.contactId || '');
-                setContactSearch(linkedContact?.name || '');
-                setPhone(linkedContact?.phone || '');
-                setEmail(linkedContact?.email || '');
-
-                const linkedCompany = companies.find(c => c.id === dealToEdit.companyId);
-                setCompanyId(dealToEdit.companyId || '');
-                setCompanySearch(linkedCompany?.name || '');
-                setCompanyManuallyEdited(true);
-            } else {
-                // New Mode - Check for Draft
-                const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
-                if (savedDraft) {
-                    try {
-                        const draft = JSON.parse(savedDraft);
-                        setTitle(draft.title || 'Negócio');
-                        setIsTitleManuallyEdited(draft.isTitleManuallyEdited || false);
-                        setValue(draft.value || '');
-                        setExpectedCloseDate(draft.expectedCloseDate || new Date().toISOString().split('T')[0]);
-                        setSelectedLabels(draft.selectedLabels || []);
-                        setSelectedPipelineId(draft.selectedPipelineId || activePipelineId || 'sales');
-                        setSelectedStageId(draft.selectedStageId || '');
-                        setSource(draft.source || 'Google Maps');
-                        setContactSearch(draft.contactSearch || '');
-                        setContactId(draft.contactId || '');
-                        setPhone(draft.phone || '');
-                        setEmail(draft.email || '');
-                        setCompanySearch(draft.companySearch || '');
-                        setCompanyId(draft.companyId || '');
-                        setCompanyManuallyEdited(draft.companyManuallyEdited || false);
-
-                        // Override pipeline/stage if specifically opened from a column
-                        if (initialColumnId) {
-                            const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === initialColumnId));
-                            if (pipe) {
-                                setSelectedPipelineId(pipe.id);
-                                setSelectedStageId(initialColumnId);
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Error parsing draft", e);
-                        resetForm();
-                    }
-                } else {
-                    resetForm();
-                    // Apply defaults if no draft
-                    if (initialColumnId) {
-                        const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === initialColumnId));
-                        if (pipe) setSelectedPipelineId(pipe.id);
-                        setSelectedStageId(initialColumnId);
-                    } else if (activePipelineId) {
-                        setSelectedPipelineId(activePipelineId);
-                    }
-                }
-            }
-        }
-    }, [isOpen, dealToEdit, initialColumnId, pipelines, contacts, companies, activePipelineId]);
-
-    // --- Draft Persistence ---
-    useEffect(() => {
-        if (!dealToEdit && isOpen) {
-            const hasData = (title && title !== 'Negócio') || value || contactSearch || companySearch || phone || email || selectedLabels.length > 0;
-
-            if (hasData) {
-                const draft = {
-                    title, isTitleManuallyEdited, value, expectedCloseDate, selectedLabels,
-                    selectedPipelineId, selectedStageId, source, contactSearch, contactId,
-                    phone, email, companySearch, companyId, companyManuallyEdited
-                };
-                localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
-            }
-        }
-    }, [
-        title, isTitleManuallyEdited, value, expectedCloseDate, selectedLabels,
-        selectedPipelineId, selectedStageId, source, contactSearch, contactId,
-        phone, email, companySearch, companyId, companyManuallyEdited,
-        dealToEdit, isOpen
-    ]);
-
-    // Mirroring Logic: If Contact Name changes and Company wasn't manually edited, update Company Name
-    useEffect(() => {
-        if (!dealToEdit && !companyManuallyEdited && !companyId) {
-            setCompanySearch(contactSearch);
-        }
-    }, [contactSearch, companyId, companyManuallyEdited, dealToEdit]);
-
-    // Title Mirroring Logic: Always 'Negócio [Contact Name]' ONLY if user hasn't customized the title
-    useEffect(() => {
-        if (!isTitleManuallyEdited) {
-            if (contactSearch) {
-                setTitle(`Negócio ${contactSearch}`);
-            } else {
-                setTitle('Negócio');
-            }
-        }
-    }, [contactSearch, isTitleManuallyEdited]);
 
     const resetForm = () => {
         setTitle('Negócio');
@@ -189,11 +53,9 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         setValue('');
         setExpectedCloseDate(new Date().toISOString().split('T')[0]);
         setSelectedLabels([]);
-        // Default pipeline reset
-        setSelectedPipelineId(activePipelineId || 'sales');
-        const defaultPipeline = activePipelineId ? pipelines[activePipelineId] : pipelines['sales'];
+        setSelectedPipelineId('sales');
+        const defaultPipeline = pipelines['sales'];
         if (defaultPipeline?.stages?.length > 0) setSelectedStageId(defaultPipeline.stages[0].id);
-
         setSource('Google Maps');
         setContactSearch('');
         setContactId('');
@@ -202,24 +64,75 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
         setCompanySearch('');
         setCompanyId('');
         setCompanyManuallyEdited(false);
-
-        // Clear draft when reset
-        localStorage.removeItem(DRAFT_STORAGE_KEY);
     };
+
+    const handleOnClose = () => {
+        resetForm();
+        closeNewDealModal();
+    };
+
+    // Update selectedStageId when pipeline changes
+    useEffect(() => {
+        const pipeline = pipelines[selectedPipelineId];
+        if (pipeline && pipeline.stages.length > 0) {
+            const isValid = pipeline.stages.find(s => s.id === selectedStageId);
+            if (!isValid) {
+                setSelectedStageId(pipeline.stages[0].id);
+            }
+        }
+    }, [selectedPipelineId, pipelines, selectedStageId]);
+
+    // Initialize/Edit Mode
+    useEffect(() => {
+        if (isNewDealModalOpen) {
+            if (dealToEdit) {
+                setTitle(dealToEdit.title);
+                setIsTitleManuallyEdited(true);
+                setValue(dealToEdit.value.toString());
+                setExpectedCloseDate(dealToEdit.expectedCloseDate || '');
+                setSelectedLabels(dealToEdit.tags || []);
+                if (dealToEdit.pipelineId) setSelectedPipelineId(dealToEdit.pipelineId);
+                setSelectedStageId(dealToEdit.stageId);
+                setSource(dealToEdit.source || 'Google Maps');
+                const linkedContact = contacts.find(c => c.id === dealToEdit.contactId);
+                setContactId(dealToEdit.contactId || '');
+                setContactSearch(linkedContact?.name || '');
+                setPhone(linkedContact?.phone || '');
+                setEmail(linkedContact?.email || '');
+                const linkedCompany = companies.find(c => c.id === dealToEdit.companyId);
+                setCompanyId(dealToEdit.companyId || '');
+                setCompanySearch(linkedCompany?.name || '');
+                setCompanyManuallyEdited(true);
+            } else if (newDealStageId) {
+                const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === newDealStageId));
+                if (pipe) {
+                    setSelectedPipelineId(pipe.id);
+                    setSelectedStageId(newDealStageId);
+                }
+            }
+        }
+    }, [isNewDealModalOpen, dealToEdit, newDealStageId, pipelines, contacts, companies]);
+
+    // Mirroring logic
+    useEffect(() => {
+        if (!dealToEdit && !companyManuallyEdited && !companyId) {
+            setCompanySearch(contactSearch);
+        }
+    }, [contactSearch, companyId, companyManuallyEdited, dealToEdit]);
+
+    useEffect(() => {
+        if (!isTitleManuallyEdited) {
+            setTitle(contactSearch ? `Negócio ${contactSearch}` : 'Negócio');
+        }
+    }, [contactSearch, isTitleManuallyEdited]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         try {
-            console.log('📝 Submitting Deal Form...');
-            console.log('State:', { title, value, contactSearch, contactId, companySearch, companyId });
-
             let finalCompanyId = companyId;
             let finalContactId = contactId;
 
-            // 1. Resolve Company
             if (!finalCompanyId && companySearch) {
-                // Check if exists by name
                 const existingCo = companies.find(c => c.name.toLowerCase() === companySearch.toLowerCase());
                 if (existingCo) finalCompanyId = existingCo.id;
                 else {
@@ -228,96 +141,51 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                 }
             }
 
-            // 2. Resolve Contact
             if (!finalContactId && contactSearch) {
                 const existingCt = contacts.find(c => c.name.toLowerCase() === contactSearch.toLowerCase());
-                if (existingCt) {
-                    finalContactId = existingCt.id;
-                } else {
-                    console.log('🆕 Creating new contact:', contactSearch);
-                    const newCt = await addContact({
-                        name: contactSearch,
-                        email,
-                        phone,
-                        companyId: finalCompanyId, // Link to company
-                        status: 'lead'
-                    });
-                    console.log('✅ New contact created:', newCt);
+                if (existingCt) finalContactId = existingCt.id;
+                else {
+                    const newCt = await addContact({ name: contactSearch, email, phone, companyId: finalCompanyId, status: 'lead' });
                     finalContactId = newCt.id;
                 }
             } else if (finalContactId) {
-                // Update existing contact info (Link organization, update phone/email)
                 const contactUpdates: any = {};
                 if (phone) contactUpdates.phone = phone;
                 if (email) contactUpdates.email = email;
                 if (finalCompanyId) contactUpdates.companyId = finalCompanyId;
-
-                if (Object.keys(contactUpdates).length > 0) {
-                    console.log('🔄 Updating existing contact with new info:', contactUpdates);
-                    await updateContact(finalContactId, contactUpdates);
-                }
+                if (Object.keys(contactUpdates).length > 0) await updateContact(finalContactId, contactUpdates);
             }
 
             const numericValue = parseCurrency(value);
-            console.log('💰 Parsed Value:', numericValue);
-
             const dealData = {
                 title: title || (contactSearch ? `Negócio ${contactSearch}` : 'Novo Negócio'),
-                value: numericValue,
-                currency: currency,
-                pipelineId: selectedPipelineId,
-                stageId: selectedStageId,
-                companyId: finalCompanyId || undefined,
-                contactId: finalContactId || undefined,
-                expectedCloseDate: expectedCloseDate || undefined,
-                tags: selectedLabels,
-                source,
+                value: numericValue, currency, pipelineId: selectedPipelineId, stageId: selectedStageId,
+                companyId: finalCompanyId || undefined, contactId: finalContactId || undefined,
+                expectedCloseDate: expectedCloseDate || undefined, tags: selectedLabels, source,
             };
 
             if (dealToEdit) {
                 await updateDeal(dealToEdit.id, dealData);
             } else {
-                await addDeal({
-                    ...dealData,
-                    status: 'open',
-                    priority: 'medium',
-                });
-                // Success! Clear draft
-                localStorage.removeItem(DRAFT_STORAGE_KEY);
+                await addDeal({ ...dealData, status: 'open', priority: 'medium' });
             }
-
-            onClose();
+            handleOnClose();
         } catch (error: any) {
             console.error('❌ Error submitting deal:', error);
             alert(`Erro ao salvar negócio: ${error.message || 'Erro desconhecido'}`);
         }
     };
 
-    // Derived Stages based on selected Pipeline
     const currentPipeline = pipelines[selectedPipelineId];
     const stages = currentPipeline?.stages || [];
+    const contactSuggestions = useMemo(() => (!contactSearch ? [] : contacts.filter(c => c.name.toLowerCase().includes(contactSearch.toLowerCase()) && c.id !== contactId).slice(0, 5)), [contactSearch, contacts, contactId]);
+    const companySuggestions = useMemo(() => (!companySearch ? [] : companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase()) && c.id !== companyId).slice(0, 5)), [companySearch, companies, companyId]);
 
-    // Filter suggestions
-    const contactSuggestions = useMemo(() => {
-        if (!contactSearch) return [];
-        return contacts.filter(c => c.name.toLowerCase().includes(contactSearch.toLowerCase()) && c.id !== contactId).slice(0, 5);
-    }, [contactSearch, contacts, contactId]);
-
-    const companySuggestions = useMemo(() => {
-        if (!companySearch) return [];
-        return companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase()) && c.id !== companyId).slice(0, 5);
-    }, [companySearch, companies, companyId]);
-
-    // --- Duplicate Detection ---
     const activeDuplicateDeals = useMemo(() => {
-        if (!isOpen) return [];
-
-        // Normalize helper for strings
+        if (!isNewDealModalOpen) return [];
         const normalize = (val: string) => val.replace(/\D/g, '').toLowerCase().trim();
         const normPhone = normalize(phone);
         const normEmail = email.toLowerCase().trim();
-
-        // 1. Find all contacts that match selected ID, phone, email or NAME (as requested)
         const potentialContactIds = contacts
             .filter(c => {
                 const matchesId = contactId && c.id === contactId;
@@ -328,27 +196,16 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
             })
             .map(c => c.id);
 
-        // 2. Filter deals that match these contacts or the selected company
-        return deals.filter(d =>
-            d.status === 'open' &&
-            d.id !== dealToEdit?.id && (
-                (potentialContactIds.includes(d.contactId || '')) ||
-                (companyId && d.companyId === companyId)
-            )
-        );
-    }, [deals, contactId, companyId, phone, email, contactSearch, isOpen, dealToEdit, contacts]);
+        return deals.filter(d => d.status === 'open' && d.id !== dealToEdit?.id && ((potentialContactIds.includes(d.contactId || '')) || (companyId && d.companyId === companyId)));
+    }, [deals, contactId, companyId, phone, email, contactSearch, isNewDealModalOpen, dealToEdit, contacts]);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={dealToEdit ? "Editar Negócio" : "Adicionar lead"} maxWidth="max-w-md">
+        <Modal isOpen={isNewDealModalOpen} onClose={handleOnClose} title={dealToEdit ? "Editar Negócio" : "Adicionar lead"} maxWidth="max-w-md">
             <form onSubmit={handleSubmit} className="flex flex-col h-[80vh] md:h-auto overflow-hidden">
                 <div className="flex-1 overflow-y-auto p-1 space-y-2">
-
-                    {/* Duplicate Alert */}
                     {activeDuplicateDeals.length > 0 && (
                         <div className="mb-4 animate-in fade-in slide-in-from-top-2">
-                            <p className="text-[11px] font-bold text-red-600">
-                                Atenção: Já existe um negócio aberto para este contato/empresa!
-                            </p>
+                            <p className="text-[11px] font-bold text-red-600">Atenção: Já existe um negócio aberto para este contato/empresa!</p>
                         </div>
                     )}
 
@@ -362,10 +219,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                                 className="w-full pl-9 pr-4 py-1.5 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50"
                                 placeholder="Nome do contato"
                                 value={contactSearch}
-                                onChange={(e) => {
-                                    setContactSearch(e.target.value);
-                                    setContactId('');
-                                }}
+                                onChange={(e) => { setContactSearch(e.target.value); setContactId(''); }}
                             />
                             {contactId && <div className="absolute right-3 top-2.5 text-green-600"><Check size={14} /></div>}
                         </div>
@@ -373,20 +227,13 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                             <div className="absolute top-full left-0 w-full bg-popover border border-border shadow-md rounded-md mt-1 z-50">
                                 {contactSuggestions.map(c => (
                                     <button
-                                        key={c.id}
-                                        type="button"
+                                        key={c.id} type="button"
                                         className="w-full text-left px-4 py-2 hover:bg-muted text-xs flex items-center justify-between"
                                         onClick={() => {
-                                            setContactSearch(c.name);
-                                            setContactId(c.id);
-                                            setPhone(c.phone || '');
-                                            setEmail(c.email || '');
+                                            setContactSearch(c.name); setContactId(c.id); setPhone(c.phone || ''); setEmail(c.email || '');
                                             if (c.companyId) {
                                                 const co = companies.find(comp => comp.id === c.companyId);
-                                                if (co) {
-                                                    setCompanySearch(co.name);
-                                                    setCompanyId(co.id);
-                                                }
+                                                if (co) { setCompanySearch(co.name); setCompanyId(co.id); }
                                             }
                                         }}
                                     >
@@ -408,11 +255,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                                 className="w-full pl-9 pr-4 py-1.5 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50"
                                 placeholder="Nome da organização"
                                 value={companySearch}
-                                onChange={(e) => {
-                                    setCompanySearch(e.target.value);
-                                    setCompanyId('');
-                                    setCompanyManuallyEdited(true);
-                                }}
+                                onChange={(e) => { setCompanySearch(e.target.value); setCompanyId(''); setCompanyManuallyEdited(true); }}
                             />
                             {companyId && <div className="absolute right-3 top-2.5 text-green-600"><Check size={14} /></div>}
                         </div>
@@ -420,14 +263,9 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                             <div className="absolute top-full left-0 w-full bg-popover border border-border shadow-md rounded-md mt-1 z-50">
                                 {companySuggestions.map(c => (
                                     <button
-                                        key={c.id}
-                                        type="button"
+                                        key={c.id} type="button"
                                         className="w-full text-left px-4 py-2 hover:bg-muted text-xs"
-                                        onClick={() => {
-                                            setCompanySearch(c.name);
-                                            setCompanyId(c.id);
-                                            setCompanyManuallyEdited(true);
-                                        }}
+                                        onClick={() => { setCompanySearch(c.name); setCompanyId(c.id); setCompanyManuallyEdited(true); }}
                                     >
                                         {c.name}
                                     </button>
@@ -444,10 +282,7 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                             className="w-full px-3 py-1.5 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none text-sm placeholder:text-muted-foreground/50"
                             placeholder="Ex: Venda de Licença Enterprise"
                             value={title}
-                            onChange={(e) => {
-                                setTitle(e.target.value);
-                                setIsTitleManuallyEdited(true);
-                            }}
+                            onChange={(e) => { setTitle(e.target.value); setIsTitleManuallyEdited(true); }}
                         />
                     </div>
 
@@ -458,23 +293,17 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                             <div className="relative flex-1">
                                 <span className="absolute left-3 top-2.5 text-muted-foreground text-xs font-medium">{currency === 'BRL' ? 'R$' : currency}</span>
                                 <input
-                                    type="number"
-                                    step="0.01"
+                                    type="number" step="0.01"
                                     className="w-full pl-12 pr-3 py-1.5 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-primary/50 outline-none text-sm placeholder:text-muted-foreground/50"
-                                    placeholder="0,00"
-                                    value={value}
-                                    onChange={(e) => setValue(e.target.value)}
+                                    placeholder="0,00" value={value} onChange={(e) => setValue(e.target.value)}
                                 />
                             </div>
-                            <div className="flex items-center px-3 border border-input bg-muted/20 rounded-md text-muted-foreground text-xs cursor-not-allowed whitespace-nowrap">
-                                {currency}
-                            </div>
+                            <div className="flex items-center px-3 border border-input bg-muted/20 rounded-md text-muted-foreground text-xs cursor-not-allowed whitespace-nowrap">{currency}</div>
                         </div>
                     </div>
 
-                    {/* Pipeline & Stage Selection */}
+                    {/* Pipeline & Stage */}
                     <div className="p-2 bg-muted/30 rounded-lg border border-border/50 space-y-2">
-                        {/* Pipeline Selector */}
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Funil</label>
                             <select
@@ -482,13 +311,9 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                                 value={selectedPipelineId}
                                 onChange={(e) => setSelectedPipelineId(e.target.value)}
                             >
-                                {Object.values(pipelines).map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
+                                {Object.values(pipelines).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
-
-                        {/* Visual Stage Selector */}
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Etapa</label>
                             <div className="flex gap-1 w-full overflow-x-auto pb-1">
@@ -497,26 +322,17 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                                     const isPassed = stages.findIndex(s => s.id === selectedStageId) > index;
                                     return (
                                         <div
-                                            key={stage.id}
-                                            onClick={() => setSelectedStageId(stage.id)}
-                                            className={`
-                                                flex-1 min-w-[40px] h-6 cursor-pointer transition-colors relative group
-                                                first:rounded-l-sm last:rounded-r-sm
-                                                ${isSelected ? 'bg-green-500' : isPassed ? 'bg-green-200' : 'bg-muted'}
-                                            `}
+                                            key={stage.id} onClick={() => setSelectedStageId(stage.id)}
+                                            className={`flex-1 min-w-[40px] h-6 cursor-pointer transition-colors relative first:rounded-l-sm last:rounded-r-sm ${isSelected ? 'bg-green-500' : isPassed ? 'bg-green-200' : 'bg-muted'}`}
                                             title={stage.title}
                                         >
-                                            <div className={`absolute top-0 right-[-4px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-l-[6px] z-10
-                                                ${isSelected ? 'border-l-green-500' : isPassed ? 'border-l-green-200' : 'border-l-muted'}
-                                            `} />
+                                            <div className={`absolute top-0 right-[-4px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-l-[6px] z-10 ${isSelected ? 'border-l-green-500' : isPassed ? 'border-l-green-200' : 'border-l-muted'}`} />
                                             <div className="absolute top-0 right-[-5px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-l-[6px] border-l-background z-0" />
                                         </div>
                                     )
                                 })}
                             </div>
-                            <div className="text-xs text-muted-foreground text-right font-medium">
-                                {stages.find(s => s.id === selectedStageId)?.title || 'Selecione uma etapa'}
-                            </div>
+                            <div className="text-xs text-muted-foreground text-right font-medium">{stages.find(s => s.id === selectedStageId)?.title || 'Selecione uma etapa'}</div>
                         </div>
                     </div>
 
@@ -526,55 +342,32 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Telefone</label>
                             <div className="relative">
                                 <Phone size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
-                                <input
-                                    type="tel"
-                                    className="w-full pl-8 pr-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50"
-                                    placeholder="Telefone"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                />
+                                <input type="tel" className="w-full pl-8 pr-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50" placeholder="Telefone" value={phone} onChange={(e) => setPhone(e.target.value)} />
                             </div>
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">E-mail</label>
                             <div className="relative">
                                 <Mail size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
-                                <input
-                                    type="email"
-                                    className="w-full pl-8 pr-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50"
-                                    placeholder="Email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
+                                <input type="email" className="w-full pl-8 pr-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-muted-foreground/50" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                             </div>
                         </div>
                     </div>
-
 
                     {/* Date & Source */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-2">
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Data de adição</label>
-                            <input
-                                type="date"
-                                className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none"
-                                value={expectedCloseDate}
-                                onChange={(e) => setExpectedCloseDate(e.target.value)}
-                            />
+                            <input type="date" className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} />
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Origem</label>
-                            <select
-                                className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none"
-                                value={source}
-                                onChange={(e) => setSource(e.target.value)}
-                            >
+                            <select className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md text-sm focus:ring-2 focus:ring-primary/50 outline-none" value={source} onChange={(e) => setSource(e.target.value)}>
                                 <option value="">Selecione...</option>
                                 {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                         </div>
                     </div>
-
 
                     {/* Labels */}
                     <div>
@@ -582,41 +375,22 @@ export default function NewDealModal({ isOpen, onClose, initialColumnId, dealToE
                         <div className="flex flex-wrap gap-2">
                             {LABELS.map(label => (
                                 <button
-                                    key={label.id}
-                                    type="button"
+                                    key={label.id} type="button"
                                     onClick={() => setSelectedLabels(prev => prev.includes(label.id) ? prev.filter(x => x !== label.id) : [...prev, label.id])}
-                                    className={`
-                                        px-2 py-1 rounded-full text-[10px] font-medium border transition-all
-                                        ${selectedLabels.includes(label.id)
-                                            ? `${label.color} border-transparent ring-1 ring-primary/20`
-                                            : 'bg-background border-border text-muted-foreground hover:border-primary/50'}
-                                    `}
+                                    className={`px-2 py-1 rounded-full text-[10px] font-medium border transition-all ${selectedLabels.includes(label.id) ? `${label.color} border-transparent ring-1 ring-primary/20` : 'bg-background border-border text-muted-foreground hover:border-primary/50'}`}
                                 >
                                     {label.name}
                                 </button>
                             ))}
                         </div>
                     </div>
-
                 </div>
 
                 {/* Footer Actions */}
                 <div className="mt-4 sm:mt-2 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-2 border-t border-border shrink-0 bg-background/80 backdrop-blur-sm sm:bg-transparent">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors order-2 sm:order-1"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="submit"
-                        className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-md order-1 sm:order-2"
-                    >
-                        Salvar
-                    </button>
+                    <button type="button" onClick={handleOnClose} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors order-2 sm:order-1">Cancelar</button>
+                    <button type="submit" className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-md order-1 sm:order-2">Salvar</button>
                 </div>
-
             </form>
         </Modal>
     );

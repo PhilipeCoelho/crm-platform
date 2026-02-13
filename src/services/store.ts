@@ -36,9 +36,19 @@ export interface CRMStore {
 
     // Helpers
     getPipelineStages: (pipelineId: string) => Stage[];
+    // Generic Status
     refresh: () => Promise<void>;
 
+    // Global Modal States
+    isNewDealModalOpen: boolean;
+    openNewDealModal: (stageId?: string, dealToEdit?: Deal) => void;
+    closeNewDealModal: () => void;
+    newDealStageId: string | null;
+    dealToEdit: Deal | null;
+
+
     // Stage Actions
+
     addStage: (pipelineId: string, title: string) => Promise<void>;
     updateStage: (stageId: string, updates: Partial<Stage>) => Promise<void>;
     deleteStage: (stageId: string) => Promise<void>;
@@ -74,6 +84,24 @@ export function useCRMStore(): CRMStore {
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isPipelineSettingsOpen, setPipelineSettingsOpen] = useState(false);
+
+    // Global Modal States
+    const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
+    const [newDealStageId, setNewDealStageId] = useState<string | null>(null);
+    const [dealToEdit, setDealToEdit] = useState<Deal | null>(null);
+
+    const openNewDealModal = (stageId?: string, editDeal?: Deal) => {
+        setNewDealStageId(stageId || null);
+        setDealToEdit(editDeal || null);
+        setIsNewDealModalOpen(true);
+    };
+
+    const closeNewDealModal = () => {
+        setIsNewDealModalOpen(false);
+        setNewDealStageId(null);
+        setDealToEdit(null);
+    };
+
 
     // --- Data Fetching ---
     const fetchAll = useCallback(async () => {
@@ -760,6 +788,15 @@ export function useCRMStore(): CRMStore {
         deleteStage,
         reorderStages,
         getPipelineStages: (pid: string) => pipelines[pid]?.stages || [],
-        refresh: fetchAll
+        refresh: fetchAll,
+
+        // Modal Actions
+        isNewDealModalOpen,
+        openNewDealModal,
+        closeNewDealModal,
+        newDealStageId,
+        dealToEdit
+
     };
 }
+

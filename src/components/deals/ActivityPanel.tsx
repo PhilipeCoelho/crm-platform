@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Deal, Activity } from '@/types/schema';
-import { CheckSquare, FileText, Mail, File, Check, Plus } from 'lucide-react';
+import { CheckSquare, FileText, Mail, File } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import Timeline from '../activities/Timeline';
 import ActivityList from '../activities/ActivityList';
@@ -86,48 +86,48 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
 
     return (
         <div className="flex flex-col h-full bg-background relative">
-            {/* Tabs Header */}
-            <div className="flex items-center gap-4 px-4 border-b border-border overflow-x-auto no-scrollbar bg-background">
+            {/* Tabs Header - FOCADO EM OPERAÇÃO */}
+            <div className="flex items-center gap-6 px-1 border-b border-border dark:border-slate-800 overflow-x-auto no-scrollbar bg-transparent">
                 {tabs.map(tab => {
-                    const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
                     return (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`flex items-center gap-2 py-3 text-sm font-medium transition-all whitespace-nowrap border-b-2
+                            className={`relative py-3 text-xs font-bold uppercase tracking-[0.1em] transition-all whitespace-nowrap
                                       ${isActive
-                                    ? 'border-primary text-foreground'
-                                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                                    ? 'text-indigo-500 dark:text-indigo-400'
+                                    : 'text-muted-foreground dark:text-slate-500 hover:text-foreground dark:hover:text-slate-300'
                                 }`}
                         >
-                            <Icon size={16} />
                             {tab.label}
+                            {isActive && (
+                                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 dark:bg-indigo-400 rounded-full" />
+                            )}
                         </button>
                     );
                 })}
             </div>
 
-            {/* Content Area */}
-            <div className="border-b border-border shrink-0">
+
+            {/* Content Area - ÁREA DE AÇÃO */}
+            <div className="bg-background dark:bg-slate-800/20 rounded-xl border border-border dark:border-slate-700/50 shadow-sm mt-6">
                 {renderContent()}
             </div>
 
-            {/* Activities List (Scrollable) */}
-            <div className="flex-1 overflow-y-auto bg-background">
-                <div className="p-4 space-y-6">
+
+            {/* Activities List (Scrollable) - HISTÓRICO EM TIMELINE */}
+            <div className="flex-1 mt-10">
+                <div className="space-y-10">
 
                     {/* Focus / Planned Section */}
                     {openActivities.length > 0 && (
                         <section>
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="font-bold text-xs text-foreground flex items-center gap-1.5">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                    Planejado
-                                </h3>
-                                <span className="text-xs text-muted-foreground">{openActivities.length} atividades</span>
-                            </div>
-                            <div className="pl-4 border-l-2 border-green-100 space-y-3">
+                            <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                Atividades Planejadas
+                            </h3>
+                            <div className="space-y-0 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                                 <ActivityList
                                     activities={openActivities}
                                     onToggle={handleActivityToggle}
@@ -138,36 +138,16 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                         </section>
                     )}
 
-                    {/* Hint if no planned activities */}
-                    {openActivities.length === 0 && !readOnly && (
-                        <div className="p-4 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm flex items-center gap-3">
-                            <div className="p-2 bg-yellow-100 rounded-full">
-                                <Check size={16} />
-                            </div>
-                            <div>
-                                <p className="font-medium">Tudo limpo por aqui!</p>
-                                <p className="text-xs opacity-80 mb-2">Nenhuma atividade pendente. Que tal agendar o próximo passo?</p>
-                                <button
-                                    onClick={() => setActiveTab('activity')}
-                                    className="text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 rounded-md transition-all shadow-sm border border-yellow-300/30"
-                                >
-                                    <Plus size={12} />
-                                    Agendar próxima etapa
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    {/* Hint if no planned activities - REMOVED AS REQUESTED */}
 
-                    {/* History Section */}
+                    {/* History Section - TIMELINE LIMPA */}
                     {historyActivities.length > 0 && (
                         <section>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-slate-200" />
-                                    Histórico
-                                </h3>
-                            </div>
-                            <div className="pl-4 border-l-2 border-border space-y-4 opacity-75 hover:opacity-100 transition-opacity">
+                            <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                Histórico do Negócio
+                            </h3>
+                            <div className="space-y-0 relative before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                                 <Timeline
                                     activities={historyActivities}
                                     onReopen={readOnly ? undefined : handleActivityToggle}
@@ -179,6 +159,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                     )}
                 </div>
             </div>
+
 
             {/* Edit Modal */}
             <EditActivityModal

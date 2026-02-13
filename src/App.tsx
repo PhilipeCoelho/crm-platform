@@ -15,6 +15,7 @@ import Dashboard from '@/pages/Dashboard';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
 import PipelineSettingsModal from '@/components/kanban/PipelineSettingsModal';
+import NewDealModal from '@/components/kanban/NewDealModal';
 
 // function Layout({ children }: { children: React.ReactNode }) { // Old signature
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
@@ -369,7 +370,12 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     onClose={() => setPipelineSettingsOpen(false)}
                     pipelineId="sales"
                 />
+
+                <NewDealModal
+                    currency={currency.code}
+                />
             </aside>
+
 
             {/* Main Content Area */}
             <main className={`flex-1 flex flex-col h-screen overflow-hidden relative ${isMobile ? 'pt-14 w-full' : ''}`}>

@@ -16,8 +16,8 @@ import {
 
 import { createPortal } from "react-dom";
 import { DealCardBase } from "./KanbanCard";
-import NewDealModal from "./NewDealModal";
 import SuggestionModal from "./SuggestionModal";
+
 import { Filter, Search, Plus } from "lucide-react";
 import { Currency } from "@/data/currencies";
 import DealDetailsModal from "./DealDetailsModal";
@@ -29,7 +29,12 @@ interface KanbanBoardProps {
 }
 
 function KanbanBoard({ currency }: KanbanBoardProps) {
-    const { deals, contacts, companies, pipelines, moveDeal, activities, isLoading, setPipelineSettingsOpen } = useCRM();
+    const {
+        deals, contacts, companies, pipelines, moveDeal, activities,
+        isLoading, setPipelineSettingsOpen,
+        openNewDealModal
+    } = useCRM();
+
     const isMobile = useIsMobile();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId, setCurrentPipelineId] = useState(() => {
@@ -167,11 +172,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
 
-    // New Deal Modal State
-    const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
-    const [newDealStageId, setNewDealStageId] = useState<string | null>(null);
-
     // Suggestion Modal State
+
 
     const [dragStartDeals, setDragStartDeals] = useState<Deal[]>([]);
     const [suggestionModal, setSuggestionModal] = useState<{ isOpen: boolean; deal: Deal | null; stageName: string }>({
@@ -189,10 +191,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         })
     );
 
-    const openNewDealModal = (stageId: string) => {
-        setNewDealStageId(stageId);
-        setIsNewDealModalOpen(true);
-    };
+
 
     const handleDealClick = (dealId: string) => {
         setSelectedDealId(dealId);
@@ -349,13 +348,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                 />
 
                 {/* Modals */}
-                <NewDealModal
-                    isOpen={isNewDealModalOpen}
-                    onClose={() => setIsNewDealModalOpen(false)}
-                    initialColumnId={newDealStageId || undefined}
-                    currency={currency.code}
-                    activePipelineId={currentPipelineId}
-                />
+
 
                 {selectedDealId && (
                     <DealDetailsModal
@@ -597,13 +590,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     )}
                 </DndContext>
 
-                <NewDealModal
-                    isOpen={isNewDealModalOpen}
-                    onClose={() => setIsNewDealModalOpen(false)}
-                    initialColumnId={newDealStageId || undefined}
-                    currency={currency.code}
-                    activePipelineId={currentPipelineId}
-                />
+
 
                 <SuggestionModal
                     isOpen={suggestionModal.isOpen}

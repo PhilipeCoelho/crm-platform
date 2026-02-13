@@ -34,23 +34,23 @@ const getActivityStatus = (dateString?: string) => {
 
 const statusStyles = {
     late: {
-        bg: 'bg-red-500/10',
-        text: 'text-red-600',
-        border: 'border-red-200',
+        bg: 'bg-red-500/10 dark:bg-red-500/20',
+        text: 'text-red-600 dark:text-red-400',
+        border: 'border-red-200 dark:border-red-800',
         dot: 'bg-red-500',
         label: 'Atrasada'
     },
     today: {
-        bg: 'bg-emerald-500/10',
-        text: 'text-emerald-600',
-        border: 'border-emerald-200',
+        bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+        text: 'text-emerald-600 dark:text-emerald-400',
+        border: 'border-emerald-200 dark:border-emerald-800',
         dot: 'bg-emerald-500',
         label: 'Para hoje'
     },
     future: {
-        bg: 'bg-white dark:bg-slate-900',
+        bg: 'bg-white dark:bg-slate-800/40',
         text: 'text-slate-600 dark:text-slate-400',
-        border: 'border-slate-200 dark:border-slate-800',
+        border: 'border-slate-100 dark:border-slate-800',
         dot: 'bg-slate-300 dark:bg-slate-600',
         label: 'Planejado'
     }
