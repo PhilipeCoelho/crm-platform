@@ -67,7 +67,7 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
     }
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-4 sm:space-y-3">
             {activities.map(activity => {
                 const Icon = typeIcons[activity.type] || FileText;
                 const status = getActivityStatus(activity.dueDate);
@@ -79,75 +79,76 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                 return (
                     <div
                         key={activity.id}
-                        className={`group/item relative flex items-start gap-3 p-3 rounded-lg border bg-card transition-all hover:shadow-sm
+                        className={`group/item relative flex items-start gap-4 sm:gap-3 p-4 sm:p-3 rounded-xl sm:rounded-lg border bg-card transition-all hover:shadow-sm
                             ${isCompleted ? 'opacity-60 border-border' : `border-l-4 ${style.border.replace('border', 'border-l')}`}`}
                         // Note: Using border-l-4 for clear visual indication status if not completed
                         style={!isCompleted ? { borderLeftColor: status === 'late' ? '#ef4444' : status === 'today' ? '#22c55e' : undefined } : {}}
                     >
                         <button
                             onClick={() => onToggle(activity.id)}
-                            className={`mt-0.5 shrink-0 ${isCompleted ? 'text-primary' : 'text-muted-foreground hover:text-primary'} transition-colors`}
+                            className={`mt-0.5 shrink-0 h-11 w-11 sm:h-auto sm:w-auto flex items-center justify-center sm:block ${isCompleted ? 'text-primary' : 'text-muted-foreground hover:text-primary'} transition-colors`}
                         >
-                            {isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                            {isCompleted ? <CheckCircle2 size={24} className="sm:w-5 sm:h-5" /> : <Circle size={24} className="sm:w-5 sm:h-5" />}
                         </button>
 
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start">
-                                <h4 className={`text-sm font-medium ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        <div className="flex-1 min-w-0 pt-2 sm:pt-0">
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+                                <h4 className={`text-base sm:text-sm font-bold sm:font-medium ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {activity.title}
                                 </h4>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-4 sm:gap-2">
                                     {activity.dueDate && (
-                                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border ${!isCompleted ? `${style.bg} ${style.text} ${style.border}` : 'bg-muted text-muted-foreground border-transparent'}`}>
+                                        <div className={`flex items-center gap-1.5 px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full text-[10px] sm:text-[10px] font-bold sm:font-medium border ${!isCompleted ? `${style.bg} ${style.text} ${style.border}` : 'bg-muted text-muted-foreground border-transparent'}`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${!isCompleted ? style.dot : 'bg-muted-foreground'}`} />
                                             <span>
                                                 {status === 'today' ? 'Hoje' : format(parseISO(activity.dueDate), "dd MMM", { locale: ptBR })}
                                             </span>
                                         </div>
                                     )}
-                                    {onEdit && (
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onEdit(activity); }}
-                                            className="sm:opacity-0 sm:group-hover/item:opacity-100 p-1.5 hover:bg-blue-50 hover:text-blue-500 rounded text-muted-foreground transition-all"
-                                            title="Editar atividade"
-                                        >
-                                            <Pencil size={14} />
-                                        </button>
-                                    )}
-                                    {onDelete && (
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onDelete(activity.id); }}
-                                            className="sm:opacity-0 sm:group-hover/item:opacity-100 p-1.5 hover:bg-red-50 hover:text-red-500 rounded text-muted-foreground transition-all"
-                                            title="Excluir atividade"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    )}
-
+                                    <div className="flex items-center gap-1">
+                                        {onEdit && (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onEdit(activity); }}
+                                                className="sm:opacity-0 sm:group-hover/item:opacity-100 p-2.5 sm:p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 rounded-md text-muted-foreground transition-all"
+                                                title="Editar atividade"
+                                            >
+                                                <Pencil size={18} className="sm:w-3.5 sm:h-3.5" />
+                                            </button>
+                                        )}
+                                        {onDelete && (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onDelete(activity.id); }}
+                                                className="sm:opacity-0 sm:group-hover/item:opacity-100 p-2.5 sm:p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 rounded-md text-muted-foreground transition-all"
+                                                title="Excluir atividade"
+                                            >
+                                                <Trash2 size={18} className="sm:w-3.5 sm:h-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
                             {activity.description && (
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                <p className="text-sm sm:text-xs text-muted-foreground mt-2 sm:mt-1 line-clamp-3 sm:line-clamp-2">
                                     {activity.description}
                                 </p>
                             )}
 
-                            <div className="flex items-center gap-3 mt-2">
-                                <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                    <Icon size={10} />
+                            <div className="flex items-center gap-4 sm:gap-3 mt-3 sm:mt-2">
+                                <span className="inline-flex items-center gap-1.5 sm:gap-1 text-[10px] uppercase font-bold tracking-wider text-muted-foreground bg-muted px-2 py-1 sm:px-1.5 sm:py-0.5 rounded">
+                                    <Icon size={12} className="sm:w-2.5 sm:h-2.5" />
                                     {activity.type}
                                 </span>
 
                                 {activity.duration && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                                        <Clock size={10} />
+                                    <span className="inline-flex items-center gap-1.5 sm:gap-1 text-[10px] text-muted-foreground">
+                                        <Clock size={12} className="sm:w-2.5 sm:h-2.5" />
                                         {activity.duration} min
                                     </span>
                                 )}
 
                                 {!isCompleted && (
-                                    <span className={`text-[10px] font-medium ${style.text}`}>
+                                    <span className={`text-[10px] font-bold sm:font-medium ${style.text}`}>
                                         {style.label}
                                     </span>
                                 )}

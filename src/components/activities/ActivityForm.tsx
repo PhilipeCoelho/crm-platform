@@ -79,19 +79,20 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-            <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-5 sm:space-y-6">
+            <div className="space-y-4 sm:space-y-5">
                 <input
                     type="text"
                     placeholder="O que precisa fazer?"
-                    className="w-full py-2 bg-transparent border-b border-border focus:border-primary outline-none font-medium text-base transition-colors"
+                    className="w-full py-3 sm:py-2 bg-transparent border-b border-border focus:border-primary outline-none font-medium transition-colors"
+                    style={{ fontSize: '16px' }}
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     autoFocus
                 />
 
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 sm:gap-4">
+                    <div className="flex items-center gap-1.5 sm:gap-1">
                         <TooltipProvider>
                             {QUICK_ACTIONS.map(action => {
                                 const Icon = action.icon;
@@ -103,16 +104,16 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                                                 type="button"
                                                 onClick={() => handleQuickAction(action)}
                                                 className={`
-                                                    h-8 w-8 flex items-center justify-center rounded transition-colors
+                                                    h-11 w-11 sm:h-8 sm:w-8 flex items-center justify-center rounded transition-colors
                                                     ${isSelected
                                                         ? 'bg-primary text-white shadow-sm'
                                                         : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'}
                                                 `}
                                             >
-                                                <Icon size={14} />
+                                                <Icon size={18} className="sm:w-3.5 sm:h-3.5" />
                                             </button>
                                         </TooltipTrigger>
-                                        <TooltipContent side="top">
+                                        <TooltipContent side="top" className="hidden sm:block">
                                             <p className="text-[10px]">{action.label}</p>
                                         </TooltipContent>
                                     </Tooltip>
@@ -121,37 +122,40 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                         </TooltipProvider>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4 sm:gap-3 bg-muted/20 sm:bg-transparent p-3 sm:p-0 rounded-xl sm:rounded-none">
                         <div
-                            className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-primary transition-colors pr-2 border-r border-border/50"
+                            className="flex items-center gap-2 sm:gap-1.5 cursor-pointer text-muted-foreground hover:text-primary transition-colors pr-3 sm:pr-2 border-r border-border/50"
                             onClick={() => dateInputRef.current?.showPicker()}
                         >
-                            <Calendar size={14} />
+                            <Calendar size={18} className="sm:w-3.5 sm:h-3.5" />
                             <input
                                 ref={dateInputRef}
                                 type="date"
-                                className="bg-transparent outline-none text-[11px] font-bold cursor-pointer w-[90px]"
+                                className="bg-transparent outline-none font-bold cursor-pointer w-[110px] sm:w-[90px]"
+                                style={{ fontSize: '16px' }}
                                 value={date}
                                 onChange={e => setDate(e.target.value)}
                             />
                         </div>
 
-                        <TimePicker
-                            value={time}
-                            onChange={setTime}
-                        />
-
+                        <div className="flex-1">
+                            <TimePicker
+                                value={time}
+                                onChange={setTime}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-3 sm:pt-2">
                 <button
                     type="submit"
                     disabled={!title.trim() || isSubmitting}
-                    className="h-8 px-4 bg-primary text-white rounded-md hover:bg-primary/90 font-bold text-xs flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all active:scale-95"
+                    className="h-12 sm:h-8 w-full sm:w-auto px-6 bg-primary text-white rounded-xl sm:rounded-md hover:bg-primary/90 font-bold flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 transition-all active:scale-[0.98] sm:active:scale-95"
+                    style={{ fontSize: '16px' }}
                 >
-                    <CheckCircle2 size={14} />
+                    {!isSubmitting && <CheckCircle2 size={18} className="sm:w-3.5 sm:h-3.5" />}
                     {isSubmitting ? 'Salvando...' : submitLabel}
                 </button>
             </div>

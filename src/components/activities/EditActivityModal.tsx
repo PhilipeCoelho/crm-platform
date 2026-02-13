@@ -44,16 +44,16 @@ export default function EditActivityModal({ isOpen, onClose, deal, activity, onU
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-background w-full max-w-lg rounded-xl shadow-xl border border-border flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-between p-4 border-b border-border">
-                    <h2 className="text-lg font-semibold">Editar Atividade</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-muted rounded-full">
-                        <X size={20} />
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+            <div className="bg-background w-full max-w-lg rounded-t-[20px] sm:rounded-xl shadow-2xl border-t sm:border border-border flex flex-col h-[85vh] sm:h-auto max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
+                <div className="flex items-center justify-between p-5 border-b border-border">
+                    <h2 className="text-xl sm:text-lg font-bold">Editar Atividade</h2>
+                    <button onClick={onClose} className="p-2 sm:p-1 hover:bg-muted rounded-full text-muted-foreground">
+                        <X size={24} className="sm:w-5 sm:h-5" />
                     </button>
                 </div>
 
-                <div className="p-4 overflow-y-auto">
+                <div className="p-2 sm:p-4 overflow-y-auto">
                     <ActivityForm
                         deal={deal}
                         initialData={initialData}

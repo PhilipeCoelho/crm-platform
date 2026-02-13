@@ -178,7 +178,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
     };
 
     return (
-        <div className={`flex flex-col overflow-hidden w-full h-full bg-background ${!isModal && 'max-w-5xl mx-auto border-x border-border shadow-lg'}`}>
+        <div className={`flex flex-col overflow-hidden w-full h-full bg-background overscroll-none ${!isModal && 'max-w-5xl mx-auto border-x border-border shadow-lg'}`}>
 
             {/* HEADER PIPEDRIVE STYLE */}
             <header className="shrink-0 bg-background border-b border-border dark:border-slate-800 px-6 py-6 z-40 relative">
@@ -205,14 +205,15 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
                                     data-editable="true"
-                                    className="text-xl font-bold text-indigo-500 dark:text-indigo-400 bg-transparent border-b-2 border-indigo-500/50 outline-none w-full max-w-[450px] transition-all"
+                                    className="text-lg sm:text-xl font-bold text-indigo-500 dark:text-indigo-400 bg-transparent border-b-2 border-indigo-500/50 outline-none w-full max-w-[450px] transition-all"
                                     autoFocus
+                                    style={{ fontSize: '16px' }}
                                 />
                             ) : (
                                 <h1
                                     onClick={() => startEditing('title')}
                                     data-editable="true"
-                                    className="text-xl font-bold text-foreground truncate max-w-[450px] hover:text-indigo-500 cursor-text transition-colors relative group"
+                                    className="text-lg sm:text-xl font-bold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-indigo-500 cursor-text transition-colors relative group"
                                 >
                                     {deal.title}
                                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-500 group-hover:w-full transition-all duration-300"></span>
@@ -241,7 +242,8 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         onBlur={handleBlur}
                                         onKeyDown={handleKeyDown}
                                         data-editable="true"
-                                        className="text-sm font-bold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-24"
+                                        className="text-sm sm:text-base font-bold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-24"
+                                        style={{ fontSize: '16px' }}
                                     />
                                 </div>
                             ) : (
@@ -295,8 +297,8 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             </header>
 
             {/* PIPELINE BAR - LINHA FINA REFORMULADA */}
-            <div className="bg-background border-b border-border dark:border-slate-800 px-6 py-4 shrink-0">
-                <div className="flex items-center gap-1.5 w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="bg-background border-b border-border dark:border-slate-800 px-6 py-4 shrink-0 overflow-x-auto no-scrollbar touch-pan-x">
+                <div className="flex items-center gap-1.5 min-w-[600px] sm:min-w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     {pipeline.stages.map((stage, index) => {
                         const isActive = index === currentStageIndex;
                         const isPast = index < currentStageIndex;
@@ -331,8 +333,9 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         setEditingField(null);
                                     }}
                                     onBlur={() => setEditingField(null)}
-                                    className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.15em] bg-transparent outline-none cursor-pointer pr-4"
+                                    className="text-[10px] sm:text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.15em] bg-transparent outline-none cursor-pointer pr-4"
                                     autoFocus
+                                    style={{ fontSize: '16px' }}
                                 >
                                     {pipeline.stages.map(s => (
                                         <option key={s.id} value={s.id}>{s.title}</option>
@@ -355,40 +358,40 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             </div>
 
             {/* VERTICAL CONTENT AREA - SPLIT VIEW PARA EVITAR SCROLL */}
-            <div className="flex-1 overflow-hidden bg-background flex flex-col lg:flex-row">
+            <div className="flex-1 overflow-y-auto lg:overflow-hidden bg-background flex flex-col lg:flex-row custom-scrollbar">
 
                 {/* COLUNA ESQUERDA: CONTATOS (FIXA/ESTÁTICA) */}
-                <aside className="w-full lg:w-[360px] shrink-0 border-r border-border dark:border-slate-800 p-6 space-y-10 overflow-y-auto bg-muted/5 dark:bg-slate-900/20 custom-scrollbar">
+                <aside className="w-full lg:w-[360px] shrink-0 border-b lg:border-r lg:border-b-0 border-border dark:border-slate-800 p-5 sm:p-6 space-y-8 sm:space-y-10 lg:overflow-y-auto bg-muted/5 dark:bg-slate-900/20 custom-scrollbar">
                     {/* BLOCO 2 – Pessoa e Organização */}
-                    <div className="space-y-10">
+                    <div className="space-y-8 sm:space-y-10">
                         {/* Seção Pessoa */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2">
+                                <h3 className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2">
                                     <User size={12} className="text-indigo-500" />
                                     Pessoa de Contato
                                 </h3>
                                 {contact && (
                                     <button
                                         onClick={() => openNewDealModal(undefined, deal)}
-                                        className="p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all"
+                                        className="p-1.5 sm:p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all font-bold"
                                         title="Alterar Contato"
                                     >
-                                        <Pencil size={12} />
+                                        <Pencil size={14} className="sm:w-3 sm:h-3" />
                                     </button>
                                 )}
                             </div>
                             {contact ? (
-                                <div className="space-y-4 bg-white dark:bg-slate-800/60 p-5 rounded-2xl border border-border dark:border-slate-700/60 shadow-sm dark:shadow-black/20 group/card transition-all hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                <div className="space-y-5 bg-white dark:bg-slate-800/60 p-5 rounded-2xl border border-border dark:border-slate-700/60 shadow-sm dark:shadow-black/20 group/card transition-all hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-indigo-500/10 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-base border border-indigo-500/20 dark:border-slate-600 shadow-inner">
+                                        <div className="w-12 h-12 rounded-full bg-indigo-500/10 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-lg border border-indigo-500/20 dark:border-slate-600 shadow-inner">
                                             {contact.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
                                             <Link
                                                 to={`/contacts/${contact.id}`}
                                                 data-link="true"
-                                                className="text-sm font-bold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate pr-2"
+                                                className="text-base sm:text-sm font-bold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate pr-2"
                                             >
                                                 {contact.name}
                                             </Link>
@@ -404,25 +407,26 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                     onBlur={handleBlur}
                                                     onKeyDown={handleKeyDown}
                                                     data-editable="true"
-                                                    className="text-xs text-indigo-500 dark:text-indigo-400 bg-transparent border-b border-indigo-500/50 outline-none w-full mt-1"
+                                                    className="text-sm sm:text-xs text-indigo-500 dark:text-indigo-400 bg-transparent border-b border-indigo-500/50 outline-none w-full mt-1.5"
+                                                    style={{ fontSize: '16px' }}
                                                 />
                                             ) : (
                                                 <p
-                                                    className="text-xs text-muted-foreground dark:text-slate-400 truncate hover:text-indigo-400 cursor-text group/email flex items-center gap-1"
+                                                    className="text-sm sm:text-xs text-muted-foreground dark:text-slate-400 truncate hover:text-indigo-400 cursor-text group/email flex items-center gap-1.5 mt-0.5"
                                                     onClick={() => startEditing('email')}
                                                     data-editable="true"
                                                 >
                                                     {contact.email || 'Adicionar email'}
-                                                    <Pencil size={8} className="opacity-0 group-hover/email:opacity-100" />
+                                                    <Pencil size={10} className="sm:w-2 sm:h-2 opacity-0 group-hover/email:opacity-100" />
                                                 </p>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="pt-3 border-t border-border/50 dark:border-slate-700/50">
+                                    <div className="pt-4 border-t border-border/50 dark:border-slate-700/50">
                                         {editingField === 'phone' ? (
-                                            <div className="flex items-center gap-2 border-b border-indigo-500/50">
-                                                <Phone size={12} className="text-indigo-500" />
+                                            <div className="flex items-center gap-3 border-b border-indigo-500/50">
+                                                <Phone size={14} className="text-indigo-500" />
                                                 <input
                                                     ref={inputRef as any}
                                                     value={tempPhone}
@@ -434,24 +438,25 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                     onKeyDown={handleKeyDown}
                                                     data-editable="true"
                                                     placeholder="Telefone"
-                                                    className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-full"
+                                                    className="text-sm sm:text-xs font-semibold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-full py-1"
+                                                    style={{ fontSize: '16px' }}
                                                 />
                                             </div>
                                         ) : (
                                             <div
-                                                className="flex items-center gap-2 text-xs text-muted-foreground dark:text-slate-400 hover:text-indigo-400 cursor-text group/phone w-fit"
+                                                className="flex items-center gap-3 text-sm sm:text-xs text-muted-foreground dark:text-slate-400 hover:text-indigo-400 cursor-text group/phone w-full py-1"
                                                 onClick={() => startEditing('phone')}
                                                 data-editable="true"
                                             >
-                                                <Phone size={12} className="text-muted-foreground/40" />
+                                                <Phone size={14} className="text-muted-foreground/40 sm:w-3 sm:h-3" />
                                                 <span className="font-semibold">{contact.phone || 'Adicionar telefone'}</span>
-                                                <Pencil size={8} className="opacity-0 group-hover/phone:opacity-100" />
+                                                <Pencil size={10} className="sm:w-2 sm:h-2 opacity-0 group-hover/phone:opacity-100" />
                                             </div>
                                         )}
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-xs text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-sm sm:text-xs text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
                                     + Vincular Contato
                                 </button>
                             )}
@@ -460,39 +465,39 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         {/* Seção Organização */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2">
+                                <h3 className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2">
                                     <Building size={12} className="text-indigo-500" />
                                     Organização
                                 </h3>
                                 {company && (
                                     <button
                                         onClick={() => openNewDealModal(undefined, deal)}
-                                        className="p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all font-bold"
+                                        className="p-1.5 sm:p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all font-bold"
                                     >
-                                        <Pencil size={12} />
+                                        <Pencil size={14} className="sm:w-3 sm:h-3" />
                                     </button>
                                 )}
                             </div>
                             {company ? (
                                 <div className="bg-white dark:bg-slate-800/60 p-5 rounded-2xl border border-border dark:border-slate-700/60 shadow-sm dark:shadow-black/20 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-base border border-slate-200 dark:border-slate-600 shadow-sm">
+                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-slate-600 shadow-sm">
                                             {company.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
                                             <Link
                                                 to={`/companies/${company.id}`}
                                                 data-link="true"
-                                                className="text-sm font-bold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate"
+                                                className="text-base sm:text-sm font-bold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate"
                                             >
                                                 {company.name}
                                             </Link>
-                                            <p className="text-xs text-muted-foreground dark:text-slate-400 truncate mt-0.5">{company.website || 'Sem website'}</p>
+                                            <p className="text-sm sm:text-xs text-muted-foreground dark:text-slate-400 truncate mt-1">{company.website || 'Sem website'}</p>
                                         </div>
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-xs text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-sm sm:text-xs text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
                                     + Vincular Empresa
                                 </button>
                             )}
@@ -500,8 +505,8 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
 
                         {/* Etiquetas */}
                         <div className="space-y-4">
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em]">Etiquetas</p>
-                            <div className="flex flex-wrap gap-2">
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em]">Etiquetas</p>
+                            <div className="flex flex-wrap gap-2.5">
                                 {['Quente', 'Morno', 'Frio'].map((label, idx) => {
                                     const tagId = (idx + 1).toString();
                                     const isSelected = deal.tags?.includes(tagId);
@@ -515,7 +520,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         <button
                                             key={tagId}
                                             onClick={() => toggleTag(tagId)}
-                                            className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all hover:scale-105 ${isSelected ? typeColors : 'bg-transparent border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600'}`}
+                                            className={`px-4 sm:px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-[10px] font-bold border transition-all active:scale-95 ${isSelected ? typeColors : 'bg-transparent border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600'}`}
                                         >
                                             {label}
                                         </button>
@@ -529,17 +534,17 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         <div className="h-px bg-slate-100 dark:bg-slate-800" />
                         <button
                             onClick={handleDeleteDeal}
-                            className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] hover:text-rose-500 dark:hover:text-rose-400 flex items-center gap-3 transition-all opacity-40 hover:opacity-100 p-2 group"
+                            className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] hover:text-rose-500 dark:hover:text-rose-400 flex items-center gap-4 transition-all opacity-40 hover:opacity-100 p-3 group"
                         >
-                            <Trash2 size={14} className="group-hover:animate-pulse" />
+                            <Trash2 size={16} className="group-hover:animate-pulse sm:w-3.5 sm:h-3.5" />
                             Excluir Negócio
                         </button>
                     </div>
                 </aside>
 
                 {/* COLUNA DIREITA: ÁREA OPERACIONAL (SCROLL INTERNO) */}
-                <main className="flex-1 overflow-y-auto p-6 md:p-10 bg-background dark:bg-slate-900/30 custom-scrollbar">
-                    <div className="max-w-[780px] mx-auto">
+                <main className="flex-1 lg:overflow-y-auto p-5 sm:p-10 bg-background dark:bg-slate-900/30 custom-scrollbar">
+                    <div className="max-w-[780px] mx-auto pb-20 sm:pb-0">
                         <ActivityPanel deal={deal} readOnly={isClosed} />
                     </div>
                 </main>

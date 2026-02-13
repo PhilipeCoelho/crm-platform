@@ -68,12 +68,13 @@ export default function EmailTab({ deal, onSave }: EmailTabProps) {
     };
 
     return (
-        <div className="space-y-4 p-4 border rounded-lg bg-card/50">
-            <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm">
-                    <span className="font-semibold w-16 text-muted-foreground">Para:</span>
+        <div className="space-y-6 p-5 sm:p-4 border rounded-2xl sm:rounded-lg bg-card/50">
+            <div className="space-y-4 sm:space-y-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 text-base sm:text-sm">
+                    <span className="font-bold sm:font-semibold w-full sm:w-16 text-muted-foreground">Para:</span>
                     <input
-                        className="flex-1 bg-transparent border-b border-border focus:border-primary outline-none text-foreground"
+                        className="flex-1 bg-transparent border-b border-border focus:border-primary outline-none text-foreground py-2 sm:py-0"
+                        style={{ fontSize: '16px' }}
                         value={to}
                         onChange={e => setTo(e.target.value)}
                         placeholder="email@exemplo.com"
@@ -81,13 +82,14 @@ export default function EmailTab({ deal, onSave }: EmailTabProps) {
                     />
                 </div>
                 {contact && !contact.email && (
-                    <p className="text-xs text-red-500 ml-16">Contato sem email cadastrado.</p>
+                    <p className="text-xs text-red-500 sm:ml-16">Contato sem email cadastrado.</p>
                 )}
 
-                <div className="flex items-center gap-2 text-sm">
-                    <span className="font-semibold w-16 text-muted-foreground">Assunto:</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 text-base sm:text-sm">
+                    <span className="font-bold sm:font-semibold w-full sm:w-16 text-muted-foreground">Assunto:</span>
                     <input
-                        className="flex-1 bg-transparent border-b border-border focus:border-primary outline-none text-foreground"
+                        className="flex-1 bg-transparent border-b border-border focus:border-primary outline-none text-foreground py-2 sm:py-0"
+                        style={{ fontSize: '16px' }}
                         value={subject}
                         onChange={e => setSubject(e.target.value)}
                         placeholder="Assunto do email..."
@@ -96,27 +98,28 @@ export default function EmailTab({ deal, onSave }: EmailTabProps) {
             </div>
 
             <textarea
-                className="w-full h-40 p-3 rounded border bg-background focus:border-primary outline-none resize-none text-sm"
+                className="w-full h-56 sm:h-40 p-4 sm:p-3 rounded-xl sm:rounded border bg-background focus:border-primary outline-none resize-none text-base sm:text-sm"
+                style={{ fontSize: '16px' }}
                 placeholder="Escreva seu email aqui..."
                 value={body}
                 onChange={e => setBody(e.target.value)}
             />
 
-            <div className="flex justify-between items-center">
-                <button className="text-primary text-sm hover:underline" disabled>Modelos (Em breve)</button>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <button className="text-primary text-sm hover:underline font-bold sm:font-normal" disabled>Modelos (Em breve)</button>
                 <button
                     onClick={handleSend}
                     disabled={!to || !subject.trim() || !body.trim() || sending}
-                    className={`px-4 py-2 rounded font-medium text-sm flex items-center gap-2 transition-all
+                    className={`h-12 sm:h-auto w-full sm:w-auto px-6 py-2.5 rounded-xl sm:rounded font-bold sm:font-medium text-base sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/10 active:scale-[0.98]
                         ${!to || !subject.trim() || !body.trim() || sending
-                            ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                            ? 'bg-muted text-muted-foreground cursor-not-allowed shadow-none'
                             : 'bg-primary text-primary-foreground hover:bg-primary/90'
                         }`}
                 >
                     {sending ? (
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="w-5 h-5 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
-                        <Send size={14} />
+                        <Send size={18} className="sm:w-3.5 sm:h-3.5" />
                     )}
                     {sending ? 'Enviando...' : 'Enviar Email'}
                 </button>

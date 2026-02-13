@@ -87,20 +87,22 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     return (
         <div className="flex flex-col h-full bg-background relative">
             {/* Tabs Header - FOCADO EM OPERAÇÃO */}
-            <div className="flex items-center gap-6 px-1 border-b border-border dark:border-slate-800 overflow-x-auto no-scrollbar bg-transparent">
+            <div className="flex items-center gap-4 sm:gap-6 px-4 sm:px-1 border-b border-border dark:border-slate-800 overflow-x-auto no-scrollbar bg-transparent">
                 {tabs.map(tab => {
                     const isActive = activeTab === tab.id;
                     return (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`relative py-3 text-xs font-bold uppercase tracking-[0.1em] transition-all whitespace-nowrap
+                            className={`relative py-4 sm:py-3 text-[11px] sm:text-xs font-bold uppercase tracking-[0.1em] transition-all whitespace-nowrap flex flex-col items-center gap-1
                                       ${isActive
                                     ? 'text-indigo-500 dark:text-indigo-400'
                                     : 'text-muted-foreground dark:text-slate-500 hover:text-foreground dark:hover:text-slate-300'
                                 }`}
                         >
-                            {tab.label}
+                            <span className="px-2 py-1 rounded-md transition-colors sm:bg-transparent sm:p-0">
+                                {tab.label}
+                            </span>
                             {isActive && (
                                 <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 dark:bg-indigo-400 rounded-full" />
                             )}
