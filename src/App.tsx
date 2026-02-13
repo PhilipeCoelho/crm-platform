@@ -223,49 +223,49 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     </Link>
                 </nav>
 
-                <div className={`flex flex-col w-full space-y-2 mt-auto pb-2 ${isSidebarPinned ? 'items-start' : 'items-center'}`}>
+                <div className={`flex flex-col w-full space-y-2 mt-auto pb-2 ${isMobile || isSidebarPinned ? 'items-start' : 'items-center'}`}>
                     <button
                         onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                        title={!showLabels ? "Configurações" : ""}
+                        title={!showLabels && !isMobile ? "Configurações" : ""}
                         className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-[180ms] min-h-[40px] relative
-                        ${isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none')}
+                        ${isMobile || isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none')}
                         ${isSettingsOpen
                                 ? 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-slate-100'
                                 : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                             }`}
                     >
-                        {showIcons && (
+                        {(showIcons || isMobile) && (
                             <div className="shrink-0 flex items-center justify-center w-5 h-5">
                                 <Settings size={20} />
                             </div>
                         )}
-                        {showLabels && (
+                        {(showLabels || isMobile) && (
                             <span className="whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">Configurações</span>
                         )}
                     </button>
 
                     <button
                         onClick={() => signOut()}
-                        title={!showLabels ? "Sair" : ""}
-                        className={`group flex items-center gap-3 rounded-lg hover:bg-slate-100 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 transition-all duration-[180ms] min-h-[40px] ${isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto' : 'w-0 h-0 opacity-0 pointer-events-none')}`}
+                        title={!showLabels && !isMobile ? "Sair" : ""}
+                        className={`group flex items-center gap-3 rounded-lg hover:bg-slate-100 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 transition-all duration-[180ms] min-h-[40px] ${isMobile || isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto' : 'w-0 h-0 opacity-0 pointer-events-none')}`}
                     >
-                        {showIcons && (
+                        {(showIcons || isMobile) && (
                             <div className="shrink-0 flex items-center justify-center w-5 h-5">
                                 <LogOut size={20} />
                             </div>
                         )}
-                        {showLabels && (
+                        {(showLabels || isMobile) && (
                             <span className="whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">Sair</span>
                         )}
                     </button>
 
                     {/* User Avatar (Mini) */}
-                    {showIcons && (
-                        <div className={`flex items-center gap-3 mt-2 rounded-md border border-border/10 p-1 bg-slate-50 dark:bg-white/5 ${isSidebarPinned ? 'w-full px-2' : 'w-8 justify-center border-none bg-transparent'}`}>
+                    {(showIcons || isMobile) && (
+                        <div className={`flex items-center gap-3 mt-2 rounded-md border border-border/10 p-1 bg-slate-50 dark:bg-white/5 ${isMobile || isSidebarPinned ? 'w-full px-2' : 'w-8 justify-center border-none bg-transparent'}`}>
                             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
                                 {user.email?.substring(0, 1).toUpperCase() || 'U'}
                             </div>
-                            {showLabels && (
+                            {(showLabels || isMobile) && (
                                 <div className="flex flex-col overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">
                                     <span className="text-xs font-medium text-slate-900 dark:text-gray-200 truncate" title={user.email}>{user.email}</span>
                                     <span className="text-[10px] text-slate-500 dark:text-gray-500">Usuário</span>
@@ -278,7 +278,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
 
                 {/* Settings Popover (Adjusted position) */}
                 {isSettingsOpen && (
-                    <div className={`fixed bottom-16 w-64 bg-popover dark:bg-[#0E1116] border border-border dark:border-white/10 rounded-lg shadow-xl z-[60] animate-in fade-in zoom-in-95 duration-200 ${isSidebarPinned ? 'left-60' : 'left-16 ml-2'}`}>
+                    <div className={`fixed bottom-16 w-64 bg-popover dark:bg-[#0E1116] border border-border dark:border-white/10 rounded-lg shadow-xl z-[80] animate-in fade-in zoom-in-95 duration-200 ${isMobile ? 'left-6' : (isSidebarPinned ? 'left-60' : 'left-16 ml-2')}`}>
                         <div className="p-3 border-b border-border dark:border-white/10">
                             <h3 className="font-medium text-sm text-foreground">Configurações</h3>
                         </div>
