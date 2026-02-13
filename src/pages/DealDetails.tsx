@@ -360,8 +360,15 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             {/* VERTICAL CONTENT AREA - SPLIT VIEW PARA EVITAR SCROLL */}
             <div className="flex-1 overflow-y-auto lg:overflow-hidden bg-background flex flex-col lg:flex-row custom-scrollbar">
 
-                {/* COLUNA ESQUERDA: CONTATOS (FIXA/ESTÁTICA) */}
-                <aside className="w-full lg:w-[360px] shrink-0 border-b lg:border-r lg:border-b-0 border-border dark:border-slate-800 p-5 sm:p-6 space-y-8 sm:space-y-10 lg:overflow-y-auto bg-muted/5 dark:bg-slate-900/20 custom-scrollbar">
+                {/* COLUNA DIREITA: ÁREA OPERACIONAL (SCROLL INTERNO) - AGORA EM PRIMEIRO NO MOBILE */}
+                <main className="flex-1 lg:overflow-y-auto p-5 sm:p-10 bg-background dark:bg-slate-900/30 custom-scrollbar order-1 lg:order-2">
+                    <div className="max-w-[780px] mx-auto pb-6 sm:pb-0">
+                        <ActivityPanel deal={deal} readOnly={isClosed} />
+                    </div>
+                </main>
+
+                {/* COLUNA ESQUERDA: CONTATOS (FIXA/ESTÁTICA) - AGORA EM SEGUNDO NO MOBILE */}
+                <aside className="w-full lg:w-[360px] shrink-0 border-b lg:border-r lg:border-b-0 border-border dark:border-slate-800 p-5 sm:p-6 space-y-8 sm:space-y-10 lg:overflow-y-auto bg-muted/5 dark:bg-slate-900/20 custom-scrollbar order-2 lg:order-1">
                     {/* BLOCO 2 – Pessoa e Organização */}
                     <div className="space-y-8 sm:space-y-10">
                         {/* Seção Pessoa */}
@@ -443,14 +450,26 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                 />
                                             </div>
                                         ) : (
-                                            <div
-                                                className="flex items-center gap-3 text-sm sm:text-xs text-muted-foreground dark:text-slate-400 hover:text-indigo-400 cursor-text group/phone w-full py-1"
-                                                onClick={() => startEditing('phone')}
-                                                data-editable="true"
-                                            >
-                                                <Phone size={14} className="text-muted-foreground/40 sm:w-3 sm:h-3" />
-                                                <span className="font-semibold">{contact.phone || 'Adicionar telefone'}</span>
-                                                <Pencil size={10} className="sm:w-2 sm:h-2 opacity-0 group-hover/phone:opacity-100" />
+                                            <div className="flex items-center justify-between group/phone">
+                                                <div
+                                                    className="flex items-center gap-3 text-sm sm:text-xs text-muted-foreground dark:text-slate-400 hover:text-indigo-400 cursor-text py-1"
+                                                    onClick={() => startEditing('phone')}
+                                                    data-editable="true"
+                                                >
+                                                    <Phone size={14} className="text-muted-foreground/40 sm:w-3 sm:h-3" />
+                                                    <span className="font-semibold">{contact.phone || 'Adicionar telefone'}</span>
+                                                    <Pencil size={10} className="sm:w-2 sm:h-2 opacity-0 group-hover/phone:opacity-100" />
+                                                </div>
+
+                                                {/* Botão de Chamada Nativa Mobile */}
+                                                {contact.phone && (
+                                                    <a
+                                                        href={`tel:${contact.phone.replace(/\D/g, '')}`}
+                                                        className="sm:hidden h-10 w-10 flex items-center justify-center bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-500/20 active:scale-90 transition-all"
+                                                    >
+                                                        <Phone size={18} fill="currentColor" />
+                                                    </a>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -530,7 +549,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         </div>
                     </div>
 
-                    <div className="pt-10 flex flex-col gap-6">
+                    <div className="pt-10 flex flex-col gap-6 pb-20 sm:pb-0">
                         <div className="h-px bg-slate-100 dark:bg-slate-800" />
                         <button
                             onClick={handleDeleteDeal}
@@ -541,13 +560,6 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         </button>
                     </div>
                 </aside>
-
-                {/* COLUNA DIREITA: ÁREA OPERACIONAL (SCROLL INTERNO) */}
-                <main className="flex-1 lg:overflow-y-auto p-5 sm:p-10 bg-background dark:bg-slate-900/30 custom-scrollbar">
-                    <div className="max-w-[780px] mx-auto pb-20 sm:pb-0">
-                        <ActivityPanel deal={deal} readOnly={isClosed} />
-                    </div>
-                </main>
             </div>
 
             <LostReasonModal

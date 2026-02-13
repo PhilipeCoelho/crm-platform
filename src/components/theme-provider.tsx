@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
 
 type Theme = "dark" | "light" | "system"
 
@@ -25,9 +26,35 @@ export function ThemeProvider({
     defaultTheme = "dark",
     storageKey = "crm_theme_preference_v2",
 }: ThemeProviderProps) {
-    const [theme, setTheme] = useState<Theme>(
+    const [theme, setThemeState] = useState<Theme>(
         () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
     )
+
+    // Listen for Auth Changes to sync theme from user_metadata
+    useEffect(() => {
+        const fetchRemoteTheme = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.user_metadata?.theme) {
+                const remoteTheme = session.user.user_metadata.theme as Theme;
+                if (remoteTheme !== theme) {
+                    localStorage.setItem(storageKey, remoteTheme);
+                    setThemeState(remoteTheme);
+                }
+            }
+        };
+
+        fetchRemoteTheme();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.user?.user_metadata?.theme) {
+                const remoteTheme = session.user.user_metadata.theme as Theme;
+                localStorage.setItem(storageKey, remoteTheme);
+                setThemeState(remoteTheme);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     useEffect(() => {
         const root = window.document.documentElement
@@ -50,9 +77,17 @@ export function ThemeProvider({
 
     const value = {
         theme,
-        setTheme: (theme: Theme) => {
-            localStorage.setItem(storageKey, theme)
-            setTheme(theme)
+        setTheme: async (newTheme: Theme) => {
+            localStorage.setItem(storageKey, newTheme)
+            setThemeState(newTheme)
+
+            // Sync to cloud if logged in
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                await supabase.auth.updateUser({
+                    data: { theme: newTheme }
+                });
+            }
         },
     }
 

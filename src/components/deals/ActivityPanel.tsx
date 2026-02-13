@@ -24,6 +24,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     const dealActivities = activities.filter(a => a.dealId === deal.id);
     const [activeTab, setActiveTab] = useState<TabType>('activity');
     const [activityToEdit, setActivityToEdit] = useState<Activity | null>(null);
+    const [isCollapsed, setIsCollapsed] = useState(true);
 
     // Sort: Open (Due date asc), Completed (Created/Completed date desc)
     const openActivities = dealActivities
@@ -65,6 +66,15 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
         }
     };
 
+    const handleTabClick = (tabId: TabType) => {
+        if (activeTab === tabId && !isCollapsed) {
+            setIsCollapsed(true);
+        } else {
+            setActiveTab(tabId);
+            setIsCollapsed(false);
+        }
+    };
+
     const renderContent = () => {
         if (readOnly) {
             return (
@@ -74,6 +84,8 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                 </div>
             );
         }
+
+        if (isCollapsed) return null;
 
         switch (activeTab) {
             case 'activity': return <ActivityTab deal={deal} />;
@@ -87,34 +99,40 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     return (
         <div className="flex flex-col h-full bg-background relative">
             {/* Tabs Header - FOCADO EM OPERAÇÃO */}
-            <div className="flex items-center gap-4 sm:gap-6 px-4 sm:px-1 border-b border-border dark:border-slate-800 overflow-x-auto no-scrollbar bg-transparent">
+            <div className="flex items-center gap-1 sm:gap-6 px-1 sm:px-1 border-b border-border dark:border-slate-800 overflow-x-auto no-scrollbar bg-transparent">
                 {tabs.map(tab => {
                     const isActive = activeTab === tab.id;
+                    const isShowingContent = isActive && !isCollapsed;
+
                     return (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`relative py-4 sm:py-3 text-[11px] sm:text-xs font-bold uppercase tracking-[0.1em] transition-all whitespace-nowrap flex flex-col items-center gap-1
-                                      ${isActive
+                            onClick={() => handleTabClick(tab.id as TabType)}
+                            className={`relative py-4 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.12em] transition-all whitespace-nowrap flex-1 sm:flex-none flex flex-col items-center gap-1
+                                      ${isShowingContent
                                     ? 'text-indigo-500 dark:text-indigo-400'
                                     : 'text-muted-foreground dark:text-slate-500 hover:text-foreground dark:hover:text-slate-300'
                                 }`}
                         >
-                            <span className="px-2 py-1 rounded-md transition-colors sm:bg-transparent sm:p-0">
+                            <span className="px-1 py-1 rounded-md transition-colors">
                                 {tab.label}
                             </span>
-                            {isActive && (
-                                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 dark:bg-indigo-400 rounded-full" />
+                            {isShowingContent && (
+                                <div className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full" />
                             )}
                         </button>
                     );
                 })}
             </div>
 
-
-            {/* Content Area - ÁREA DE AÇÃO */}
-            <div className="bg-background dark:bg-slate-800/20 rounded-xl border border-border dark:border-slate-700/50 shadow-sm mt-6">
-                {renderContent()}
+            {/* Content Area - ÁREA DE AÇÃO (Expansion behavior) */}
+            <div className={`
+                bg-background dark:bg-slate-800/20 rounded-2xl border border-border dark:border-slate-700/50 shadow-sm mt-4 overflow-hidden transition-all duration-300
+                ${isCollapsed ? 'max-h-0 border-none mt-0' : 'max-h-[800px] mt-6 opacity-100'}
+            `}>
+                <div className="p-1">
+                    {renderContent()}
+                </div>
             </div>
 
 

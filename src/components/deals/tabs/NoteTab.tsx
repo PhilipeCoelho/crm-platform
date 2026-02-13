@@ -73,7 +73,6 @@ export default function NoteTab({ deal, onSave }: NoteTabProps) {
                 placeholder="Comece a escrever uma nota... (Markdown suportado)"
                 value={content}
                 onChange={e => setContent(e.target.value)}
-                autoFocus
             />
 
             <div className="flex justify-between items-center p-2 bg-muted/10 border-t border-border">

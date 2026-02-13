@@ -32,13 +32,7 @@ export function useDashboardData() {
     const [revenueFilter, setRevenueFilter] = useState<RevenueFilter>('this_month');
     const [revenueCustomRange, setRevenueCustomRange] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
 
-    // General "Recent" Filter for Cards (Hardcoded to 30d rolling window for now as Global Selector was removed)
-    const matchesGeneralPeriod = useCallback((dateStr?: string) => {
-        if (!dateStr) return false;
-        const date = parseISO(dateStr);
-        const now = new Date();
-        return isAfter(date, subDays(now, 30));
-    }, []);
+
 
     // Productivity Matcher
     const matchesProductivityPeriod = useCallback((dateStr?: string) => {
@@ -106,24 +100,25 @@ export function useDashboardData() {
         isToday(parseISO(a.dueDate))
     ).length;
 
-    // 2. Revenue Stats
+    // 2. Revenue & Status Stats
     const revenueInPeriod = deals
         .filter(d => d.status === 'won')
-        .filter(d => matchesRevenuePeriod(d.wonAt)) // MUST HAVE wonAt
+        .filter(d => matchesRevenuePeriod(d.wonAt))
         .reduce((sum, d) => sum + d.value, 0);
 
     // Only show goal if viewing THIS MONTH
     const isRevenueGoalVisible = revenueFilter === 'this_month';
 
-    // General Stats
+    // General Stats - Dashboard should consider ONLY OPEN status for pipeline sums
     const totalPipelineValue = deals
         .filter(d => d.status === 'open')
-        .filter(d => matchesGeneralPeriod(d.createdAt))
         .reduce((sum, d) => sum + d.value, 0);
 
-    const totalOpenDeals = deals.filter(d => d.status === 'open' && matchesGeneralPeriod(d.createdAt)).length;
-    const wonDealsCount = deals.filter(d => d.status === 'won' && matchesGeneralPeriod(d.wonAt)).length;
-    const lostDealsCount = deals.filter(d => d.status === 'lost' && matchesGeneralPeriod(d.lostAt)).length;
+    const totalOpenDeals = deals.filter(d => d.status === 'open').length;
+
+    // Won/Lost Counts - Sync with the monthly/period view
+    const wonDealsCount = deals.filter(d => d.status === 'won' && matchesRevenuePeriod(d.wonAt)).length;
+    const lostDealsCount = deals.filter(d => d.status === 'lost' && matchesRevenuePeriod(d.lostAt)).length;
 
 
     // --- Goals State ---

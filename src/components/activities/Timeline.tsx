@@ -55,7 +55,8 @@ export default function Timeline({ activities, onReopen, onEdit, onDelete }: Pro
                                     {activity.type === 'note' ? 'Nota' :
                                         activity.type === 'call' ? 'Chamada' :
                                             activity.type === 'email' ? 'Email' :
-                                                activity.type === 'meeting' ? 'Reunião' : 'Atividade'}
+                                                activity.type === 'meeting' ? 'Reunião' :
+                                                    activity.type === 'status_change' ? 'Histórico' : 'Atividade'}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground dark:text-slate-500 font-bold uppercase">
                                     • {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true, locale: ptBR })}

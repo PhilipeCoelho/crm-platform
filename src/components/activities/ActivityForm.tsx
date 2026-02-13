@@ -88,7 +88,6 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                     style={{ fontSize: '16px' }}
                     value={title}
                     onChange={e => setTitle(e.target.value)}
-                    autoFocus
                 />
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 sm:gap-4">

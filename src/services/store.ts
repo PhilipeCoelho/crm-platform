@@ -353,47 +353,62 @@ export function useCRMStore(): CRMStore {
         const originalDeal = deals.find(d => d.id === id);
         if (!originalDeal) return;
 
+        // Auto-handle timestamps for status change if not provided
+        const finalUpdates = { ...updates };
+        const now = new Date().toISOString();
+
+        if (updates.status && updates.status !== originalDeal.status) {
+            if (updates.status === 'won' && !updates.wonAt) finalUpdates.wonAt = now;
+            if (updates.status === 'lost' && !updates.lostAt) finalUpdates.lostAt = now;
+
+            // Log History Activity
+            const statusLabels: Record<string, string> = { open: 'Aberto', won: 'Ganho', lost: 'Perdido' };
+            const historyTitle = `Status alterado de ${statusLabels[originalDeal.status]} para ${statusLabels[updates.status]}`;
+
+            addActivity({
+                type: 'status_change',
+                title: historyTitle,
+                notes: updates.lostReason ? `Motivo: ${updates.lostReason}` : undefined,
+                dealId: id,
+                completed: true,
+                dueDate: now
+            });
+        }
+
         // Optimistic
-        const nextDeals = deals.map(d => d.id === id ? { ...d, ...updates } : d);
+        const nextDeals = deals.map(d => d.id === id ? { ...d, ...finalUpdates } : d);
         setDeals(nextDeals);
 
         // DB Map
         const dbUpdates: Record<string, unknown> = {};
-        if (updates.title !== undefined) dbUpdates.title = updates.title;
-        if (updates.value !== undefined) dbUpdates.value = updates.value;
-        if (updates.stageId !== undefined) dbUpdates.stage_id = updates.stageId;
-        if (updates.status !== undefined) dbUpdates.status = updates.status;
-        if (updates.companyId !== undefined) dbUpdates.company_id = updates.companyId;
-        if (updates.contactId !== undefined) dbUpdates.contact_id = updates.contactId;
-        if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
-        if (updates.source !== undefined) dbUpdates.source = updates.source;
-        if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
-        if (updates.wonAt !== undefined) dbUpdates.won_at = updates.wonAt;
-        if (updates.lostAt !== undefined) dbUpdates.lost_at = updates.lostAt;
-        if (updates.lostReason !== undefined) dbUpdates.lost_reason = updates.lostReason;
-        if (updates.position !== undefined) dbUpdates.position = updates.position;
-        if (updates.pipelineId !== undefined) dbUpdates.pipeline_id = updates.pipelineId;
+        if (finalUpdates.title !== undefined) dbUpdates.title = finalUpdates.title;
+        if (finalUpdates.value !== undefined) dbUpdates.value = finalUpdates.value;
+        if (finalUpdates.stageId !== undefined) dbUpdates.stage_id = finalUpdates.stageId;
+        if (finalUpdates.status !== undefined) dbUpdates.status = finalUpdates.status;
+        if (finalUpdates.companyId !== undefined) dbUpdates.company_id = finalUpdates.companyId;
+        if (finalUpdates.contactId !== undefined) dbUpdates.contact_id = finalUpdates.contactId;
+        if (finalUpdates.tags !== undefined) dbUpdates.tags = finalUpdates.tags;
+        if (finalUpdates.source !== undefined) dbUpdates.source = finalUpdates.source;
+        if (finalUpdates.currency !== undefined) dbUpdates.currency = finalUpdates.currency;
+        if (finalUpdates.wonAt !== undefined) dbUpdates.won_at = finalUpdates.wonAt;
+        if (finalUpdates.lostAt !== undefined) dbUpdates.lost_at = finalUpdates.lostAt;
+        if (finalUpdates.lostReason !== undefined) dbUpdates.lost_reason = finalUpdates.lostReason;
+        if (finalUpdates.position !== undefined) dbUpdates.position = finalUpdates.position;
+        if (finalUpdates.pipelineId !== undefined) dbUpdates.pipeline_id = finalUpdates.pipelineId;
 
         if (Object.keys(dbUpdates).length > 0) {
             console.log('📝 Sending Update to DB:', { id, ...dbUpdates });
-            // Select updated row to verify permissions
             const { data: updatedData, error } = await supabase.from('deals').update(dbUpdates).eq('id', id).select('id');
 
             if (error || (updatedData && updatedData.length === 0)) {
                 console.error('❌ Error updating deal:', error || 'No rows affected (RLS/Permission)');
-
-                if (!error && updatedData && updatedData.length === 0) {
-                    alert('Erro: Permissão negada ou negócio não encontrado.');
-                } else if (error) {
-                    alert(`Erro ao salvar alteração: ${error.message}`);
-                }
-
+                if (error) alert(`Erro ao salvar alteração: ${error.message}`);
                 // Revert Optimistic Update
                 setDeals(prev => prev.map(d => d.id === id ? originalDeal : d));
             } else {
                 console.log('✅ Update successful for:', id);
             }
-        };
+        }
     };
 
     const moveDeal = async (id: string, stageId: string, position?: number, pipelineId?: string) => {

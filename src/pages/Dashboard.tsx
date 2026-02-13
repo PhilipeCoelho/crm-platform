@@ -507,7 +507,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                             <TrendingUp size={20} />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Negócios Ganhos</p>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Ganhos no Mês</p>
                             <p className="text-xl font-bold text-foreground mt-0.5">{stats.wonDealsCount}</p>
                         </div>
                     </div>
@@ -518,7 +518,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                             <XCircle size={20} />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Negócios Perdidos</p>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Perdidos no Mês</p>
                             <p className="text-xl font-bold text-foreground mt-0.5">{stats.lostDealsCount}</p>
                         </div>
                     </div>
