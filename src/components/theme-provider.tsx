@@ -30,31 +30,46 @@ export function ThemeProvider({
         () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
     )
 
-    // Listen for Auth Changes to sync theme from user_metadata
-    useEffect(() => {
-        const fetchRemoteTheme = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user?.user_metadata?.theme) {
-                const remoteTheme = session.user.user_metadata.theme as Theme;
-                if (remoteTheme !== theme) {
-                    localStorage.setItem(storageKey, remoteTheme);
-                    setThemeState(remoteTheme);
-                }
-            }
-        };
-
-        fetchRemoteTheme();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session?.user?.user_metadata?.theme) {
-                const remoteTheme = session.user.user_metadata.theme as Theme;
+    // Unified sync function
+    const syncWithRemote = (session: any) => {
+        const remoteTheme = session?.user?.user_metadata?.theme as Theme;
+        if (remoteTheme && (remoteTheme === "light" || remoteTheme === "dark" || remoteTheme === "system")) {
+            if (remoteTheme !== theme) {
+                console.log('🌓 Theme synced from remote:', remoteTheme);
                 localStorage.setItem(storageKey, remoteTheme);
                 setThemeState(remoteTheme);
             }
+        }
+    };
+
+    // Listen for Auth Changes to sync theme from user_metadata
+    useEffect(() => {
+        // Initial Fetch
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) syncWithRemote(session);
         });
 
-        return () => subscription.unsubscribe();
-    }, []);
+        // Auth Listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')) {
+                syncWithRemote(session);
+            }
+        });
+
+        // Browser Focus Sync (Helpful for multi-device live sync)
+        const handleFocus = () => {
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) syncWithRemote(session);
+            });
+        };
+
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            subscription.unsubscribe();
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [theme]); // Re-bind if theme changes to avoid stale checks
 
     useEffect(() => {
         const root = window.document.documentElement
@@ -84,9 +99,11 @@ export function ThemeProvider({
             // Sync to cloud if logged in
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                await supabase.auth.updateUser({
+                const { error } = await supabase.auth.updateUser({
                     data: { theme: newTheme }
                 });
+                if (error) console.error('❌ Error syncing theme to cloud:', error);
+                else console.log('✅ Theme synced to cloud:', newTheme);
             }
         },
     }
