@@ -24,7 +24,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     const dealActivities = activities.filter(a => a.dealId === deal.id);
     const [activeTab, setActiveTab] = useState<TabType>('activity');
     const [activityToEdit, setActivityToEdit] = useState<Activity | null>(null);
-    const [isCollapsed, setIsCollapsed] = useState(true);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Sort: Open (Due date asc), Completed (Created/Completed date desc)
     const openActivities = dealActivities
@@ -108,18 +108,14 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                         <button
                             key={tab.id}
                             onClick={() => handleTabClick(tab.id as TabType)}
-                            className={`relative py-4 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.12em] transition-all whitespace-nowrap flex-1 sm:flex-none flex flex-col items-center gap-1
+                            className={`relative py-3.5 sm:py-2.5 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] transition-all whitespace-nowrap flex-1 sm:flex-none flex flex-col items-center gap-2
                                       ${isShowingContent
                                     ? 'text-indigo-500 dark:text-indigo-400'
                                     : 'text-muted-foreground dark:text-slate-500 hover:text-foreground dark:hover:text-slate-300'
                                 }`}
                         >
-                            <span className="px-1 py-1 rounded-md transition-colors">
-                                {tab.label}
-                            </span>
-                            {isShowingContent && (
-                                <div className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full" />
-                            )}
+                            <span className="px-1">{tab.label}</span>
+                            <div className={`absolute bottom-0 left-0 w-full h-[1.5px] transition-all duration-200 ${isShowingContent ? 'bg-indigo-500 dark:bg-indigo-400 opacity-100' : 'bg-transparent opacity-0'}`} />
                         </button>
                     );
                 })}
@@ -127,10 +123,10 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
 
             {/* Content Area - ÁREA DE AÇÃO (Expansion behavior) */}
             <div className={`
-                bg-background dark:bg-slate-800/20 rounded-2xl border border-border dark:border-slate-700/50 shadow-sm mt-4 overflow-hidden transition-all duration-300
-                ${isCollapsed ? 'max-h-0 border-none mt-0' : 'max-h-[800px] mt-6 opacity-100'}
+                bg-background dark:bg-slate-800/20 rounded-xl border border-border dark:border-slate-700/50 shadow-sm overflow-hidden transition-all duration-300
+                ${isCollapsed ? 'max-h-0 border-none mt-0' : 'max-h-[800px] mt-4 opacity-100'}
             `}>
-                <div className="p-1">
+                <div className="p-0">
                     {renderContent()}
                 </div>
             </div>

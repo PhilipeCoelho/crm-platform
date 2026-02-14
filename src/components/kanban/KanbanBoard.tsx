@@ -20,7 +20,6 @@ import SuggestionModal from "./SuggestionModal";
 
 import { Filter, Search, Plus } from "lucide-react";
 import { Currency } from "@/data/currencies";
-import DealDetailsModal from "./DealDetailsModal";
 import MobileKanbanView from "./MobileKanbanView";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 
@@ -32,7 +31,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     const {
         deals, contacts, companies, pipelines, moveDeal, activities,
         isLoading, setPipelineSettingsOpen,
-        openNewDealModal
+        openNewDealModal, openFocusDeal
     } = useCRM();
 
     const isMobile = useIsMobile();
@@ -180,8 +179,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         isOpen: false, deal: null, stageName: ''
     });
 
-    // Deal Modal State (Replaces Preview)
-    const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+    // Suggestion Modal State
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -194,7 +192,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
 
     const handleDealClick = (dealId: string) => {
-        setSelectedDealId(dealId);
+        openFocusDeal(dealId);
     };
 
 
@@ -350,14 +348,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                 {/* Modals */}
 
 
-                {selectedDealId && (
-                    <DealDetailsModal
-                        dealId={selectedDealId}
-                        isOpen={!!selectedDealId}
-                        onClose={() => setSelectedDealId(null)}
-                        currency={currency}
-                    />
-                )}
+                {/* Modals are now handled globally if they trigger focus mode */}
             </div>
         );
     }
@@ -597,13 +588,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     onClose={() => setSuggestionModal(prev => ({ ...prev, isOpen: false }))}
                     deal={suggestionModal.deal!}
                     newStageTitle={suggestionModal.stageName}
-                />
-
-                <DealDetailsModal
-                    isOpen={!!selectedDealId}
-                    dealId={selectedDealId}
-                    onClose={() => setSelectedDealId(null)}
-                    currency={currency}
                 />
             </div>
         </div>

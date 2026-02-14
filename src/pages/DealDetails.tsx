@@ -41,6 +41,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
     const [tempEmail, setTempEmail] = useState('');
 
     const inputRef = useRef<HTMLInputElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
     // Focus input when editing starts
@@ -49,6 +50,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             inputRef.current.focus();
         }
     }, [editingField]);
+
+    // Scroll right column to top when deal changes
+    useEffect(() => {
+        if (contentRef.current) {
+            contentRef.current.scrollTop = 0;
+        }
+    }, [id]);
 
     if (!deal) {
         return (
@@ -213,13 +221,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                 <h1
                                     onClick={() => startEditing('title')}
                                     data-editable="true"
-                                    className="text-lg sm:text-xl font-bold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-indigo-500 cursor-text transition-colors relative group"
+                                    className="text-lg sm:text-xl font-semibold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-indigo-500 cursor-text transition-colors relative group"
                                 >
                                     {deal.title}
                                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-500 group-hover:w-full transition-all duration-300"></span>
                                 </h1>
                             )}
-                            <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase border shadow-sm ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
+                            <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase border shadow-sm ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
                                 deal.status === 'lost' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
                                     'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800'
                                 }`}>
@@ -242,7 +250,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         onBlur={handleBlur}
                                         onKeyDown={handleKeyDown}
                                         data-editable="true"
-                                        className="text-sm sm:text-base font-bold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-24"
+                                        className="text-sm sm:text-base font-semibold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-24"
                                         style={{ fontSize: '16px' }}
                                     />
                                 </div>
@@ -252,7 +260,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     onClick={() => startEditing('value')}
                                     data-editable="true"
                                 >
-                                    <span className="text-sm font-bold text-primary dark:text-indigo-400 group-hover:underline decoration-indigo-500/30">
+                                    <span className="text-sm font-semibold text-primary dark:text-indigo-400 group-hover:underline decoration-indigo-500/30">
                                         {deal.value.toLocaleString(currency.locale, { style: 'currency', currency: currency.code })}
                                     </span>
                                     <Pencil size={10} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -267,14 +275,14 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                             <>
                                 <button
                                     onClick={handleWon}
-                                    className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                                    className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-95"
                                 >
                                     <Check size={16} />
                                     Ganho
                                 </button>
                                 <button
                                     onClick={handleLost}
-                                    className="h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-sm font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                                    className="h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-sm font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-95"
                                 >
                                     <X size={16} />
                                     Perdido
@@ -283,7 +291,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         ) : (
                             <button
                                 onClick={handleReopen}
-                                className="h-9 px-4 bg-muted dark:bg-slate-800 hover:bg-muted/80 border border-border dark:border-slate-700 rounded-md text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+                                className="h-9 px-4 bg-muted dark:bg-slate-800 hover:bg-muted/80 border border-border dark:border-slate-700 rounded-md text-sm font-semibold flex items-center gap-2 transition-all active:scale-95"
                             >
                                 <Ban size={16} />
                                 Reabrir
@@ -333,7 +341,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         setEditingField(null);
                                     }}
                                     onBlur={() => setEditingField(null)}
-                                    className="text-[10px] sm:text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.15em] bg-transparent outline-none cursor-pointer pr-4"
+                                    className="text-[10px] sm:text-xs font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.15em] bg-transparent outline-none cursor-pointer pr-4"
                                     autoFocus
                                     style={{ fontSize: '16px' }}
                                 >
@@ -344,8 +352,8 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 group cursor-text" onClick={() => startEditing('stage')} data-editable="true">
-                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em]">
-                                    Etapa: <span className="text-indigo-500 dark:text-indigo-400 font-extrabold group-hover:underline">{pipeline.stages[currentStageIndex]?.title}</span>
+                                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em]">
+                                    Etapa: <span className="text-indigo-500 dark:text-indigo-400 font-semibold group-hover:underline">{pipeline.stages[currentStageIndex]?.title}</span>
                                 </span>
                                 <Pencil size={10} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
@@ -361,8 +369,11 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             <div className="flex-1 overflow-y-auto lg:overflow-hidden bg-background flex flex-col lg:flex-row custom-scrollbar">
 
                 {/* COLUNA DIREITA: ÁREA OPERACIONAL (SCROLL INTERNO) - AGORA EM PRIMEIRO NO MOBILE */}
-                <main className="flex-1 lg:overflow-y-auto p-5 sm:p-10 bg-background dark:bg-slate-900/30 custom-scrollbar order-1 lg:order-2">
-                    <div className="max-w-[780px] mx-auto pb-6 sm:pb-0">
+                <main
+                    ref={contentRef}
+                    className="flex-1 lg:overflow-y-auto p-4 sm:p-6 bg-background dark:bg-slate-900/30 custom-scrollbar order-1 lg:order-2"
+                >
+                    <div className="max-w-[780px] mx-auto pb-4 sm:pb-0">
                         <ActivityPanel deal={deal} readOnly={isClosed} />
                     </div>
                 </main>
@@ -381,7 +392,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                 {contact && (
                                     <button
                                         onClick={() => openNewDealModal(undefined, deal)}
-                                        className="p-1.5 sm:p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all font-bold"
+                                        className="p-1.5 sm:p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all font-semibold"
                                         title="Alterar Contato"
                                     >
                                         <Pencil size={14} className="sm:w-3 sm:h-3" />
@@ -391,14 +402,14 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                             {contact ? (
                                 <div className="space-y-5 bg-white dark:bg-slate-800/60 p-5 rounded-2xl border border-border dark:border-slate-700/60 shadow-sm dark:shadow-black/20 group/card transition-all hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-indigo-500/10 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-lg border border-indigo-500/20 dark:border-slate-600 shadow-inner">
+                                        <div className="w-12 h-12 rounded-full bg-indigo-500/10 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-semibold text-lg border border-indigo-500/20 dark:border-slate-600 shadow-inner">
                                             {contact.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
                                             <Link
                                                 to={`/contacts/${contact.id}`}
                                                 data-link="true"
-                                                className="text-base sm:text-sm font-bold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate pr-2"
+                                                className="text-base sm:text-sm font-semibold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate pr-2"
                                             >
                                                 {contact.name}
                                             </Link>
@@ -475,7 +486,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-sm sm:text-xs text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-sm sm:text-xs text-indigo-500 font-semibold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
                                     + Vincular Contato
                                 </button>
                             )}
@@ -491,7 +502,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                 {company && (
                                     <button
                                         onClick={() => openNewDealModal(undefined, deal)}
-                                        className="p-1.5 sm:p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all font-bold"
+                                        className="p-1.5 sm:p-1 hover:bg-indigo-500/10 rounded-md text-slate-400 hover:text-indigo-500 transition-all font-semibold"
                                     >
                                         <Pencil size={14} className="sm:w-3 sm:h-3" />
                                     </button>
@@ -500,14 +511,14 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                             {company ? (
                                 <div className="bg-white dark:bg-slate-800/60 p-5 rounded-2xl border border-border dark:border-slate-700/60 shadow-sm dark:shadow-black/20 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-slate-600 shadow-sm">
+                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-semibold text-lg border border-slate-200 dark:border-slate-600 shadow-sm">
                                             {company.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
                                             <Link
                                                 to={`/companies/${company.id}`}
                                                 data-link="true"
-                                                className="text-base sm:text-sm font-bold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate"
+                                                className="text-base sm:text-sm font-semibold text-foreground dark:text-slate-100 hover:text-indigo-500 transition-colors block truncate"
                                             >
                                                 {company.name}
                                             </Link>
@@ -516,7 +527,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-sm sm:text-xs text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-5 border-2 border-dashed border-border dark:border-slate-800 rounded-2xl text-sm sm:text-xs text-indigo-500 font-semibold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98]">
                                     + Vincular Empresa
                                 </button>
                             )}
@@ -524,7 +535,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
 
                         {/* Etiquetas */}
                         <div className="space-y-4">
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em]">Etiquetas</p>
+                            <p className="text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-[0.15em]">Etiquetas</p>
                             <div className="flex flex-wrap gap-2.5">
                                 {['Quente', 'Morno', 'Frio'].map((label, idx) => {
                                     const tagId = (idx + 1).toString();
@@ -539,7 +550,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         <button
                                             key={tagId}
                                             onClick={() => toggleTag(tagId)}
-                                            className={`px-4 sm:px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-[10px] font-bold border transition-all active:scale-95 ${isSelected ? typeColors : 'bg-transparent border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600'}`}
+                                            className={`px-4 sm:px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-[10px] font-semibold border transition-all active:scale-95 ${isSelected ? typeColors : 'bg-transparent border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600'}`}
                                         >
                                             {label}
                                         </button>
@@ -553,7 +564,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         <div className="h-px bg-slate-100 dark:bg-slate-800" />
                         <button
                             onClick={handleDeleteDeal}
-                            className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] hover:text-rose-500 dark:hover:text-rose-400 flex items-center gap-4 transition-all opacity-40 hover:opacity-100 p-3 group"
+                            className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-[0.2em] hover:text-rose-500 dark:hover:text-rose-400 flex items-center gap-4 transition-all opacity-40 hover:opacity-100 p-3 group"
                         >
                             <Trash2 size={16} className="group-hover:animate-pulse sm:w-3.5 sm:h-3.5" />
                             Excluir Negócio

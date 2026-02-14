@@ -83,7 +83,7 @@ export default function TimePicker({ value, onChange, className }: TimePickerPro
         <div className={cn("inline-block", className)}>
             <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <div
-                    className="flex items-center gap-1.5 p-1.5 min-h-[32px] rounded-md border border-border bg-background/50 hover:bg-background transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary group cursor-text"
+                    className="flex items-center gap-1 p-1 rounded-md border border-transparent hover:border-border/40 transition-all focus-within:ring-1 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 group cursor-text"
                     onClick={() => {
                         const input = document.getElementById('time-input-field');
                         input?.focus();
@@ -108,7 +108,7 @@ export default function TimePicker({ value, onChange, className }: TimePickerPro
                         value={inputValue}
                         onChange={handleInputChange}
                         placeholder="00:00"
-                        className="bg-transparent border-none outline-none text-[11px] font-bold w-12 text-foreground placeholder:text-muted-foreground/40"
+                        className="bg-transparent border-none outline-none text-[12px] font-normal w-12 text-slate-400 placeholder:text-muted-foreground/30"
                         onFocus={() => setIsOpen(true)}
                         autoComplete="off"
                     />

@@ -53,6 +53,11 @@ export interface CRMStore {
     updateStage: (stageId: string, updates: Partial<Stage>) => Promise<void>;
     deleteStage: (stageId: string) => Promise<void>;
     reorderStages: (pipelineId: string, newOrder: string[]) => Promise<void>;
+
+    // Focus Mode (Deal Detail)
+    activeFocusDealId: string | null;
+    openFocusDeal: (id: string) => void;
+    closeFocusDeal: () => void;
 }
 
 // --- Helpers ---
@@ -89,6 +94,10 @@ export function useCRMStore(): CRMStore {
     const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
     const [newDealStageId, setNewDealStageId] = useState<string | null>(null);
     const [dealToEdit, setDealToEdit] = useState<Deal | null>(null);
+    const [activeFocusDealId, setActiveFocusDealId] = useState<string | null>(null);
+
+    const openFocusDeal = (id: string) => setActiveFocusDealId(id);
+    const closeFocusDeal = () => setActiveFocusDealId(null);
 
     const openNewDealModal = (stageId?: string, editDeal?: Deal) => {
         setNewDealStageId(stageId || null);
@@ -572,7 +581,6 @@ export function useCRMStore(): CRMStore {
             deal_id: data.dealId,
             user_id: user.id,
             notes: data.notes,
-            result: data.result,
             completed: data.completed !== undefined ? data.completed : false
         };
 
@@ -598,9 +606,11 @@ export function useCRMStore(): CRMStore {
 
         const dbUpdates: Record<string, unknown> = {};
         if (updates.title !== undefined) dbUpdates.title = updates.title;
-        if (updates.result !== undefined) dbUpdates.result = updates.result;
         if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
         if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
+        if (updates.dueDate !== undefined) dbUpdates.date = updates.dueDate;
+
+        dbUpdates.updated_at = new Date().toISOString();
 
         const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
         if (error) {
@@ -802,6 +812,9 @@ export function useCRMStore(): CRMStore {
         updateStage,
         deleteStage,
         reorderStages,
+        activeFocusDealId,
+        openFocusDeal,
+        closeFocusDeal,
         getPipelineStages: (pid: string) => pipelines[pid]?.stages || [],
         refresh: fetchAll,
 

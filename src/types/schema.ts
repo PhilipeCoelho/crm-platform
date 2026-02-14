@@ -66,6 +66,7 @@ export interface Activity {
     description?: string;
     result?: string; // Outcome of the activity
     notes?: string;  // Detailed notes
+    priority?: 'low' | 'medium' | 'high';
 
     // Relations (Polymorphic-ish)
     dealId?: Id;
@@ -77,6 +78,8 @@ export interface Activity {
     duration?: number;
     completed: boolean;
     createdAt: string;
+    updatedAt?: string;
+    completedAt?: string;
 }
 
 export interface Stage {

@@ -3,25 +3,41 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    font-size: 90%;
+  html {
+    height: 100%;
+    zoom: 0.9;
+  }
+
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    @apply bg-background text-foreground selection:bg-primary/20;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 
     /* Premium SaaS Tokens (Light Mode) */
     --bg-main: 210 20% 98%;
-    /* #F8FAFC */
     --surface: 0 0% 100%;
-    /* #FFFFFF */
     --card: 0 0% 100%;
-    /* #FFFFFF */
     --border: 220 13% 91%;
-    /* Light Border */
 
     --text-primary: 222.2 47.4% 11.2%;
-    /* #0F172A */
     --text-secondary: 215.4 16.3% 46.9%;
-    /* #64748B */
 
-    /* Shadcn Mappings to new Tokens */
     --background: var(--bg-main);
     --foreground: var(--text-primary);
     --card-foreground: var(--text-primary);
@@ -44,23 +60,14 @@
   }
 
   .dark {
-    /* Deep Neutral Tokens (Dark Mode) - No Blue Tint */
     --bg-main: 213 29% 6%;
-    /* #0B0F14 */
     --surface: 213 29% 6%;
-    /* #0B0F14 */
     --card: 214 17% 8%;
-    /* #111418 (Cards) */
     --border: 215 14% 15%;
-    /* ~#212429 (Subtle Border) */
 
-    /* Typography */
     --text-primary: 216 8% 91%;
-    /* #E6E8EB */
     --text-secondary: 211 11% 65%;
-    /* #9AA4AF */
 
-    /* Shadcn Mappings */
     --background: var(--bg-main);
     --foreground: var(--text-primary);
     --card-foreground: var(--text-primary);
@@ -68,27 +75,21 @@
     --popover-foreground: var(--text-primary);
 
     --primary: 225 100% 65%;
-    /* Keep Accent Blue */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 214 17% 8%;
-    /* Match Card Surface */
     --secondary-foreground: 216 8% 91%;
 
     --muted: 214 17% 8%;
-    /* Match Card Surface */
     --muted-foreground: 220 9% 46%;
-    /* #6B7280 */
 
     --accent: 214 17% 8%;
-    /* Match Card Surface */
     --accent-foreground: 216 8% 91%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
     --input: 214 17% 8%;
-    /* Match Card Surface */
     --ring: 225 100% 65%;
   }
 }
@@ -99,21 +100,48 @@
     border-style: solid;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    @apply text-slate-900 dark:text-white;
   }
 
-  .dark body {
-    background: hsl(var(--bg-main));
-    /* Clean Slate 900 background, no gradient */
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    @apply text-slate-900 dark:text-white;
   }
 
-  /* Utility classes handled by tailwind.config.js */
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    @apply text-slate-900 dark:text-white;
+  }
+
+  /* Professional Data Alignment */
+  .tabular-nums,
+  table,
+  [class*="font-mono"],
+  .text-xs,
+  .text-sm {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Utility for meta/secondary info */
+  .text-meta {
+    font-size: 12px;
+    font-weight: 500;
+    @apply text-slate-500 dark:text-slate-400;
+  }
 }
 
-/* Custom Scrollbar for Professional Horizontal Scroll */
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   height: 8px;
+  width: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -124,14 +152,12 @@
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 4px;
-  transition: background 0.2s;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* Firefox */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted) / 0.3);
