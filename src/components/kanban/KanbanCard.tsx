@@ -7,6 +7,7 @@ import { Currency } from "@/data/currencies";
 import { useCRM } from "@/contexts/CRMContext";
 import { useNavigate } from "react-router-dom";
 import { parseISO, isBefore, isToday } from "date-fns";
+import { PrivacyText } from "../ui/PrivacyMask";
 
 interface Props {
     deal: Deal;
@@ -197,7 +198,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
             {/* Title Area */}
             <div className="mb-2 pr-5 relative">
                 <h4 className="font-semibold text-[13px] leading-snug group-hover:text-primary transition-colors line-clamp-2 text-slate-800 dark:text-[#E6E8EB]">
-                    {deal.title}
+                    <PrivacyText text={deal.title} type="text" />
                 </h4>
 
                 {/* Match Indicators (Search specific) */}
@@ -247,7 +248,9 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
             {contact && (
                 <div className="flex items-center gap-1.5 mb-1 pl-0.5 text-muted-foreground/50" title={contact.name}>
                     <User size={12} className="shrink-0" />
-                    <span className="text-[11px] truncate">{contact.name}</span>
+                    <span className="text-[11px] truncate">
+                        <PrivacyText text={contact.name} type="name" />
+                    </span>
                 </div>
             )}
 

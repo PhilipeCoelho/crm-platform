@@ -17,12 +17,14 @@ import { useCRM } from '@/contexts/CRMContext';
 import PipelineSettingsModal from '@/components/kanban/PipelineSettingsModal';
 import NewDealModal from '@/components/kanban/NewDealModal';
 import Activities from './pages/Activities';
+import { PrivacyToggle } from '@/components/ui/PrivacyToggle';
+import { PrivacyBanner } from '@/components/ui/PrivacyBanner';
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
     const { user, signOut } = useSupabaseAuth();
     const location = useLocation();
     const { setTheme, theme } = useTheme();
-    const { isPipelineSettingsOpen, setPipelineSettingsOpen, activeFocusDealId, closeFocusDeal } = useCRM();
+    const { isPipelineSettingsOpen, setPipelineSettingsOpen, activeFocusDealId, closeFocusDeal, togglePrivacyMode } = useCRM();
     const isMobile = useIsMobile();
 
     // Check if we are in Focus Mode (Deal/Contact/Company Detail)
@@ -62,6 +64,18 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     useEffect(() => {
         localStorage.setItem('sidebar_pinned', String(isSidebarPinned));
     }, [isSidebarPinned]);
+
+    // Keyboard Shortcut (Cmd+Shift+P)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'p') {
+                e.preventDefault();
+                togglePrivacyMode();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [togglePrivacyMode]);
 
     if (!user) return null;
 
@@ -253,6 +267,23 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     </nav>
 
                     <div className={`flex flex-col w-full space-y-2 mt-auto pb-2 ${isMobile || isSidebarPinned ? 'items-start' : 'items-center'}`}>
+                        {/* Privacy Toggle */}
+                        <div className={`w-full ${isMobile || isSidebarPinned ? 'px-0' : 'flex justify-center'}`}>
+                            {(!showIcons && !isMobile) ? null : (
+                                (showLabels || isMobile) ? (
+                                    <PrivacyToggle
+                                        variant="sidebar"
+                                        className=""
+                                    />
+                                ) : (
+                                    <PrivacyToggle
+                                        variant="icon"
+                                        className="h-10 w-10 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400"
+                                    />
+                                )
+                            )}
+                        </div>
+
                         <button
                             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                             title={!showLabels && !isMobile ? "Configurações" : ""}
@@ -430,6 +461,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     </div>
                 </div>
             </main>
+            <PrivacyBanner />
         </div>
     );
 }

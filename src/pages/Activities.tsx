@@ -30,6 +30,7 @@ import GlobalActivityModal from '@/components/activities/GlobalActivityModal';
 import CustomizeColumnsModal from '@/components/activities/CustomizeColumnsModal';
 import BulkEditActivitiesModal from '@/components/activities/BulkEditActivitiesModal';
 import ActivitiesMoreActions from '@/components/activities/ActivitiesMoreActions';
+import { PrivacyText } from '@/components/ui/PrivacyMask';
 
 // Types
 import { Activity } from '@/types/schema';
@@ -292,7 +293,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                             </button>
                                             <div className="min-w-0">
                                                 <h4 className={`text-base font-semibold truncate ${activity.completed ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}`}>
-                                                    {activity.title}
+                                                    <PrivacyText text={activity.title} type="text" />
                                                 </h4>
                                                 <div className="flex items-center gap-2 mt-1.5">
                                                     <span className={`px-2 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-widest ${status.color}`}>
@@ -318,7 +319,9 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                         </div>
                                                         <div className="flex flex-col min-w-0">
                                                             <span className="text-[9px] uppercase font-semibold text-slate-400 tracking-widest">Negócio</span>
-                                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate pr-4">{deal.title}</span>
+                                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate pr-4">
+                                                                <PrivacyText text={deal.title} type="text" />
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <div className="text-primary group-hover:translate-x-1 transition-transform">
@@ -469,7 +472,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                                     </div>
                                                                     <div className="flex flex-col min-w-0">
                                                                         <span className={`truncate max-w-[250px] transition-all ${activity.completed ? 'line-through text-slate-400 opacity-70' : 'text-slate-900 dark:text-white'}`}>
-                                                                            {activity.title}
+                                                                            <PrivacyText text={activity.title} type="text" />
                                                                         </span>
                                                                         <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">{activity.type || 'Tarefa'}</span>
                                                                     </div>
@@ -483,7 +486,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                                         className="flex items-center gap-2 text-primary hover:underline underline-offset-4 decoration-2"
                                                                     >
                                                                         <Building2 size={12} className="opacity-50" />
-                                                                        {deal.title}
+                                                                        <PrivacyText text={deal.title} type="text" />
                                                                     </button>
                                                                 ) : <span className="text-slate-300 dark:text-white/5 opacity-50">—</span>
                                                             )}
@@ -497,7 +500,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                                         <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-[10px] font-semibold uppercase">
                                                                             {contact.name.charAt(0)}
                                                                         </div>
-                                                                        {contact.name}
+                                                                        <PrivacyText text={contact.name} type="name" />
                                                                     </button>
                                                                 ) : <span className="text-slate-300 dark:text-white/5 opacity-50">—</span>
                                                             )}
@@ -531,7 +534,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                                 contact?.email ? (
                                                                     <a href={`mailto:${contact.email}`} className="text-slate-500 hover:text-primary transition-colors flex items-center gap-2">
                                                                         <Mail size={14} className="opacity-50" />
-                                                                        {contact.email}
+                                                                        <PrivacyText text={contact.email} type="email" />
                                                                     </a>
                                                                 ) : <span className="text-slate-300 dark:text-white/5 opacity-50">—</span>
                                                             )}
@@ -540,13 +543,13 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                                 contact?.phone ? (
                                                                     <a href={`tel:${contact.phone}`} className="text-slate-500 hover:text-primary transition-colors flex items-center gap-2">
                                                                         <Phone size={14} className="opacity-50" />
-                                                                        {contact.phone}
+                                                                        <PrivacyText text={contact.phone} type="phone" />
                                                                     </a>
                                                                 ) : <span className="text-slate-300 dark:text-white/5 opacity-50">—</span>
                                                             )}
 
                                                             {colId === 'companyId' && (
-                                                                company ? company.name : (deal && deals.find(d => d.id === deal.id)?.companyId ? companies.find(c => c.id === deal.companyId)?.name : <span className="text-slate-300 dark:text-white/5 opacity-50">—</span>)
+                                                                company ? <PrivacyText text={company.name} type="company" /> : (deal && deals.find(d => d.id === deal.id)?.companyId ? <PrivacyText text={companies.find(c => c.id === deal.companyId)?.name || ''} type="company" /> : <span className="text-slate-300 dark:text-white/5 opacity-50">—</span>)
                                                             )}
 
                                                             {colId === 'duration' && (

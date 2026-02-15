@@ -4,6 +4,7 @@ import { Search, Filter, Plus, MoreHorizontal, Mail, Phone, Edit, Trash2 } from 
 import NewContactModal from './NewContactModal';
 import { useNavigate } from 'react-router-dom';
 import { Contact } from '@/types/schema';
+import { PrivacyText } from '../ui/PrivacyMask';
 
 export default function ContactList() {
     const { contacts, companies, activities, deleteContact } = useCRM();
@@ -126,14 +127,18 @@ export default function ContactList() {
                                                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
                                                         {contact.name.charAt(0).toUpperCase()}
                                                     </div>
-                                                    {contact.name}
+                                                    <PrivacyText text={contact.name} type="name" />
                                                 </span>
-                                                <span className="text-muted-foreground text-xs ml-8">{contact.email}</span>
+                                                <span className="text-muted-foreground text-xs ml-8">
+                                                    <PrivacyText text={contact.email} type="email" />
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-foreground">{getCompanyName(contact.companyId || (contact as any).company_id)}</span>
+                                                <span className="text-foreground">
+                                                    <PrivacyText text={getCompanyName(contact.companyId || (contact as any).company_id)} type="company" />
+                                                </span>
                                                 <span className="text-muted-foreground text-xs">{contact.role || '-'}</span>
                                             </div>
                                         </td>
@@ -152,7 +157,9 @@ export default function ContactList() {
                                                 const isOverdue = nextAct.dueDate && nextAct.dueDate < new Date().toISOString().split('T')[0];
                                                 return (
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-medium text-foreground truncate max-w-[150px]" title={nextAct.title}>{nextAct.title}</span>
+                                                        <span className="text-sm font-medium text-foreground truncate max-w-[150px]" title={nextAct.title}>
+                                                            <PrivacyText text={nextAct.title} type="text" />
+                                                        </span>
                                                         <span className={`text-[11px] ${isOverdue ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
                                                             {nextAct.dueDate ? new Date(nextAct.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}
                                                         </span>

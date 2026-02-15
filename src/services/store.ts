@@ -58,6 +58,10 @@ export interface CRMStore {
     activeFocusDealId: string | null;
     openFocusDeal: (id: string) => void;
     closeFocusDeal: () => void;
+
+    // Privacy Mode (Global)
+    isPrivacyMode: boolean;
+    togglePrivacyMode: () => void;
 }
 
 // --- Helpers ---
@@ -95,6 +99,20 @@ export function useCRMStore(): CRMStore {
     const [newDealStageId, setNewDealStageId] = useState<string | null>(null);
     const [dealToEdit, setDealToEdit] = useState<Deal | null>(null);
     const [activeFocusDealId, setActiveFocusDealId] = useState<string | null>(null);
+
+    // Privacy Mode State
+    const [isPrivacyMode, setIsPrivacyMode] = useState(() => {
+        const saved = localStorage.getItem('privacy_mode');
+        return saved === 'true';
+    });
+
+    const togglePrivacyMode = () => {
+        setIsPrivacyMode(prev => {
+            const next = !prev;
+            localStorage.setItem('privacy_mode', String(next));
+            return next;
+        });
+    };
 
     const openFocusDeal = (id: string) => setActiveFocusDealId(id);
     const closeFocusDeal = () => setActiveFocusDealId(null);
@@ -823,8 +841,10 @@ export function useCRMStore(): CRMStore {
         openNewDealModal,
         closeNewDealModal,
         newDealStageId,
-        dealToEdit
+        dealToEdit,
 
+        isPrivacyMode,
+        togglePrivacyMode
     };
 }
 
