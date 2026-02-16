@@ -25,6 +25,7 @@ export interface CRMStore {
 
     addCompany: (company: Omit<Company, 'id' | 'createdAt'>) => Promise<Company>;
     updateCompany: (id: string, updates: Partial<Company>) => Promise<void>;
+    deleteCompany: (id: string) => Promise<void>;
 
     addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'userId'>) => Promise<Contact>;
     updateContact: (id: string, updates: Partial<Contact>) => Promise<void>;
@@ -62,6 +63,8 @@ export interface CRMStore {
     // Privacy Mode (Global)
     isPrivacyMode: boolean;
     togglePrivacyMode: () => void;
+
+    // Merge Helpers (Optional, or just use atomic actions)
 }
 
 // --- Helpers ---
@@ -176,7 +179,7 @@ export function useCRMStore(): CRMStore {
             setContacts(contactsData.map(c => ({
                 ...c,
                 userId: c.user_id,
-                companyId: '1', // Placeholder
+                companyId: c.company_id,
                 createdAt: c.created_at
             })));
         }
@@ -627,6 +630,8 @@ export function useCRMStore(): CRMStore {
         if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
         if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
         if (updates.dueDate !== undefined) dbUpdates.date = updates.dueDate;
+        if (updates.dealId !== undefined) dbUpdates.deal_id = updates.dealId;
+        if (updates.contactId !== undefined) dbUpdates.contact_id = updates.contactId;
 
         dbUpdates.updated_at = new Date().toISOString();
 
@@ -671,6 +676,19 @@ export function useCRMStore(): CRMStore {
     const updateCompany = async (id: string, updates: Partial<Company>) => {
         setCompanies(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
         await supabase.from('companies').update(updates).eq('id', id);
+    };
+
+    const deleteCompany = async (id: string) => {
+        // Optimistic
+        setCompanies(prev => prev.filter(c => c.id !== id));
+
+        // Update related (Optional/Stub): 
+        // In a real app we might unset companyId from contacts/deals or delete them.
+        // For now, we just delete the company.
+        setContacts(prev => prev.map(c => c.companyId === id ? { ...c, companyId: undefined } : c));
+        setDeals(prev => prev.map(d => d.companyId === id ? { ...d, companyId: undefined } : d));
+
+        await supabase.from('companies').delete().eq('id', id);
     };
 
     // --- Stage Actions ---
@@ -825,7 +843,7 @@ export function useCRMStore(): CRMStore {
         addDeal, updateDeal, moveDeal, deleteDeal,
         addContact, updateContact, deleteContact,
         addActivity, updateActivity, deleteActivity,
-        addCompany, updateCompany,
+        addCompany, updateCompany, deleteCompany,
         addStage,
         updateStage,
         deleteStage,

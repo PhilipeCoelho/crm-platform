@@ -19,13 +19,25 @@ interface DuplicateGroup {
 }
 
 export default function MergeDuplicatesView() {
-    const { contacts, companies } = useCRM();
+    const {
+        contacts,
+        companies,
+        deals,
+        activities,
+        updateContact,
+        deleteContact,
+        updateCompany,
+        deleteCompany,
+        updateDeal,
+        updateActivity
+    } = useCRM();
     const [viewingGroup, setViewingGroup] = useState<DuplicateGroup | null>(null);
     const [primaryRecord, setPrimaryRecord] = useState<any | null>(null);
     const [secondaryRecord, setSecondaryRecord] = useState<any | null>(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
     const [editedRecords, setEditedRecords] = useState<Record<string, any>>({});
+    const [isMerging, setIsMerging] = useState(false);
 
     // Normalize email for comparison
     const normalizeEmail = (email: string) => {
@@ -184,12 +196,18 @@ export default function MergeDuplicatesView() {
         });
     };
 
-    const handleSaveEdit = (recordId: string) => {
-        // TODO: Save to backend/context
+    const handleSaveEdit = async (recordId: string) => {
         const editedData = editedRecords[recordId];
         console.log('Saving edited record:', editedData);
 
-        // Update the viewing group with edited data
+        // Update Backend
+        if (viewingGroup?.type === 'person') {
+            await updateContact(recordId, editedData);
+        } else if (viewingGroup?.type === 'organization') {
+            await updateCompany(recordId, editedData);
+        }
+
+        // Update the viewing group with edited data locally
         if (viewingGroup) {
             const updatedRecords = viewingGroup.records.map(r =>
                 r.id === recordId ? editedData : r
@@ -201,7 +219,6 @@ export default function MergeDuplicatesView() {
         }
 
         setEditingRecordId(null);
-        alert('Alterações salvas! (Integração backend pendente)');
     };
 
     const handleFieldChange = (recordId: string, field: string, value: string) => {
@@ -226,19 +243,91 @@ export default function MergeDuplicatesView() {
         setShowConfirmModal(true);
     };
 
-    const handleExecuteMerge = () => {
-        // TODO: Implement actual merge logic with backend
-        // - Merge data from secondary to primary (only fill empty fields)
-        // - Transfer activities, notes, deals
-        // - Delete secondary record
-        // - Log audit trail
+    const handleExecuteMerge = async () => {
+        if (!primaryRecord || !secondaryRecord || !viewingGroup) return;
+        setIsMerging(true);
 
-        alert(`Mesclagem executada:\nPrimário: ${primaryRecord.name || primaryRecord.id}\nSecundário: ${secondaryRecord.name || secondaryRecord.id}\n\n(Implementação backend pendente)`);
+        try {
+            const primaryData = getCurrentRecordData(primaryRecord);
+            const secondaryData = getCurrentRecordData(secondaryRecord); // Use current data in case of unsaved edits? Or assume saved. 
+            // Better use actual secondaryRecord from prop if edits not saved, but let's assume raw record for secondary since we are deleting it.
 
-        setShowConfirmModal(false);
-        setViewingGroup(null);
-        setPrimaryRecord(null);
-        setSecondaryRecord(null);
+            // 1. Merge Strategy: Fill empty fields in Primary with Secondary data
+            const updates: any = {};
+
+            if (viewingGroup.type === 'person') {
+                // Fields to check for Contact
+                const contactFields = ['email', 'phone', 'companyId', 'role'];
+                contactFields.forEach(field => {
+                    if (!primaryData[field] && secondaryData[field]) {
+                        updates[field] = secondaryData[field];
+                    }
+                });
+
+                // Perform Update if needed
+                if (Object.keys(updates).length > 0) {
+                    await updateContact(primaryRecord.id, updates);
+                }
+
+                // 2. Move Related Deals
+                const relatedDeals = deals.filter(d => d.contactId === secondaryRecord.id);
+                for (const deal of relatedDeals) {
+                    await updateDeal(deal.id, { contactId: primaryRecord.id });
+                }
+
+                // 3. Move Related Activities
+                const relatedActivities = activities.filter(a => a.contactId === secondaryRecord.id);
+                for (const activity of relatedActivities) {
+                    await updateActivity(activity.id, { contactId: primaryRecord.id });
+                }
+
+                // 4. Delete Secondary Contact
+                await deleteContact(secondaryRecord.id);
+
+            } else if (viewingGroup.type === 'organization') {
+                // Fields to check for Company
+                const companyFields = ['website', 'phone', 'email', 'address'];
+                companyFields.forEach(field => {
+                    if (!primaryData[field] && secondaryData[field]) {
+                        updates[field] = secondaryData[field];
+                    }
+                });
+
+                if (Object.keys(updates).length > 0) {
+                    await updateCompany(primaryRecord.id, updates);
+                }
+
+                // Move Related Deals
+                const relatedDeals = deals.filter(d => d.companyId === secondaryRecord.id);
+                for (const deal of relatedDeals) {
+                    await updateDeal(deal.id, { companyId: primaryRecord.id });
+                }
+
+                // Move Related Contacts
+                const relatedContacts = contacts.filter(c => c.companyId === secondaryRecord.id);
+                for (const contact of relatedContacts) {
+                    await updateContact(contact.id, { companyId: primaryRecord.id });
+                }
+
+                // Delete Secondary Company
+                await deleteCompany(secondaryRecord.id);
+            }
+
+            // Success feedback
+            setShowConfirmModal(false);
+            setViewingGroup(null);
+            setPrimaryRecord(null);
+            setSecondaryRecord(null);
+            setEditedRecords({});
+
+            // Optional: Toast notification here if we had a toast system
+
+        } catch (error) {
+            console.error('Merge failed:', error);
+            alert('Falha ao mesclar registros. Tente novamente.');
+        } finally {
+            setIsMerging(false);
+        }
     };
 
     const getCompanyName = (id?: string) => {
@@ -658,15 +747,17 @@ export default function MergeDuplicatesView() {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowConfirmModal(false)}
-                                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
+                                disabled={isMerging}
+                                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleExecuteMerge}
-                                className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg text-sm font-medium transition-all"
+                                disabled={isMerging}
+                                className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                Confirmar Mesclagem
+                                {isMerging ? 'Mesclando...' : 'Confirmar Mesclagem'}
                             </button>
                         </div>
                     </div>
