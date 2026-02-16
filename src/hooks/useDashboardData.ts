@@ -3,6 +3,7 @@ import { GridItem } from '@/components/dashboard/DashboardGrid';
 import { startOfDay, isToday, parseISO, isBefore, subDays, startOfMonth, isAfter, isWithinInterval, endOfDay, subMonths, endOfMonth } from 'date-fns';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { filterRealActivities } from '@/utils/activityHelpers';
 
 const LAYOUT_STORAGE_KEY = 'dashboard_layout_v2_2';
 
@@ -84,8 +85,10 @@ export function useDashboardData() {
     // --- Stats Calculation ---
 
 
-    // 1. Productivity Stats
-    const completedActivities = activities.filter(a =>
+    // 1. Productivity Stats - APENAS atividades reais (não notas)
+    const realActivities = filterRealActivities(activities);
+
+    const completedActivities = realActivities.filter(a =>
         a.completed &&
         a.dealId &&
         a.dueDate &&
@@ -93,7 +96,7 @@ export function useDashboardData() {
     );
 
     // Let's explicitly calculate "Today's Real Score" for the goal comparison if needed.
-    const todayProductivityScore = activities.filter(a =>
+    const todayProductivityScore = realActivities.filter(a =>
         a.completed &&
         a.dealId &&
         a.dueDate &&
@@ -135,24 +138,24 @@ export function useDashboardData() {
         localStorage.setItem('dashboard_activity_goal', String(val));
     };
 
-    // --- Lists Processing ---
-    const openActivities = activities.filter(a => !a.completed).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+    // --- Lists Processing - APENAS atividades reais ---
+    const openRealActivities = realActivities.filter(a => !a.completed).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
 
     const now = new Date();
 
-    const overdueActivities = openActivities.filter(a => {
+    const overdueActivities = openRealActivities.filter(a => {
         if (!a.dueDate) return false;
         const dueDate = parseISO(a.dueDate);
         return isBefore(dueDate, now);
     });
 
-    const todayActivities = openActivities.filter(a => {
+    const todayActivities = openRealActivities.filter(a => {
         if (!a.dueDate) return false;
         const dueDate = parseISO(a.dueDate);
         return isToday(dueDate) && isAfter(dueDate, now);
     });
 
-    const upcomingActivities = openActivities.filter(a => {
+    const upcomingActivities = openRealActivities.filter(a => {
         if (!a.dueDate) return false;
         const dueDate = parseISO(a.dueDate);
         return isAfter(dueDate, endOfDay(now));
@@ -160,7 +163,7 @@ export function useDashboardData() {
 
     const dealsWithoutAction = deals.filter(deal => {
         if (deal.status !== 'open') return false;
-        const hasOpenActivity = activities.some(a => a.dealId === deal.id && !a.completed);
+        const hasOpenActivity = realActivities.some(a => a.dealId === deal.id && !a.completed);
         return !hasOpenActivity;
     });
 
@@ -234,7 +237,7 @@ export function useDashboardData() {
             todayActivities,
             upcomingActivities,
             dealsWithoutAction,
-            completedActivities: activities
+            completedActivities: realActivities
                 .filter(a => a.completed)
                 .sort((a, b) => (b.dueDate || b.createdAt).localeCompare(a.dueDate || a.createdAt))
                 .slice(0, 10) // Only last 10 for dashboard
