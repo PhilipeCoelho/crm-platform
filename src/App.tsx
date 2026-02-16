@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { CRMProvider } from './contexts/CRMContext';
+
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Users, CheckSquare, Settings, LogOut, ChevronRight, CheckSquare as CheckIcon, Loader2, Moon, Sun, Laptop, Menu, X, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, Settings, LogOut, ChevronRight, CheckSquare as CheckIcon, Loader2, Moon, Sun, Laptop, Menu, X, CalendarDays, BarChart3 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
 import KanbanBoard from '@/components/kanban/KanbanBoard';
-import ContactList from '@/components/contacts/ContactList';
+import Contacts from '@/pages/Contacts';
 import Login from '@/pages/Login';
 import { currencies, Currency } from '@/data/currencies';
 import DealDetails from '@/pages/DealDetails';
@@ -17,8 +18,10 @@ import { useCRM } from '@/contexts/CRMContext';
 import PipelineSettingsModal from '@/components/kanban/PipelineSettingsModal';
 import NewDealModal from '@/components/kanban/NewDealModal';
 import Activities from './pages/Activities';
+import Insights from './pages/Insights';
 import { PrivacyToggle } from '@/components/ui/PrivacyToggle';
 import { PrivacyBanner } from '@/components/ui/PrivacyBanner';
+
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
     const { user, signOut } = useSupabaseAuth();
@@ -35,9 +38,12 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
 
     const currentView = location.pathname.includes('contacts') ? 'contacts' :
         location.pathname.includes('activities') ? 'activities' :
-            location.pathname.includes('dashboard') ? 'dashboard' : 'pipelines';
+            location.pathname.includes('insights') ? 'insights' :
+                location.pathname.includes('dashboard') ? 'dashboard' : 'pipelines';
 
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+
+
 
     // Mobile Menu State
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,6 +70,8 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     useEffect(() => {
         localStorage.setItem('sidebar_pinned', String(isSidebarPinned));
     }, [isSidebarPinned]);
+
+
 
     // Keyboard Shortcut (Cmd+Shift+P)
     useEffect(() => {
@@ -264,6 +272,27 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                 <span className="text-[13px] whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">Contatos</span>
                             )}
                         </Link>
+
+                        <Link
+                            to="/insights"
+                            onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                            title={!showLabels && !isMobile ? "Insights" : ""}
+                            className={`group flex items-center gap-3 rounded-r-lg rounded-l-none transition-all duration-[180ms] min-h-[36px] relative
+                        ${isMobile ? 'px-3 w-full justify-start' : (isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto rounded-lg' : 'w-0 h-0 opacity-0 pointer-events-none'))}
+                        ${currentView === 'insights'
+                                    ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-[#E6E8EB] shadow-sm dark:border-l-[3px] dark:border-primary'
+                                    : 'hover:bg-slate-100 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-900 dark:text-[#9AA4AF] dark:hover:text-[#E6E8EB]'
+                                }`}
+                        >
+                            {(showIcons || isMobile) && (
+                                <div className="shrink-0 flex items-center justify-center w-5 h-5">
+                                    <BarChart3 strokeWidth={currentView === 'insights' ? 2.5 : 2} size={18} />
+                                </div>
+                            )}
+                            {(showLabels || isMobile) && (
+                                <span className="text-[13px] whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">Insights</span>
+                            )}
+                        </Link>
                     </nav>
 
                     <div className={`flex flex-col w-full space-y-2 mt-auto pb-2 ${isMobile || isSidebarPinned ? 'items-start' : 'items-center'}`}>
@@ -461,6 +490,9 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     </div>
                 </div>
             </main>
+
+
+
             <PrivacyBanner />
         </div>
     );
@@ -513,8 +545,9 @@ function App() {
                                 <KanbanBoard currency={selectedCurrency} />
                             </div>
                         } />
-                        <Route path="/contacts" element={<div className="p-0 h-full max-w-[1500px] mx-auto"><ContactList /></div>} />
+                        <Route path="/contacts" element={<Contacts />} />
                         <Route path="/activities" element={<Activities currency={selectedCurrency} />} />
+                        <Route path="/insights" element={<Insights />} />
                         <Route path="/deals/:id" element={<DealDetails currency={selectedCurrency} />} />
                         <Route path="/companies/:id" element={<CompanyDetails />} />
                         <Route path="/contacts/:id" element={<ContactDetails />} />
