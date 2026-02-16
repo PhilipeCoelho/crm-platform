@@ -31,6 +31,7 @@ import CustomizeColumnsModal from '@/components/activities/CustomizeColumnsModal
 import BulkEditActivitiesModal from '@/components/activities/BulkEditActivitiesModal';
 import ActivitiesMoreActions from '@/components/activities/ActivitiesMoreActions';
 import { PrivacyText } from '@/components/ui/PrivacyMask';
+import { filterRealActivities } from '@/utils/activityHelpers';
 
 // Types
 import { Activity } from '@/types/schema';
@@ -70,7 +71,11 @@ export default function Activities({ currency: _currency }: { currency: Currency
 
     // Filtering logic
     const filteredActivities = useMemo(() => {
-        let result = activities.filter(activity => {
+        // Primeiro, filtrar apenas atividades REAIS (não notas/eventos internos)
+        let result = filterRealActivities(activities);
+
+        // Depois aplicar os outros filtros
+        result = result.filter(activity => {
             // 1. Search Filter
             if (searchQuery) {
                 const searchLower = searchQuery.toLowerCase();

@@ -59,9 +59,15 @@ export interface Deal {
     updatedAt: string;
 }
 
+// Tipos de atividades REAIS (aparecem no módulo Atividades)
+export type ActivityType = 'call' | 'meeting' | 'task' | 'email' | 'message';
+
+// Tipos de eventos internos (não são atividades)
+export type InternalEventType = 'note' | 'fileUpload' | 'status_change' | 'followup';
+
 export interface Activity {
     id: Id;
-    type: 'call' | 'meeting' | 'task' | 'email' | 'followup' | 'note' | 'fileUpload' | 'message' | 'status_change';
+    type: ActivityType | InternalEventType;
     title: string;
     description?: string;
     result?: string; // Outcome of the activity
