@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Download, Edit2, Copy, X, Calendar, Filter, RefreshCw, BarChart } from 'lucide-react';
+import { Download, Edit2, Copy, X, Calendar, RefreshCw, BarChart } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import { ReportConfig } from './ReportBuilderCorrected';
 import { BarChart as RechartsBarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -28,7 +28,7 @@ export default function ReportViewer({
     // Estado para filtros temporários (NÃO salvam)
     const [tempTimeRange, setTempTimeRange] = useState(report.timeRange);
     const [tempGroupBy, setTempGroupBy] = useState(report.groupBy);
-    const [showFilters, setShowFilters] = useState(false);
+
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Calcular dados do relatório
@@ -88,7 +88,7 @@ export default function ReportViewer({
                 sourceData = contacts.filter(c => new Date(c.createdAt) >= startDate);
                 break;
             case 'activities':
-                sourceData = activities.filter(a => new Date(a.dueDate) >= startDate);
+                sourceData = activities.filter(a => a.dueDate && new Date(a.dueDate) >= startDate);
                 break;
             default:
                 sourceData = [];

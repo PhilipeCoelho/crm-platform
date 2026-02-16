@@ -1,13 +1,11 @@
 import { useState, useMemo } from 'react';
-import { X, ChevronRight, ChevronLeft, AlertCircle, Info } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Info } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import {
     DataSource,
     ChartType,
     Metric,
-    Filter,
-    getConfigForSource,
-    isAllowedCombination
+    getConfigForSource
 } from '@/config/reportConfig';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -38,7 +36,7 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
     const [currentStep, setCurrentStep] = useState<Step>('source');
     const [dataSource, setDataSource] = useState<DataSource | null>(initialConfig?.dataSource || null);
     const [selectedMetrics, setSelectedMetrics] = useState<Metric[]>(initialConfig?.metrics || []);
-    const [filters, setFilters] = useState<Record<string, any>>(initialConfig?.filters || {});
+    const [filters] = useState<Record<string, any>>(initialConfig?.filters || {});
     const [groupBy, setGroupBy] = useState<string>(initialConfig?.groupBy || 'month');
     const [timeRange, setTimeRange] = useState<string>(initialConfig?.timeRange || 'last30days');
     const [chartType, setChartType] = useState<ChartType>(initialConfig?.chartType || 'bar');
@@ -53,7 +51,7 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
     // Validação: não pode avançar sem fonte
     const canProceedFromSource = dataSource !== null;
     const canProceedFromMetrics = selectedMetrics.length > 0;
-    const canProceedFromFilters = true; // Filtros são opcionais
+
     const canSave = reportName.trim() !== '' && dataSource !== null && selectedMetrics.length > 0;
 
     // Calcular dados do relatório para preview
@@ -74,7 +72,7 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
                 sourceData = contacts.filter(c => new Date(c.createdAt) >= last30);
                 break;
             case 'activities':
-                sourceData = activities.filter(a => new Date(a.dueDate) >= last30);
+                sourceData = activities.filter(a => a.dueDate && new Date(a.dueDate) >= last30);
                 break;
             default:
                 sourceData = [];
@@ -281,10 +279,10 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
                         {['source', 'metrics', 'filters', 'visualization'].map((step, index) => (
                             <div key={step} className="flex items-center flex-1">
                                 <div className={`flex items-center gap-2 ${currentStep === step ? 'text-primary' :
-                                        ['source', 'metrics', 'filters', 'visualization'].indexOf(currentStep) > index ? 'text-foreground' : 'text-muted-foreground'
+                                    ['source', 'metrics', 'filters', 'visualization'].indexOf(currentStep) > index ? 'text-foreground' : 'text-muted-foreground'
                                     }`}>
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === step ? 'bg-primary text-primary-foreground' :
-                                            ['source', 'metrics', 'filters', 'visualization'].indexOf(currentStep) > index ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'
+                                        ['source', 'metrics', 'filters', 'visualization'].indexOf(currentStep) > index ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'
                                         }`}>
                                         {index + 1}
                                     </div>
@@ -331,8 +329,8 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
                                         key={source.value}
                                         onClick={() => setDataSource(source.value)}
                                         className={`p-4 border rounded-lg text-left transition-all ${dataSource === source.value
-                                                ? 'border-primary bg-primary/10'
-                                                : 'border-border hover:bg-muted'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-border hover:bg-muted'
                                             }`}
                                     >
                                         <p className="font-semibold text-sm mb-1">{source.label}</p>
@@ -461,8 +459,8 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
                                             key={viz.type}
                                             onClick={() => setChartType(viz.type)}
                                             className={`p-3 border rounded-lg text-left transition-all ${chartType === viz.type
-                                                    ? 'border-primary bg-primary/10'
-                                                    : 'border-border hover:bg-muted'
+                                                ? 'border-primary bg-primary/10'
+                                                : 'border-border hover:bg-muted'
                                                 }`}
                                         >
                                             <p className="font-medium text-xs">{viz.name}</p>

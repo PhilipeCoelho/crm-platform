@@ -27,14 +27,20 @@ export default function DashboardsView() {
     }, [reports]);
 
     const handleSaveReport = (config: ReportConfig) => {
+        // Filter metrics to only include compatible aggregations
+        const compatibleMetrics = config.metrics.filter(m =>
+            m.aggregation === 'count' || m.aggregation === 'sum' || m.aggregation === 'avg'
+        );
+
         const newReport: ReportCardConfig = {
             id: Date.now().toString(),
             name: config.name,
             dataSource: config.dataSource as any,
-            metrics: config.metrics,
+            metrics: compatibleMetrics as any,
             groupBy: config.groupBy as any,
             timeRange: config.timeRange,
-            chartType: config.chartType,
+            // Convert 'table' to 'bar' for compatibility
+            chartType: config.chartType === 'table' ? 'bar' : config.chartType as 'bar' | 'line' | 'pie' | 'scorecard',
         };
         setReports([...reports, newReport]);
         setShowBuilder(false);

@@ -218,7 +218,8 @@ export default function ReportBuilder({ onSave, onCancel, initialConfig }: Repor
                 break;
             case 'activities':
                 sourceData = activities.filter(a => {
-                    const dueDate = new Date(a.dueDate);
+                    const dueDate = a.dueDate ? new Date(a.dueDate) : null;
+                    if (!dueDate) return false;
                     return dueDate >= dateRange.start && dueDate <= dateRange.end;
                 });
                 break;
@@ -448,8 +449,8 @@ export default function ReportBuilder({ onSave, onCancel, initialConfig }: Repor
                             key={s}
                             onClick={() => setStep(s as any)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${step === s
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
                                 }`}
                         >
                             {i + 1}. {s === 'source' ? 'Fonte' : s === 'metrics' ? 'Métricas' : s === 'filters' ? 'Filtros' : 'Visualização'}
@@ -468,8 +469,8 @@ export default function ReportBuilder({ onSave, onCancel, initialConfig }: Repor
                                         key={source.id}
                                         onClick={() => setConfig({ ...config, dataSource: source.id as DataSource, metrics: [] })}
                                         className={`p-4 border rounded-lg flex items-center gap-3 transition-colors ${config.dataSource === source.id
-                                                ? 'border-primary bg-primary/10'
-                                                : 'border-border hover:bg-muted'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-border hover:bg-muted'
                                             }`}
                                     >
                                         {source.icon}
@@ -559,8 +560,8 @@ export default function ReportBuilder({ onSave, onCancel, initialConfig }: Repor
                                             key={type.id}
                                             onClick={() => setConfig({ ...config, chartType: type.id as ChartType })}
                                             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${config.chartType === type.id
-                                                    ? 'bg-primary text-primary-foreground'
-                                                    : 'bg-muted hover:bg-muted/80'
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'bg-muted hover:bg-muted/80'
                                                 }`}
                                         >
                                             {type.name}

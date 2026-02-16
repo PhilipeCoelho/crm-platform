@@ -25,14 +25,14 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
     // Validações
     const canProceedFromType = goalType !== null;
     const canProceedFromOwner = ownerId !== '';
-    const canProceedFromPeriod = true; // Período tem valor padrão
+
     const canSave = goalName.trim() !== '' && targetValue > 0;
 
     const handleSave = () => {
         if (!canSave || !goalType) return;
 
         const dates = calculateGoalDates(period);
-        const goalTypeInfo = GOAL_TYPES.find(t => t.id === goalType);
+
 
         const goal: Omit<Goal, 'id' | 'createdAt' | 'lastModified'> = {
             name: goalName,
@@ -73,10 +73,10 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                         {['type', 'owner', 'period', 'target'].map((step, index) => (
                             <div key={step} className="flex items-center flex-1">
                                 <div className={`flex items-center gap-2 ${currentStep === step ? 'text-primary' :
-                                        ['type', 'owner', 'period', 'target'].indexOf(currentStep) > index ? 'text-foreground' : 'text-muted-foreground'
+                                    ['type', 'owner', 'period', 'target'].indexOf(currentStep) > index ? 'text-foreground' : 'text-muted-foreground'
                                     }`}>
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === step ? 'bg-primary text-primary-foreground' :
-                                            ['type', 'owner', 'period', 'target'].indexOf(currentStep) > index ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'
+                                        ['type', 'owner', 'period', 'target'].indexOf(currentStep) > index ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'
                                         }`}>
                                         {index + 1}
                                     </div>
@@ -115,8 +115,8 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                                         key={type.id}
                                         onClick={() => setGoalType(type.id)}
                                         className={`p-4 border rounded-lg text-left transition-all ${goalType === type.id
-                                                ? 'border-primary bg-primary/10'
-                                                : 'border-border hover:bg-muted'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-border hover:bg-muted'
                                             }`}
                                     >
                                         <div className="flex items-start gap-3">
@@ -160,8 +160,8 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                                             setOwnerId('');
                                         }}
                                         className={`p-4 border rounded-lg text-left transition-all ${ownerType === 'user'
-                                                ? 'border-primary bg-primary/10'
-                                                : 'border-border hover:bg-muted'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-border hover:bg-muted'
                                             }`}
                                     >
                                         <p className="font-semibold text-sm">Usuário Individual</p>
@@ -173,8 +173,8 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                                             setOwnerId('');
                                         }}
                                         className={`p-4 border rounded-lg text-left transition-all ${ownerType === 'team'
-                                                ? 'border-primary bg-primary/10'
-                                                : 'border-border hover:bg-muted'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-border hover:bg-muted'
                                             }`}
                                     >
                                         <p className="font-semibold text-sm">Equipe</p>
@@ -225,8 +225,8 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                                         key={p.id}
                                         onClick={() => setPeriod(p.id)}
                                         className={`p-4 border rounded-lg text-left transition-all ${period === p.id
-                                                ? 'border-primary bg-primary/10'
-                                                : 'border-border hover:bg-muted'
+                                            ? 'border-primary bg-primary/10'
+                                            : 'border-border hover:bg-muted'
                                             }`}
                                     >
                                         <p className="font-semibold text-sm mb-1">{p.name}</p>

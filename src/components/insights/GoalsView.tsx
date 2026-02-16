@@ -41,7 +41,8 @@ export default function GoalsView() {
 
             case 'activities_completed':
                 return activities.filter(a =>
-                    a.done &&
+                    a.completed &&
+                    a.dueDate &&
                     new Date(a.dueDate) >= startDate &&
                     new Date(a.dueDate) <= endDate
                 ).length;

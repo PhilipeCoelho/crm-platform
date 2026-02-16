@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
-import { MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Metric {
@@ -48,7 +48,7 @@ export default function ReportCard({ config, onEdit, onDelete }: ReportCardProps
                 sourceData = contacts.filter(c => new Date(c.createdAt) >= last30);
                 break;
             case 'activities':
-                sourceData = activities.filter(a => new Date(a.dueDate) >= last30);
+                sourceData = activities.filter(a => a.dueDate && new Date(a.dueDate) >= last30);
                 break;
         }
 
