@@ -8,7 +8,7 @@ type EventFilter = 'all' | 'deals' | 'emails' | 'notes' | 'call' | 'meeting' | '
 interface TimelineEvent {
     id: string;
     contactId: string;
-    type: 'call' | 'email' | 'meeting' | 'task' | 'note' | 'deal' | 'deadline' | 'lunch';
+    type: 'call' | 'email' | 'meeting' | 'task' | 'note' | 'deal' | 'deadline' | 'lunch' | 'internal_event' | 'fileUpload' | 'status_change' | 'followup';
     date: Date;
     title: string;
     completed: boolean;
@@ -82,16 +82,18 @@ export default function TimelineView() {
 
         // Add activities as events
         activities.forEach(activity => {
-            if (activity.dueDate) {
-                const dueDate = new Date(activity.dueDate);
-                const isOverdue = !activity.completed && dueDate < today;
+            const dateStr = activity.dueDate || activity.createdAt;
+            if (dateStr) {
+                const eventDate = new Date(dateStr);
+                const isNote = activity.type === 'note' || activity.type === 'status_change' || activity.type === 'fileUpload';
+                const isOverdue = !isNote && !activity.completed && eventDate < today;
 
                 events.push({
                     id: activity.id,
                     contactId: activity.contactId || '',
-                    type: activity.type as any || 'task',
-                    date: dueDate,
-                    title: activity.title,
+                    type: activity.type as any,
+                    date: eventDate,
+                    title: activity.title || (isNote ? 'Nota Interna' : 'Atividade'),
                     completed: activity.completed,
                     overdue: isOverdue,
                 });
@@ -124,7 +126,7 @@ export default function TimelineView() {
             all: [],
             deals: ['deal'],
             emails: ['email'],
-            notes: ['note'],
+            notes: ['note', 'internal_event'],
             call: ['call'],
             meeting: ['meeting'],
             task: ['task'],
@@ -613,27 +615,30 @@ export default function TimelineView() {
                                             {contactEvents.map((event) => {
                                                 const Icon = getEventIcon(event.type);
                                                 const position = getEventPosition(event.date);
+                                                const isNote = ['note', 'status_change', 'fileUpload', 'followup'].includes(event.type);
 
                                                 return (
                                                     <div
                                                         key={event.id}
                                                         className="absolute top-1/2 -translate-y-1/2 group/event cursor-pointer"
                                                         style={{ left: `${position}%` }}
-                                                        title={`${event.title} - ${event.date.toLocaleDateString('pt-BR')}`}
+                                                        title={`${isNote ? '[NOTA] ' : ''}${event.title} - ${event.date.toLocaleDateString('pt-BR')}`}
                                                     >
                                                         <div
                                                             className={`
                                                                 w-6 h-6 rounded-full flex items-center justify-center transition-all
-                                                                ${event.completed
-                                                                    ? 'bg-blue-500 text-white'
-                                                                    : event.overdue
-                                                                        ? 'bg-red-500 text-white'
-                                                                        : 'bg-gray-400 text-white'
+                                                                ${isNote
+                                                                    ? 'bg-amber-100 text-amber-600 border border-amber-200'
+                                                                    : event.completed
+                                                                        ? 'bg-blue-500 text-white shadow-sm'
+                                                                        : event.overdue
+                                                                            ? 'bg-red-500 text-white shadow-sm'
+                                                                            : 'bg-slate-400 text-white'
                                                                 }
-                                                                group-hover/event:scale-125 group-hover/event:shadow-lg
+                                                                group-hover/event:scale-125 group-hover/event:shadow-lg z-10
                                                             `}
                                                         >
-                                                            <Icon size={12} strokeWidth={2.5} />
+                                                            <Icon size={isNote ? 14 : 12} strokeWidth={isNote ? 2 : 2.5} />
                                                         </div>
                                                     </div>
                                                 );

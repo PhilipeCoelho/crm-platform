@@ -46,6 +46,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
     const [companySearch, setCompanySearch] = useState('');
     const [companyId, setCompanyId] = useState('');
     const [companyManuallyEdited, setCompanyManuallyEdited] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const resetForm = () => {
         setTitle('Negócio');
@@ -64,6 +65,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
         setCompanySearch('');
         setCompanyId('');
         setCompanyManuallyEdited(false);
+        setIsSubmitting(false);
     };
 
     const handleOnClose = () => {
@@ -128,6 +130,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
             let finalCompanyId = companyId;
             let finalContactId = contactId;
@@ -173,6 +176,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
         } catch (error: any) {
             console.error('❌ Error submitting deal:', error);
             alert(`Erro ao salvar negócio: ${error.message || 'Erro desconhecido'}`);
+            setIsSubmitting(false);
         }
     };
 
@@ -203,7 +207,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
         <Modal isOpen={isNewDealModalOpen} onClose={handleOnClose} title={dealToEdit ? "Editar Negócio" : "Adicionar lead"} maxWidth="max-w-md">
             <form onSubmit={handleSubmit} className="flex flex-col h-[80vh] md:h-auto overflow-hidden">
                 <div className="flex-1 overflow-y-auto p-1 space-y-2">
-                    {activeDuplicateDeals.length > 0 && (
+                    {!isSubmitting && activeDuplicateDeals.length > 0 && (
                         <div className="mb-4 animate-in fade-in slide-in-from-top-2">
                             <p className="text-[11px] font-bold text-red-600">Atenção: Já existe um negócio aberto para este contato/empresa!</p>
                         </div>
@@ -388,8 +392,10 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
 
                 {/* Footer Actions */}
                 <div className="mt-4 sm:mt-2 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-2 border-t border-border shrink-0 bg-background/80 backdrop-blur-sm sm:bg-transparent">
-                    <button type="button" onClick={handleOnClose} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors order-2 sm:order-1">Cancelar</button>
-                    <button type="submit" className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-md order-1 sm:order-2">Salvar</button>
+                    <button type="button" onClick={handleOnClose} disabled={isSubmitting} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors order-2 sm:order-1 disabled:opacity-50">Cancelar</button>
+                    <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-md order-1 sm:order-2 disabled:opacity-50">
+                        {isSubmitting ? 'Salvando...' : 'Salvar'}
+                    </button>
                 </div>
             </form>
         </Modal>
