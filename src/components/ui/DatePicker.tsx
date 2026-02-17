@@ -1,5 +1,5 @@
 import * as React from "react";
-import { format, parse, isValid, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, addMonths, subMonths, getYear } from "date-fns";
+import { format, parse, isValid, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverPrimitive } from "./popover";
