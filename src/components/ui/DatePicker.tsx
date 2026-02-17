@@ -159,8 +159,9 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
                         type="text"
                         value={inputValue}
                         onChange={handleInputChange}
+                        onClick={() => setIsOpen(true)}
                         placeholder={placeholder}
-                        className="bg-transparent border-none outline-none text-[12px] font-medium w-full text-foreground placeholder:text-muted-foreground/30 tabular-nums"
+                        className="bg-transparent border-none outline-none text-[12px] font-medium w-full text-foreground placeholder:text-muted-foreground/30 tabular-nums cursor-pointer"
                     />
                 </div>
 
