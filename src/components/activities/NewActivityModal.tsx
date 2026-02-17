@@ -28,15 +28,26 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const now = new Date();
+        const isToday = date === now.toISOString().split('T')[0];
+        let timeString = "12:00:00";
+        if (isToday) {
+            const hourAhead = new Date();
+            hourAhead.setHours(now.getHours() + 1);
+            timeString = `${String(hourAhead.getHours()).padStart(2, '0')}:${String(hourAhead.getMinutes()).padStart(2, '0')}:00`;
+        }
+
         await addActivity({
             title,
             type,
             dealId: dealId || undefined,
             contactId: preselectedContactId || undefined, // Link to contact directly
             date: date,
-            dueDate: `${date}T12:00:00`,
+            dueDate: `${date}T${timeString}.000Z`,
             notes,
-            duration: 30
+            duration: 30,
+            status: 'pending',
+            completed: false
         } as any);
 
         // Reset and close
@@ -93,6 +104,8 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
                                 <option value="call">📞 Ligação</option>
                                 <option value="task">✅ Tarefa</option>
                                 <option value="meeting">📅 Reunião</option>
+                                <option value="analysis">📊 Análise</option>
+                                <option value="audit">🎥 Auditoria</option>
                             </select>
                         </div>
                         <div>

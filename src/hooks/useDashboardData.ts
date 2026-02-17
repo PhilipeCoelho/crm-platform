@@ -36,9 +36,16 @@ export function useDashboardData() {
 
 
     // Productivity Matcher
-    const matchesProductivityPeriod = useCallback((dateStr?: string) => {
+    const matchesProductivityPeriod = useCallback((dateStr?: string | null) => {
         if (!dateStr) return false;
-        const date = parseISO(dateStr);
+
+        // Handle date-only strings like "2026-02-17" by adding noon UTC to avoid timezone shifts
+        let normalizedDate = dateStr;
+        if (normalizedDate.length === 10) {
+            normalizedDate = `${normalizedDate}T12:00:00Z`;
+        }
+
+        const date = parseISO(normalizedDate);
         const now = new Date();
 
         switch (productivityFilter) {
@@ -46,7 +53,7 @@ export function useDashboardData() {
             case '7d': return isAfter(date, subDays(now, 7));
             case '30d': return isAfter(date, subDays(now, 30));
             case '90d': return isAfter(date, subDays(now, 90));
-            case 'month': return isAfter(date, startOfMonth(now)); // Actually startOfMonth to Now? Or whole month? Usually "This Month".
+            case 'month': return isAfter(date, startOfMonth(now));
             case 'custom':
                 if (!productivityCustomRange.start) return true;
                 return isWithinInterval(date, {
@@ -91,17 +98,29 @@ export function useDashboardData() {
     const completedActivities = realActivities.filter(a =>
         a.completed &&
         a.dealId &&
-        a.dueDate &&
-        matchesProductivityPeriod(a.dueDate)
+        matchesProductivityPeriod(a.completedAt || a.dueDate)
     );
 
-    // Let's explicitly calculate "Today's Real Score" for the goal comparison if needed.
-    const todayProductivityScore = realActivities.filter(a =>
-        a.completed &&
-        a.dealId &&
-        a.dueDate &&
-        isToday(parseISO(a.dueDate))
-    ).length;
+    // Let's explicitly calculate "Today's Real Score" for the goal comparison
+    const todayProductivityScore = realActivities.filter(a => {
+        const dateStr = a.completedAt || a.dueDate;
+        if (!a.completed || !a.dealId || !dateStr) return false;
+
+        let normalizedDate = dateStr;
+        if (normalizedDate.length === 10) {
+            normalizedDate = `${normalizedDate}T12:00:00Z`;
+        }
+        return isToday(parseISO(normalizedDate));
+    }).length;
+
+    // Debugging logs to identify why counts might be 0 after refresh
+    console.debug('Dashboard Stats Debug:', {
+        totalActivities: activities.length,
+        realActivities: realActivities.length,
+        completedActivities: completedActivities.length,
+        todayScore: todayProductivityScore,
+        productivityFilter
+    });
 
     // 2. Revenue & Status Stats
     const revenueInPeriod = deals

@@ -5,6 +5,7 @@ import { useCRM } from '@/contexts/CRMContext';
 import Timeline from '../activities/Timeline';
 import ActivityList from '../activities/ActivityList';
 import EditActivityModal from '../activities/EditActivityModal';
+import CompleteActivityModal from '../activities/CompleteActivityModal';
 
 // Tab Components
 import ActivityTab from './tabs/ActivityTab';
@@ -20,10 +21,12 @@ interface ActivityPanelProps {
 type TabType = 'activity' | 'note' | 'email' | 'files';
 
 export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
-    const { activities, updateActivity, deleteActivity } = useCRM();
+    const { activities, logs, updateActivity, deleteActivity, deleteLog } = useCRM();
     const dealActivities = activities.filter(a => a.dealId === deal.id);
+    const dealLogs = logs.filter(l => l.dealId === deal.id);
     const [activeTab, setActiveTab] = useState<TabType>('activity');
     const [activityToEdit, setActivityToEdit] = useState<Activity | null>(null);
+    const [activityToComplete, setActivityToComplete] = useState<Activity | null>(null);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Sort: Open (Due date asc), Completed (Created/Completed date desc)
@@ -46,23 +49,22 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
         const activity = dealActivities.find(a => a.id === id);
         if (!activity) return;
 
-        const newStatus = !activity.completed;
-        updateActivity(id, { completed: newStatus });
-
-        // Automated Follow-up Trigger
-        if (newStatus === true) {
-            const remaining = openActivities.filter(a => a.id !== id).length;
-            if (remaining === 0) {
-                if (activeTab === 'note' || activeTab === 'files') {
-                    setActiveTab('activity');
-                }
-            }
+        if (!activity.completed) {
+            // Opening Modal for completion notes
+            setActivityToComplete(activity);
+        } else {
+            // Just reopening
+            updateActivity(id, { completed: false, status: 'pending' });
         }
     };
 
     const handleDeleteActivity = (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir esta atividade?')) {
+        // Resolve if it's an activity or a log
+        const isActivity = activities.some(a => a.id === id);
+        if (isActivity) {
             deleteActivity(id);
+        } else {
+            deleteLog(id);
         }
     };
 
@@ -166,6 +168,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                             <div className="space-y-0 relative before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
                                 <Timeline
                                     activities={historyActivities}
+                                    logs={dealLogs}
                                     onReopen={readOnly ? undefined : handleActivityToggle}
                                     onEdit={readOnly ? undefined : (id, newTitle) => updateActivity(id, { title: newTitle })}
                                     onDelete={readOnly ? undefined : handleDeleteActivity}
@@ -184,6 +187,12 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                 deal={deal}
                 activity={activityToEdit}
                 onUpdate={updateActivity}
+            />
+
+            <CompleteActivityModal
+                isOpen={!!activityToComplete}
+                onClose={() => setActivityToComplete(null)}
+                activity={activityToComplete}
             />
         </div>
     );

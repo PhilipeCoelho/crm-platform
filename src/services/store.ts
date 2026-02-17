@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-    User, Company, Contact, Deal, Activity, Pipeline, Stage
+    User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
+import { LEAD_SEQUENCE_TEMPLATES } from './cadence';
 
 
 // --- Types ---
@@ -12,6 +13,7 @@ export interface CRMStore {
     contacts: Contact[];
     deals: Deal[];
     activities: Activity[];
+    logs: DealLog[];
     pipelines: Record<string, Pipeline>;
     isLoading: boolean;
     isPipelineSettingsOpen: boolean;
@@ -34,6 +36,10 @@ export interface CRMStore {
     addActivity: (activity: Omit<Activity, 'id' | 'createdAt' | 'userId'>) => Promise<void>;
     updateActivity: (id: string, updates: Partial<Activity>) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
+    completeActivityWithLog: (activityId: string, content?: string) => Promise<void>;
+
+    addLog: (log: Omit<DealLog, 'id' | 'createdAt' | 'createdBy'>) => Promise<void>;
+    deleteLog: (id: string) => Promise<void>;
 
     // Helpers
     getPipelineStages: (pipelineId: string) => Stage[];
@@ -83,6 +89,7 @@ export function useCRMStore(): CRMStore {
     const [deals, setDeals] = useState<Deal[]>([]);
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [logs, setLogs] = useState<DealLog[]>([]);
     const [companies, setCompanies] = useState<Company[]>([]);
     // *Correction*: User schema didn't fully specifying Company table. 
     // We will handle Companies as local-only for now OR map to a simple jsonb if needed. 
@@ -135,141 +142,155 @@ export function useCRMStore(): CRMStore {
 
     // --- Data Fetching ---
     const fetchAll = useCallback(async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        setIsLoading(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                console.warn('fetchAll: No user found');
+                setIsLoading(false);
+                return;
+            }
 
-        // Fetch Deals
-        const { data: dealsData } = await supabase.from('deals').select('*');
-        if (dealsData) {
-            // Map SQL columns to Frontend types if needed (snake_case to camelCase)
-            const mappedDeals: Deal[] = dealsData.map(d => ({
-                ...d,
-                columnId: d.stage_id,
-                stageId: d.stage_id,
-                contactId: d.contact_id,
-                userId: d.user_id,
-                createdAt: d.created_at,
-                updatedAt: d.created_at,
-                pipelineId: d.pipeline_id || 'sales',
-                companyId: d.company_id,
-                tags: d.tags || [],
-                source: d.source,
-                currency: d.currency || 'BRL',
-                status: d.status || 'open',
-                value: Number(d.value),
-                position: d.position || 0
-            }));
+            console.debug('fetchAll: Starting parallel fetch for all data...');
 
-            // Sort: Position ASC, then CreatedAt DESC (Newest on top for same position)
-            // But User wants Newest at Bottom? No, "New Deal" gets High Position -> Bottom.
-            // Existing deals (Pos 0) -> Sorted by Date.
-            mappedDeals.sort((a, b) => {
-                const posA = a.position || 0;
-                const posB = b.position || 0;
-                if (posA !== posB) return posA - posB;
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-            });
+            const [
+                { data: dealsData, error: dealsError },
+                { data: contactsData, error: contactsError },
+                { data: activitiesData, error: activitiesError },
+                { data: logsData, error: logsError },
+                { data: companiesData, error: companiesError },
+                { data: stagesData, error: stagesError }
+            ] = await Promise.all([
+                supabase.from('deals').select('*'),
+                supabase.from('contacts').select('*'),
+                supabase.from('activities').select('*'),
+                supabase.from('deal_logs').select('*'),
+                supabase.from('companies').select('*'),
+                supabase.from('stages').select('*').order('order_index', { ascending: true })
+            ]);
 
-            setDeals(mappedDeals);
-        }
+            // Check for critical errors
+            if (dealsError || activitiesError || logsError) {
+                console.error('Critical Fetch Error:', { dealsError, activitiesError, logsError });
+            }
 
-        // Fetch Contacts
-        const { data: contactsData } = await supabase.from('contacts').select('*');
-        if (contactsData) {
-            setContacts(contactsData.map(c => ({
-                ...c,
-                userId: c.user_id,
-                companyId: c.company_id,
-                createdAt: c.created_at
-            })));
-        }
+            // 1. Map & Set Deals
+            if (dealsData) {
+                const mappedDeals: Deal[] = dealsData.map(d => ({
+                    ...d,
+                    columnId: d.stage_id,
+                    stageId: d.stage_id,
+                    contactId: d.contact_id,
+                    userId: d.user_id,
+                    createdAt: d.created_at,
+                    updatedAt: d.created_at,
+                    pipelineId: d.pipeline_id || 'sales',
+                    companyId: d.company_id,
+                    tags: d.tags || [],
+                    source: d.source,
+                    currency: d.currency || 'BRL',
+                    position: d.position || 0,
+                    leadSequenceStarted: d.lead_sequence_started || false
+                }));
 
-        // Fetch Activities
-        const { data: activitiesData } = await supabase.from('activities').select('*');
-        if (activitiesData) {
-            setActivities(activitiesData.map(a => ({
-                ...a,
-                dealId: a.deal_id,
-                userId: a.user_id,
-                createdAt: a.created_at,
-                dueDate: a.date,
-                completed: a.completed
-            })));
-        }
-
-        // Fetch Companies
-        const { data: companiesData } = await supabase.from('companies').select('*');
-        if (companiesData) {
-            setCompanies(companiesData.map(c => ({
-                id: c.id,
-                name: c.name,
-                website: c.website,
-                phone: c.phone,
-                email: c.email,
-                createdAt: c.created_at
-            })));
-        }
-
-        // Fetch Stages (Dynamic Pipelines)
-        const { data: stagesData, error: stagesError } = await supabase
-            .from('stages')
-            .select('*')
-            .order('order_index', { ascending: true });
-
-        if (stagesData && !stagesError) {
-            // Group stages by pipeline_id
-            const stagesByPipeline: Record<string, Stage[]> = {};
-
-            stagesData.forEach(s => {
-                const pid = s.pipeline_id || 'sales';
-                if (!stagesByPipeline[pid]) stagesByPipeline[pid] = [];
-                stagesByPipeline[pid].push({
-                    id: s.id,
-                    pipelineId: pid,
-                    title: s.name,
-                    color: s.color,
-                    probability: s.probability
+                mappedDeals.sort((a, b) => {
+                    const posA = a.position || 0;
+                    const posB = b.position || 0;
+                    if (posA !== posB) return posA - posB;
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                 });
-            });
+                setDeals(mappedDeals);
+            }
 
-            // Update Pipelines State with fetched stages
-            setPipelines(prev => {
-                const nextPipelines = { ...prev };
-                // If a pipeline has stages in DB, use those. 
-                // If not, it might still have the default ones from DEFAULT_PIPELINES 
-                // (though here we are initialising stages as empty array if fetched)
-                Object.keys(stagesByPipeline).forEach(pid => {
-                    if (nextPipelines[pid]) {
-                        nextPipelines[pid].stages = stagesByPipeline[pid];
-                    } else {
-                        // Dynamically add new pipeline if found in DB stages
-                        nextPipelines[pid] = {
-                            id: pid,
-                            name: pid === 'sales' ? 'Funil de Prospeção' :
-                                pid === 'cold_leads' ? 'Leads Frios' : pid,
-                            stages: stagesByPipeline[pid]
-                        };
-                    }
+            // 2. Map & Set Contacts
+            if (contactsData) {
+                setContacts(contactsData.map(c => ({
+                    ...c,
+                    userId: c.user_id,
+                    companyId: c.company_id,
+                    createdAt: c.created_at
+                })));
+            }
+
+            // 3. Map & Set Activities
+            if (activitiesData) {
+                setActivities(activitiesData.map(a => ({
+                    ...a,
+                    dealId: a.deal_id,
+                    userId: a.user_id,
+                    createdAt: a.created_at,
+                    dueDate: a.date,
+                    completed: a.completed,
+                    status: a.status || (a.completed ? 'completed' : 'pending'),
+                    completedAt: a.completed_at,
+                    originStage: a.origin_stage,
+                    sequenceId: a.sequence_id
+                })));
+            }
+
+            // 4. Map & Set Logs
+            if (logsData) {
+                setLogs(logsData.map(l => ({
+                    id: l.id,
+                    dealId: l.deal_id,
+                    activityId: l.activity_id,
+                    content: l.content,
+                    logType: l.log_type,
+                    createdBy: l.created_by,
+                    createdAt: l.created_at
+                })));
+            }
+
+            // 5. Map & Set Companies
+            if (companiesData) {
+                setCompanies(companiesData.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    website: c.website,
+                    phone: c.phone,
+                    email: c.email,
+                    createdAt: c.created_at
+                })));
+            }
+
+            // 6. Map & Set Pipelines/Stages
+            if (stagesData) {
+                const stagesByPipeline: Record<string, Stage[]> = {};
+                stagesData.forEach(s => {
+                    const pid = s.pipeline_id || 'sales';
+                    if (!stagesByPipeline[pid]) stagesByPipeline[pid] = [];
+                    stagesByPipeline[pid].push({
+                        id: s.id,
+                        pipelineId: pid,
+                        title: s.name,
+                        color: s.color,
+                        probability: s.probability
+                    });
                 });
 
-                // Fallback: If cold_leads exists but has no stages, 
-                // replicate stages from sales as requested ("same structure")
-                if (nextPipelines['cold_leads'] && nextPipelines['cold_leads'].stages.length === 0) {
-                    const salesStages = nextPipelines['sales']?.stages || [];
-                    if (salesStages.length > 0) {
-                        nextPipelines['cold_leads'].stages = salesStages.map(s => ({
-                            ...s,
-                            pipelineId: 'cold_leads'
-                        }));
-                    }
-                }
+                setPipelines(prev => {
+                    const nextPipelines = { ...prev };
+                    Object.keys(stagesByPipeline).forEach(pid => {
+                        if (nextPipelines[pid]) {
+                            nextPipelines[pid].stages = stagesByPipeline[pid];
+                        } else {
+                            nextPipelines[pid] = {
+                                id: pid,
+                                name: pid === 'sales' ? 'Funil de Prospeção' :
+                                    pid === 'cold_leads' ? 'Leads Frios' : pid,
+                                stages: stagesByPipeline[pid]
+                            };
+                        }
+                    });
+                    return nextPipelines;
+                });
+            }
 
-                return nextPipelines;
-            });
-        } else if (stagesError) {
-            console.error('Error fetching stages:', stagesError);
+        } catch (err) {
+            console.error('fetchAll unhandled error:', err);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }, []);
 
     // --- Initial Load & Realtime ---
@@ -425,6 +446,27 @@ export function useCRMStore(): CRMStore {
         if (finalUpdates.lostReason !== undefined) dbUpdates.lost_reason = finalUpdates.lostReason;
         if (finalUpdates.position !== undefined) dbUpdates.position = finalUpdates.position;
         if (finalUpdates.pipelineId !== undefined) dbUpdates.pipeline_id = finalUpdates.pipelineId;
+        if (finalUpdates.leadSequenceStarted !== undefined) dbUpdates.lead_sequence_started = finalUpdates.leadSequenceStarted;
+
+        // --- Cadence Logic Triggers ---
+        if (updates.stageId && updates.stageId !== originalDeal.stageId) {
+            const enteringLead = isLeadStage(updates.stageId);
+            const leavingLead = isLeadStage(originalDeal.stageId);
+
+            // Check if entering LEAD stage
+            if (enteringLead && !updates.leadSequenceStarted && !originalDeal.leadSequenceStarted) {
+                await startLeadSequence(id);
+                dbUpdates.lead_sequence_started = true;
+                finalUpdates.leadSequenceStarted = true;
+            }
+
+            // Check if leaving LEAD stage
+            if (leavingLead && !enteringLead) {
+                await cancelLeadSequence(id);
+                dbUpdates.lead_sequence_started = false;
+                finalUpdates.leadSequenceStarted = false;
+            }
+        }
 
         if (Object.keys(dbUpdates).length > 0) {
             console.log('📝 Sending Update to DB:', { id, ...dbUpdates });
@@ -460,6 +502,29 @@ export function useCRMStore(): CRMStore {
         const updates: any = { stage_id: stageId };
         if (position !== undefined) updates.position = position;
         if (pipelineId) updates.pipeline_id = pipelineId;
+
+        // --- Cadence Logic Triggers ---
+        const originalDeal = deals.find(d => d.id === id);
+        if (originalDeal) {
+            const enteringLead = isLeadStage(stageId);
+            const leavingLead = isLeadStage(originalDeal.stageId);
+
+            // Entering LEAD stage
+            if (enteringLead && !originalDeal.leadSequenceStarted) {
+                await startLeadSequence(id);
+                updates.lead_sequence_started = true;
+                // Optimistic update for frontend state
+                setDeals(prev => prev.map(d => d.id === id ? { ...d, leadSequenceStarted: true } : d));
+            }
+
+            // Leaving LEAD stage
+            if (leavingLead && !enteringLead) {
+                await cancelLeadSequence(id);
+                updates.lead_sequence_started = false;
+                // Optimistic update for frontend state
+                setDeals(prev => prev.map(d => d.id === id ? { ...d, leadSequenceStarted: false } : d));
+            }
+        }
 
         console.log('📦 Persistence: Moving deal', { id, ...updates });
         const { error } = await supabase.from('deals').update(updates).eq('id', id);
@@ -608,7 +673,10 @@ export function useCRMStore(): CRMStore {
             deal_id: data.dealId,
             user_id: user.id,
             notes: data.notes,
-            completed: data.completed !== undefined ? data.completed : false
+            completed: data.completed !== undefined ? data.completed : false,
+            status: data.status || (data.completed ? 'completed' : 'pending'),
+            origin_stage: data.originStage,
+            sequence_id: data.sequenceId
         };
 
         const optimisticActivity = {
@@ -630,33 +698,114 @@ export function useCRMStore(): CRMStore {
     };
 
     const updateActivity = async (id: string, updates: Partial<Activity>) => {
-        setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+        // Sync status with completed if completed is provided
+        const synchronizedUpdates = { ...updates };
+        if (updates.completed !== undefined) {
+            if (updates.status === undefined) {
+                synchronizedUpdates.status = updates.completed ? 'completed' : 'pending';
+            }
+            if (updates.completedAt === undefined) {
+                synchronizedUpdates.completedAt = updates.completed ? new Date().toISOString() : undefined;
+            }
+        }
+
+        setActivities(prev => prev.map(a => a.id === id ? { ...a, ...synchronizedUpdates } : a));
 
         const dbUpdates: Record<string, unknown> = {};
-        if (updates.title !== undefined) dbUpdates.title = updates.title;
-        if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
-        if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
-        if (updates.dueDate !== undefined) {
-            let normalizedDate = updates.dueDate;
+        if (synchronizedUpdates.title !== undefined) dbUpdates.title = synchronizedUpdates.title;
+        if (synchronizedUpdates.notes !== undefined) dbUpdates.notes = synchronizedUpdates.notes;
+        if (synchronizedUpdates.completed !== undefined) dbUpdates.completed = synchronizedUpdates.completed;
+        if (synchronizedUpdates.status !== undefined) dbUpdates.status = synchronizedUpdates.status;
+        if (synchronizedUpdates.completedAt !== undefined) dbUpdates.completed_at = synchronizedUpdates.completedAt;
+
+        if (synchronizedUpdates.dueDate !== undefined) {
+            let normalizedDate = synchronizedUpdates.dueDate;
             if (normalizedDate && normalizedDate.length === 10) {
                 normalizedDate = `${normalizedDate}T12:00:00.000Z`;
             }
             dbUpdates.date = normalizedDate;
         }
-        if (updates.dealId !== undefined) dbUpdates.deal_id = updates.dealId;
-        if (updates.contactId !== undefined) dbUpdates.contact_id = updates.contactId;
+        if (synchronizedUpdates.dealId !== undefined) dbUpdates.deal_id = synchronizedUpdates.dealId;
+        if (synchronizedUpdates.contactId !== undefined) dbUpdates.contact_id = synchronizedUpdates.contactId;
+        if (synchronizedUpdates.originStage !== undefined) dbUpdates.origin_stage = synchronizedUpdates.originStage;
+        if (synchronizedUpdates.sequenceId !== undefined) dbUpdates.sequence_id = synchronizedUpdates.sequenceId;
 
         dbUpdates.updated_at = new Date().toISOString();
 
         const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
         if (error) {
             console.error('Update activity error', error);
+            alert(`Erro ao salvar atividade: ${error.message}. Verifique se você rodou o comando SQL no Supabase.`);
+            // Optionally revert: fetchAll();
         }
     };
 
     const deleteActivity = async (id: string) => {
         setActivities(prev => prev.filter(a => a.id !== id));
         await supabase.from('activities').delete().eq('id', id);
+    };
+
+    const addLog = async (data: Omit<DealLog, 'id' | 'createdAt' | 'createdBy'>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const tempId = generateId();
+        const newLogDto = {
+            id: tempId,
+            deal_id: data.dealId,
+            activity_id: data.activityId,
+            content: data.content,
+            log_type: data.logType,
+            created_by: user.id
+        };
+
+        const optimisticLog: DealLog = {
+            ...data,
+            id: tempId,
+            createdBy: user.id,
+            createdAt: new Date().toISOString()
+        };
+
+        setLogs(prev => [...prev, optimisticLog]);
+
+        const { error } = await supabase.from('deal_logs').insert(newLogDto);
+        if (error) {
+            console.error('Error creating log:', error);
+            alert(`Erro ao gerar histórico (Log): ${error.message}. Verifique se a tabela deal_logs existe.`);
+            setLogs(prev => prev.filter(l => l.id !== tempId));
+        }
+    };
+
+    const deleteLog = async (id: string) => {
+        setLogs(prev => prev.filter(l => l.id !== id));
+        const { error } = await supabase.from('deal_logs').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting log:', error);
+            alert(`Erro ao excluir nota: ${error.message}`);
+            fetchAll();
+        }
+    };
+
+    const completeActivityWithLog = async (activityId: string, content?: string) => {
+        const activity = activities.find(a => a.id === activityId);
+        if (!activity) return;
+
+        const now = new Date().toISOString();
+
+        // 1. Update Activity
+        await updateActivity(activityId, {
+            completed: true,
+            status: 'completed',
+            completedAt: now
+        });
+
+        // 2. Add Log
+        await addLog({
+            dealId: activity.dealId!,
+            activityId: activity.id,
+            content: content?.trim() || "Atividade concluída sem observações.",
+            logType: content?.trim() ? 'activity_note' : 'system'
+        });
     };
 
     const addCompany = async (data: Omit<Company, 'id' | 'createdAt'>) => {
@@ -809,6 +958,115 @@ export function useCRMStore(): CRMStore {
         }
     };
 
+    // --- Cadence Automation Helpers ---
+
+    const isLeadStage = (sId: string) => {
+        if (sId === 'new') return true;
+        // Search in all pipelines stages
+        for (const pipeline of Object.values(pipelines)) {
+            const stage = pipeline.stages.find(s => s.id === sId);
+            if (!stage) continue;
+
+            const title = stage.title.toUpperCase();
+            // It's a lead stage if it has "LEAD" but NOT "ENGAJADO", "RESPONDIDO" or "CONVERSA"
+            // (Moving to these stages should stop the cold cadence)
+            if (title.includes('LEAD') &&
+                !title.includes('ENGAJADO') &&
+                !title.includes('RESPONDIDO') &&
+                !title.includes('CONVERSA')) return true;
+        }
+        return false;
+    };
+
+    const startLeadSequence = async (dealId: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        console.log('🚀 Starting Cadence Sequence for deal:', dealId);
+
+        const now = new Date();
+        const newActivities: any[] = [];
+
+        for (const template of LEAD_SEQUENCE_TEMPLATES) {
+            const tempId = generateId();
+            const dueDate = new Date();
+            dueDate.setDate(now.getDate() + template.dayOffset);
+
+            // Default to 12:00, BUT if dayOffset is 0 (Today), set to 1 hour ahead
+            let timePart = "12:00:00";
+            if (template.dayOffset === 0) {
+                const hourAhead = new Date();
+                hourAhead.setHours(now.getHours() + 1);
+                timePart = `${String(hourAhead.getHours()).padStart(2, '0')}:${String(hourAhead.getMinutes()).padStart(2, '0')}:00`;
+            }
+
+            const dueDateIso = `${dueDate.toISOString().split('T')[0]}T${timePart}.000Z`;
+
+            const activityData = {
+                id: tempId,
+                user_id: user.id,
+                deal_id: dealId,
+                type: template.activityType,
+                title: template.defaultTitle,
+                notes: template.defaultDescription,
+                date: dueDateIso,
+                status: 'pending',
+                completed: false,
+                origin_stage: 'LEAD',
+                sequence_id: template.id // Fixed in templates as static for now
+            };
+
+            newActivities.push(activityData);
+        }
+
+        // Optimistic Update
+        const optimisticActivities = newActivities.map(a => ({
+            id: a.id,
+            userId: a.user_id,
+            dealId: a.deal_id,
+            type: a.type,
+            title: a.title,
+            notes: a.notes,
+            dueDate: a.date,
+            status: a.status,
+            completed: a.completed,
+            originStage: a.origin_stage,
+            sequenceId: a.sequence_id,
+            createdAt: now.toISOString()
+        }));
+
+        setActivities(prev => [...prev, ...optimisticActivities]);
+
+        // DB Insert
+        const { error } = await supabase.from('activities').insert(newActivities);
+        if (error) {
+            console.error('❌ Error creating cadence sequence:', error);
+            setActivities(prev => prev.filter(a => !newActivities.some(na => na.id === a.id)));
+        }
+    };
+
+    const cancelLeadSequence = async (dealId: string) => {
+        console.log('🗑️ Cleaning up pending Cadence Sequence for deal:', dealId);
+
+        // Optimistic Update: Remove pending activities from state
+        setActivities(prev => prev.filter(a =>
+            !(a.dealId === dealId && a.originStage === 'LEAD' && a.status === 'pending')
+        ));
+
+        // DB Delete: Permanently remove pending activities
+        const { error } = await supabase
+            .from('activities')
+            .delete()
+            .eq('deal_id', dealId)
+            .eq('origin_stage', 'LEAD')
+            .eq('status', 'pending');
+
+        if (error) {
+            console.error('❌ Error deleting cadence sequence:', error);
+            fetchAll(); // Revert from DB to restore data if delete failed
+        }
+    };
+
     const reorderStages = async (pipelineId: string, newOrder: string[]) => {
         // Optimistic Update
         setPipelines(prev => {
@@ -856,7 +1114,10 @@ export function useCRMStore(): CRMStore {
         addDeal, updateDeal, moveDeal, deleteDeal,
         addContact, updateContact, deleteContact,
         addActivity, updateActivity, deleteActivity,
+        completeActivityWithLog, addLog,
         addCompany, updateCompany, deleteCompany,
+        logs,
+        deleteLog,
         addStage,
         updateStage,
         deleteStage,

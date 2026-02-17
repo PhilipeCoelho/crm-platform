@@ -36,7 +36,12 @@ const QUICK_ACTIONS = [
 export default function ActivityForm({ deal, onSave, initialData, contactName = 'Cliente', submitLabel = 'Agendar' }: ActivityFormProps) {
     const [title, setTitle] = useState(initialData?.title || '');
     const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
-    const [time, setTime] = useState(initialData?.time || '10:00');
+    const [time, setTime] = useState(() => {
+        if (initialData?.time) return initialData.time;
+        const now = new Date();
+        now.setHours(now.getHours() + 1);
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    });
     const [selectedType, setSelectedType] = useState(initialData?.type || 'task');
 
 
@@ -61,7 +66,8 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 dealId: deal.id,
                 dueDate: `${date}T${time}:00.000`,
                 duration: 30,
-                completed: false
+                completed: false,
+                status: 'pending'
             };
 
             if (onSave) {

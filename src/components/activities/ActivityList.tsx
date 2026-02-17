@@ -1,5 +1,9 @@
 import { Activity } from '@/types/schema';
-import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare, History, Instagram } from 'lucide-react';
+import {
+    CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText,
+    StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare,
+    History, Instagram, BarChart3, Video, XCircle
+} from 'lucide-react';
 import { format, isBefore, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -20,6 +24,8 @@ const typeIcons: Record<string, any> = {
     fileUpload: Paperclip,
     message: MessageSquare,
     instagram: Instagram,
+    analysis: BarChart3,
+    audit: Video,
     status_change: History,
 };
 
@@ -92,40 +98,43 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                 const status = getActivityStatus(activity.dueDate);
                 const style = statusStyles[status];
 
-                // If completed, we override visual urgency
+                // If completed or canceled, we override visual urgency
                 const isCompleted = activity.completed;
+                const isCanceled = activity.status === 'canceled';
 
                 return (
                     <div
                         key={activity.id}
                         className={`group/item relative flex items-start gap-4 sm:gap-3 p-4 sm:p-3 rounded-xl sm:rounded-lg border bg-card transition-all hover:shadow-sm
-                            ${isCompleted ? 'opacity-60 border-border' : `border-l-4 ${style.border.replace('border', 'border-l')}`}`}
+                            ${(isCompleted || isCanceled) ? 'opacity-60 border-border' : `border-l-4 ${style.border.replace('border', 'border-l')}`}`}
                         // Note: Using border-l-4 for clear visual indication status if not completed
-                        style={!isCompleted ? { borderLeftColor: status === 'late' ? '#ef4444' : status === 'today' ? '#22c55e' : undefined } : {}}
+                        style={(!isCompleted && !isCanceled) ? { borderLeftColor: status === 'late' ? '#ef4444' : status === 'today' ? '#22c55e' : undefined } : {}}
                     >
                         <button
-                            onClick={() => onToggle(activity.id)}
-                            className={`mt-0.5 shrink-0 h-11 w-11 sm:h-auto sm:w-auto flex items-center justify-center sm:block ${isCompleted ? 'text-primary' : 'text-muted-foreground hover:text-primary'} transition-colors`}
+                            onClick={() => !isCanceled && onToggle(activity.id)}
+                            className={`mt-0.5 shrink-0 h-11 w-11 sm:h-auto sm:w-auto flex items-center justify-center sm:block ${isCompleted ? 'text-primary' : isCanceled ? 'text-muted-foreground cursor-not-allowed' : 'text-muted-foreground hover:text-primary'} transition-colors`}
+                            disabled={isCanceled}
                         >
-                            {isCompleted ? <CheckCircle2 size={24} className="sm:w-5 sm:h-5" /> : <Circle size={24} className="sm:w-5 sm:h-5" />}
+                            {isCompleted ? <CheckCircle2 size={24} className="sm:w-5 sm:h-5" /> : isCanceled ? <XCircle size={24} className="sm:w-5 sm:h-5" /> : <Circle size={24} className="sm:w-5 sm:h-5" />}
                         </button>
 
                         <div className="flex-1 min-w-0 pt-2 sm:pt-0">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
-                                <h4 className={`text-base sm:text-sm font-bold sm:font-medium ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                <h4 className={`text-base sm:text-sm font-bold sm:font-medium ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {activity.title}
+                                    {isCanceled && <span className="ml-2 text-[10px] line-through font-normal">(Cancelada)</span>}
                                 </h4>
                                 <div className="flex items-center gap-4 sm:gap-2">
                                     {activity.dueDate && (
-                                        <div className={`flex items-center gap-1.5 px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full text-[10px] sm:text-[10px] font-bold sm:font-medium border ${!isCompleted ? `${style.bg} ${style.text} ${style.border}` : 'bg-muted text-muted-foreground border-transparent'}`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${!isCompleted ? style.dot : 'bg-muted-foreground'}`} />
+                                        <div className={`flex items-center gap-1.5 px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full text-[10px] sm:text-[10px] font-bold sm:font-medium border ${(!isCompleted && !isCanceled) ? `${style.bg} ${style.text} ${style.border}` : 'bg-muted text-muted-foreground border-transparent'}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${(!isCompleted && !isCanceled) ? style.dot : 'bg-muted-foreground'}`} />
                                             <span>
                                                 {status === 'today' ? 'Hoje' : format(parseISO(activity.dueDate), "dd MMM", { locale: ptBR })}
                                             </span>
                                         </div>
                                     )}
                                     <div className="flex items-center gap-1">
-                                        {onEdit && (
+                                        {!isCanceled && onEdit && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onEdit(activity); }}
                                                 className="sm:opacity-0 sm:group-hover/item:opacity-100 p-2.5 sm:p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 rounded-md text-muted-foreground transition-all"
@@ -161,7 +170,9 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                                             activity.type === 'meeting' ? 'Reunião' :
                                                 activity.type === 'task' ? 'Tarefa' :
                                                     activity.type === 'email' ? 'E-mail' :
-                                                        activity.type}
+                                                        activity.type === 'analysis' ? 'Análise' :
+                                                            activity.type === 'audit' ? 'Auditoria' :
+                                                                activity.type}
                                 </span>
 
                                 {activity.duration && (

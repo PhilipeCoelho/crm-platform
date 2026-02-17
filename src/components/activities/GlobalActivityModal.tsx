@@ -11,7 +11,9 @@ import {
     Search,
     Plus,
     Check,
-    AlertCircle
+    AlertCircle,
+    BarChart3,
+    Video
 } from 'lucide-react';
 
 interface Props {
@@ -25,6 +27,8 @@ const TYPES = [
     { value: 'call', label: 'Ligação', icon: Phone },
     { value: 'task', label: 'Tarefa', icon: CheckCircle2 },
     { value: 'meeting', label: 'Reunião', icon: Users },
+    { value: 'analysis', label: 'Análise', icon: BarChart3 },
+    { value: 'audit', label: 'Auditoria', icon: Video },
 ];
 
 const PRIORITIES = [
@@ -42,7 +46,11 @@ export default function GlobalActivityModal({ isOpen, onClose }: Props) {
     const [contactId, setContactId] = useState('');
     const [dealId, setDealId] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [time, setTime] = useState('10:00');
+    const [time, setTime] = useState(() => {
+        const now = new Date();
+        now.setHours(now.getHours() + 1);
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    });
     const [duration, setDuration] = useState(30);
     const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
     const [notes, setNotes] = useState('');
@@ -86,7 +94,8 @@ export default function GlobalActivityModal({ isOpen, onClose }: Props) {
                 duration,
                 notes,
                 priority,
-                completed: false
+                completed: false,
+                status: 'pending'
             });
             resetAndClose();
         } catch (error) {

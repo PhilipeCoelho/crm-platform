@@ -59,13 +59,11 @@ function ProductivityFilterSelector({ value, onChange, customRange, onCustomRang
                                     onChange(opt.value);
                                     if (opt.value !== 'custom') setIsOpen(false);
                                 }}
-                                className={`
-w - full text - left px - 3 py - 2 text - sm rounded - md transition - colors
+                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors
                                     ${value === opt.value
                                         ? 'bg-primary/10 text-primary font-medium'
                                         : 'hover:bg-muted text-foreground'
-                                    }
-`}
+                                    }`}
                             >
                                 {opt.label}
                             </button>
@@ -156,13 +154,11 @@ function RevenueFilterSelector({ value, onChange, customRange, onCustomRangeChan
                                     onChange(opt.value);
                                     if (opt.value !== 'custom') setIsOpen(false);
                                 }}
-                                className={`
-w - full text - left px - 3 py - 2 text - sm rounded - md transition - colors
-                                    ${value === opt.value
+                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors
+                                ${value === opt.value
                                         ? 'bg-primary/10 text-primary font-medium'
                                         : 'hover:bg-muted text-foreground'
-                                    }
-`}
+                                    }`}
                             >
                                 {opt.label}
                             </button>
@@ -382,7 +378,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
                             {/* Icon Indicator */}
                             {isTodayView && (
-                                <div className={`ml - 4 p - 3 rounded - lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'} `}>
+                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}`}>
                                     {displayCount >= stats.activityGoal ? <CheckCircle2 size={24} /> : <TrendingUp size={24} />}
                                 </div>
                             )}
@@ -398,8 +394,8 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 <div className="w-full">
                                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                                         <div
-                                            className={`h - full rounded - full transition - all duration - 1000 ease - out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-blue-500'} `}
-                                            style={{ width: `${progressPercent}% ` }}
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-blue-500'}`}
+                                            style={{ width: `${progressPercent}%` }}
                                         />
                                     </div>
                                     <p className="text-xs text-muted-foreground/80 text-right mt-1">
@@ -463,8 +459,8 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 <>
                                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden relative">
                                         <div
-                                            className={`h - full rounded - full transition - all duration - 1000 ease - out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-green-500' : 'bg-yellow-500'} `}
-                                            style={{ width: `${Math.min((stats.currentRevenue / stats.revenueGoal) * 100, 100)}% ` }}
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-green-500' : 'bg-yellow-500'}`}
+                                            style={{ width: `${Math.min((stats.currentRevenue / stats.revenueGoal) * 100, 100)}%` }}
                                         />
                                     </div>
                                     <p className="text-xs text-muted-foreground/80 text-right">

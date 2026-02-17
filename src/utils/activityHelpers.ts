@@ -6,7 +6,10 @@ export const REAL_ACTIVITY_TYPES: ActivityType[] = [
     'meeting',
     'task',
     'email',
-    'message'
+    'message',
+    'instagram',
+    'analysis',
+    'audit'
 ];
 
 // Verifica se uma atividade é uma atividade real (não é nota/evento interno)
@@ -50,5 +53,17 @@ export const ACTIVITY_CONFIG = {
         icon: 'MessageSquare',
         color: 'text-indigo-600',
         bgColor: 'bg-indigo-100'
+    },
+    analysis: {
+        label: 'Análise',
+        icon: 'BarChart3',
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-100'
+    },
+    audit: {
+        label: 'Auditoria',
+        icon: 'Video',
+        color: 'text-rose-600',
+        bgColor: 'bg-rose-100'
     }
 } as const;

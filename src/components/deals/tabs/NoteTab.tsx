@@ -9,7 +9,7 @@ interface NoteTabProps {
 }
 
 export default function NoteTab({ deal, onSave }: NoteTabProps) {
-    const { addActivity } = useCRM();
+    const { addLog } = useCRM();
     const [content, setContent] = useState('');
 
     const insertFormatting = (prefix: string, suffix: string = '') => {
@@ -40,12 +40,10 @@ export default function NoteTab({ deal, onSave }: NoteTabProps) {
 
         setIsSubmitting(true);
         try {
-            await addActivity({
-                type: 'note',
-                title: content,
+            await addLog({
+                content: content,
                 dealId: deal.id,
-                completed: true,
-                dueDate: new Date().toISOString()
+                logType: 'manual_note'
             });
             setContent('');
             if (onSave) onSave();

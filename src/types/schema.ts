@@ -57,10 +57,13 @@ export interface Deal {
     lostReason?: string;
     createdAt: string;
     updatedAt: string;
+
+    // Cadence Automation
+    leadSequenceStarted?: boolean;
 }
 
 // Tipos de atividades REAIS (aparecem no módulo Atividades)
-export type ActivityType = 'call' | 'meeting' | 'task' | 'email' | 'message' | 'instagram';
+export type ActivityType = 'call' | 'meeting' | 'task' | 'email' | 'message' | 'instagram' | 'analysis' | 'audit';
 
 // Tipos de eventos internos (não são atividades)
 export type InternalEventType = 'note' | 'fileUpload' | 'status_change' | 'followup';
@@ -83,9 +86,24 @@ export interface Activity {
     dueDate?: string; // ISO Date string
     duration?: number;
     completed: boolean;
+    status: 'pending' | 'completed' | 'canceled'; // Added for Cadence
+    originStage?: string; // ex: "LEAD"
+    sequenceId?: string;
+
     createdAt: string;
     updatedAt?: string;
     completedAt?: string;
+}
+
+export interface StageSequence {
+    id: Id;
+    stageName: string;
+    dayOffset: number;
+    activityType: ActivityType;
+    defaultTitle: string;
+    defaultDescription?: string;
+    orderIndex: number;
+    isActive: boolean;
 }
 
 export interface Stage {
@@ -100,6 +118,19 @@ export interface Pipeline {
     id: Id;
     name: string;
     stages: Stage[];
+}
+
+// Log do Negócio (Execução/Timeline)
+export type LogType = 'activity_note' | 'system' | 'manual_note';
+
+export interface DealLog {
+    id: Id;
+    dealId: Id;
+    activityId?: Id;
+    content: string;
+    logType: LogType;
+    createdBy: Id;
+    createdAt: string;
 }
 
 // Initial Pipelines Configuration
