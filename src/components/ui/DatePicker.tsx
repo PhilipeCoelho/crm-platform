@@ -2,7 +2,7 @@ import * as React from "react";
 import { format, parse, isValid, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, addMonths, subMonths, getYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Popover, PopoverContent, PopoverPrimitive } from "./popover";
 import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
@@ -55,27 +55,23 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
     };
 
     const renderHeader = () => {
-        const years = [];
-        const currentYear = getYear(new Date());
-        for (let i = currentYear - 10; i <= currentYear + 10; i++) {
-            years.push(i);
-        }
-
         return (
             <div className="flex items-center justify-between px-2 py-2 mb-2">
                 <button
-                    onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setCurrentMonth(subMonths(currentMonth, 1)); }}
                     className="p-1 hover:bg-muted rounded-md transition-colors"
                 >
                     <ChevronLeft size={16} />
                 </button>
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold capitalize">
+                    <span className="text-sm font-semibold capitalize text-foreground">
                         {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
                     </span>
                 </div>
                 <button
-                    onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setCurrentMonth(addMonths(currentMonth, 1)); }}
                     className="p-1 hover:bg-muted rounded-md transition-colors"
                 >
                     <ChevronRight size={16} />
@@ -129,7 +125,7 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
                             isSelected && "bg-indigo-500 text-white hover:bg-indigo-600 font-semibold shadow-sm",
                             isToday && !isSelected && "border border-indigo-500/30 text-indigo-500 font-semibold"
                         )}
-                        onClick={() => handleSelectDate(cloneDay)}
+                        onClick={(e) => { e.stopPropagation(); handleSelectDate(cloneDay); }}
                     >
                         <span>{formattedDate}</span>
                     </div>
@@ -149,8 +145,11 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
     return (
         <div className={cn("inline-block w-full", className)}>
             <Popover open={isOpen} onOpenChange={setIsOpen}>
-                <PopoverTrigger asChild>
-                    <div className="flex items-center gap-2 h-8 px-2 rounded-md border border-border/60 hover:border-indigo-500/30 transition-all focus-within:ring-1 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 bg-background/50 cursor-pointer group">
+                <PopoverPrimitive.Anchor asChild>
+                    <div
+                        className="flex items-center gap-2 h-8 px-2 rounded-md border border-border/60 hover:border-indigo-500/30 transition-all focus-within:ring-1 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 bg-background/50 group cursor-pointer"
+                        onClick={() => setIsOpen(true)}
+                    >
                         <CalendarIcon size={14} className="text-slate-400 group-hover:text-indigo-500 transition-colors shrink-0" />
                         <input
                             type="text"
@@ -159,12 +158,18 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
                             onFocus={() => setIsOpen(true)}
                             placeholder={placeholder}
                             className="bg-transparent border-none outline-none text-[12px] font-medium w-full text-foreground placeholder:text-muted-foreground/30 tabular-nums cursor-text"
+                            onClick={(e) => e.stopPropagation()}
                         />
                     </div>
-                </PopoverTrigger>
+                </PopoverPrimitive.Anchor>
 
-                <PopoverContent className="w-auto p-3 rounded-xl shadow-2xl border-border bg-card animate-in fade-in zoom-in-95 duration-200" align="start">
-                    <div className="w-[260px]">
+                <PopoverContent
+                    className="w-auto p-3 rounded-xl shadow-2xl border-border bg-popover animate-in fade-in zoom-in-95 duration-200"
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                    onCloseAutoFocus={(e) => e.preventDefault()}
+                >
+                    <div className="w-[260px]" onClick={(e) => e.stopPropagation()}>
                         {renderHeader()}
                         {renderDays()}
                         {renderCells()}
