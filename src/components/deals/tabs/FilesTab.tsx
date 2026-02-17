@@ -28,7 +28,9 @@ export default function FilesTab({ deal, onSave }: FilesTabProps) {
             type: 'fileUpload',
             title: `Arquivo anexado: ${fileName}`,
             dealId: deal.id,
-            completed: true
+            completed: true,
+            status: 'completed',
+            dueDate: new Date().toISOString()
         });
         setMockFile(fileName);
         setTimeout(() => setMockFile(null), 3000); // Clear success msg

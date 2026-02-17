@@ -25,7 +25,8 @@ export default function MeetingTab({ deal, onSave }: MeetingTabProps) {
             description: `Local: ${location || 'Online'}. Duração: ${duration} min`,
             dealId: deal.id,
             dueDate: `${date}T${startTime}:00.000Z`,
-            completed: false
+            completed: false,
+            status: 'pending'
         });
         setSubject('');
         setLocation('');

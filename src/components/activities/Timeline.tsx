@@ -1,7 +1,7 @@
 import { Activity, DealLog } from '@/types/schema';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Check, MessageSquare, Phone, Mail, Calendar, Info, BarChart3, Video, Instagram, CheckCircle2, StickyNote, History } from 'lucide-react';
+import { MessageSquare, Phone, Mail, Calendar, Info, BarChart3, Video, Instagram, CheckCircle2, StickyNote, History } from 'lucide-react';
 
 interface Props {
     activities: Activity[];
@@ -11,7 +11,7 @@ interface Props {
     onDelete?: (id: string) => void;
 }
 
-export default function Timeline({ activities, logs = [], onReopen, onEdit, onDelete }: Props) {
+export default function Timeline({ activities, logs = [], onReopen, onDelete }: Props) {
     // Combine and Sort by createdAt descending
     // Filter out logs that are linked to an activity to avoid duplicate separate entries
     const items = [
@@ -23,7 +23,7 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
         return <div className="text-sm text-muted-foreground text-center py-8 bg-muted/10 rounded-xl border border-dashed border-border/50">Nenhum histórico ainda.</div>;
     }
 
-    const getIcon = (itemType: string, type: string) => {
+    const getIcon = (_itemType: string, type: string) => {
         const config: Record<string, { icon: any, color: string, bg: string }> = {
             call: { icon: Phone, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
             email: { icon: Mail, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },

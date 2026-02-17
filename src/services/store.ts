@@ -155,11 +155,11 @@ export function useCRMStore(): CRMStore {
 
             const [
                 { data: dealsData, error: dealsError },
-                { data: contactsData, error: contactsError },
+                { data: contactsData },
                 { data: activitiesData, error: activitiesError },
                 { data: logsData, error: logsError },
-                { data: companiesData, error: companiesError },
-                { data: stagesData, error: stagesError }
+                { data: companiesData },
+                { data: stagesData }
             ] = await Promise.all([
                 supabase.from('deals').select('*'),
                 supabase.from('contacts').select('*'),

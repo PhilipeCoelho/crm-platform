@@ -24,7 +24,8 @@ export default function CallTab({ deal, onSave }: CallTabProps) {
             description: outcome ? `Resultado: ${outcome}` : undefined,
             dealId: deal.id,
             dueDate: `${date}T${time}:00.000Z`,
-            completed: !!outcome // If outcome is set, assume completed? Or let user decide. Let's assume scheduled if no outcome.
+            completed: !!outcome,
+            status: outcome ? 'completed' : 'pending'
         });
         // Reset defaults
         setSubject('Chamada de acompanhamento');

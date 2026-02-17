@@ -24,6 +24,7 @@ export const AutomationService = {
                     description: `Negócio ${newDeal.title} entrou em negociação. Preparar minuta.`,
                     dealId: newDeal.id,
                     completed: false,
+                    status: 'pending',
                     dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Tomorrow
                 }
             });
@@ -40,6 +41,7 @@ export const AutomationService = {
                     description: `Cliente fechado! Agendar reunião de boas-vindas.`,
                     dealId: newDeal.id,
                     completed: false,
+                    status: 'pending',
                     dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
                 }
             });

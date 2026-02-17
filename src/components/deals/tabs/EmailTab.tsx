@@ -49,6 +49,7 @@ export default function EmailTab({ deal, onSave }: EmailTabProps) {
                     notes: `Para: ${to}\n\n${body}`,
                     dealId: deal.id,
                     completed: true,
+                    status: 'completed',
                     dueDate: new Date().toISOString()
                 });
 
