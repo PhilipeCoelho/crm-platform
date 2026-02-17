@@ -19,8 +19,15 @@ export default function EditActivityModal({ isOpen, onClose, deal, activity, onU
 
     if (activity.dueDate) {
         const d = new Date(activity.dueDate);
-        initialDate = d.toISOString().split('T')[0];
-        initialTime = d.toISOString().split('T')[1].substring(0, 5);
+        // Use local date parts to avoid UTC shift
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        initialDate = `${year}-${month}-${day}`;
+
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        initialTime = `${hours}:${minutes}`;
     }
 
     const initialData = {

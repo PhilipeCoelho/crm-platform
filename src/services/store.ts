@@ -593,11 +593,17 @@ export function useCRMStore(): CRMStore {
 
         const tempId = generateId();
 
+        // Normalize date to avoid timezone shifts (ensure it has a time, default to noon UTC if just date)
+        let normalizedDate = data.dueDate;
+        if (normalizedDate && normalizedDate.length === 10) {
+            normalizedDate = `${normalizedDate}T12:00:00.000Z`;
+        }
+
         const newActivity = {
             id: tempId,
             title: data.title,
             type: data.type,
-            date: data.dueDate,
+            date: normalizedDate || data.dueDate,
             duration: data.duration,
             deal_id: data.dealId,
             user_id: user.id,
@@ -607,6 +613,7 @@ export function useCRMStore(): CRMStore {
 
         const optimisticActivity = {
             ...data,
+            dueDate: normalizedDate || data.dueDate,
             id: tempId,
             userId: user.id,
             createdAt: new Date().toISOString()
@@ -629,7 +636,13 @@ export function useCRMStore(): CRMStore {
         if (updates.title !== undefined) dbUpdates.title = updates.title;
         if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
         if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
-        if (updates.dueDate !== undefined) dbUpdates.date = updates.dueDate;
+        if (updates.dueDate !== undefined) {
+            let normalizedDate = updates.dueDate;
+            if (normalizedDate && normalizedDate.length === 10) {
+                normalizedDate = `${normalizedDate}T12:00:00.000Z`;
+            }
+            dbUpdates.date = normalizedDate;
+        }
         if (updates.dealId !== undefined) dbUpdates.deal_id = updates.dealId;
         if (updates.contactId !== undefined) dbUpdates.contact_id = updates.contactId;
 

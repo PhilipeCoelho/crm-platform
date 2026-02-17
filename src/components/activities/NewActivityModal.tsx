@@ -34,7 +34,7 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
             dealId: dealId || undefined,
             contactId: preselectedContactId || undefined, // Link to contact directly
             date: date,
-            dueDate: date,
+            dueDate: `${date}T12:00:00`,
             notes,
             duration: 30
         } as any);

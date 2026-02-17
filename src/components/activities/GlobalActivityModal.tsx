@@ -82,7 +82,7 @@ export default function GlobalActivityModal({ isOpen, onClose }: Props) {
                 title,
                 dealId: dealId || undefined,
                 contactId: contactId || undefined,
-                dueDate: `${date}T${time}:00.000Z`,
+                dueDate: `${date}T${time}:00.000`,
                 duration,
                 notes,
                 priority,

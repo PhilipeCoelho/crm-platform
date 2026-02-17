@@ -28,8 +28,25 @@ const getActivityStatus = (dateString?: string) => {
     const date = parseISO(dateString);
     const now = new Date();
 
-    if (isBefore(date, now)) return 'late';
+    // If it's today (local), it's 'today'
     if (isToday(date)) return 'today';
+
+    // If it's before today, it's 'late'
+    // We use startOfDay to ensure we only mark as late if the day is actually in the past
+    // unless the activity specifically has time today and that time has passed.
+    if (isBefore(date, now)) {
+        // Check if it's actually a past day
+        const isPastDay = isBefore(date, new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+        if (isPastDay) return 'late';
+
+        // If it is today (but not caught by isToday somehow? should not happen), it's today
+        if (isToday(date)) return 'today';
+
+        // If it's currently earlier in the day than the activity? No, isBefore(date, now) is true.
+        // If the activity is for 10:00 AM and it's 11:00 AM, it's 'late'.
+        return 'late';
+    }
+
     return 'future';
 };
 

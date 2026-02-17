@@ -58,7 +58,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 type: selectedType,
                 title,
                 dealId: deal.id,
-                dueDate: `${date}T${time}:00.000Z`,
+                dueDate: `${date}T${time}:00.000`,
                 duration: 30,
                 completed: false
             };
