@@ -149,21 +149,23 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
     return (
         <div className={cn("inline-block w-full", className)}>
             <Popover open={isOpen} onOpenChange={setIsOpen}>
-                <div className="flex items-center gap-2 h-8 px-2 rounded-md border border-border/60 hover:border-indigo-500/30 transition-all focus-within:ring-1 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 bg-background/50">
-                    <PopoverTrigger asChild>
-                        <button type="button" className="text-slate-400 hover:text-indigo-500 transition-colors shrink-0">
-                            <CalendarIcon size={14} />
-                        </button>
-                    </PopoverTrigger>
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={handleInputChange}
-                        onClick={() => setIsOpen(true)}
-                        placeholder={placeholder}
-                        className="bg-transparent border-none outline-none text-[12px] font-medium w-full text-foreground placeholder:text-muted-foreground/30 tabular-nums cursor-pointer"
-                    />
-                </div>
+                <PopoverTrigger asChild>
+                    <div className="flex items-center gap-2 h-8 px-2 rounded-md border border-border/60 hover:border-indigo-500/30 transition-all focus-within:ring-1 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 bg-background/50 cursor-pointer group">
+                        <CalendarIcon size={14} className="text-slate-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={handleInputChange}
+                            onFocus={() => setIsOpen(true)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(true);
+                            }}
+                            placeholder={placeholder}
+                            className="bg-transparent border-none outline-none text-[12px] font-medium w-full text-foreground placeholder:text-muted-foreground/30 tabular-nums cursor-text"
+                        />
+                    </div>
+                </PopoverTrigger>
 
                 <PopoverContent className="w-auto p-3 rounded-xl shadow-2xl border-border bg-card animate-in fade-in zoom-in-95 duration-200" align="start">
                     <div className="w-[260px]">
