@@ -165,13 +165,13 @@ export function useDashboardData() {
     const overdueActivities = openRealActivities.filter(a => {
         if (!a.dueDate) return false;
         const dueDate = parseISO(a.dueDate);
-        return isBefore(dueDate, now);
+        return isBefore(dueDate, now) && !isToday(dueDate);
     });
 
     const todayActivities = openRealActivities.filter(a => {
         if (!a.dueDate) return false;
         const dueDate = parseISO(a.dueDate);
-        return isToday(dueDate) && isAfter(dueDate, now);
+        return isToday(dueDate);
     });
 
     const upcomingActivities = openRealActivities.filter(a => {

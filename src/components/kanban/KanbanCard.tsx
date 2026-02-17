@@ -48,8 +48,9 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
     const dueDate = rawActivityDate ? parseISO(rawActivityDate) : undefined;
 
     // Priority Status Determination (Time-sensitive)
-    const isOverdue = dueDate && isBefore(dueDate, now);
-    const isTodayActivity = dueDate && !isOverdue && isToday(dueDate);
+    // Preference: Today always trumps Overdue for same-day items
+    const isTodayActivity = dueDate && isToday(dueDate);
+    const isOverdue = dueDate && isBefore(dueDate, now) && !isTodayActivity;
     const noActivity = !hasNextAction;
 
     // Color System (Clean Pipedrive Style - Discrete Indicators Only)
