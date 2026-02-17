@@ -157,10 +157,6 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
                             value={inputValue}
                             onChange={handleInputChange}
                             onFocus={() => setIsOpen(true)}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsOpen(true);
-                            }}
                             placeholder={placeholder}
                             className="bg-transparent border-none outline-none text-[12px] font-medium w-full text-foreground placeholder:text-muted-foreground/30 tabular-nums cursor-text"
                         />
