@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Deal } from '@/types/schema';
-import { CheckCircle2, Phone, MessageSquare, Users } from 'lucide-react';
+import { CheckCircle2, Phone, Mail, MessageSquare, Users } from 'lucide-react';
 import {
     Tooltip,
     TooltipContent,
@@ -26,10 +26,11 @@ export interface ActivityFormProps {
 }
 
 const QUICK_ACTIONS = [
-    { type: 'call', icon: Phone, label: 'Ligação', template: (name: string) => `Ligar para ${name}` },
     { type: 'message', icon: MessageSquare, label: 'Mensagem', template: (name: string) => `Mensagem para ${name}` },
-    { type: 'meeting', icon: Users, label: 'Reunião', template: (name: string) => `Reunião com ${name}` },
+    { type: 'email', icon: Mail, label: 'E-mail', template: (name: string) => `Enviar e-mail para ${name}` },
+    { type: 'call', icon: Phone, label: 'Ligação', template: (name: string) => `Ligar para ${name}` },
     { type: 'task', icon: CheckCircle2, label: 'Tarefa', template: () => `Tarefa:` },
+    { type: 'meeting', icon: Users, label: 'Reunião', template: (name: string) => `Reunião com ${name}` },
 ];
 
 export default function ActivityForm({ deal, onSave, initialData, contactName = 'Cliente', submitLabel = 'Agendar' }: ActivityFormProps) {

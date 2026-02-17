@@ -13,7 +13,7 @@ interface Props {
 export default function NewActivityModal({ isOpen, onClose, preselectedContactId, preselectedDealId }: Props) {
     const { addActivity, deals, contacts } = useCRM(); // Get contacts too if needed
     const [title, setTitle] = useState('');
-    const [type, setType] = useState<Activity['type']>('task');
+    const [type, setType] = useState<Activity['type']>('message');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
     const [dealId, setDealId] = useState(preselectedDealId || '');
@@ -88,11 +88,11 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
                                 value={type}
                                 onChange={e => setType(e.target.value as any)}
                             >
+                                <option value="message">💬 Mensagem</option>
+                                <option value="email">📧 E-mail</option>
                                 <option value="call">📞 Ligação</option>
-                                <option value="meeting">📅 Reunião</option>
-                                <option value="email">📧 Email</option>
                                 <option value="task">✅ Tarefa</option>
-                                <option value="followup">👀 Follow-up</option>
+                                <option value="meeting">📅 Reunião</option>
                             </select>
                         </div>
                         <div>

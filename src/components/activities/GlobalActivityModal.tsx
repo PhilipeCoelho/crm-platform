@@ -7,10 +7,10 @@ import {
     CheckCircle2,
     Phone,
     Mail,
+    MessageSquare,
     Search,
     Plus,
     Check,
-    Clock,
     AlertCircle
 } from 'lucide-react';
 
@@ -20,11 +20,11 @@ interface Props {
 }
 
 const TYPES = [
-    { value: 'call', label: 'Chamada', icon: Phone },
-    { value: 'meeting', label: 'Reunião', icon: Users },
+    { value: 'message', label: 'Mensagem', icon: MessageSquare },
+    { value: 'email', label: 'E-mail', icon: Mail },
+    { value: 'call', label: 'Ligação', icon: Phone },
     { value: 'task', label: 'Tarefa', icon: CheckCircle2 },
-    { value: 'email', label: 'Email', icon: Mail },
-    { value: 'followup', label: 'Prazo', icon: Clock },
+    { value: 'meeting', label: 'Reunião', icon: Users },
 ];
 
 const PRIORITIES = [
@@ -37,7 +37,7 @@ export default function GlobalActivityModal({ isOpen, onClose }: Props) {
     const { deals, contacts, addActivity } = useCRM();
 
     // Form State
-    const [type, setType] = useState('call');
+    const [type, setType] = useState('message');
     const [title, setTitle] = useState('');
     const [contactId, setContactId] = useState('');
     const [dealId, setDealId] = useState('');

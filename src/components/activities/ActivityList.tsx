@@ -1,5 +1,5 @@
 import { Activity } from '@/types/schema';
-import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare, History } from 'lucide-react';
+import { CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText, StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare, History, Instagram } from 'lucide-react';
 import { format, isBefore, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -19,6 +19,7 @@ const typeIcons: Record<string, any> = {
     note: StickyNote,
     fileUpload: Paperclip,
     message: MessageSquare,
+    instagram: Instagram,
     status_change: History,
 };
 
@@ -155,7 +156,12 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                             <div className="flex items-center gap-4 sm:gap-3 mt-3 sm:mt-2">
                                 <span className="inline-flex items-center gap-1.5 sm:gap-1 text-[10px] uppercase font-bold tracking-wider text-muted-foreground bg-muted px-2 py-1 sm:px-1.5 sm:py-0.5 rounded">
                                     <Icon size={12} className="sm:w-2.5 sm:h-2.5" />
-                                    {activity.type}
+                                    {activity.type === 'message' ? 'Mensagem' :
+                                        activity.type === 'call' ? 'Ligação' :
+                                            activity.type === 'meeting' ? 'Reunião' :
+                                                activity.type === 'task' ? 'Tarefa' :
+                                                    activity.type === 'email' ? 'E-mail' :
+                                                        activity.type}
                                 </span>
 
                                 {activity.duration && (
