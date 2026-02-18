@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
-import { Building, User, Phone, Mail, Check, Instagram, MessageCircle, Globe, Calendar } from 'lucide-react';
+import { Building, User, Check, Calendar } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 
 interface NewDealModalProps { currency?: string; }
@@ -19,7 +19,7 @@ const parseCurrency = (value: string): number => {
 };
 
 export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
-    const { addDeal, updateDeal, companies, contacts, deals, pipelines, addCompany, updateCompany, addContact, updateContact, isNewDealModalOpen, closeNewDealModal, newDealStageId, dealToEdit } = useCRM();
+    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, updateCompany, addContact, isNewDealModalOpen, closeNewDealModal, newDealStageId, dealToEdit } = useCRM();
 
     const [title, setTitle] = useState('Negócio');
     const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false);
