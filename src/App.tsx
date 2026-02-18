@@ -4,9 +4,9 @@ import { CRMProvider } from './contexts/CRMContext';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom';
 import {
     LayoutDashboard, Users, CheckSquare, Settings, LogOut,
-    ChevronRight, Loader2, Moon,
+    ChevronRight, ChevronLeft, Loader2, Moon,
     Sun, Laptop as Monitor, Menu, X, CalendarDays, BarChart3,
-    Zap, DollarSign, Check, Mail
+    Zap, DollarSign, Check, Mail, Eye
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
@@ -32,13 +32,19 @@ import EmailTemplates from './pages/campaigns/EmailTemplates';
 import CampaignSettings from './pages/campaigns/CampaignSettings';
 import CampaignWizard from '@/pages/campaigns/CampaignWizard';
 import AlertsAndTips from './pages/campaigns/AlertsAndTips';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
     const { user, signOut: handleLogout } = useSupabaseAuth();
     const location = useLocation();
     const { setTheme, theme } = useTheme();
-    const { isPipelineSettingsOpen, setPipelineSettingsOpen, activeFocusDealId, closeFocusDeal, togglePrivacyMode } = useCRM();
+    const { isPipelineSettingsOpen, setPipelineSettingsOpen, activeFocusDealId, closeFocusDeal, togglePrivacyMode, isPrivacyMode } = useCRM();
     const isMobile = useIsMobile();
 
     const [dashboardType, setDashboardType] = useState<'sales' | 'marketing'>('sales');
@@ -52,28 +58,28 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         { path: '/insights', label: 'Insights', icon: BarChart3 },
     ];
 
-    // Mobile Menu State
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    // Submenu Control (Click-based toggle)
-    const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
-
-    // Sidebar State - Auto-Collapsed with Hover Reveal
+    // Sidebar States: Pinned and Hovered
     const [isSidebarPinned, setIsSidebarPinned] = useState(() => {
         const saved = localStorage.getItem('sidebar_pinned');
         return saved === 'true';
     });
     const [isSidebarHovered, setIsSidebarHovered] = useState(false);
 
-    // Determine sidebar state: auto-collapsed (18px) | hover-icons (60px) | pinned-full (224px)
-    const sidebarWidth = isSidebarPinned ? 'w-56' : (isSidebarHovered ? 'w-[60px]' : 'w-[18px]');
-    const showIcons = isSidebarPinned || isSidebarHovered;
+    // Mobile Menu State
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    useEffect(() => {
-        localStorage.setItem('sidebar_pinned', String(isSidebarPinned));
-    }, [isSidebarPinned]);
+    // Submenu Control (Click-based toggle)
+    const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
 
-    const toggleSidebar = () => setIsSidebarPinned(!isSidebarPinned);
+    // Determines sidebar width for desktop
+    const isExpanded = (isSidebarPinned || isSidebarHovered) && !isMobile;
+    const sidebarWidth = isExpanded ? 'w-56' : 'w-[60px]';
+
+    const toggleSidebar = () => {
+        const newState = !isSidebarPinned;
+        setIsSidebarPinned(newState);
+        localStorage.setItem('sidebar_pinned', String(newState));
+    };
 
     // Keyboard Shortcut (Cmd+Shift+P) & Close Focus Mode (Esc)
     useEffect(() => {
@@ -101,318 +107,326 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     const isDealFocusOpen = !!activeFocusDealId || isFocusRoute;
 
     return (
-        <div className={`flex h-full w-full text-foreground overflow-hidden ${isDealFocusOpen ? 'bg-black/5' : ''}`}>
-            {/* Mobile Header - Hidden in focus mode */}
-            {isMobile && !isDealFocusOpen && (
-                <div className="fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-40 flex items-center px-4">
-                    <button
-                        onClick={() => setIsMobileMenuOpen(true)}
-                        className="p-2 hover:bg-muted rounded-lg transition-colors"
-                        aria-label="Abrir menu"
-                    >
-                        <Menu size={20} className="text-foreground" />
-                    </button>
-                    <span className="ml-3 font-semibold text-foreground">CRM Pro</span>
-                </div>
-            )}
-
-            {/* Mobile Overlay */}
-            {isMobile && isMobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-[60] animate-in fade-in duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
-            )}
-
-            {/* Hover Detection Area - Invisible 5px zone on left edge (Desktop only) */}
-            {!isMobile && !isDealFocusOpen && (
-                <div
-                    className="absolute left-0 top-0 bottom-0 w-5 z-[45]"
-                    onMouseEnter={() => setIsSidebarHovered(true)}
-                    onMouseLeave={() => setIsSidebarHovered(false)}
-                />
-            )}
-
-            {/* Sidebar - Hidden in focus mode */}
-            {!isDealFocusOpen && (
-                <aside
-                    className={`group flex flex-col py-3 z-[70] overflow-y-auto overflow-x-hidden bg-white dark:bg-background text-foreground h-full
-                        ${isMobile
-                            ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-                            }`
-                            : `relative shrink-0 border-r border-border transition-[width] duration-[180ms] ease-in-out ${sidebarWidth} ${isSidebarPinned ? 'items-start px-3' : 'items-center'}`
-                        }
-                        `}
-                    onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
-                    onMouseLeave={() => !isMobile && setIsSidebarHovered(false)}
-                >
-                    {/* Mobile Close Button */}
-                    {isMobile && (
+        <TooltipProvider delayDuration={0}>
+            <div className={`flex h-full w-full text-foreground overflow-hidden ${isDealFocusOpen ? 'bg-black/5' : ''}`}>
+                {/* Mobile Header - Hidden in focus mode */}
+                {isMobile && !isDealFocusOpen && (
+                    <div className="fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-40 flex items-center px-4">
                         <button
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="self-end p-2 hover:bg-muted rounded-lg mb-2 transition-colors"
-                            aria-label="Fechar menu"
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="p-2 hover:bg-muted rounded-lg transition-colors"
+                            aria-label="Abrir menu"
                         >
-                            <X size={20} className="text-foreground" />
+                            <Menu size={20} className="text-foreground" />
                         </button>
-                    )}
-
-                    {/* Discrete Floating Toggle Button - Desktop Only */}
-                    {!isMobile && (
-                        <div className={`
-                            absolute left-2 top-1/2 -translate-y-1/2 z-[60] w-[28px] h-[28px] rounded-full flex items-center justify-center transition-all duration-[160ms] ease-out
-                            ${isSidebarPinned
-                                ? 'bg-background shadow-md opacity-100'
-                                : 'bg-muted/90 dark:bg-muted/50 opacity-60 hover:opacity-100'
-                            }
-                            border border-border/80 dark:border-border/30
-                            hover:bg-muted dark:hover:bg-muted/20
-                            cursor-pointer
-                        `}
-                            onClick={toggleSidebar}
-                        >
-                            <ChevronRight size={16} strokeWidth={2.5}
-                                className={`text-muted-foreground transition-transform duration-[160ms] ${isSidebarPinned ? 'rotate-180' : 'rotate-0'}`} />
-                        </div>
-                    )}
-
-                    {/* Logo Section */}
-                    <div className={`flex items-center gap-3 mb-8 w-full ${isSidebarPinned ? 'px-3' : 'justify-center'}`}>
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
-                            <Zap size={20} className="text-white" fill="currentColor" />
-                        </div>
-                        {isSidebarPinned && (
-                            <span className="font-semibold text-foreground whitespace-nowrap overflow-hidden transition-all duration-[180ms] opacity-100 w-auto">
-                                CRM Pipeline
-                            </span>
-                        )}
+                        <span className="ml-3 font-semibold text-foreground">CRM Pro</span>
                     </div>
+                )}
 
-                    <nav className="flex-1 flex flex-col w-full space-y-2">
-                        {navItems.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <NavLink
-                                    key={item.path}
-                                    to={item.path}
-                                    className={({ isActive }: { isActive: boolean }) => `
-                                    group/nav flex items-center gap-3 rounded-lg transition-all duration-[180ms] min-h-[40px]
-                                    ${isActive
-                                            ? 'bg-muted/50 dark:bg-muted/20 text-foreground shadow-sm dark:border-l-[3px] dark:border-primary'
-                                            : 'hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground dark:text-muted-foreground/60 dark:hover:text-foreground'
-                                        }
-                                    ${(isMobile || isSidebarPinned)
-                                            ? 'px-3 w-full justify-start'
-                                            : (showIcons ? 'justify-center w-10 mx-auto' : 'w-0 h-0 opacity-0 pointer-events-none overflow-hidden')
-                                        }
-                                `}
-                                    onClick={() => isMobile && setIsMobileMenuOpen(false)}
-                                    title={!isSidebarPinned ? item.label : undefined}
-                                >
-                                    <Icon size={20} className="shrink-0" />
-                                    {(isMobile || isSidebarPinned) && (
-                                        <span className="text-sm font-semibold whitespace-nowrap truncate">{item.label}</span>
-                                    )}
-                                </NavLink>
-                            );
-                        })}
-                    </nav>
+                {/* Mobile Overlay */}
+                {isMobile && isMobileMenuOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/50 z-[60] animate-in fade-in duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                )}
 
-                    <button
-                        onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                        className={`h-10 w-10 hover:bg-muted dark:hover:bg-muted/10 rounded-lg text-muted-foreground hover:text-foreground mt-auto
-                                   ${isMobile || isSidebarPinned ? 'hidden' : 'flex items-center justify-center mx-auto'}`}
-                    >
-                        <Settings size={20} />
-                    </button>
-
-                    <button
-                        onClick={handleLogout}
-                        className={`group/nav flex items-center gap-3 rounded-lg transition-all duration-[180ms] min-h-[40px]
-                                   hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground
-                                   ${isMobile || isSidebarPinned ? 'px-3 w-full justify-start' : (showIcons ? 'justify-center w-10 mx-auto' : 'w-0 h-0 opacity-0 pointer-events-none')}
+                {/* Sidebar - Hidden in focus mode */}
+                {!isDealFocusOpen && (
+                    <aside
+                        onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
+                        onMouseLeave={() => !isMobile && setIsSidebarHovered(false)}
+                        className={`group flex flex-col z-[70] bg-white dark:bg-background text-foreground h-full border-r border-border
+                        ${isMobile
+                                ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                                }`
+                                : `relative shrink-0 transition-all duration-300 ease-in-out ${sidebarWidth} ${isExpanded ? 'items-stretch' : 'items-center'}`
+                            }
                         `}
-                        title={!isSidebarPinned ? 'Sair' : undefined}
                     >
-                        <LogOut size={20} className="shrink-0" />
-                        {(isMobile || isSidebarPinned) && (
-                            <span className="text-sm font-semibold">Sair</span>
-                        )}
-                    </button>
+                        <div className="flex-1 flex flex-col w-full overflow-y-auto overflow-x-hidden py-4 custom-scrollbar relative">
 
-                    {/* User Profile Info (Pinned Only) */}
-                    {(isMobile || isSidebarPinned) && (
-                        <nav className="flex flex-col gap-1 mt-auto pt-4 border-t border-border/40">
-                            <button
-                                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                                className={`group flex items-center gap-3 rounded-lg hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground transition-all duration-[180ms] min-h-[40px] px-3 w-full justify-start
-                                    ${isSettingsOpen ? 'bg-muted dark:bg-muted/20 text-foreground' : ''}`}
-                            >
-                                <Settings size={20} className="shrink-0" />
-                                <span className="text-sm font-semibold">Configurações</span>
-                            </button>
+                            {/* Mobile Close Button */}
+                            {isMobile && (
+                                <button
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="self-end p-2 hover:bg-muted rounded-lg mb-2 transition-colors"
+                                    aria-label="Fechar menu"
+                                >
+                                    <X size={20} className="text-foreground" />
+                                </button>
+                            )}
 
-                            <button
-                                onClick={handleLogout}
-                                className={`group flex items-center gap-3 rounded-lg hover:bg-muted dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-muted-foreground transition-all duration-[180ms] min-h-[40px] px-3 w-full justify-start`}
-                            >
-                                <LogOut size={20} className="shrink-0" />
-                                <span className="text-sm font-semibold">Sair</span>
-                            </button>
-
-                            <div className={`flex items-center gap-3 mt-2 rounded-md border border-border/10 p-1 bg-muted/30 dark:bg-muted/10 ${isMobile || isSidebarPinned ? 'w-full px-2' : 'w-8 justify-center border-none bg-transparent'}`}>
-                                <div className="w-6 h-6 rounded bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
-                                    {user.email?.substring(0, 2).toUpperCase() || 'U'}
+                            {/* Logo Section */}
+                            <div className={`flex items-center mb-8 h-9 w-full transition-all duration-300 ${isExpanded || isMobile ? 'px-4 justify-start' : 'justify-center'}`}>
+                                <div className="w-9 h-9 flex items-center justify-center shrink-0">
+                                    <Zap size={18} className="text-primary" />
                                 </div>
-                                {(isMobile || isSidebarPinned) && (
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="text-xs font-medium text-foreground truncate" title={user.email}>{user.email}</span>
-                                        <span className="text-[10px] text-muted-foreground">Usuário</span>
-                                        <span className="text-[9px] text-muted-foreground/40 mt-1">v1.3 (Final)</span>
-                                    </div>
+                                {(isExpanded || isMobile) && (
+                                    <span className="font-semibold text-foreground ml-2 text-lg whitespace-nowrap overflow-hidden animate-in fade-in duration-300">
+                                        CRM Pipeline
+                                    </span>
                                 )}
                             </div>
-                        </nav>
-                    )}
 
-                    {/* Settings Popover */}
-                    {isSettingsOpen && (
-                        <div className={`fixed bottom-16 w-64 bg-popover dark:bg-card border border-border dark:border-border rounded-lg shadow-xl z-[80] animate-in fade-in zoom-in-95 duration-200 ${isMobile ? 'left-6' : (isSidebarPinned ? 'left-60' : 'left-16 ml-2')}`}>
-                            <div className="p-3 border-b border-border dark:border-border">
-                                <h3 className="font-medium text-sm text-foreground">Configurações</h3>
-                            </div>
-                            <div className="p-2 space-y-1">
-                                {/* Dashboard Group */}
-                                <div className="relative w-full">
-                                    <button
-                                        onClick={() => setActiveSubmenu(activeSubmenu === 'dashboard' ? null : 'dashboard')}
-                                        className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'dashboard' ? 'bg-muted dark:bg-muted/20 text-foreground' : 'hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground'}`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <LayoutDashboard size={14} />
-                                            <span>Dashboard</span>
+                            <nav className="flex-1 flex flex-col w-full space-y-2">
+                                {navItems.map((item) => {
+                                    const Icon = item.icon;
+                                    const NavItemContent = (
+                                        <NavLink
+                                            to={item.path}
+                                            className={({ isActive }: { isActive: boolean }) => `
+                                            flex items-center transition-all duration-200
+                                            ${isActive
+                                                    ? 'text-primary'
+                                                    : 'text-slate-700 hover:text-slate-900 dark:text-gray-400 dark:hover:text-gray-100'
+                                                }
+                                            ${(isExpanded || isMobile)
+                                                    ? 'px-3 mx-2 gap-3 min-h-[40px] justify-start w-auto rounded-xl'
+                                                    : 'w-9 h-9 flex items-center justify-center mx-auto'
+                                                }
+                                        `}
+                                            onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                                        >
+                                            <Icon size={18} className="shrink-0" strokeWidth={2.5} />
+                                            {(isExpanded || isMobile) && (
+                                                <span className="text-sm font-medium whitespace-nowrap overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
+                                                    {item.label}
+                                                </span>
+                                            )}
+                                        </NavLink>
+                                    );
+
+                                    if (isMobile || isExpanded) return <div key={item.path} className="w-full">{NavItemContent}</div>;
+
+                                    return (
+                                        <div key={item.path} className="w-full flex justify-center">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    {NavItemContent}
+                                                </TooltipTrigger>
+                                                <TooltipContent side="right" sideOffset={10} className="font-medium text-xs bg-foreground text-background border-border z-[100]">
+                                                    {item.label}
+                                                </TooltipContent>
+                                            </Tooltip>
                                         </div>
-                                        <ChevronRight size={14} className={`transition-transform ${activeSubmenu === 'dashboard' ? 'rotate-90' : ''}`} />
-                                    </button>
-                                    <div className={`absolute left-full top-0 -ml-1 pl-4 w-44 z-[100] transition-all duration-200 ease-in-out ${activeSubmenu === 'dashboard' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
-                                        <div className="bg-card border border-border rounded-lg shadow-xl p-1 overflow-hidden">
+                                    );
+                                })}
+                            </nav>
+
+                            {/* Settings & User Trigger */}
+                            <div className="mt-auto flex flex-col gap-2 w-full mb-4">
+                                <div className="w-full flex justify-center">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
                                             <button
-                                                onClick={() => { setDashboardType('sales'); setIsSettingsOpen(false); }}
-                                                className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center gap-2 text-foreground"
+                                                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                                                className={`flex items-center justify-center transition-all duration-200
+                                                        ${(isMobile || isExpanded)
+                                                        ? 'w-auto px-3 mx-2 gap-3 min-h-[40px] hover:bg-muted dark:hover:bg-muted/10 rounded-xl'
+                                                        : 'w-9 h-9 mx-auto rounded-full hover:bg-muted dark:hover:bg-muted/10'
+                                                    }`}
                                             >
-                                                <div className={`w-1.5 h-1.5 rounded-full ${dashboardType === 'sales' ? 'bg-primary' : 'bg-transparent'}`} />
-                                                Vendas
+                                                <div className="w-8 h-8 rounded-full text-primary flex items-center justify-center font-bold shrink-0 text-xs bg-primary/10 border border-primary/20">
+                                                    {user.email?.substring(0, 2).toUpperCase()}
+                                                </div>
+                                                {(isMobile || isExpanded) && (
+                                                    <div className="flex flex-col items-start overflow-hidden ml-3">
+                                                        <span className="text-sm font-medium text-foreground truncate w-full text-left">Minha Conta</span>
+                                                        <span className="text-[10px] text-muted-foreground truncate w-full text-left">Configurações</span>
+                                                    </div>
+                                                )}
                                             </button>
-                                            <button
-                                                onClick={() => { setDashboardType('marketing'); setIsSettingsOpen(false); }}
-                                                className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center gap-2 text-foreground"
-                                            >
-                                                <div className={`w-1.5 h-1.5 rounded-full ${dashboardType === 'marketing' ? 'bg-primary' : 'bg-transparent'}`} />
-                                                Marketing
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Appearance Switch */}
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setActiveSubmenu(activeSubmenu === 'appearance' ? null : 'appearance')}
-                                        className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'appearance' ? 'bg-muted dark:bg-muted/20 text-foreground' : 'hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground'}`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            {theme === 'dark' ? <Moon size={14} /> : theme === 'light' ? <Sun size={14} /> : <Monitor size={14} />}
-                                            <span>Aparência</span>
-                                        </div>
-                                        <ChevronRight size={14} className={`transition-transform ${activeSubmenu === 'appearance' ? 'rotate-90' : ''}`} />
-                                    </button>
-                                    <div className={`absolute left-full top-0 -ml-1 pl-4 w-40 z-[100] transition-all duration-200 ease-in-out ${activeSubmenu === 'appearance' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
-                                        <div className="bg-card border border-border rounded-lg shadow-xl p-1 overflow-hidden">
-                                            <button onClick={() => setTheme("light")} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
-                                                <span>Claro</span>
-                                                {theme === 'light' && <Check size={12} className="text-primary" />}
-                                            </button>
-                                            <button onClick={() => setTheme("dark")} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
-                                                <span>Escuro</span>
-                                                {theme === 'dark' && <Check size={12} className="text-primary" />}
-                                            </button>
-                                            <button onClick={() => setTheme("system")} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
-                                                <span>Sistema</span>
-                                                {theme === 'system' && <Check size={12} className="text-primary" />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Currency Selection */}
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setActiveSubmenu(activeSubmenu === 'currency' ? null : 'currency')}
-                                        className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'currency' ? 'bg-muted dark:bg-muted/20 text-foreground' : 'hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground'}`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <DollarSign size={14} />
-                                            <span>Moeda</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-primary">{currency.code}</span>
-                                    </button>
-                                    <div className={`absolute left-full bottom-0 top-auto -ml-1 pl-4 w-48 z-[100] origin-bottom-left transition-all duration-200 ease-in-out ${activeSubmenu === 'currency' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
-                                        <div className="bg-card border border-border rounded-lg shadow-xl p-1 overflow-hidden max-h-64 overflow-y-auto custom-scrollbar">
-                                            {Object.values(CURRENCIES).map(c => (
-                                                <button key={c.code} onClick={() => { setCurrency(c); setIsSettingsOpen(false); }} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
-                                                    <span>{c.name} ({c.symbol})</span>
-                                                    {currency.code === c.code && <Check size={12} className="text-primary" />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
+                                        </TooltipTrigger>
+                                        {!isExpanded && !isMobile && (
+                                            <TooltipContent side="right" sideOffset={10} className="font-medium text-xs bg-foreground text-background border-border z-[100]">
+                                                Configurações & Conta
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
                                 </div>
                             </div>
-                            <div className="fixed inset-0 z-[-1]" onClick={() => setIsSettingsOpen(false)} />
                         </div>
-                    )}
-                </aside>
-            )}
 
-            {/* Focus Mode Overlay for non-route deal opening */}
-            {activeFocusDealId && !location.pathname.includes('/deals/') && (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-                    <div
-                        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
-                        onClick={() => closeFocusDeal()}
-                    />
-                    <div className="relative w-full h-full sm:h-[95vh] sm:max-w-5xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-                        <DealDetails
-                            dealId={activeFocusDealId}
-                            onClose={() => closeFocusDeal()}
-                            isModal={true}
-                            currency={currency}
-                        />
+                        {/* Floating Sidebar Toggle Button */}
+                        {!isMobile && (
+                            <button
+                                onClick={toggleSidebar}
+                                className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-background border border-border/40 rounded-full flex items-center justify-center shadow-lg z-[80] hover:scale-110 hover:bg-muted transition-all duration-300 opacity-0 group-hover:opacity-100 cursor-pointer"
+                            >
+                                {isSidebarPinned ? <ChevronLeft size={16} className="text-muted-foreground" /> : <ChevronRight size={16} className="text-muted-foreground" />}
+                            </button>
+                        )}
+
+                        {/* Settings Popover */}
+                        {
+                            isSettingsOpen && (
+                                <div className={`fixed bottom-6 w-64 bg-popover dark:bg-card border border-border dark:border-border rounded-xl shadow-2xl z-[80] animate-in fade-in zoom-in-95 duration-200 ${isMobile ? 'left-6' : 'left-16'}`}>
+                                    <div className="p-4 border-b border-border dark:border-border">
+                                        <h3 className="font-semibold text-sm text-foreground">Configurações</h3>
+                                        <p className="text-[11px] text-muted-foreground truncate mt-1">{user.email}</p>
+                                    </div>
+                                    <div className="p-2 space-y-1">
+                                        {/* Dashboard Group */}
+                                        <div className="relative w-full">
+                                            <button
+                                                onClick={() => setActiveSubmenu(activeSubmenu === 'dashboard' ? null : 'dashboard')}
+                                                className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'dashboard' ? 'bg-muted dark:bg-muted/20 text-foreground' : 'hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <LayoutDashboard size={14} />
+                                                    <span>Dashboard</span>
+                                                </div>
+                                                <ChevronRight size={14} className={`transition-transform ${activeSubmenu === 'dashboard' ? 'rotate-90' : ''}`} />
+                                            </button>
+                                            <div className={`absolute left-full top-0 -ml-1 pl-4 w-44 z-[100] transition-all duration-200 ease-in-out ${activeSubmenu === 'dashboard' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
+                                                <div className="bg-card border border-border rounded-lg shadow-xl p-1 overflow-hidden">
+                                                    <button
+                                                        onClick={() => { setDashboardType('sales'); setIsSettingsOpen(false); }}
+                                                        className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center gap-2 text-foreground"
+                                                    >
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${dashboardType === 'sales' ? 'bg-primary' : 'bg-transparent'}`} />
+                                                        Vendas
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setDashboardType('marketing'); setIsSettingsOpen(false); }}
+                                                        className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center gap-2 text-foreground"
+                                                    >
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${dashboardType === 'marketing' ? 'bg-primary' : 'bg-transparent'}`} />
+                                                        Marketing
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Appearance Switch */}
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setActiveSubmenu(activeSubmenu === 'appearance' ? null : 'appearance')}
+                                                className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'appearance' ? 'bg-muted dark:bg-muted/20 text-foreground' : 'hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    {theme === 'dark' ? <Moon size={14} /> : theme === 'light' ? <Sun size={14} /> : <Monitor size={14} />}
+                                                    <span>Aparência</span>
+                                                </div>
+                                                <ChevronRight size={14} className={`transition-transform ${activeSubmenu === 'appearance' ? 'rotate-90' : ''}`} />
+                                            </button>
+                                            <div className={`absolute left-full top-0 -ml-1 pl-4 w-40 z-[100] transition-all duration-200 ease-in-out ${activeSubmenu === 'appearance' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
+                                                <div className="bg-card border border-border rounded-lg shadow-xl p-1 overflow-hidden">
+                                                    <button onClick={() => setTheme("light")} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
+                                                        <span>Claro</span>
+                                                        {theme === 'light' && <Check size={12} className="text-primary" />}
+                                                    </button>
+                                                    <button onClick={() => setTheme("dark")} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
+                                                        <span>Escuro</span>
+                                                        {theme === 'dark' && <Check size={12} className="text-primary" />}
+                                                    </button>
+                                                    <button onClick={() => setTheme("system")} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
+                                                        <span>Sistema</span>
+                                                        {theme === 'system' && <Check size={12} className="text-primary" />}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Currency Selection */}
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setActiveSubmenu(activeSubmenu === 'currency' ? null : 'currency')}
+                                                className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors ${activeSubmenu === 'currency' ? 'bg-muted dark:bg-muted/20 text-foreground' : 'hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <DollarSign size={14} />
+                                                    <span>Moeda</span>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-primary">{currency.code}</span>
+                                            </button>
+                                            <div className={`absolute left-full bottom-0 top-auto -ml-1 pl-4 w-48 z-[100] origin-bottom-left transition-all duration-200 ease-in-out ${activeSubmenu === 'currency' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
+                                                <div className="bg-card border border-border rounded-lg shadow-xl p-1 overflow-hidden max-h-64 overflow-y-auto custom-scrollbar">
+                                                    {Object.values(CURRENCIES).map(c => (
+                                                        <button key={c.code} onClick={() => { setCurrency(c); setIsSettingsOpen(false); }} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
+                                                            <span>{c.name} ({c.symbol})</span>
+                                                            {currency.code === c.code && <Check size={12} className="text-primary" />}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Privacy Toggle */}
+                                        <div className="relative">
+                                            <button
+                                                onClick={togglePrivacyMode}
+                                                className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Eye size={14} />
+                                                    <span>Modo Privacidade</span>
+                                                </div>
+                                                <div className={`w-8 h-4 rounded-full relative transition-colors ${isPrivacyMode ? 'bg-primary' : 'bg-muted dark:bg-muted/30'}`}>
+                                                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${isPrivacyMode ? 'right-0.5' : 'left-0.5'}`} />
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        {/* Logout Button */}
+                                        <div className="pt-2 mt-2 border-t border-border">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full flex items-center gap-2 px-2 py-2 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-md transition-colors"
+                                            >
+                                                <LogOut size={14} />
+                                                <span>Sair da conta</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="fixed inset-0 z-[-1]" onClick={() => setIsSettingsOpen(false)} />
+                                </div>
+                            )}
+                    </aside>
+                )}
+
+                {/* Focus Mode Overlay for non-route deal opening */}
+                {
+                    activeFocusDealId && !location.pathname.includes('/deals/') && (
+                        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+                            <div
+                                className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
+                                onClick={() => closeFocusDeal()}
+                            />
+                            <div className="relative w-full h-full sm:h-[95vh] sm:max-w-5xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                                <DealDetails
+                                    dealId={activeFocusDealId}
+                                    onClose={() => closeFocusDeal()}
+                                    isModal={true}
+                                    currency={currency}
+                                />
+                            </div>
+                        </div>
+                    )
+                }
+
+                <PipelineSettingsModal
+                    isOpen={isPipelineSettingsOpen}
+                    onClose={() => setPipelineSettingsOpen(false)}
+                    pipelineId="sales"
+                />
+
+                <NewDealModal
+                    currency={currency.code}
+                />
+
+                {/* Main Content Area */}
+                <main className={`flex-1 flex flex-col h-full overflow-hidden relative ${isMobile && !isDealFocusOpen ? 'pt-14 w-full' : ''}`}>
+                    <div className="flex-1 flex flex-col overflow-hidden h-full">
+                        <div className={`flex-1 flex flex-col overflow-hidden h-full w-full mx-auto ${isDealFocusOpen ? 'p-0 w-screen h-full' : 'max-w-[1700px]'}`}>
+                            {children}
+                        </div>
                     </div>
-                </div>
-            )}
+                </main>
 
-            <PipelineSettingsModal
-                isOpen={isPipelineSettingsOpen}
-                onClose={() => setPipelineSettingsOpen(false)}
-                pipelineId="sales"
-            />
-
-            <NewDealModal
-                currency={currency.code}
-            />
-
-            {/* Main Content Area */}
-            <main className={`flex-1 flex flex-col h-full overflow-hidden relative ${isMobile && !isDealFocusOpen ? 'pt-14 w-full' : ''}`}>
-                <div className="flex-1 flex flex-col overflow-hidden h-full">
-                    <div className={`flex-1 flex flex-col overflow-hidden h-full w-full mx-auto ${isDealFocusOpen ? 'p-0 w-screen h-full' : 'max-w-[1700px]'}`}>
-                        {children}
-                    </div>
-                </div>
-            </main>
-
-            <PrivacyBanner />
-        </div>
+                <PrivacyBanner />
+            </div >
+        </TooltipProvider >
     );
 }
 
