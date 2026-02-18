@@ -160,7 +160,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                             {/* Logo Section */}
                             <div className={`flex items-center mb-8 h-9 w-full transition-all duration-300 ${isExpanded || isMobile ? 'px-4 justify-start' : 'justify-center'}`}>
                                 <div className="w-9 h-9 flex items-center justify-center shrink-0">
-                                    <Zap size={18} className="text-primary" />
+                                    <Zap size={18} className="text-primary" strokeWidth={1.8} />
                                 </div>
                                 {(isExpanded || isMobile) && (
                                     <span className="font-semibold text-foreground ml-2 text-lg whitespace-nowrap overflow-hidden animate-in fade-in duration-300">
@@ -179,7 +179,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                             flex items-center transition-all duration-200
                                             ${isActive
                                                     ? 'text-primary'
-                                                    : 'text-slate-700 hover:text-slate-900 dark:text-gray-400 dark:hover:text-gray-100'
+                                                    : 'text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-gray-100'
                                                 }
                                             ${(isExpanded || isMobile)
                                                     ? 'px-3 mx-2 gap-3 min-h-[40px] justify-start w-auto rounded-xl'
@@ -188,7 +188,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                         `}
                                             onClick={() => isMobile && setIsMobileMenuOpen(false)}
                                         >
-                                            <Icon size={18} className="shrink-0" strokeWidth={2.5} />
+                                            <Icon size={18} className="shrink-0" strokeWidth={1.8} />
                                             {(isExpanded || isMobile) && (
                                                 <span className="text-sm font-medium whitespace-nowrap overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
                                                     {item.label}
@@ -254,7 +254,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                 onClick={toggleSidebar}
                                 className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-background border border-border/40 rounded-full flex items-center justify-center shadow-lg z-[80] hover:scale-110 hover:bg-muted transition-all duration-300 opacity-0 group-hover:opacity-100 cursor-pointer"
                             >
-                                {isSidebarPinned ? <ChevronLeft size={16} className="text-muted-foreground" /> : <ChevronRight size={16} className="text-muted-foreground" />}
+                                {isSidebarPinned ? <ChevronLeft size={16} className="text-muted-foreground" strokeWidth={1.8} /> : <ChevronRight size={16} className="text-muted-foreground" strokeWidth={1.8} />}
                             </button>
                         )}
 
