@@ -30,6 +30,7 @@ import CampaignsDashboard from './pages/campaigns/CampaignsDashboard';
 import AutomatedCampaigns from './pages/campaigns/AutomatedCampaigns';
 import EmailTemplates from './pages/campaigns/EmailTemplates';
 import CampaignSettings from './pages/campaigns/CampaignSettings';
+import CampaignWizard from '@/pages/campaigns/CampaignWizard';
 import AlertsAndTips from './pages/campaigns/AlertsAndTips';
 
 
@@ -89,6 +90,8 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [togglePrivacyMode, activeFocusDealId, closeFocusDeal]);
 
+    const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+
     if (!user) return null;
 
     // Check if we are in Focus Mode (Deal/Contact/Company Detail)
@@ -96,8 +99,6 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         location.pathname.includes('/contacts/') ||
         location.pathname.includes('/companies/');
     const isDealFocusOpen = !!activeFocusDealId || isFocusRoute;
-
-    const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
 
     return (
         <div className={`flex h-full w-full text-foreground overflow-hidden ${isDealFocusOpen ? 'bg-black/5' : ''}`}>
@@ -474,6 +475,7 @@ function App() {
                             <CampaignsLayout>
                                 <Routes>
                                     <Route path="email" element={<CampaignsDashboard />} />
+                                    <Route path="new" element={<CampaignWizard />} />
                                     <Route path="automated" element={<AutomatedCampaigns />} />
                                     <Route path="templates" element={<EmailTemplates />} />
                                     <Route path="settings" element={<CampaignSettings />} />

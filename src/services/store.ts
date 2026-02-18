@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-    User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog
+    User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
+    Campaign, EmailTemplate, CampaignSender
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
 import { LEAD_SEQUENCE_TEMPLATES } from './cadence';
@@ -15,6 +16,9 @@ export interface CRMStore {
     activities: Activity[];
     logs: DealLog[];
     pipelines: Record<string, Pipeline>;
+    campaigns: Campaign[];
+    emailTemplates: EmailTemplate[];
+    campaignSenders: CampaignSender[];
     isLoading: boolean;
     isPipelineSettingsOpen: boolean;
     setPipelineSettingsOpen: (open: boolean) => void;
@@ -70,6 +74,20 @@ export interface CRMStore {
     isPrivacyMode: boolean;
     togglePrivacyMode: () => void;
 
+    // Campaigns Actions
+    addCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'createdBy' | 'sentCount' | 'openedCount' | 'clickedCount'>) => Promise<void>;
+    updateCampaign: (id: string, updates: Partial<Campaign>) => Promise<void>;
+    deleteCampaign: (id: string) => Promise<void>;
+
+    addEmailTemplate: (template: Omit<EmailTemplate, 'id' | 'createdAt'>) => Promise<void>;
+    updateEmailTemplate: (id: string, updates: Partial<EmailTemplate>) => Promise<void>;
+    deleteEmailTemplate: (id: string) => Promise<void>;
+
+    addCampaignSender: (sender: Omit<CampaignSender, 'id' | 'createdAt' | 'isVerified'>) => Promise<void>;
+    updateCampaignSender: (id: string, updates: Partial<CampaignSender>) => Promise<void>;
+    deleteCampaignSender: (id: string) => Promise<void>;
+    verifySender: (id: string) => Promise<void>;
+
     // Merge Helpers (Optional, or just use atomic actions)
 }
 
@@ -91,6 +109,9 @@ export function useCRMStore(): CRMStore {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [logs, setLogs] = useState<DealLog[]>([]);
     const [companies, setCompanies] = useState<Company[]>([]);
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
+    const [campaignSenders, setCampaignSenders] = useState<CampaignSender[]>([]);
     // *Correction*: User schema didn't fully specifying Company table. 
     // We will handle Companies as local-only for now OR map to a simple jsonb if needed. 
     // For this migration, let's keep companies in memory/local storage or create a table if requested. 
@@ -166,7 +187,10 @@ export function useCRMStore(): CRMStore {
                 supabase.from('activities').select('*'),
                 supabase.from('deal_logs').select('*'),
                 supabase.from('companies').select('*'),
-                supabase.from('stages').select('*').order('order_index', { ascending: true })
+                supabase.from('stages').select('*').order('order_index', { ascending: true }),
+                supabase.from('campaigns').select('*'),
+                supabase.from('email_templates').select('*'),
+                supabase.from('senders').select('*')
             ]);
 
             // Check for critical errors
@@ -210,6 +234,7 @@ export function useCRMStore(): CRMStore {
                     ...c,
                     userId: c.user_id,
                     companyId: c.company_id,
+                    marketingStatus: c.marketing_status || 'unsubscribed',
                     createdAt: c.created_at
                 })));
             }
@@ -286,6 +311,46 @@ export function useCRMStore(): CRMStore {
                     });
                     return nextPipelines;
                 });
+            }
+
+            // 7. Set Campaigns
+            if (arguments[6]?.data) {
+                setCampaigns(arguments[6].data.map((c: any) => ({
+                    ...c,
+                    fromName: c.from_name,
+                    fromEmail: c.from_email,
+                    replyTo: c.reply_to,
+                    templateId: c.template_id,
+                    listId: c.list_id,
+                    scheduledAt: c.scheduled_at,
+                    sentAt: c.sent_at,
+                    sentCount: c.sent_count || 0,
+                    openedCount: c.opened_count || 0,
+                    clickedCount: c.clicked_count || 0,
+                    createdBy: c.created_by,
+                    createdAt: c.created_at
+                })));
+            }
+
+            // 8. Set Templates
+            if (arguments[7]?.data) {
+                setEmailTemplates(arguments[7].data.map((t: any) => ({
+                    ...t,
+                    htmlContent: t.html_content,
+                    jsonContent: t.json_content,
+                    isPublic: t.is_public,
+                    createdAt: t.created_at
+                })));
+            }
+
+            // 9. Set Senders
+            if (arguments[8]?.data) {
+                setCampaignSenders(arguments[8].data.map((s: any) => ({
+                    ...s,
+                    isVerified: s.is_verified,
+                    verificationToken: s.verification_token,
+                    createdAt: s.created_at
+                })));
             }
 
         } catch (err) {
@@ -583,8 +648,8 @@ export function useCRMStore(): CRMStore {
             phone: data.phone,
             role: data.role,
             user_id: user.id,
-            company_id: data.companyId
-            // Status removed as column missing in DB
+            company_id: data.companyId,
+            marketing_status: data.marketingStatus
         };
 
         // Optimistic
@@ -611,6 +676,7 @@ export function useCRMStore(): CRMStore {
         if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
         if (updates.role !== undefined) dbUpdates.role = updates.role;
         if (updates.companyId !== undefined) dbUpdates.company_id = updates.companyId;
+        if (updates.marketingStatus !== undefined) dbUpdates.marketing_status = updates.marketingStatus;
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('contacts').update(dbUpdates).eq('id', id);
@@ -1107,6 +1173,154 @@ export function useCRMStore(): CRMStore {
         }
     };
 
+    // --- Campaign Actions ---
+
+    const addCampaign = async (data: Omit<Campaign, 'id' | 'createdAt' | 'createdBy' | 'sentCount' | 'openedCount' | 'clickedCount'>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const tempId = generateId();
+        const newCampaign = {
+            id: tempId,
+            name: data.name,
+            subject: data.subject,
+            from_name: data.fromName,
+            from_email: data.fromEmail,
+            reply_to: data.replyTo,
+            template_id: data.templateId,
+            list_id: data.listId,
+            status: data.status,
+            scheduled_at: data.scheduledAt,
+            created_by: user.id
+        };
+
+        const optimisticCampaign: Campaign = {
+            ...data,
+            id: tempId,
+            createdBy: user.id,
+            createdAt: new Date().toISOString(),
+            sentCount: 0,
+            openedCount: 0,
+            clickedCount: 0
+        };
+
+        setCampaigns(prev => [...prev, optimisticCampaign]);
+
+        const { error } = await supabase.from('campaigns').insert(newCampaign);
+        if (error) {
+            console.error('Error adding campaign:', error);
+            setCampaigns(prev => prev.filter(c => c.id !== tempId));
+        }
+    };
+
+    const updateCampaign = async (id: string, updates: Partial<Campaign>) => {
+        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+
+        const dbUpdates: any = {};
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.subject !== undefined) dbUpdates.subject = updates.subject;
+        if (updates.fromName !== undefined) dbUpdates.from_name = updates.fromName;
+        if (updates.fromEmail !== undefined) dbUpdates.from_email = updates.fromEmail;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.scheduledAt !== undefined) dbUpdates.scheduled_at = updates.scheduledAt;
+        if (updates.sentAt !== undefined) dbUpdates.sent_at = updates.sentAt;
+
+        await supabase.from('campaigns').update(dbUpdates).eq('id', id);
+    };
+
+    const deleteCampaign = async (id: string) => {
+        setCampaigns(prev => prev.filter(c => c.id !== id));
+        await supabase.from('campaigns').delete().eq('id', id);
+    };
+
+    const addEmailTemplate = async (data: Omit<EmailTemplate, 'id' | 'createdAt'>) => {
+        const tempId = generateId();
+        const newTemplate = {
+            id: tempId,
+            name: data.name,
+            html_content: data.htmlContent,
+            json_content: data.jsonContent,
+            thumbnail: data.thumbnail,
+            category: data.category,
+            is_public: data.isPublic
+        };
+
+        const optimisticTemplate: EmailTemplate = {
+            ...data,
+            id: tempId,
+            createdAt: new Date().toISOString()
+        };
+
+        setEmailTemplates(prev => [...prev, optimisticTemplate]);
+
+        const { error } = await supabase.from('email_templates').insert(newTemplate);
+        if (error) {
+            console.error('Error adding template:', error);
+            setEmailTemplates(prev => prev.filter(t => t.id !== tempId));
+        }
+    };
+
+    const updateEmailTemplate = async (id: string, updates: Partial<EmailTemplate>) => {
+        setEmailTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+
+        const dbUpdates: any = {};
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.htmlContent !== undefined) dbUpdates.html_content = updates.htmlContent;
+        if (updates.jsonContent !== undefined) dbUpdates.json_content = updates.jsonContent;
+
+        await supabase.from('email_templates').update(dbUpdates).eq('id', id);
+    };
+
+    const deleteEmailTemplate = async (id: string) => {
+        setEmailTemplates(prev => prev.filter(t => t.id !== id));
+        await supabase.from('email_templates').delete().eq('id', id);
+    };
+
+    const addCampaignSender = async (data: Omit<CampaignSender, 'id' | 'createdAt' | 'isVerified'>) => {
+        const tempId = generateId();
+        const newSender = {
+            id: tempId,
+            name: data.name,
+            email: data.email,
+            is_verified: false
+        };
+
+        const optimisticSender: CampaignSender = {
+            ...data,
+            id: tempId,
+            isVerified: false,
+            createdAt: new Date().toISOString()
+        };
+
+        setCampaignSenders(prev => [...prev, optimisticSender]);
+
+        const { error } = await supabase.from('senders').insert(newSender);
+        if (error) {
+            console.error('Error adding sender:', error);
+            setCampaignSenders(prev => prev.filter(s => s.id !== tempId));
+        }
+    };
+
+    const updateCampaignSender = async (id: string, updates: Partial<CampaignSender>) => {
+        setCampaignSenders(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+
+        const dbUpdates: any = {};
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.email !== undefined) dbUpdates.email = updates.email;
+
+        await supabase.from('senders').update(dbUpdates).eq('id', id);
+    };
+
+    const deleteCampaignSender = async (id: string) => {
+        setCampaignSenders(prev => prev.filter(s => s.id !== id));
+        await supabase.from('senders').delete().eq('id', id);
+    };
+
+    const verifySender = async (id: string) => {
+        setCampaignSenders(prev => prev.map(s => s.id === id ? { ...s, isVerified: true } : s));
+        await supabase.from('senders').update({ is_verified: true }).eq('id', id);
+    };
+
     return {
         users: [],
         companies,
@@ -1142,7 +1356,21 @@ export function useCRMStore(): CRMStore {
         dealToEdit,
 
         isPrivacyMode,
-        togglePrivacyMode
+        togglePrivacyMode,
+
+        campaigns,
+        emailTemplates,
+        campaignSenders,
+        addCampaign,
+        updateCampaign,
+        deleteCampaign,
+        addEmailTemplate,
+        updateEmailTemplate,
+        deleteEmailTemplate,
+        addCampaignSender,
+        updateCampaignSender,
+        deleteCampaignSender,
+        verifySender
     };
 }
 

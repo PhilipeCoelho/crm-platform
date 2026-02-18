@@ -11,7 +11,7 @@ interface Props {
     onDelete?: (id: string) => void;
 }
 
-export default function Timeline({ activities, logs = [], onReopen, onDelete }: Props) {
+export default function Timeline({ activities, logs = [], onReopen, onEdit, onDelete }: Props) {
     // Combine and Sort by createdAt descending
     // Filter out logs that are linked to an activity to avoid duplicate separate entries
     const items = [
@@ -82,6 +82,19 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
 
                                 {/* Quick Actions */}
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {onEdit && !isLog && (
+                                        <button
+                                            onClick={() => {
+                                                const newTitle = prompt('Novo título da atividade:', activity?.title);
+                                                if (newTitle && newTitle !== activity?.title) {
+                                                    onEdit(item.id, newTitle);
+                                                }
+                                            }}
+                                            className="h-5 px-1.5 text-[8px] font-bold uppercase text-muted-foreground/40 hover:text-indigo-500 transition-all"
+                                        >
+                                            Editar
+                                        </button>
+                                    )}
                                     {!isLog && onReopen && (
                                         <button onClick={() => onReopen(item.id)} className="h-5 px-1.5 text-[8px] font-bold uppercase text-muted-foreground/40 hover:text-primary transition-all">Reabrir</button>
                                     )}

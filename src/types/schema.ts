@@ -27,6 +27,7 @@ export interface Contact {
     ownerId?: Id;   // Relation to User
     lastActivity?: string;
     status: 'active' | 'inactive' | 'lead';
+    marketingStatus?: 'subscribed' | 'unsubscribed' | 'cleaned' | 'archived';
     createdAt: string;
 }
 
@@ -160,3 +161,42 @@ export const DEFAULT_PIPELINES: Record<string, Pipeline> = {
         ]
     }
 };
+
+export interface EmailTemplate {
+    id: Id;
+    name: string;
+    htmlContent: string;
+    jsonContent?: string;
+    thumbnail?: string;
+    category?: string;
+    isPublic: boolean;
+    createdAt: string;
+}
+
+export interface Campaign {
+    id: Id;
+    name: string;
+    subject: string;
+    fromName: string;
+    fromEmail: string;
+    replyTo?: string;
+    templateId?: Id;
+    listId?: string;
+    status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'paused';
+    scheduledAt?: string;
+    sentAt?: string;
+    sentCount: number;
+    openedCount: number;
+    clickedCount: number;
+    createdBy: Id;
+    createdAt: string;
+}
+
+export interface CampaignSender {
+    id: Id;
+    name: string;
+    email: string;
+    isVerified: boolean;
+    verificationToken?: string;
+    createdAt: string;
+}

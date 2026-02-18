@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Contact } from '@/types/schema';
 import { PrivacyText } from '../ui/PrivacyMask';
 
-type ColumnId = 'name' | 'organization' | 'email' | 'phone' | 'openDeals' | 'closedDeals' | 'nextActivity';
+type ColumnId = 'name' | 'organization' | 'email' | 'phone' | 'marketingStatus' | 'openDeals' | 'closedDeals' | 'nextActivity';
 
 interface Column {
     id: ColumnId;
@@ -32,6 +32,7 @@ export default function PeopleView() {
         { id: 'organization', label: 'Organização', visible: true, sortable: true },
         { id: 'email', label: 'E-mail', visible: true, sortable: true },
         { id: 'phone', label: 'Telefone', visible: true, sortable: false },
+        { id: 'marketingStatus', label: 'Marketing', visible: true, sortable: true },
         { id: 'openDeals', label: 'Negócios em Aberto', visible: true, sortable: true },
         { id: 'closedDeals', label: 'Negócios Fechados', visible: true, sortable: true },
         { id: 'nextActivity', label: 'Próxima Atividade', visible: true, sortable: true },
@@ -118,6 +119,10 @@ export default function PeopleView() {
                     case 'email':
                         aVal = a.email.toLowerCase();
                         bVal = b.email.toLowerCase();
+                        break;
+                    case 'marketingStatus':
+                        aVal = a.marketingStatus || 'z'; // 'z' to put undefined at the end
+                        bVal = b.marketingStatus || 'z';
                         break;
                     case 'openDeals':
                         aVal = getOpenDealsCount(a.id);
@@ -393,6 +398,20 @@ export default function PeopleView() {
                                                                     </a>
                                                                 )}
                                                             </div>
+                                                        </td>
+                                                    );
+                                                case 'marketingStatus':
+                                                    return (
+                                                        <td key={col.id} className="px-4 py-3">
+                                                            <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full ${contact.marketingStatus === 'subscribed'
+                                                                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                                                    : contact.marketingStatus === 'unsubscribed'
+                                                                        ? 'bg-red-100 text-red-700 border border-red-200'
+                                                                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                                                }`}>
+                                                                {contact.marketingStatus === 'subscribed' ? 'Inscrito' :
+                                                                    contact.marketingStatus === 'unsubscribed' ? 'Cancelado' : 'Não Inscrito'}
+                                                            </span>
                                                         </td>
                                                     );
                                                 case 'openDeals':
