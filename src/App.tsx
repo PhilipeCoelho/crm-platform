@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Users, CheckSquare, Settings, LogOut,
     ChevronRight, Loader2, Moon,
     Sun, Laptop as Monitor, Menu, X, CalendarDays, BarChart3,
-    Zap, DollarSign, Check
+    Zap, DollarSign, Check, Mail
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
@@ -25,6 +25,12 @@ import NewDealModal from '@/components/kanban/NewDealModal';
 import Activities from './pages/Activities';
 import Insights from './pages/Insights';
 import { PrivacyBanner } from '@/components/ui/PrivacyBanner';
+import CampaignsLayout from './pages/campaigns/CampaignsLayout';
+import CampaignsDashboard from './pages/campaigns/CampaignsDashboard';
+import AutomatedCampaigns from './pages/campaigns/AutomatedCampaigns';
+import EmailTemplates from './pages/campaigns/EmailTemplates';
+import CampaignSettings from './pages/campaigns/CampaignSettings';
+import AlertsAndTips from './pages/campaigns/AlertsAndTips';
 
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
@@ -41,6 +47,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         { path: '/pipeline', label: 'Pipeline', icon: CheckSquare },
         { path: '/activities', label: 'Atividades', icon: CalendarDays },
         { path: '/contacts', label: 'Contatos', icon: Users },
+        { path: '/campaigns/email', label: 'Campaigns', icon: Mail },
         { path: '/insights', label: 'Insights', icon: BarChart3 },
     ];
 
@@ -461,6 +468,20 @@ function App() {
                         <Route path="/deals/:id" element={<DealDetails currency={selectedCurrency} />} />
                         <Route path="/companies/:id" element={<CompanyDetails />} />
                         <Route path="/contacts/:id" element={<ContactDetails />} />
+
+                        {/* Campaigns Module Routes */}
+                        <Route path="/campaigns/*" element={
+                            <CampaignsLayout>
+                                <Routes>
+                                    <Route path="email" element={<CampaignsDashboard />} />
+                                    <Route path="automated" element={<AutomatedCampaigns />} />
+                                    <Route path="templates" element={<EmailTemplates />} />
+                                    <Route path="settings" element={<CampaignSettings />} />
+                                    <Route path="alerts" element={<AlertsAndTips />} />
+                                    <Route path="*" element={<Navigate to="email" replace />} />
+                                </Routes>
+                            </CampaignsLayout>
+                        } />
                     </Routes>
                 </Layout>
             </BrowserRouter>
