@@ -3,7 +3,7 @@ import { CRMProvider } from './contexts/CRMContext';
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom';
 import {
-    LayoutDashboard, Users, CheckSquare, Settings, LogOut,
+    LayoutDashboard, Users, CheckSquare, LogOut,
     ChevronRight, ChevronLeft, Loader2, Moon,
     Sun, Laptop as Monitor, Menu, X, CalendarDays, BarChart3,
     Zap, DollarSign, Check, Mail, Eye
