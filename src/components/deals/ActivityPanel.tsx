@@ -101,7 +101,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     return (
         <div className="flex flex-col h-full bg-background relative">
             {/* Tabs Header - FOCADO EM OPERAÇÃO */}
-            <div className="flex items-center gap-1 sm:gap-6 px-1 sm:px-1 border-b border-border dark:border-slate-800 overflow-x-auto no-scrollbar bg-transparent">
+            <div className="flex items-center gap-1 sm:gap-4 px-0.5 border-b border-border dark:border-border/60 overflow-x-auto no-scrollbar bg-transparent">
                 {tabs.map(tab => {
                     const isActive = activeTab === tab.id;
                     const isShowingContent = isActive && !isCollapsed;
@@ -110,13 +110,13 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                         <button
                             key={tab.id}
                             onClick={() => handleTabClick(tab.id as TabType)}
-                            className={`relative py-3.5 sm:py-2.5 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] transition-all whitespace-nowrap flex-1 sm:flex-none flex flex-col items-center gap-2
+                            className={`relative py-1.5 sm:py-1 text-[9px] sm:text-[9px] font-bold uppercase tracking-[0.05em] transition-all whitespace-nowrap flex-1 sm:flex-none flex flex-col items-center gap-0.5
                                       ${isShowingContent
                                     ? 'text-indigo-500 dark:text-indigo-400'
-                                    : 'text-muted-foreground dark:text-slate-500 hover:text-foreground dark:hover:text-slate-300'
+                                    : 'text-muted-foreground/60 dark:text-muted-foreground/40 hover:text-foreground dark:hover:text-foreground/80'
                                 }`}
                         >
-                            <span className="px-1">{tab.label}</span>
+                            <span className="px-0.5">{tab.label}</span>
                             <div className={`absolute bottom-0 left-0 w-full h-[1.5px] transition-all duration-200 ${isShowingContent ? 'bg-indigo-500 dark:bg-indigo-400 opacity-100' : 'bg-transparent opacity-0'}`} />
                         </button>
                     );
@@ -125,8 +125,8 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
 
             {/* Content Area - ÁREA DE AÇÃO (Expansion behavior) */}
             <div className={`
-                bg-background dark:bg-slate-800/20 rounded-xl border border-border dark:border-slate-700/50 shadow-sm overflow-hidden transition-all duration-300
-                ${isCollapsed ? 'max-h-0 border-none mt-0' : 'max-h-[800px] mt-4 opacity-100'}
+                bg-white/50 dark:bg-card/40 rounded-xl border border-border dark:border-border shadow-sm overflow-hidden transition-all duration-300
+                ${isCollapsed ? 'max-h-0 border-none mt-0' : 'max-h-[800px] mt-2 opacity-100'}
             `}>
                 <div className="p-0">
                     {renderContent()}
@@ -135,17 +135,17 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
 
 
             {/* Activities List (Scrollable) - HISTÓRICO EM TIMELINE */}
-            <div className="flex-1 mt-10">
-                <div className="space-y-10">
+            <div className="flex-1 mt-4">
+                <div className="space-y-4">
 
                     {/* Focus / Planned Section */}
                     {openActivities.length > 0 && (
                         <section>
-                            <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                            <h3 className="text-[8px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                                 Atividades Planejadas
                             </h3>
-                            <div className="space-y-0 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+                            <div className="space-y-0 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-muted dark:before:bg-border">
                                 <ActivityList
                                     activities={openActivities}
                                     onToggle={handleActivityToggle}
@@ -161,11 +161,11 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                     {/* History Section - TIMELINE LIMPA */}
                     {historyActivities.length > 0 && (
                         <section>
-                            <h3 className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+                            <h3 className="text-[8px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-muted dark:bg-muted/40" />
                                 Histórico do Negócio
                             </h3>
-                            <div className="space-y-0 relative before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+                            <div className="space-y-0 relative before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-muted dark:before:bg-border">
                                 <Timeline
                                     activities={historyActivities}
                                     logs={dealLogs}

@@ -59,24 +59,24 @@ const getActivityStatus = (dateString?: string) => {
 
 const statusStyles = {
     late: {
-        bg: 'bg-red-500/10 dark:bg-red-500/20',
-        text: 'text-red-600 dark:text-red-400',
-        border: 'border-red-200 dark:border-red-800',
-        dot: 'bg-red-500',
+        bg: 'bg-destructive/10',
+        text: 'text-destructive',
+        border: 'border-destructive/20',
+        dot: 'bg-destructive',
         label: 'Atrasada'
     },
     today: {
-        bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
-        text: 'text-emerald-600 dark:text-emerald-400',
-        border: 'border-emerald-200 dark:border-emerald-800',
-        dot: 'bg-emerald-500',
+        bg: 'bg-primary/10',
+        text: 'text-primary',
+        border: 'border-primary/20',
+        dot: 'bg-primary',
         label: 'Para hoje'
     },
     future: {
-        bg: 'bg-white dark:bg-slate-800/40',
-        text: 'text-slate-600 dark:text-slate-400',
-        border: 'border-slate-100 dark:border-slate-800',
-        dot: 'bg-slate-300 dark:bg-slate-600',
+        bg: 'bg-muted/40',
+        text: 'text-muted-foreground',
+        border: 'border-border',
+        dot: 'bg-muted',
         label: 'Planejado'
     }
 };
@@ -92,7 +92,7 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
     }
 
     return (
-        <div className="space-y-4 sm:space-y-3">
+        <div className="space-y-2">
             {activities.map(activity => {
                 const Icon = typeIcons[activity.type] || FileText;
                 const status = getActivityStatus(activity.dueDate);
@@ -105,24 +105,24 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                 return (
                     <div
                         key={activity.id}
-                        className={`group/item relative flex items-start gap-4 sm:gap-3 p-4 sm:p-3 rounded-xl sm:rounded-lg border bg-card transition-all hover:shadow-sm
-                            ${(isCompleted || isCanceled) ? 'opacity-60 border-border' : `border-l-4 ${style.border.replace('border', 'border-l')}`}`}
-                        // Note: Using border-l-4 for clear visual indication status if not completed
-                        style={(!isCompleted && !isCanceled) ? { borderLeftColor: status === 'late' ? '#ef4444' : status === 'today' ? '#22c55e' : undefined } : {}}
+                        className={`group/item relative flex items-start gap-2 p-1.5 sm:p-1.5 rounded-lg border bg-card/40 transition-all hover:shadow-sm
+                            ${(isCompleted || isCanceled) ? 'opacity-60 border-border' : `border-l-[3px] ${style.border.replace('border', 'border-l')}`}`}
+                        // Note: Using border-l-3 for subtler indicator status if not completed
+                        style={(!isCompleted && !isCanceled) ? { borderLeftColor: status === 'late' ? 'hsl(var(--destructive))' : status === 'today' ? 'hsl(var(--primary))' : undefined } : {}}
                     >
                         <button
                             onClick={() => !isCanceled && onToggle(activity.id)}
-                            className={`mt-0.5 shrink-0 h-11 w-11 sm:h-auto sm:w-auto flex items-center justify-center sm:block ${isCompleted ? 'text-primary' : isCanceled ? 'text-muted-foreground cursor-not-allowed' : 'text-muted-foreground hover:text-primary'} transition-colors`}
+                            className={`mt-0.5 shrink-0 h-9 w-9 sm:h-auto sm:w-auto flex items-center justify-center sm:block ${isCompleted ? 'text-primary' : isCanceled ? 'text-muted-foreground cursor-not-allowed' : 'text-muted-foreground hover:text-primary'} transition-colors`}
                             disabled={isCanceled}
                         >
-                            {isCompleted ? <CheckCircle2 size={24} className="sm:w-5 sm:h-5" /> : isCanceled ? <XCircle size={24} className="sm:w-5 sm:h-5" /> : <Circle size={24} className="sm:w-5 sm:h-5" />}
+                            {isCompleted ? <CheckCircle2 size={20} className="sm:w-4 sm:h-4" /> : isCanceled ? <XCircle size={20} className="sm:w-4 sm:h-4" /> : <Circle size={20} className="sm:w-4 sm:h-4" />}
                         </button>
 
                         <div className="flex-1 min-w-0 pt-2 sm:pt-0">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
-                                <h4 className={`text-base sm:text-sm font-bold sm:font-medium ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                <h4 className={`text-[12px] sm:text-[11px] font-bold sm:font-semibold ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {activity.title}
-                                    {isCanceled && <span className="ml-2 text-[10px] line-through font-normal">(Cancelada)</span>}
+                                    {isCanceled && <span className="ml-1 text-[9px] line-through font-normal">(Cancelada)</span>}
                                 </h4>
                                 <div className="flex items-center gap-4 sm:gap-2">
                                     {activity.dueDate && (
@@ -137,19 +137,19 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                                         {!isCanceled && onEdit && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onEdit(activity); }}
-                                                className="sm:opacity-0 sm:group-hover/item:opacity-100 p-2.5 sm:p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 rounded-md text-muted-foreground transition-all"
+                                                className="sm:opacity-0 sm:group-hover/item:opacity-100 p-2.5 sm:p-1.5 hover:bg-muted dark:hover:bg-muted/30 hover:text-foreground rounded-md text-muted-foreground transition-all"
                                                 title="Editar atividade"
                                             >
-                                                <Pencil size={18} className="sm:w-3.5 sm:h-3.5" />
+                                                <Pencil size={15} className="sm:w-3 sm:h-3" />
                                             </button>
                                         )}
                                         {onDelete && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onDelete(activity.id); }}
-                                                className="sm:opacity-0 sm:group-hover/item:opacity-100 p-2.5 sm:p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 rounded-md text-muted-foreground transition-all"
+                                                className="sm:opacity-0 sm:group-hover/item:opacity-100 p-2.5 sm:p-1.5 hover:bg-destructive/10 hover:text-destructive rounded-md text-muted-foreground transition-all"
                                                 title="Excluir atividade"
                                             >
-                                                <Trash2 size={18} className="sm:w-3.5 sm:h-3.5" />
+                                                <Trash2 size={15} className="sm:w-3 sm:h-3" />
                                             </button>
                                         )}
                                     </div>
@@ -162,9 +162,9 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                                 </p>
                             )}
 
-                            <div className="flex items-center gap-4 sm:gap-3 mt-3 sm:mt-2">
-                                <span className="inline-flex items-center gap-1.5 sm:gap-1 text-[10px] uppercase font-bold tracking-wider text-muted-foreground bg-muted px-2 py-1 sm:px-1.5 sm:py-0.5 rounded">
-                                    <Icon size={12} className="sm:w-2.5 sm:h-2.5" />
+                            <div className="flex items-center gap-3 sm:gap-2 mt-1.5 sm:mt-1">
+                                <span className="inline-flex items-center gap-1 sm:gap-0.5 text-[8px] uppercase font-bold tracking-wider text-muted-foreground/60 bg-muted/40 px-1.5 py-0.5 rounded">
+                                    <Icon size={10} className="sm:w-1.5 sm:h-1.5" />
                                     {activity.type === 'message' ? 'Mensagem' :
                                         activity.type === 'call' ? 'Ligação' :
                                             activity.type === 'meeting' ? 'Reunião' :
@@ -174,16 +174,15 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                                                             activity.type === 'audit' ? 'Auditoria' :
                                                                 activity.type}
                                 </span>
-
                                 {activity.duration && (
-                                    <span className="inline-flex items-center gap-1.5 sm:gap-1 text-[10px] text-muted-foreground">
-                                        <Clock size={12} className="sm:w-2.5 sm:h-2.5" />
+                                    <span className="inline-flex items-center gap-1.5 sm:gap-1 text-[9px] text-muted-foreground">
+                                        <Clock size={11} className="sm:w-2 sm:h-2" />
                                         {activity.duration} min
                                     </span>
                                 )}
 
                                 {!isCompleted && (
-                                    <span className={`text-[10px] font-bold sm:font-medium ${style.text}`}>
+                                    <span className={`text-[9px] font-bold sm:font-medium ${style.text}`}>
                                         {style.label}
                                     </span>
                                 )}

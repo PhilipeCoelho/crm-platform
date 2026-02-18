@@ -62,13 +62,20 @@
   }
 
   .dark {
-    --bg-main: 213 29% 6%;
-    --surface: 213 29% 6%;
-    --card: 214 17% 8%;
-    --border: 215 14% 15%;
+    /* Notion-inspired Neutral Dark Palette */
+    --bg-main: 0 0% 11%;
+    /* #1c1c1c - Background principal */
+    --surface: 0 0% 11%;
+    /* #1c1c1c - Mesma do bg */
+    --card: 0 0% 13%;
+    /* #212121 - Cards levemente mais claros */
+    --border: 0 0% 18%;
+    /* #2e2e2e - Bordas neutras */
 
-    --text-primary: 216 8% 91%;
-    --text-secondary: 211 11% 65%;
+    --text-primary: 0 0% 92%;
+    /* Quase branco */
+    --text-secondary: 0 0% 64%;
+    /* Cinza médio */
 
     --background: var(--bg-main);
     --foreground: var(--text-primary);
@@ -77,21 +84,22 @@
     --popover-foreground: var(--text-primary);
 
     --primary: 225 100% 65%;
+    /* Mantemos o azul apenas para botões de ação */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 17% 8%;
-    --secondary-foreground: 216 8% 91%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 92%;
 
-    --muted: 214 17% 8%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 214 17% 8%;
-    --accent-foreground: 216 8% 91%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 92%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 92%;
 
-    --input: 214 17% 8%;
+    --input: 0 0% 14%;
     --ring: 225 100% 65%;
   }
 }
@@ -106,21 +114,21 @@
     font-size: 20px;
     font-weight: 600;
     letter-spacing: -0.02em;
-    @apply text-slate-900 dark:text-white;
+    @apply text-foreground;
   }
 
   h2 {
     font-size: 16px;
     font-weight: 600;
     letter-spacing: -0.02em;
-    @apply text-slate-900 dark:text-white;
+    @apply text-foreground;
   }
 
   h3 {
     font-size: 14px;
     font-weight: 600;
     letter-spacing: -0.01em;
-    @apply text-slate-900 dark:text-white;
+    @apply text-foreground;
   }
 
   /* Professional Data Alignment */
@@ -136,7 +144,7 @@
   .text-meta {
     font-size: 12px;
     font-weight: 500;
-    @apply text-slate-500 dark:text-slate-400;
+    @apply text-muted-foreground;
   }
 }
 

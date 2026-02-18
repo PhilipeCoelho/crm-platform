@@ -60,6 +60,10 @@ export interface Deal {
 
     // Cadence Automation
     leadSequenceStarted?: boolean;
+
+    // External Links
+    instagramUrl?: string;
+    adLibraryUrl?: string;
 }
 
 // Tipos de atividades REAIS (aparecem no módulo Atividades)

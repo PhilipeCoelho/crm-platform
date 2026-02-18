@@ -339,7 +339,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                             <div className="w-full">
                                 <div className="flex items-center justify-between mb-2 w-full">
                                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <Target size={16} className="text-blue-500" />
+                                        <Target size={16} className="text-primary" />
                                         {isTodayView ? 'Meta Diária de Prospecção' : 'Prospecção'}
                                     </p>
                                     <ProductivityFilterSelector
@@ -378,12 +378,12 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
                             {/* Icon Indicator */}
                             {isTodayView && (
-                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-primary/10 text-primary'}`}>
                                     {displayCount >= stats.activityGoal ? <CheckCircle2 size={24} /> : <TrendingUp size={24} />}
                                 </div>
                             )}
                             {!isTodayView && (
-                                <div className="ml-4 p-3 rounded-lg bg-indigo-500/10 text-indigo-500">
+                                <div className="ml-4 p-3 rounded-lg bg-primary/10 text-primary">
                                     <CheckSquare size={24} />
                                 </div>
                             )}
@@ -394,7 +394,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 <div className="w-full">
                                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-blue-500'}`}
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-primary'}`}
                                             style={{ width: `${progressPercent}%` }}
                                         />
                                     </div>
@@ -488,7 +488,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
                     {/* 4. Open Deals (Small) */}
                     <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-3 bg-blue-500/10 rounded-full text-blue-500">
+                        <div className="p-3 bg-primary/10 rounded-full text-primary">
                             <BarChart3 size={20} />
                         </div>
                         <div>
@@ -499,7 +499,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
                     {/* 5. Won Deals (Small) */}
                     <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-3 bg-indigo-500/10 rounded-full text-indigo-500">
+                        <div className="p-3 bg-primary/10 rounded-full text-primary">
                             <TrendingUp size={20} />
                         </div>
                         <div>
@@ -591,9 +591,9 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                     {/* Right Column: Secondary Balance (Sem Atividade + Futuras) */}
                     <div className="space-y-6">
                         {/* 3. Sem Atividade (Deals without action) */}
-                        <div className="bg-slate-500/5 dark:bg-slate-500/10 border border-slate-500/10 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                        <div className="bg-muted/5 dark:bg-muted/10 border border-border/10 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
                             <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-2">
+                                <h3 className="text-muted-foreground font-semibold flex items-center gap-2">
                                     <AlertTriangle size={18} />
                                     Sem Atividade ({lists.dealsWithoutAction.length})
                                 </h3>
@@ -608,7 +608,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                             <div
                                                 key={deal.id}
                                                 onClick={() => actions.navigate(`/deals/${deal.id}`)}
-                                                className="flex items-center justify-between p-3 rounded-lg border border-slate-500/10 bg-card hover:shadow-md transition-all cursor-pointer group"
+                                                className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:shadow-md transition-all cursor-pointer group"
                                             >
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
@@ -619,7 +619,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                                         <p className="text-[10px] text-muted-foreground mt-0.5">Sem atividade agendada</p>
                                                     </div>
                                                 </div>
-                                                <ArrowRight size={14} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <ArrowRight size={14} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
                                         ))}
                                     </div>
@@ -629,7 +629,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                             {lists.dealsWithoutAction.length > 3 && (
                                 <button
                                     onClick={() => setShowAllNoAction(!showAllNoAction)}
-                                    className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1 self-start"
+                                    className="mt-3 text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 self-start"
                                 >
                                     {showAllNoAction ? 'Mostrar menos' : `Ver todas(${lists.dealsWithoutAction.length - 3} mais)`} <ArrowRight size={12} />
                                 </button>
@@ -637,9 +637,9 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                         </div>
 
                         {/* 4. Futuras (Upcoming) */}
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                        <div className="bg-card dark:bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col min-h-0">
                             <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-slate-600 dark:text-slate-400 font-semibold flex items-center gap-2">
+                                <h3 className="text-foreground/80 dark:text-foreground/70 font-semibold flex items-center gap-2">
                                     <Calendar size={18} />
                                     Planejado ({lists.upcomingActivities.length})
                                 </h3>
@@ -660,7 +660,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                             {lists.upcomingActivities.length > 3 && (
                                 <button
                                     onClick={() => setShowAllUpcoming(!showAllUpcoming)}
-                                    className="mt-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1 self-start"
+                                    className="mt-3 text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 self-start"
                                 >
                                     {showAllUpcoming ? 'Mostrar menos' : `Ver todas(${lists.upcomingActivities.length - 3} mais)`} <ArrowRight size={12} />
                                 </button>
@@ -668,9 +668,9 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                         </div>
 
                         {/* 5. Histórico Recente (History - Completed) */}
-                        <div className="bg-slate-50/50 dark:bg-slate-900/20 border border-slate-200/50 dark:border-white/5 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
+                        <div className="bg-muted/30 dark:bg-muted/10 border border-border/50 dark:border-border/30 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
                             <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-slate-500 dark:text-slate-500 font-semibold flex items-center gap-2">
+                                <h3 className="text-muted-foreground font-semibold flex items-center gap-2">
                                     <CheckCircle2 size={18} />
                                     Concluídas Recentemente
                                 </h3>

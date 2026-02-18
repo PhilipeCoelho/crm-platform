@@ -79,7 +79,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
         }
         // Future (neutral)
         return {
-            dot: 'bg-slate-400',
+            dot: 'bg-muted-foreground/40',
             icon: ChevronRight,
             label: nextActivity?.title || 'Futuro'
         };
@@ -177,7 +177,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className="group relative p-2.5 rounded-[10px] border transition-all duration-[120ms] ease-out cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-white dark:bg-neutral-900 border-black/[0.06] dark:border-white/[0.04] shadow-sm hover:shadow-md"
+            className="group relative p-2.5 rounded-[10px] border transition-all duration-[120ms] ease-out cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-card dark:bg-card border-border shadow-sm hover:shadow-md"
         >
             {/* Status Icon - Bottom Right Corner */}
             {status.icon === AlertTriangle ? (
@@ -198,7 +198,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
 
             {/* Title Area */}
             <div className="mb-2 pr-5 relative">
-                <h4 className="font-semibold text-[13px] leading-snug group-hover:text-primary transition-colors line-clamp-2 text-slate-800 dark:text-[#E6E8EB]">
+                <h4 className="font-semibold text-[13px] leading-snug group-hover:text-primary transition-colors line-clamp-2 text-foreground">
                     <PrivacyText text={deal.title} type="text" />
                 </h4>
 
@@ -206,19 +206,19 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
                 {isSearching && (
                     <div className="flex flex-wrap gap-1 mt-1.5 leading-none">
                         {matchesTitle && (
-                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-bold" title="Título correspondente">
+                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-bold" title="Título correspondente">
                                 <DollarSign size={8} />
                                 NEGÓCIO
                             </div>
                         )}
                         {matchesPerson && (
-                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold" title="Pessoa correspondente">
+                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-bold" title="Pessoa correspondente">
                                 <User size={8} />
                                 PESSOA
                             </div>
                         )}
                         {matchesCompany && (
-                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[9px] font-bold" title="Empresa correspondente">
+                            <div className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-muted text-muted-foreground text-[9px] font-bold" title="Empresa correspondente">
                                 <Building2 size={8} />
                                 EMPRESA
                             </div>
@@ -237,7 +237,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
                     </button>
                     <button
                         onClick={handleDelete}
-                        className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"
                         title="Excluir"
                     >
                         <Trash2 size={13} />

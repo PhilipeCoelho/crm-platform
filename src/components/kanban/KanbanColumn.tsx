@@ -91,7 +91,7 @@ export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview
             ref={setNodeRef}
             className={`group/column flex flex-col h-full min-w-[280px] w-[280px] shrink-0
                 ${isOver ? 'bg-primary/[0.02] ring-1 ring-primary/20 ring-inset rounded-lg' : 'bg-transparent'}
-                border-r border-black/[0.06] dark:border-white/[0.05]
+                border-r border-border/30
                 `}
         >
             {/* Header - Clean Pipedrive Style */}

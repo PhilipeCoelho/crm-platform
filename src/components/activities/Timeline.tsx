@@ -25,19 +25,19 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
 
     const getIcon = (_itemType: string, type: string) => {
         const config: Record<string, { icon: any, color: string, bg: string }> = {
-            call: { icon: Phone, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+            call: { icon: Phone, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
             email: { icon: Mail, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
             meeting: { icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-            message: { icon: MessageSquare, color: 'text-indigo-600', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
+            message: { icon: MessageSquare, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
             instagram: { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-100 dark:bg-pink-900/30' },
             analysis: { icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/30' },
             audit: { icon: Video, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' },
-            task: { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
-            note: { icon: StickyNote, color: 'text-slate-600', bg: 'bg-slate-100 dark:bg-slate-900/30' },
-            manual_note: { icon: StickyNote, color: 'text-slate-600', bg: 'bg-slate-100 dark:bg-slate-900/30' },
+            task: { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+            note: { icon: StickyNote, color: 'text-muted-foreground', bg: 'bg-muted dark:bg-muted/10' },
+            manual_note: { icon: StickyNote, color: 'text-muted-foreground', bg: 'bg-muted dark:bg-muted/10' },
             activity_note: { icon: MessageSquare, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-            system: { icon: Info, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-900/30' },
-            status_change: { icon: History, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-900/30' },
+            system: { icon: Info, color: 'text-muted-foreground/60', bg: 'bg-muted dark:bg-muted/10' },
+            status_change: { icon: History, color: 'text-muted-foreground/60', bg: 'bg-muted dark:bg-muted/10' },
         };
 
         const { icon: Icon, color, bg } = config[type] || config.task;
@@ -49,7 +49,7 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
     };
 
     return (
-        <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-8 py-2">
+        <div className="relative pl-6 sm:pl-8 border-l-2 border-border dark:border-border/30 ml-3 space-y-2 py-1">
             {items.map((item) => {
                 const isLog = item.itemType === 'log';
                 const log = isLog ? (item as any as DealLog) : null;
@@ -59,15 +59,15 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
                 return (
                     <div key={item.id} className="relative group">
                         {/* Timeline Dot with Icon */}
-                        <div className="absolute -left-[38px] sm:-left-[47px] top-0.5 h-6 w-6 rounded-full border-2 border-background bg-white dark:bg-slate-900 shadow-sm z-10 transition-transform group-hover:scale-110 overflow-hidden">
+                        <div className="absolute -left-[38px] sm:-left-[47px] top-0.5 h-6 w-6 rounded-full border-2 border-background bg-card shadow-sm z-10 transition-transform group-hover:scale-110 overflow-hidden">
                             {getIcon(item.itemType, isLog ? log?.logType || 'note' : activity?.type || 'task')}
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1">
                             {/* Header Row */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                    <span className="text-[9px] sm:text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">
                                         {isLog ? (log?.logType === 'system' ? 'Sistema' : 'Nota') : (
                                             activity?.type === 'call' ? 'Chamada' :
                                                 activity?.type === 'email' ? 'Email' :
@@ -75,7 +75,7 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
                                                         activity?.type === 'message' ? 'Mensagem' : 'Atividade'
                                         )}
                                     </span>
-                                    <span className="text-[10px] text-muted-foreground/60 dark:text-slate-600 font-medium">
+                                    <span className="text-[9px] text-muted-foreground/40 font-medium">
                                         • {formatDistanceToNow(date, { addSuffix: true, locale: ptBR })}
                                     </span>
                                 </div>
@@ -83,10 +83,10 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
                                 {/* Quick Actions */}
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     {!isLog && onReopen && (
-                                        <button onClick={() => onReopen(item.id)} className="h-6 px-2 text-[9px] font-bold uppercase text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/5 rounded transition-all">Reabrir</button>
+                                        <button onClick={() => onReopen(item.id)} className="h-5 px-1.5 text-[8px] font-bold uppercase text-muted-foreground/40 hover:text-primary transition-all">Reabrir</button>
                                     )}
                                     {onDelete && (
-                                        <button onClick={() => onDelete(item.id)} className="h-6 px-2 text-[9px] font-bold uppercase text-slate-400 hover:text-red-500 hover:bg-red-500/5 rounded transition-all">Excluir</button>
+                                        <button onClick={() => onDelete(item.id)} className="h-5 px-1.5 text-[8px] font-bold uppercase text-muted-foreground/40 hover:text-destructive transition-all">Excluir</button>
                                     )}
                                 </div>
                             </div>
@@ -94,8 +94,8 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
                             {/* Content */}
                             <div className="w-full">
                                 {isLog ? (
-                                    <div className="bg-muted/30 dark:bg-slate-800/20 p-4 rounded-xl border border-border/50 shadow-sm">
-                                        <p className="text-sm text-foreground/90 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                    <div className="bg-muted/30 dark:bg-muted/10 p-1.5 rounded-lg border border-border/50 shadow-sm">
+                                        <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap">
                                             {log?.content}
                                         </p>
                                     </div>
@@ -108,7 +108,7 @@ export default function Timeline({ activities, logs = [], onReopen, onDelete }: 
                                             const observation = logs.find(l => l.activityId === activity?.id);
                                             if (!observation) return null;
                                             return (
-                                                <div className="mt-2 text-sm text-foreground/80 bg-muted/20 p-3 rounded-lg border border-border/30 whitespace-pre-wrap">
+                                                <div className="mt-1 text-xs text-foreground/80 bg-muted/20 p-2 rounded-md border border-border/30 whitespace-pre-wrap">
                                                     {observation.content}
                                                 </div>
                                             );

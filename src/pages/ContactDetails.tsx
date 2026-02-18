@@ -111,9 +111,24 @@ export default function ContactDetails() {
                                     </div>
                                     <div className="space-y-1 pb-3 border-b border-border/50 last:border-0">
                                         <label className="text-xs font-medium text-muted-foreground uppercase">Telefone</label>
-                                        <div className="flex items-center gap-2 text-foreground text-sm">
-                                            <Phone size={14} className="text-muted-foreground" />
-                                            {contact.phone || <span className="text-muted-foreground italic">Não informado</span>}
+                                        <div className="flex items-center justify-between gap-2 text-foreground text-sm group">
+                                            <div className="flex items-center gap-2">
+                                                <Phone size={14} className="text-muted-foreground" />
+                                                <a href={contact.phone ? `tel:${contact.phone.replace(/\D/g, '')}` : '#'} className={contact.phone ? "hover:text-primary transition-colors font-medium" : "cursor-default"}>
+                                                    {contact.phone || <span className="text-muted-foreground italic">Não informado</span>}
+                                                </a>
+                                            </div>
+                                            {contact.phone && contact.phone.replace(/\D/g, '').startsWith('9') && (
+                                                <a
+                                                    href={`https://wa.me/351${contact.phone.replace(/\D/g, '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-1 text-[10px] font-bold bg-emerald-500/5 px-2 py-1 rounded-md"
+                                                >
+                                                    <MessageSquare size={12} />
+                                                    WhatsApp
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="space-y-1 pb-3 border-b border-border/50 last:border-0">

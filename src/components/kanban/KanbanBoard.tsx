@@ -554,11 +554,11 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                     {/* Add Column Ghost - Professional Pipeline Style */}
                                     <button
                                         onClick={() => setPipelineSettingsOpen(true)}
-                                        className="group/ghost shrink-0 min-w-[280px] w-[280px] h-full rounded-xl border border-dashed border-slate-300/40 dark:border-white/12 bg-transparent hover:bg-slate-100/30 dark:hover:bg-white/[0.03] hover:border-slate-400/60 dark:hover:border-white/25 transition-all duration-200 flex flex-col items-center justify-center cursor-pointer"
+                                        className="group/ghost shrink-0 min-w-[280px] w-[280px] h-full rounded-xl border border-dashed border-border/30 bg-transparent hover:bg-muted/10 hover:border-border/60 transition-all duration-200 flex flex-col items-center justify-center cursor-pointer"
                                         title="Adicionar Nova Etapa"
                                     >
                                         {/* Circular + Button Inside Ghost Column */}
-                                        <div className="w-[36px] h-[36px] rounded-full bg-neutral-800 group-hover/ghost:bg-neutral-700 dark:bg-neutral-800 dark:group-hover/ghost:bg-neutral-700 text-neutral-300 border border-neutral-700 dark:border-neutral-600 flex items-center justify-center transition-all duration-200 group-hover/ghost:scale-110 shadow-lg">
+                                        <div className="w-[36px] h-[36px] rounded-full bg-primary/90 group-hover/ghost:bg-primary text-primary-foreground flex items-center justify-center transition-all duration-200 group-hover/ghost:scale-110 shadow-lg">
                                             <Plus size={18} strokeWidth={2.5} />
                                         </div>
 

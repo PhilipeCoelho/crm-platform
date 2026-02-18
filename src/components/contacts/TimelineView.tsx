@@ -218,7 +218,7 @@ export default function TimelineView() {
         if (daysSinceLastActivity > 60) return { status: 'risk', label: 'Risco de esquecimento', color: 'text-orange-500' };
         if (daysSinceLastActivity > 30) return { status: 'warning', label: 'Atenção necessária', color: 'text-yellow-600' };
         if (daysSinceLastActivity <= 7) return { status: 'active', label: 'Contato ativo', color: 'text-green-500' };
-        return { status: 'normal', label: 'Contato regular', color: 'text-blue-500' };
+        return { status: 'normal', label: 'Contato regular', color: 'text-primary' };
     };
 
     // Get active deal period for relationship bar
@@ -415,9 +415,9 @@ export default function TimelineView() {
                             {showRiskFilter && (
                                 <div className="absolute right-0 mt-2 w-56 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
                                     {[
-                                        { value: 'all', label: 'Todos os status', color: 'bg-gray-400' },
+                                        { value: 'all', label: 'Todos os status', color: 'bg-muted-foreground/60' },
                                         { value: 'active', label: 'Contato ativo', color: 'bg-green-500' },
-                                        { value: 'normal', label: 'Contato regular', color: 'bg-blue-500' },
+                                        { value: 'normal', label: 'Contato regular', color: 'bg-primary' },
                                         { value: 'warning', label: 'Atenção necessária', color: 'bg-yellow-600' },
                                         { value: 'risk', label: 'Risco de esquecimento', color: 'bg-orange-500' },
                                         { value: 'inactive', label: 'Sem atividades', color: 'bg-red-500' },
@@ -600,7 +600,7 @@ export default function TimelineView() {
 
                                                 return (
                                                     <div
-                                                        className="absolute top-1/2 -translate-y-1/2 h-1 bg-blue-400/30 rounded-full"
+                                                        className="absolute top-1/2 -translate-y-1/2 h-1 bg-primary/30 rounded-full"
                                                         style={{
                                                             left: `${startPos}%`,
                                                             width: `${width}%`,
@@ -630,10 +630,10 @@ export default function TimelineView() {
                                                                 ${isNote
                                                                     ? 'bg-amber-100 text-amber-600 border border-amber-200'
                                                                     : event.completed
-                                                                        ? 'bg-blue-500 text-white shadow-sm'
+                                                                        ? 'bg-primary text-white shadow-sm'
                                                                         : event.overdue
                                                                             ? 'bg-red-500 text-white shadow-sm'
-                                                                            : 'bg-slate-400 text-white'
+                                                                            : 'bg-muted-foreground/60 text-white'
                                                                 }
                                                                 group-hover/event:scale-125 group-hover/event:shadow-lg z-10
                                                             `}

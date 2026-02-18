@@ -85,19 +85,19 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-3 sm:p-4 space-y-3">
+        <form onSubmit={handleSubmit} className="p-2 sm:p-2.5 space-y-2">
             {/* ROW 1: Textarea */}
             <textarea
                 placeholder="O que precisa fazer?"
-                className="w-full min-h-[72px] max-h-[88px] p-2 bg-transparent border border-border/60 focus:border-indigo-500/50 rounded-lg outline-none text-sm transition-all resize-none font-medium custom-scrollbar"
+                className="w-full min-h-[40px] max-h-[60px] p-2 bg-transparent border border-border/60 focus:border-indigo-500/50 rounded-lg outline-none text-sm transition-all resize-none font-medium custom-scrollbar"
                 style={{ fontSize: '13px' }}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
             />
 
             {/* ROW 2: Icons and Metadata */}
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-0.5">
                     <TooltipProvider>
                         {QUICK_ACTIONS.map(action => {
                             const Icon = action.icon;
@@ -109,17 +109,17 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                                             type="button"
                                             onClick={() => handleQuickAction(action)}
                                             className={`
-                                                h-7 w-7 flex items-center justify-center rounded-md transition-all
+                                                h-5 w-5 flex items-center justify-center rounded-md transition-all
                                                 ${isSelected
                                                     ? 'bg-indigo-500 text-white shadow-sm'
-                                                    : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-600'}
+                                                    : 'text-muted-foreground/60 dark:text-muted-foreground/40 hover:bg-muted dark:hover:bg-muted/10 hover:text-foreground dark:hover:text-foreground/80'}
                                             `}
                                         >
-                                            <Icon size={14} />
+                                            <Icon size={11} />
                                         </button>
                                     </TooltipTrigger>
                                     <TooltipContent side="top">
-                                        <p className="text-[10px]">{action.label}</p>
+                                        <p className="text-[9px]">{action.label}</p>
                                     </TooltipContent>
                                 </Tooltip>
                             );
@@ -127,14 +127,14 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                     </TooltipProvider>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
                     <DatePicker
                         value={date}
                         onChange={setDate}
-                        className="w-[125px]"
+                        className="w-[100px]"
                     />
 
-                    <div className="w-[85px]">
+                    <div className="w-[70px]">
                         <TimePicker
                             value={time}
                             onChange={setTime}
@@ -144,13 +144,13 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             </div>
 
             {/* ROW 3: Submit Button */}
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-end pt-0.5">
                 <button
                     type="submit"
                     disabled={!title.trim() || isSubmitting}
-                    className="h-8 px-5 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 font-semibold text-xs flex items-center justify-center gap-2 shadow-sm shadow-indigo-500/10 disabled:opacity-50 transition-all active:scale-95"
+                    className="h-7 px-4 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 font-bold text-[10px] flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-500/10 disabled:opacity-50 transition-all active:scale-95 uppercase tracking-wider"
                 >
-                    {isSubmitting ? 'Salvando...' : submitLabel}
+                    {isSubmitting ? '...' : submitLabel}
                 </button>
             </div>
         </form>

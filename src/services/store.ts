@@ -190,7 +190,9 @@ export function useCRMStore(): CRMStore {
                     source: d.source,
                     currency: d.currency || 'BRL',
                     position: d.position || 0,
-                    leadSequenceStarted: d.lead_sequence_started || false
+                    leadSequenceStarted: d.lead_sequence_started || false,
+                    instagramUrl: d.instagram_url,
+                    adLibraryUrl: d.ad_library_url
                 }));
 
                 mappedDeals.sort((a, b) => {
@@ -373,7 +375,9 @@ export function useCRMStore(): CRMStore {
             source: data.source,
             currency: data.currency,
             position: newPos,
-            pipeline_id: data.pipelineId
+            pipeline_id: data.pipelineId,
+            instagram_url: data.instagramUrl,
+            ad_library_url: data.adLibraryUrl
         };
 
         // Optimistic Deal
@@ -447,6 +451,8 @@ export function useCRMStore(): CRMStore {
         if (finalUpdates.position !== undefined) dbUpdates.position = finalUpdates.position;
         if (finalUpdates.pipelineId !== undefined) dbUpdates.pipeline_id = finalUpdates.pipelineId;
         if (finalUpdates.leadSequenceStarted !== undefined) dbUpdates.lead_sequence_started = finalUpdates.leadSequenceStarted;
+        if (finalUpdates.instagramUrl !== undefined) dbUpdates.instagram_url = finalUpdates.instagramUrl;
+        if (finalUpdates.adLibraryUrl !== undefined) dbUpdates.ad_library_url = finalUpdates.adLibraryUrl;
 
         // --- Cadence Logic Triggers ---
         if (updates.stageId && updates.stageId !== originalDeal.stageId) {

@@ -108,7 +108,7 @@ export default function TimePicker({ value, onChange, className }: TimePickerPro
                         value={inputValue}
                         onChange={handleInputChange}
                         placeholder="00:00"
-                        className="bg-transparent border-none outline-none text-[12px] font-normal w-12 text-slate-400 placeholder:text-muted-foreground/30"
+                        className="bg-transparent border-none outline-none text-[12px] font-normal w-12 text-foreground placeholder:text-muted-foreground/30"
                         onFocus={() => setIsOpen(true)}
                         autoComplete="off"
                     />

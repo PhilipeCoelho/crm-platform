@@ -150,7 +150,7 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
                         className="flex items-center gap-2 h-8 px-2 rounded-md border border-border/60 hover:border-indigo-500/30 transition-all focus-within:ring-1 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 bg-background/50 group cursor-pointer"
                         onClick={() => setIsOpen(true)}
                     >
-                        <CalendarIcon size={14} className="text-slate-400 group-hover:text-indigo-500 transition-colors shrink-0" />
+                        <CalendarIcon size={14} className="text-muted-foreground/60 group-hover:text-indigo-500 transition-colors shrink-0" />
                         <input
                             type="text"
                             value={inputValue}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
-import { Search, Filter, Plus, MoreHorizontal, Mail, Phone, Edit, Trash2, Columns, ArrowUpDown, Users } from 'lucide-react';
+import { Search, Filter, Plus, MoreHorizontal, Mail, Phone, Edit, Trash2, Columns, ArrowUpDown, Users, MessageCircle } from 'lucide-react';
 import NewContactModal from './NewContactModal';
 import { useNavigate } from 'react-router-dom';
 import { Contact } from '@/types/schema';
@@ -372,7 +372,27 @@ export default function PeopleView() {
                                                 case 'phone':
                                                     return (
                                                         <td key={col.id} className="px-4 py-3">
-                                                            <PrivacyText text={contact.phone || '-'} type="phone" />
+                                                            <div className="flex items-center gap-2">
+                                                                <a
+                                                                    href={`tel:${contact.phone?.replace(/\D/g, '')}`}
+                                                                    className="hover:text-indigo-500 transition-colors"
+                                                                    onClick={e => e.stopPropagation()}
+                                                                >
+                                                                    <PrivacyText text={contact.phone || '-'} type="phone" />
+                                                                </a>
+                                                                {contact.phone && contact.phone.replace(/\D/g, '').startsWith('9') && (
+                                                                    <a
+                                                                        href={`https://wa.me/351${contact.phone.replace(/\D/g, '')}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-emerald-500 hover:text-emerald-600 transition-colors p-1 hover:bg-emerald-500/10 rounded"
+                                                                        onClick={e => e.stopPropagation()}
+                                                                        title="WhatsApp"
+                                                                    >
+                                                                        <MessageCircle size={14} />
+                                                                    </a>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                     );
                                                 case 'openDeals':
@@ -422,9 +442,24 @@ export default function PeopleView() {
                                                 <button className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-primary transition-colors" title="Enviar Email">
                                                     <Mail size={14} />
                                                 </button>
-                                                <button className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-primary transition-colors" title="Ligar">
+                                                <a
+                                                    href={`tel:${contact.phone?.replace(/\D/g, '')}`}
+                                                    className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-primary transition-colors"
+                                                    title="Ligar"
+                                                >
                                                     <Phone size={14} />
-                                                </button>
+                                                </a>
+                                                {contact.phone && contact.phone.replace(/\D/g, '').startsWith('9') && (
+                                                    <a
+                                                        href={`https://wa.me/351${contact.phone.replace(/\D/g, '')}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-emerald-500 transition-colors"
+                                                        title="WhatsApp"
+                                                    >
+                                                        <MessageCircle size={14} />
+                                                    </a>
+                                                )}
                                                 <div className="relative">
                                                     <button
                                                         className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
