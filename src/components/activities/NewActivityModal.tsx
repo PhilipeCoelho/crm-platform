@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, CheckCircle2, X } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Activity } from '@/types/schema';
@@ -11,12 +11,23 @@ interface Props {
 }
 
 export default function NewActivityModal({ isOpen, onClose, preselectedContactId, preselectedDealId }: Props) {
-    const { addActivity, deals, contacts } = useCRM(); // Get contacts too if needed
+    const { addActivity, deals, contacts } = useCRM();
     const [title, setTitle] = useState('');
     const [type, setType] = useState<Activity['type']>('message');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
     const [dealId, setDealId] = useState(preselectedDealId || '');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setTitle('');
+            setType('message');
+            setDate(new Date().toISOString().split('T')[0]);
+            setNotes('');
+            setDealId(preselectedDealId || '');
+        }
+    }, [isOpen, preselectedDealId]);
 
     // Derived State for filtering deals
     const availableDeals = preselectedContactId
@@ -27,34 +38,37 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
 
-        const now = new Date();
-        const isToday = date === now.toISOString().split('T')[0];
-        let timeString = "12:00:00";
-        if (isToday) {
-            const hourAhead = new Date();
-            hourAhead.setHours(now.getHours() + 1);
-            timeString = `${String(hourAhead.getHours()).padStart(2, '0')}:${String(hourAhead.getMinutes()).padStart(2, '0')}:00`;
+        try {
+            const now = new Date();
+            const isToday = date === now.toISOString().split('T')[0];
+            let timeString = "12:00:00";
+            if (isToday) {
+                const hourAhead = new Date();
+                hourAhead.setHours(now.getHours() + 1);
+                timeString = `${String(hourAhead.getHours()).padStart(2, '0')}:${String(hourAhead.getMinutes()).padStart(2, '0')}:00`;
+            }
+
+            await addActivity({
+                title,
+                type,
+                dealId: dealId || undefined,
+                contactId: preselectedContactId || undefined,
+                date: date,
+                dueDate: `${date}T${timeString}.000Z`,
+                notes,
+                duration: 30,
+                status: 'pending',
+                completed: false
+            } as any);
+
+            onClose();
+        } catch (error) {
+            console.error('Error adding activity:', error);
+        } finally {
+            setIsSubmitting(false);
         }
-
-        await addActivity({
-            title,
-            type,
-            dealId: dealId || undefined,
-            contactId: preselectedContactId || undefined, // Link to contact directly
-            date: date,
-            dueDate: `${date}T${timeString}.000Z`,
-            notes,
-            duration: 30,
-            status: 'pending',
-            completed: false
-        } as any);
-
-        // Reset and close
-        setTitle('');
-        setNotes('');
-        setDealId('');
-        onClose();
     };
 
     return (
@@ -159,10 +173,11 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-sm flex items-center gap-2 transition-all"
+                            disabled={isSubmitting}
+                            className="px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-sm flex items-center gap-2 transition-all disabled:opacity-50"
                         >
                             <Calendar size={16} />
-                            Agendar
+                            {isSubmitting ? 'Salvando...' : 'Agendar'}
                         </button>
                     </div>
                 </form>

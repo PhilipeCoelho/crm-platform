@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Users, CheckSquare, LogOut,
     ChevronRight, ChevronLeft, Loader2, Moon,
     Sun, Laptop as Monitor, Menu, X, CalendarDays, BarChart3,
-    Zap, DollarSign, Check, Mail, Eye
+    Zap, DollarSign, Check, Mail, Eye, Inbox
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
@@ -32,6 +32,7 @@ import EmailTemplates from './pages/campaigns/EmailTemplates';
 import CampaignSettings from './pages/campaigns/CampaignSettings';
 import CampaignWizard from '@/pages/campaigns/CampaignWizard';
 import AlertsAndTips from './pages/campaigns/AlertsAndTips';
+import EmailInbox from './pages/email/EmailInbox';
 import {
     Tooltip,
     TooltipContent,
@@ -54,6 +55,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         { path: '/pipeline', label: 'Pipeline', icon: CheckSquare },
         { path: '/activities', label: 'Atividades', icon: CalendarDays },
         { path: '/contacts', label: 'Contatos', icon: Users },
+        { path: '/email', label: 'E-mail', icon: Inbox },
         { path: '/campaigns/email', label: 'Campaigns', icon: Mail },
         { path: '/insights', label: 'Insights', icon: BarChart3 },
     ];
@@ -352,7 +354,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                                 </div>
                                             </div>
                                         </div>
-                                        {/* Privacy Toggle */}
+
                                         <div className="relative">
                                             <button
                                                 onClick={togglePrivacyMode}
@@ -479,6 +481,8 @@ function App() {
                         } />
                         <Route path="/contacts" element={<Contacts />} />
                         <Route path="/activities" element={<Activities currency={selectedCurrency} />} />
+                        <Route path="/campaigns/wizard" element={<CampaignWizard />} />
+                        <Route path="/email" element={<EmailInbox />} />
                         <Route path="/insights" element={<Insights />} />
                         <Route path="/deals/:id" element={<DealDetails currency={selectedCurrency} />} />
                         <Route path="/companies/:id" element={<CompanyDetails />} />

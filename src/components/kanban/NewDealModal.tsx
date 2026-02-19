@@ -41,6 +41,26 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
     const [website, setWebsite] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const resetForm = () => {
+        setTitle('Negócio');
+        setIsTitleManuallyEdited(false);
+        setValue('');
+        setExpectedCloseDate(new Date().toISOString().split('T')[0]);
+        setSelectedLabels([]);
+        setSource('');
+        setContactSearch('');
+        setContactId('');
+        setPhone('');
+        setEmail('');
+        setCompanySearch('');
+        setCompanyId('');
+        setCompanyManuallyEdited(false);
+        setInstagramUrl('');
+        setAdLibraryUrl('');
+        setWebsite('');
+        setSelectedStageId('');
+    };
+
     useEffect(() => {
         if (isNewDealModalOpen) {
             if (dealToEdit) {
@@ -48,9 +68,12 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                 setSelectedLabels(dealToEdit.tags || []); setSelectedPipelineId(dealToEdit.pipelineId || 'sales'); setSelectedStageId(dealToEdit.stageId); setSource(dealToEdit.source || '');
                 const linkedContact = contacts.find(c => c.id === dealToEdit.contactId); setContactId(dealToEdit.contactId || ''); setContactSearch(linkedContact?.name || ''); setPhone(linkedContact?.phone || ''); setEmail(linkedContact?.email || '');
                 const linkedCompany = companies.find(c => c.id === dealToEdit.companyId); setCompanyId(dealToEdit.companyId || ''); setCompanySearch(linkedCompany?.name || ''); setCompanyManuallyEdited(true); setInstagramUrl(dealToEdit.instagramUrl || ''); setAdLibraryUrl(dealToEdit.adLibraryUrl || ''); setWebsite(linkedCompany?.website || '');
-            } else if (newDealStageId) {
-                const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === newDealStageId));
-                if (pipe) { setSelectedPipelineId(pipe.id); setSelectedStageId(newDealStageId); }
+            } else {
+                resetForm();
+                if (newDealStageId) {
+                    const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === newDealStageId));
+                    if (pipe) { setSelectedPipelineId(pipe.id); setSelectedStageId(newDealStageId); }
+                }
             }
         }
     }, [isNewDealModalOpen, dealToEdit, newDealStageId, pipelines, contacts, companies]);
