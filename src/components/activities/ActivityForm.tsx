@@ -89,7 +89,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             {/* ROW 1: Textarea */}
             <textarea
                 placeholder="O que precisa fazer?"
-                className="w-full min-h-[40px] max-h-[60px] p-2 bg-transparent border border-border/60 focus:border-indigo-500/50 rounded-lg outline-none text-sm transition-all resize-none font-medium custom-scrollbar"
+                className="w-full min-h-[40px] max-h-[60px] p-2 bg-transparent border border-border/60 focus:border-primary/50 rounded-lg outline-none text-sm transition-all resize-none font-medium custom-scrollbar"
                 style={{ fontSize: '13px' }}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
@@ -111,7 +111,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                                             className={`
                                                 h-5 w-5 flex items-center justify-center rounded-md transition-all
                                                 ${isSelected
-                                                    ? 'bg-indigo-500 text-white shadow-sm'
+                                                    ? 'bg-primary text-primary-foreground shadow-sm'
                                                     : 'text-muted-foreground/60 dark:text-muted-foreground/40 hover:bg-muted dark:hover:bg-muted/10 hover:text-foreground dark:hover:text-foreground/80'}
                                             `}
                                         >
@@ -148,7 +148,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 <button
                     type="submit"
                     disabled={!title.trim() || isSubmitting}
-                    className="h-7 px-4 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 font-bold text-[10px] flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-500/10 disabled:opacity-50 transition-all active:scale-95 uppercase tracking-wider"
+                    className="h-7 px-4 bg-primary text-primary-foreground rounded-md hover:opacity-90 font-bold text-[10px] flex items-center justify-center gap-1.5 shadow-sm shadow-primary/10 disabled:opacity-50 transition-all active:scale-95 uppercase tracking-wider"
                 >
                     {isSubmitting ? '...' : submitLabel}
                 </button>

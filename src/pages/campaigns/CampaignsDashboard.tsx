@@ -80,7 +80,7 @@ export default function CampaignsDashboard() {
                         {/* Left: Video Section */}
                         <div className="md:w-1/2 bg-slate-900 flex flex-col p-8 justify-center relative group">
                             <div className="absolute top-8 left-8 flex items-center gap-3 z-10">
-                                <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white shadow-lg">
+                                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg">
                                     <Megaphone size={20} />
                                 </div>
                                 <div className="text-white">
@@ -96,7 +96,7 @@ export default function CampaignsDashboard() {
                                     className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
                                 />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <button className="w-16 h-16 rounded-full bg-[#22C55E] text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl shadow-emerald-500/30">
+                                    <button className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl shadow-primary/30">
                                         <Play fill="currentColor" size={24} className="ml-1" />
                                     </button>
                                 </div>
@@ -123,7 +123,7 @@ export default function CampaignsDashboard() {
                                     </div>
 
                                     <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shrink-0">
                                             <ImageIcon size={24} />
                                         </div>
                                         <div>
@@ -147,7 +147,7 @@ export default function CampaignsDashboard() {
                             <div className="mt-12">
                                 <button
                                     onClick={handleStart}
-                                    className="w-full py-4 bg-[#22C55E] hover:bg-[#1eb054] text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                                    className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95"
                                 >
                                     Começar
                                 </button>
@@ -324,7 +324,7 @@ export default function CampaignsDashboard() {
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 px-4 py-2 bg-[#22C55E] text-white rounded-lg font-bold hover:bg-[#1eb054] transition-all"
+                                        className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-all"
                                     >
                                         Adicionar e Verificar
                                     </button>

@@ -122,8 +122,8 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
                             "h-8 w-8 flex items-center justify-center text-xs rounded-md cursor-pointer transition-all m-auto",
                             !isCurrentMonth && "text-muted-foreground/30",
                             isCurrentMonth && "text-foreground hover:bg-muted",
-                            isSelected && "bg-indigo-500 text-white hover:bg-indigo-600 font-semibold shadow-sm",
-                            isToday && !isSelected && "border border-indigo-500/30 text-indigo-500 font-semibold"
+                            isSelected && "bg-primary text-white hover:bg-primary font-semibold shadow-sm",
+                            isToday && !isSelected && "border border-primary/30 text-primary font-semibold"
                         )}
                         onClick={(e) => { e.stopPropagation(); handleSelectDate(cloneDay); }}
                     >
@@ -147,10 +147,10 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
             <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverPrimitive.Anchor asChild>
                     <div
-                        className="flex items-center gap-2 h-8 px-2 rounded-md border border-border/60 hover:border-indigo-500/30 transition-all focus-within:ring-1 focus-within:ring-indigo-500/20 focus-within:border-indigo-500/30 bg-background/50 group cursor-pointer"
+                        className="flex items-center gap-2 h-8 px-2 rounded-md border border-border/60 hover:border-primary/30 transition-all focus-within:ring-1 focus-within:ring-primary/20 focus-within:border-primary/30 bg-background/50 group cursor-pointer"
                         onClick={() => setIsOpen(true)}
                     >
-                        <CalendarIcon size={14} className="text-muted-foreground/60 group-hover:text-indigo-500 transition-colors shrink-0" />
+                        <CalendarIcon size={14} className="text-muted-foreground/60 group-hover:text-primary transition-colors shrink-0" />
                         <input
                             type="text"
                             value={inputValue}

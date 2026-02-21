@@ -258,7 +258,7 @@ export default function EmailSyncSettings() {
                     {/* Smart BCC Section */}
                     <div className="bg-white dark:bg-card border border-border rounded-xl shadow-sm p-6">
                         <div className="flex items-start gap-4">
-                            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg mt-1">
+                            <div className="p-2 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-lg mt-1">
                                 <Lock size={20} />
                             </div>
                             <div className="flex-1">

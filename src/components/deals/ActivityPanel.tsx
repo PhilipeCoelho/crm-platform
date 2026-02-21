@@ -118,12 +118,12 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                             onClick={() => handleTabClick(tab.id as TabType)}
                             className={`relative py-1.5 sm:py-1 text-[9px] sm:text-[9px] font-bold uppercase tracking-[0.05em] transition-all whitespace-nowrap flex-1 sm:flex-none flex flex-col items-center gap-0.5
                                       ${isShowingContent
-                                    ? 'text-indigo-500 dark:text-indigo-400'
+                                    ? 'text-primary dark:text-primary'
                                     : 'text-muted-foreground/60 dark:text-muted-foreground/40 hover:text-foreground dark:hover:text-foreground/80'
                                 }`}
                         >
                             <span className="px-0.5">{tab.label}</span>
-                            <div className={`absolute bottom-0 left-0 w-full h-[1.5px] transition-all duration-200 ${isShowingContent ? 'bg-indigo-500 dark:bg-indigo-400 opacity-100' : 'bg-transparent opacity-0'}`} />
+                            <div className={`absolute bottom-0 left-0 w-full h-[1.5px] transition-all duration-200 ${isShowingContent ? 'bg-primary dark:bg-primary opacity-100' : 'bg-transparent opacity-0'}`} />
                         </button>
                     );
                 })}

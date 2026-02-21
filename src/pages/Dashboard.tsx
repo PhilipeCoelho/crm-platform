@@ -321,7 +321,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => openNewDealModal(defaultStageId)}
-                            className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 shadow-sm transition-all active:scale-95"
                         >
 
                             <Plus size={16} />
@@ -378,7 +378,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
                             {/* Icon Indicator */}
                             {isTodayView && (
-                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-green-500/10 text-green-500' : 'bg-primary/10 text-primary'}`}>
+                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}>
                                     {displayCount >= stats.activityGoal ? <CheckCircle2 size={24} /> : <TrendingUp size={24} />}
                                 </div>
                             )}
@@ -394,7 +394,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 <div className="w-full">
                                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-green-500' : 'bg-primary'}`}
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-success' : 'bg-primary'}`}
                                             style={{ width: `${progressPercent}%` }}
                                         />
                                     </div>
@@ -459,7 +459,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 <>
                                     <div className="w-full bg-secondary h-2 rounded-full overflow-hidden relative">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-green-500' : 'bg-yellow-500'}`}
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-success' : 'bg-yellow-500'}`}
                                             style={{ width: `${Math.min((stats.currentRevenue / stats.revenueGoal) * 100, 100)}%` }}
                                         />
                                     </div>
@@ -695,43 +695,45 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
 
             {/* Follow-up Suggestion Prompt */}
-            {dealToSuggestActivity && (
-                <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-right-full duration-300">
-                    <div className="bg-primary text-primary-foreground p-4 rounded-xl shadow-2xl border border-primary-foreground/10 flex flex-col gap-3 min-w-[300px]">
-                        <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-2">
-                                <Sparkles size={18} className="text-yellow-300 animate-pulse" />
-                                <h4 className="font-bold text-sm">Ótimo trabalho!</h4>
+            {
+                dealToSuggestActivity && (
+                    <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-right-full duration-300">
+                        <div className="bg-primary text-primary-foreground p-4 rounded-xl shadow-2xl border border-primary-foreground/10 flex flex-col gap-3 min-w-[300px]">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles size={18} className="text-yellow-300 animate-pulse" />
+                                    <h4 className="font-bold text-sm">Ótimo trabalho!</h4>
+                                </div>
+                                <button onClick={() => setDealToSuggestActivity(null)} className="text-primary-foreground/60 hover:text-primary-foreground">
+                                    <XCircle size={16} />
+                                </button>
                             </div>
-                            <button onClick={() => setDealToSuggestActivity(null)} className="text-primary-foreground/60 hover:text-primary-foreground">
-                                <XCircle size={16} />
-                            </button>
-                        </div>
-                        <p className="text-xs text-primary-foreground/90 leading-relaxed">
-                            Você completou a última atividade deste negócio. <br />
-                            <strong>Que tal agendar o próximo passo agora?</strong>
-                        </p>
-                        <div className="flex gap-2 mt-1">
-                            <button
-                                onClick={() => {
-                                    setIsNewActivityModalOpen(true);
-                                    // Keeping dealToSuggestActivity set so we know which deal to use
-                                }}
-                                className="flex-1 bg-white text-primary text-xs font-bold py-2 rounded-lg hover:bg-white/90 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Plus size={14} />
-                                Agendar Próxima
-                            </button>
-                            <button
-                                onClick={() => setDealToSuggestActivity(null)}
-                                className="px-3 py-2 text-xs font-medium text-white/80 hover:text-white transition-colors"
-                            >
-                                Depois
-                            </button>
+                            <p className="text-xs text-primary-foreground/90 leading-relaxed">
+                                Você completou a última atividade deste negócio. <br />
+                                <strong>Que tal agendar o próximo passo agora?</strong>
+                            </p>
+                            <div className="flex gap-2 mt-1">
+                                <button
+                                    onClick={() => {
+                                        setIsNewActivityModalOpen(true);
+                                        // Keeping dealToSuggestActivity set so we know which deal to use
+                                    }}
+                                    className="flex-1 bg-white text-primary text-xs font-bold py-2 rounded-lg hover:bg-white/90 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Plus size={14} />
+                                    Agendar Próxima
+                                </button>
+                                <button
+                                    onClick={() => setDealToSuggestActivity(null)}
+                                    className="px-3 py-2 text-xs font-medium text-white/80 hover:text-white transition-colors"
+                                >
+                                    Depois
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <NewActivityModal
                 isOpen={isNewActivityModalOpen}
@@ -741,6 +743,6 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                 }}
                 preselectedDealId={dealToSuggestActivity || undefined}
             />
-        </div>
+        </div >
     );
 }

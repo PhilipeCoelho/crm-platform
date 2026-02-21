@@ -30,7 +30,7 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
             meeting: { icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
             message: { icon: MessageSquare, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
             instagram: { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-100 dark:bg-pink-900/30' },
-            analysis: { icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+            analysis: { icon: BarChart3, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
             audit: { icon: Video, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' },
             task: { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
             note: { icon: StickyNote, color: 'text-muted-foreground', bg: 'bg-muted dark:bg-muted/10' },
@@ -90,7 +90,7 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
                                                     onEdit(item.id, newTitle);
                                                 }
                                             }}
-                                            className="h-5 px-1.5 text-[8px] font-bold uppercase text-muted-foreground/40 hover:text-indigo-500 transition-all"
+                                            className="h-5 px-1.5 text-[8px] font-bold uppercase text-muted-foreground/40 hover:text-primary transition-all"
                                         >
                                             Editar
                                         </button>

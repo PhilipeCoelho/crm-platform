@@ -64,9 +64,9 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             <div className="flex flex-col items-center justify-center h-full">
                 <p className="text-muted-foreground mb-4 font-medium dark:text-slate-400">Negócio não encontrado.</p>
                 {isModal ? (
-                    <button onClick={onClose} className="text-indigo-500 hover:text-indigo-400 font-bold transition-colors">Fechar</button>
+                    <button onClick={onClose} className="text-primary hover:text-primary font-bold transition-colors">Fechar</button>
                 ) : (
-                    <button onClick={() => navigate('/')} className="text-indigo-500 hover:text-indigo-400 font-bold transition-colors">Voltar</button>
+                    <button onClick={() => navigate('/')} className="text-primary hover:text-primary font-bold transition-colors">Voltar</button>
                 )}
             </div>
         );
@@ -79,9 +79,9 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             <div className="flex flex-col items-center justify-center h-full">
                 <p className="text-muted-foreground dark:text-muted-foreground/60">Erro: Pipeline não encontrado.</p>
                 {isModal ? (
-                    <button onClick={onClose} className="text-indigo-500 hover:underline mt-2 font-bold">Fechar</button>
+                    <button onClick={onClose} className="text-primary hover:underline mt-2 font-bold">Fechar</button>
                 ) : (
-                    <button onClick={() => navigate('/')} className="text-indigo-500 hover:underline mt-2 font-bold">Voltar</button>
+                    <button onClick={() => navigate('/')} className="text-primary hover:underline mt-2 font-bold">Voltar</button>
                 )}
             </div>
         );
@@ -193,7 +193,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             <header className="shrink-0 bg-background border-b border-border dark:border-border px-5 py-4 z-40 relative">
                 <button
                     onClick={() => isModal ? onClose?.() : navigate(-1)}
-                    className="absolute top-4 left-5 p-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-full transition-colors shrink-0 text-muted-foreground z-50 focus:ring-2 focus:ring-indigo-500/20"
+                    className="absolute top-4 left-5 p-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-full transition-colors shrink-0 text-muted-foreground z-50 focus:ring-2 focus:ring-primary/20"
                     title="Fechar"
                 >
                     {isModal ? <X size={18} /> : <ArrowLeft size={18} />}
@@ -214,7 +214,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
                                     data-editable="true"
-                                    className="text-base sm:text-lg font-bold text-indigo-500 dark:text-indigo-400 bg-transparent border-b-2 border-indigo-500/50 outline-none w-full max-w-[450px] transition-all"
+                                    className="text-base sm:text-lg font-bold text-primary dark:text-primary bg-transparent border-b-2 border-primary/50 outline-none w-full max-w-[450px] transition-all"
                                     autoFocus
                                     style={{ fontSize: '15px' }}
                                 />
@@ -222,15 +222,15 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                 <h1
                                     onClick={() => startEditing('title')}
                                     data-editable="true"
-                                    className="text-base sm:text-lg font-semibold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-indigo-500 cursor-text transition-colors relative group"
+                                    className="text-base sm:text-lg font-semibold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-primary cursor-text transition-colors relative group"
                                 >
                                     {deal.title}
-                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-500 group-hover:w-full transition-all duration-300"></span>
+                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
                                 </h1>
                             )}
                             <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase border shadow-sm ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
                                 deal.status === 'lost' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
-                                    'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800'
+                                    'bg-primary/10 text-primary border-primary dark:bg-primary/30 dark:text-primary dark:border-primary'
                                 }`}>
                                 {deal.status === 'open' ? 'Aberto' : deal.status === 'won' ? 'Ganho' : 'Perdido'}
                             </span>
@@ -238,8 +238,8 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
 
                         <div className="flex items-center gap-2">
                             {editingField === 'value' ? (
-                                <div className="flex items-center gap-1 border-b-2 border-indigo-500/50">
-                                    <span className="text-sm font-bold text-indigo-500">{currency.symbol}</span>
+                                <div className="flex items-center gap-1 border-b-2 border-primary/50">
+                                    <span className="text-sm font-bold text-primary">{currency.symbol}</span>
                                     <input
                                         ref={inputRef as any}
                                         type="number"
@@ -251,7 +251,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         onBlur={handleBlur}
                                         onKeyDown={handleKeyDown}
                                         data-editable="true"
-                                        className="text-sm sm:text-base font-semibold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-24"
+                                        className="text-sm sm:text-base font-semibold text-primary dark:text-primary bg-transparent outline-none w-24"
                                         style={{ fontSize: '16px' }}
                                     />
                                 </div>
@@ -261,7 +261,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     onClick={() => startEditing('value')}
                                     data-editable="true"
                                 >
-                                    <span className="text-xs font-semibold text-primary dark:text-indigo-400 group-hover:underline decoration-indigo-500/30">
+                                    <span className="text-xs font-semibold text-primary dark:text-primary group-hover:underline decoration-primary/30">
                                         {deal.value.toLocaleString(currency.locale, { style: 'currency', currency: currency.code })}
                                     </span>
                                     <Pencil size={10} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -270,7 +270,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         </div>
                         {/* Data de Adição Display */}
                         <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60 dark:text-muted-foreground/40 uppercase tracking-wider bg-muted/30 dark:bg-muted/5 px-2.5 py-1 rounded-lg border border-border/50 dark:border-border/20 mt-0.5">
-                            <CalendarDays size={12} className="text-indigo-500" />
+                            <CalendarDays size={12} className="text-primary" />
                             <span>Adicionado em {deal.expectedCloseDate ? new Date(deal.expectedCloseDate + 'T12:00:00').toLocaleDateString('pt-PT') : deal.createdAt ? new Date(deal.createdAt).toLocaleDateString('pt-PT') : 'N/A'}</span>
                         </div>
                     </div>
@@ -345,13 +345,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         let colorClass = "bg-transparent";
                         if (isWon) colorClass = "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]";
                         else if (isLost) colorClass = "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.3)]";
-                        else if (isActive) colorClass = "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]";
-                        else if (isPast) colorClass = "bg-indigo-500/30";
+                        else if (isActive) colorClass = "bg-primary shadow-[0_0_8px_rgba(99,102,241,0.4)]";
+                        else if (isPast) colorClass = "bg-primary/30";
 
                         return (
                             <div
                                 key={stage.id}
-                                className={`h-full flex-1 transition-all duration-300 ${colorClass} cursor-pointer hover:bg-indigo-500/50`}
+                                className={`h-full flex-1 transition-all duration-300 ${colorClass} cursor-pointer hover:bg-primary/50`}
                                 title={stage.title}
                                 onClick={() => handleStageChange(stage.id)}
                             />
@@ -361,7 +361,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                 <div className="flex justify-between mt-2.5 px-1">
                     <div className="flex items-center gap-2 group relative">
                         {editingField === 'stage' ? (
-                            <div className="flex items-center border-b border-indigo-500/50">
+                            <div className="flex items-center border-b border-primary/50">
                                 <select
                                     ref={inputRef as any}
                                     value={deal.stageId}
@@ -370,7 +370,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         setEditingField(null);
                                     }}
                                     onBlur={() => setEditingField(null)}
-                                    className="text-[10px] sm:text-xs font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-[0.15em] bg-transparent outline-none cursor-pointer pr-4"
+                                    className="text-[10px] sm:text-xs font-semibold text-primary dark:text-primary uppercase tracking-[0.15em] bg-transparent outline-none cursor-pointer pr-4"
                                     autoFocus
                                     style={{ fontSize: '16px' }}
                                 >
@@ -382,7 +382,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         ) : (
                             <div className="flex items-center gap-2 group cursor-text" onClick={() => startEditing('stage')} data-editable="true">
                                 <span className="text-[10px] font-semibold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-[0.15em]">
-                                    Etapa: <span className="text-indigo-500 dark:text-indigo-400 font-semibold group-hover:underline">{pipeline.stages[currentStageIndex]?.title}</span>
+                                    Etapa: <span className="text-primary dark:text-primary font-semibold group-hover:underline">{pipeline.stages[currentStageIndex]?.title}</span>
                                 </span>
                                 <Pencil size={10} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
@@ -415,13 +415,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                                    <User size={11} className="text-indigo-500" />
+                                    <User size={11} className="text-primary" />
                                     Pessoa de Contato
                                 </h3>
                                 {contact && (
                                     <button
                                         onClick={() => openNewDealModal(undefined, deal)}
-                                        className="p-1 hover:bg-indigo-500/10 rounded-md text-muted-foreground/60 hover:text-indigo-500 transition-all font-semibold"
+                                        className="p-1 hover:bg-primary/10 rounded-md text-muted-foreground/60 hover:text-primary transition-all font-semibold"
                                         title="Alterar Contato"
                                     >
                                         <Pencil size={12} />
@@ -431,14 +431,14 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                             {contact ? (
                                 <div className="space-y-3 bg-white dark:bg-card p-3 rounded-xl border border-border dark:border-border/80 shadow-sm dark:shadow-black/20 group/card transition-all hover:bg-muted/10 dark:hover:bg-card/80">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-indigo-500/10 dark:bg-muted text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-semibold text-sm border border-indigo-500/20 dark:border-border shadow-inner">
+                                        <div className="w-9 h-9 rounded-full bg-primary/10 dark:bg-muted text-primary dark:text-primary flex items-center justify-center font-semibold text-sm border border-primary/20 dark:border-border shadow-inner">
                                             {contact.name.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
                                             <Link
                                                 to={`/contacts/${contact.id}`}
                                                 data-link="true"
-                                                className="text-sm font-semibold text-foreground dark:text-foreground/90 hover:text-indigo-500 transition-colors block truncate pr-1"
+                                                className="text-sm font-semibold text-foreground dark:text-foreground/90 hover:text-primary transition-colors block truncate pr-1"
                                             >
                                                 {contact.name}
                                             </Link>
@@ -454,12 +454,12 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                     onBlur={handleBlur}
                                                     onKeyDown={handleKeyDown}
                                                     data-editable="true"
-                                                    className="text-[11px] text-indigo-500 dark:text-indigo-400 bg-transparent border-b border-indigo-500/50 outline-none w-full mt-1"
+                                                    className="text-[11px] text-primary dark:text-primary bg-transparent border-b border-primary/50 outline-none w-full mt-1"
                                                     style={{ fontSize: '13px' }}
                                                 />
                                             ) : (
                                                 <p
-                                                    className="text-[11px] text-muted-foreground dark:text-muted-foreground/60 truncate hover:text-indigo-400 cursor-text group/email flex items-center gap-1.5 mt-0.5"
+                                                    className="text-[11px] text-muted-foreground dark:text-muted-foreground/60 truncate hover:text-primary cursor-text group/email flex items-center gap-1.5 mt-0.5"
                                                     onClick={() => startEditing('email')}
                                                     data-editable="true"
                                                 >
@@ -472,8 +472,8 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
 
                                     <div className="pt-4 border-t border-border/50 dark:border-border/10">
                                         {editingField === 'phone' ? (
-                                            <div className="flex items-center gap-3 border-b border-indigo-500/50">
-                                                <Phone size={14} className="text-indigo-500" />
+                                            <div className="flex items-center gap-3 border-b border-primary/50">
+                                                <Phone size={14} className="text-primary" />
                                                 <input
                                                     ref={inputRef as any}
                                                     value={tempPhone}
@@ -485,7 +485,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                     onKeyDown={handleKeyDown}
                                                     data-editable="true"
                                                     placeholder="Telefone"
-                                                    className="text-sm sm:text-xs font-semibold text-indigo-500 dark:text-indigo-400 bg-transparent outline-none w-full py-1"
+                                                    className="text-sm sm:text-xs font-semibold text-primary dark:text-primary bg-transparent outline-none w-full py-1"
                                                     style={{ fontSize: '16px' }}
                                                 />
                                             </div>
@@ -493,7 +493,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                             <div className="flex items-center justify-between group/phone gap-2">
                                                 <div className="flex items-center gap-2 min-w-0">
                                                     <div
-                                                        className="flex items-center gap-2 text-[11px] text-muted-foreground dark:text-muted-foreground/60 hover:text-indigo-400 cursor-text py-0.5 whitespace-nowrap"
+                                                        className="flex items-center gap-2 text-[11px] text-muted-foreground dark:text-muted-foreground/60 hover:text-primary cursor-text py-0.5 whitespace-nowrap"
                                                         onClick={() => startEditing('phone')}
                                                         data-editable="true"
                                                     >
@@ -505,7 +505,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                         <div className="flex items-center gap-2">
                                                             <a
                                                                 href={`tel:${contact.phone.replace(/\D/g, '')}`}
-                                                                className="p-1 px-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-md text-[10px] font-bold hover:bg-indigo-500/20 transition-all flex items-center gap-1"
+                                                                className="p-1 px-2 bg-primary/10 text-primary dark:text-primary rounded-md text-[10px] font-bold hover:bg-primary/20 transition-all flex items-center gap-1"
                                                                 title="Ligar"
                                                             >
                                                                 <Phone size={10} />
@@ -543,7 +543,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-slate-800 rounded-xl text-[10px] text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98] uppercase tracking-wider">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-slate-800 rounded-xl text-[10px] text-primary font-bold hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-[0.98] uppercase tracking-wider">
                                     + Vincular Contato
                                 </button>
                             )}
@@ -552,7 +552,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         {/* BLOCO: Links de Marketing (Instagram & Ads) */}
                         <div className="space-y-4">
                             <h3 className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                                <Search size={11} className="text-indigo-500" />
+                                <Search size={11} className="text-primary" />
                                 Pesquisa de Marketing
                             </h3>
                             <div className="bg-white dark:bg-card p-2.5 rounded-xl border border-border dark:border-border/80 shadow-sm space-y-2">
@@ -569,14 +569,14 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                     href={deal.instagramUrl.startsWith('http') ? deal.instagramUrl : `https://instagram.com/${deal.instagramUrl.replace('@', '')}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-xs font-semibold text-indigo-500 hover:underline block truncate max-w-[180px]"
+                                                    className="text-xs font-semibold text-primary hover:underline block truncate max-w-[180px]"
                                                 >
                                                     {deal.instagramUrl.replace('https://www.instagram.com/', '').replace('https://instagram.com/', '').replace('/', '')}
                                                 </a>
                                             ) : (
                                                 <button
                                                     onClick={() => openNewDealModal(undefined, deal)}
-                                                    className="text-sm text-muted-foreground/60 italic hover:text-indigo-500"
+                                                    className="text-sm text-muted-foreground/60 italic hover:text-primary"
                                                 >
                                                     Adicionar Perfil
                                                 </button>
@@ -599,7 +599,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                     href={deal.adLibraryUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-xs font-semibold text-indigo-500 hover:underline block truncate max-w-[180px]"
+                                                    className="text-xs font-semibold text-primary hover:underline block truncate max-w-[180px]"
                                                 >
                                                     Ver Biblioteca
                                                 </a>
@@ -629,13 +629,13 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                                    <Building size={11} className="text-indigo-500" />
+                                    <Building size={11} className="text-primary" />
                                     Organização
                                 </h3>
                                 {company && (
                                     <button
                                         onClick={() => openNewDealModal(undefined, deal)}
-                                        className="p-1.5 sm:p-1 hover:bg-indigo-500/10 rounded-md text-muted-foreground/60 hover:text-indigo-500 transition-all font-semibold"
+                                        className="p-1.5 sm:p-1 hover:bg-primary/10 rounded-md text-muted-foreground/60 hover:text-primary transition-all font-semibold"
                                     >
                                         <Pencil size={14} className="sm:w-3 sm:h-3" />
                                     </button>
@@ -651,7 +651,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                             <Link
                                                 to={`/companies/${company.id}`}
                                                 data-link="true"
-                                                className="text-sm font-semibold text-foreground dark:text-foreground/90 hover:text-indigo-500 transition-colors block truncate"
+                                                className="text-sm font-semibold text-foreground dark:text-foreground/90 hover:text-primary transition-colors block truncate"
                                             >
                                                 {company.name}
                                             </Link>
@@ -660,7 +660,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-slate-800 rounded-xl text-[10px] text-indigo-500 font-bold hover:bg-indigo-500/5 hover:border-indigo-500/30 transition-all active:scale-[0.98] uppercase tracking-wider">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-slate-800 rounded-xl text-[10px] text-primary font-bold hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-[0.98] uppercase tracking-wider">
                                     + Vincular Empresa
                                 </button>
                             )}

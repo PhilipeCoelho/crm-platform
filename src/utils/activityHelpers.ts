@@ -33,8 +33,8 @@ export const ACTIVITY_CONFIG = {
     meeting: {
         label: 'Reunião',
         icon: 'Users',
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-100'
+        color: 'text-primary',
+        bgColor: 'bg-primary/10'
     },
     task: {
         label: 'Tarefa',
@@ -51,14 +51,14 @@ export const ACTIVITY_CONFIG = {
     message: {
         label: 'Mensagem',
         icon: 'MessageSquare',
-        color: 'text-indigo-600',
-        bgColor: 'bg-indigo-100'
+        color: 'text-primary',
+        bgColor: 'bg-primary'
     },
     analysis: {
         label: 'Análise',
         icon: 'BarChart3',
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-100'
+        color: 'text-primary',
+        bgColor: 'bg-primary/10'
     },
     audit: {
         label: 'Auditoria',

@@ -66,23 +66,22 @@ export function PrivacyText({ text, type = 'text', className }: { text: string; 
     let masked = "";
     switch (type) {
         case 'email':
-            const [user, domain] = text.split('@');
-            masked = `${user?.[0] || 'u'}***@${domain || '***.com'}`;
+            masked = "••••••";
             break;
         case 'phone':
-            masked = text.replace(/[\d]/g, '*').slice(0, 12) || "**** *** ***";
+            masked = "••••••";
             break;
         case 'company':
-            masked = "Empresa Confidencial";
+            masked = "••••••";
             break;
         case 'name':
         default:
-            masked = "Contato Oculto";
+            masked = "••••••";
             break;
     }
 
     return (
-        <span className={cn("text-muted-foreground/60 italic select-none", className)} title="Dado oculto">
+        <span className={cn("text-muted-foreground/60 select-none", className)} title="Dado oculto">
             {masked}
         </span>
     );

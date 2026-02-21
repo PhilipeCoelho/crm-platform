@@ -380,7 +380,7 @@ export default function PeopleView() {
                                                             <div className="flex items-center gap-2">
                                                                 <a
                                                                     href={`tel:${contact.phone?.replace(/\D/g, '')}`}
-                                                                    className="hover:text-indigo-500 transition-colors"
+                                                                    className="hover:text-primary transition-colors"
                                                                     onClick={e => e.stopPropagation()}
                                                                 >
                                                                     <PrivacyText text={contact.phone || '-'} type="phone" />

@@ -11,7 +11,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen flex w-full bg-background relative overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse delay-1000" />
 
         <div className="w-full flex">
             {/* Left Side: Form */}
@@ -23,12 +23,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
 
             {/* Right Side: Hero Visual */}
             <div className="hidden lg:flex w-1/2 relative bg-muted/20 backdrop-blur-3xl border-l border-white/10 items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5" />
+                <div className="absolute inset-0 bg-primary/5" />
                 <div className="relative z-10 max-w-lg text-center p-12">
-                    <div className="w-20 h-20 bg-gradient-to-tr from-primary to-purple-500 rounded-2xl mx-auto mb-8 shadow-2xl flex items-center justify-center text-white rotate-12 transform hover:rotate-0 transition-all duration-500">
+                    <div className="w-20 h-20 bg-primary rounded-2xl mx-auto mb-8 flex items-center justify-center text-white rotate-12 transform hover:rotate-0 transition-all duration-500">
                         <Sparkles size={40} className="text-white" />
                     </div>
-                    <h2 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+                    <h2 className="text-4xl font-bold mb-4 text-primary">
                         Gestão Inteligente de Leads
                     </h2>
                     <p className="text-lg text-muted-foreground leading-relaxed">

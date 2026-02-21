@@ -29,6 +29,10 @@ export default {
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
+                success: "hsl(var(--success))",
+                warning: "hsl(var(--warning))",
+                info: "hsl(var(--info))",
+                disabled: "hsl(var(--text-disabled))",
                 main: "hsl(var(--bg-main))",
                 surface: "hsl(var(--surface))",
             }

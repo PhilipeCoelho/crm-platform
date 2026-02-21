@@ -21,7 +21,7 @@ export default function LostReasonModal({ isOpen, onClose, onConfirm }: LostReas
                     </div>
 
                     <textarea
-                        className="w-full h-40 sm:h-32 p-4 text-base sm:text-sm bg-muted/30 border border-border rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all resize-none"
+                        className="w-full h-40 sm:h-32 p-4 text-base sm:text-sm bg-muted/30 border border-border rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none"
                         placeholder="Ex: Preço muito alto, falta de features..."
                         value={reason}
                         style={{ fontSize: '16px' }}

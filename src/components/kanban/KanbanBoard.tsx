@@ -502,7 +502,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         {/* New Deal */}
                         <button
                             onClick={() => openNewDealModal(columns[0]?.id)}
-                            className="ml-2 bg-[#00875A] hover:bg-[#00704a] text-white px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 shadow-sm transition-all"
+                            className="ml-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 shadow-sm transition-all"
                         >
                             <Plus size={16} />
                             <span>Novo Negócio</span>

@@ -180,7 +180,7 @@ export default function EmailInbox() {
                         </div>
                         <div className="space-y-2">
                             <div className="font-bold text-foreground flex items-center gap-2">
-                                <CheckSquare className="w-4 h-4 text-purple-500" />
+                                <CheckSquare className="w-4 h-4 text-primary" />
                                 Histórico Completo
                             </div>
                             <p className="text-muted-foreground">Veja toda a jornada do cliente em uma única timeline.</p>

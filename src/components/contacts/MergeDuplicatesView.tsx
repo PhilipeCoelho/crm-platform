@@ -399,8 +399,8 @@ export default function MergeDuplicatesView() {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Building2 size={16} className="text-purple-500" />
-                                                            <span className="text-xs font-medium text-purple-600 dark:text-purple-400">Organização</span>
+                                                            <Building2 size={16} className="text-primary" />
+                                                            <span className="text-xs font-medium text-primary dark:text-primary">Organização</span>
                                                         </>
                                                     )}
                                                 </div>

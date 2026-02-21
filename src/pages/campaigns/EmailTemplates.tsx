@@ -27,7 +27,7 @@ export default function EmailTemplates() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handleCreateTemplate}
-                        className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#1eb054] text-white px-4 py-2 rounded font-bold text-sm transition-all shadow-lg shadow-emerald-500/10 active:scale-95"
+                        className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded font-bold text-sm transition-all shadow-lg active:scale-95"
                     >
                         <Plus size={18} />
                         Modelo
@@ -73,7 +73,7 @@ export default function EmailTemplates() {
                                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-amber-500">
                                         <Star size={20} />
                                     </div>
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-purple-500">
+                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-primary">
                                         <List size={20} />
                                     </div>
                                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-slate-500">
@@ -92,7 +92,7 @@ export default function EmailTemplates() {
                             <div className="flex justify-center pt-4">
                                 <button
                                     onClick={handleCreateTemplate}
-                                    className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#1eb054] text-white px-10 py-4 rounded-xl font-bold transition-all shadow-xl shadow-emerald-500/20 active:scale-95 text-lg"
+                                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-4 rounded-xl font-bold transition-all shadow-xl shadow-primary/20 active:scale-95 text-lg"
                                 >
                                     <Plus size={24} />
                                     Criar modelo
