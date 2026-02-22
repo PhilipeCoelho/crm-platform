@@ -12,6 +12,7 @@ interface Props {
 export default function CompleteActivityModal({ isOpen, onClose, activity }: Props) {
     const { completeActivityWithLog } = useCRM();
     const [notes, setNotes] = useState('');
+    const [houveResposta, setHouveResposta] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen || !activity) return null;
@@ -20,7 +21,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity }: Pro
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            await completeActivityWithLog(activity.id, notes);
+            await completeActivityWithLog(activity.id, notes, houveResposta);
             setNotes('');
             onClose();
         } catch (error) {
@@ -66,6 +67,20 @@ export default function CompleteActivityModal({ isOpen, onClose, activity }: Pro
                             autoFocus
                         />
                         <p className="text-[10px] text-muted-foreground mt-2 italic">* Opcional: Deixe em branco para um registro automático.</p>
+                    </div>
+
+                    {/* Houve Resposta? */}
+                    <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                        <input
+                            type="checkbox"
+                            id="houve_resposta"
+                            checked={houveResposta}
+                            onChange={(e) => setHouveResposta(e.target.checked)}
+                            className="w-5 h-5 rounded border-primary/20 text-primary focus:ring-primary cursor-pointer"
+                        />
+                        <label htmlFor="houve_resposta" className="text-sm font-medium text-foreground cursor-pointer select-none">
+                            O contato respondeu durante esta atividade?
+                        </label>
                     </div>
 
                     {/* Actions */}

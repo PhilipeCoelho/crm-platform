@@ -1,0 +1,62 @@
+import { useInsights } from '@/contexts/InsightsContext';
+import VariationBadge from './VariationBadge';
+
+export default function ExecutiveSummary() {
+    const { data, loading } = useInsights();
+
+    if (loading || !data) {
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="h-24 bg-[#E5E7EB] dark:bg-[#1F2937] animate-pulse rounded-lg bg-opacity-30"></div>
+                ))}
+            </div>
+        );
+    }
+
+    const { current, variation } = data;
+
+    return (
+        <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPICard
+                    title="Total de Negócios"
+                    value={current.totalDeals === 0 ? '—' : current.totalDeals}
+                    variation={variation.totalDeals}
+                    subtitle="Negócios criados no período"
+                />
+                <KPICard
+                    title="Ganhos (Won)"
+                    value={current.totalWon === 0 ? '—' : current.totalWon}
+                    variation={variation.totalWon}
+                    subtitle="Fechados com sucesso"
+                />
+                <KPICard
+                    title="Perdidos (Lost)"
+                    value={current.totalLost === 0 ? '—' : current.totalLost}
+                    variation={variation.totalLost}
+                    subtitle="Finalizados sem venda"
+                />
+                <KPICard
+                    title="Taxa de Fechamento"
+                    value={current.funnel.taxaFechamento === 0 ? '—' : current.funnel.taxaFechamento.toFixed(1) + '%'}
+                    variation={variation.taxaFechamento}
+                    subtitle="Conversão global de vendas"
+                />
+            </div>
+        </div>
+    );
+}
+
+function KPICard({ title, value, variation, subtitle }: any) {
+    return (
+        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] shadow-sm">
+            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#9CA3AF] tracking-widest">{title}</span>
+            <div className="flex items-baseline gap-3 my-1">
+                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#F9FAFB]">{value}</span>
+                <VariationBadge value={variation} />
+            </div>
+            <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF] font-medium">{subtitle}</span>
+        </div>
+    );
+}

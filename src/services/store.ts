@@ -40,7 +40,7 @@ export interface CRMStore {
     addActivity: (activity: Omit<Activity, 'id' | 'createdAt' | 'userId'>) => Promise<void>;
     updateActivity: (id: string, updates: Partial<Activity>) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
-    completeActivityWithLog: (activityId: string, content?: string) => Promise<void>;
+    completeActivityWithLog: (activityId: string, content?: string, houveResposta?: boolean) => Promise<void>;
 
     addLog: (log: Omit<DealLog, 'id' | 'createdAt' | 'createdBy'>) => Promise<void>;
     deleteLog: (id: string) => Promise<void>;
@@ -250,6 +250,7 @@ export function useCRMStore(): CRMStore {
                     completed: a.completed,
                     status: a.status || (a.completed ? 'completed' : 'pending'),
                     completedAt: a.completed_at,
+                    houveResposta: a.houve_resposta,
                     originStage: a.origin_stage,
                     sequenceId: a.sequence_id
                 })));
@@ -747,6 +748,7 @@ export function useCRMStore(): CRMStore {
             notes: data.notes,
             completed: data.completed !== undefined ? data.completed : false,
             status: data.status || (data.completed ? 'completed' : 'pending'),
+            houve_resposta: data.houveResposta !== undefined ? data.houveResposta : false,
             origin_stage: data.originStage,
             sequence_id: data.sequenceId
         };
@@ -789,6 +791,7 @@ export function useCRMStore(): CRMStore {
         if (synchronizedUpdates.completed !== undefined) dbUpdates.completed = synchronizedUpdates.completed;
         if (synchronizedUpdates.status !== undefined) dbUpdates.status = synchronizedUpdates.status;
         if (synchronizedUpdates.completedAt !== undefined) dbUpdates.completed_at = synchronizedUpdates.completedAt;
+        if (synchronizedUpdates.houveResposta !== undefined) dbUpdates.houve_resposta = synchronizedUpdates.houveResposta;
 
         if (synchronizedUpdates.dueDate !== undefined) {
             let normalizedDate = synchronizedUpdates.dueDate;
@@ -858,7 +861,7 @@ export function useCRMStore(): CRMStore {
         }
     };
 
-    const completeActivityWithLog = async (activityId: string, content?: string) => {
+    const completeActivityWithLog = async (activityId: string, content?: string, houveResposta?: boolean) => {
         const activity = activities.find(a => a.id === activityId);
         if (!activity) return;
 
@@ -868,7 +871,8 @@ export function useCRMStore(): CRMStore {
         await updateActivity(activityId, {
             completed: true,
             status: 'completed',
-            completedAt: now
+            completedAt: now,
+            houveResposta: houveResposta
         });
 
         // 2. Add Log

@@ -98,6 +98,34 @@ export interface Activity {
     createdAt: string;
     updatedAt?: string;
     completedAt?: string;
+    houveResposta?: boolean;
+}
+
+export interface DealAnalytics {
+    dealId: string;
+    createdAt: string;
+    closedAt?: string;
+    statusFinal: 'open' | 'won' | 'lost';
+    stageAtual: string;
+    etapaOndePerdeu?: string;
+    diasTotaisNoFunil: number;
+    diasAteReuniao?: number;
+    diasAteFechamento?: number;
+    totalAtividades: number;
+    totalMensagens: number;
+    totalEmails: number;
+    totalLigacoes: number;
+    totalAnalises: number;
+    totalAuditorias: number;
+    totalContatosRealizados: number;
+    contatosAteReuniao?: number;
+    contatosAteFechamento?: number;
+    totalRespostas: number;
+    respondeuPrimeiroContato: boolean;
+    ultimoContatoEm?: string;
+    tempoMedioEntreContatos?: number;
+    canalMaisUsado?: string;
+    updatedAt: string;
 }
 
 export interface StageSequence {
