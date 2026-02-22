@@ -1,8 +1,14 @@
 import { useInsights } from '@/contexts/InsightsContext';
 import VariationBadge from './VariationBadge';
 import { Link2, AlertCircle } from 'lucide-react';
+import QuickGuide from '../ui/QuickGuide';
 
-export default function LostModule() {
+interface Props {
+    activeGuide: string | null;
+    setActiveGuide: (name: string | null) => void;
+}
+
+export default function LostModule({ activeGuide, setActiveGuide }: Props) {
     const { data, loading } = useInsights();
 
     if (loading || !data) {
@@ -21,6 +27,15 @@ export default function LostModule() {
 
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
+            <div className="flex items-center">
+                <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Análise de Perdas</h2>
+                <QuickGuide
+                    moduleName="insights_perdas"
+                    activeGuide={activeGuide}
+                    setActiveGuide={setActiveGuide}
+                />
+            </div>
+
             {/* Top KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard

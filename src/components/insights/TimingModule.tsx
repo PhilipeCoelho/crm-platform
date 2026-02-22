@@ -1,7 +1,14 @@
 import { useInsights } from '@/contexts/InsightsContext';
 import { Clock, CalendarDays, Timer, FastForward } from 'lucide-react';
 import VariationBadge from './VariationBadge';
-export default function TimingModule() {
+import QuickGuide from '../ui/QuickGuide';
+
+interface Props {
+    activeGuide: string | null;
+    setActiveGuide: (name: string | null) => void;
+}
+
+export default function TimingModule({ activeGuide, setActiveGuide }: Props) {
     const { data, loading } = useInsights();
 
     if (loading || !data) {
@@ -15,7 +22,7 @@ export default function TimingModule() {
     const { timing } = data.current;
     const { variation } = data;
 
-    const totalEncerrados = timing.ciclo_0_7 + timing.ciclo_8_15 + timing.ciclo_16_30 + timing.ciclo_30_plus;
+    const totalEncerrados = (timing.ciclo_0_7 || 0) + (timing.ciclo_8_15 || 0) + (timing.ciclo_16_30 || 0) + (timing.ciclo_30_plus || 0);
     const getPercent = (count: number) => {
         if (totalEncerrados === 0) return 0;
         return (count / totalEncerrados) * 100;
@@ -23,6 +30,15 @@ export default function TimingModule() {
 
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
+            <div className="flex items-center">
+                <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Velocidade e Ciclo</h2>
+                <QuickGuide
+                    moduleName="insights_tempo"
+                    activeGuide={activeGuide}
+                    setActiveGuide={setActiveGuide}
+                />
+            </div>
+
             {/* 1. KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard

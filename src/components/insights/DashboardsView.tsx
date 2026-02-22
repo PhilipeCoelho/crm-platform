@@ -17,6 +17,12 @@ export default function DashboardsView() {
     const [activeTab, setActiveTab] = useState<TabId>('resumo');
     const [reports, setReports] = useState<ReportCardConfig[]>([]);
     const [showBuilder, setShowBuilder] = useState(false);
+    const [activeGuide, setActiveGuide] = useState<string | null>(null);
+
+    // Reset guide when changing tab
+    useEffect(() => {
+        setActiveGuide(null);
+    }, [activeTab]);
 
     // Load reports from localStorage on mount
     useEffect(() => {
@@ -104,34 +110,34 @@ export default function DashboardsView() {
                 <div className="max-w-[1200px] mx-auto pb-24 px-6 flex flex-col gap-12">
 
                     {activeTab === 'resumo' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
-                            <ExecutiveSummary />
-                            <FunnelModule />
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both relative">
+                            <ExecutiveSummary activeGuide={activeGuide} setActiveGuide={setActiveGuide} />
+                            <FunnelModule activeGuide={activeGuide} setActiveGuide={setActiveGuide} />
                         </div>
                     )}
 
                     {activeTab === 'execucao' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
-                            <ActivityModule />
-                            <IntensityModule />
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both relative">
+                            <ActivityModule activeGuide={activeGuide} setActiveGuide={setActiveGuide} />
+                            <IntensityModule activeGuide={activeGuide} setActiveGuide={setActiveGuide} />
                         </div>
                     )}
 
                     {activeTab === 'velocidade' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
-                            <TimingModule />
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both relative">
+                            <TimingModule activeGuide={activeGuide} setActiveGuide={setActiveGuide} />
                         </div>
                     )}
 
                     {activeTab === 'canais' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
-                            <ChannelModule />
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both relative">
+                            <ChannelModule activeGuide={activeGuide} setActiveGuide={setActiveGuide} />
                         </div>
                     )}
 
                     {activeTab === 'perdas' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
-                            <LostModule />
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both relative">
+                            <LostModule activeGuide={activeGuide} setActiveGuide={setActiveGuide} />
                         </div>
                     )}
 

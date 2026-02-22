@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Download, Trash2, BarChart2 } from 'lucide-react';
 import ReportBuilderCorrected, { ReportConfig } from './ReportBuilderCorrected';
 import ReportViewer from './ReportViewer';
@@ -10,9 +10,24 @@ interface SavedReport extends ReportConfig {
 }
 
 export default function ReportsView() {
-    const [reports, setReports] = useState<SavedReport[]>([]);
+    const [reports, setReports] = useState<SavedReport[]>(() => {
+        const saved = localStorage.getItem('crm_reports');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    });
     const [showBuilder, setShowBuilder] = useState(false);
     const [viewingReport, setViewingReport] = useState<SavedReport | null>(null);
+
+    // Persist reports to LocalStorage
+    useEffect(() => {
+        localStorage.setItem('crm_reports', JSON.stringify(reports));
+    }, [reports]);
 
     const handleSaveReport = (config: ReportConfig) => {
         const newReport: SavedReport = {

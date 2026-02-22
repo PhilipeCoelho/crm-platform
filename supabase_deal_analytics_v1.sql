@@ -295,3 +295,33 @@ SELECT d.id, d.created_at,
 FROM public.deals d
 LEFT JOIN public.stages s ON d.stage_id = s.id
 ON CONFLICT (deal_id) DO NOTHING;
+
+-- ANTIGRAVITY – FASE 4: SISTEMA GLOBAL DE GUIAS RÁPIDOS (ESCALÁVEL)
+
+CREATE TABLE IF NOT EXISTS public.help_content (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    module_name TEXT NOT NULL UNIQUE, -- ex: 'insights_funil', 'insights_perdas'
+    title TEXT NOT NULL,
+    short_explanation TEXT NOT NULL,
+    interpretation_tip TEXT NOT NULL,
+    action_tip TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Inserção de conteúdo inicial para Insights
+INSERT INTO public.help_content (module_name, title, short_explanation, interpretation_tip, action_tip)
+VALUES 
+('insights_resumo', 'Resumo Executivo', 'Visão geral do volume e conversão de negócios criados no período.', 'Compare o total de negócios com os ganhos para entender a eficiência imediata.', 'Foque em aumentar o volume de entrada se a conversão estiver alta.'),
+('insights_funil', 'Análise de Funil', 'O funil mostra como os negócios avançam entre as etapas de venda.', 'Observe onde ocorre a maior queda percentual (%) entre as fases.', 'A etapa com menor conversão indica o principal gargalo operacional.'),
+('insights_execucao', 'Métricas de Execução', 'Produtividade da equipe em termos de atividades e contatos realizados.', 'Compare o total de mensagens vs e-mails para descobrir o canal preferido.', 'Padronize a cadência se houver muita variação entre os tipos de contato.'),
+('insights_intensidade', 'Intensidade de Contatos', 'Mede a persistência e o esforço de contato com cada lead.', 'Negócios encerrados antes de 5 contatos indicam baixa insistência comercial.', 'Aumente o número mínimo de tentativas antes de considerar um lead perdido.'),
+('insights_tempo', 'Velocidade e Ciclo', 'Analisa a velocidade de avanço e o tempo total de fechamento.', 'Um aumento no tempo médio indica que os leads estão esfriando no funil.', 'Reduza o intervalo entre os contatos para manter o lead engajado.'),
+('insights_canais', 'Performance por Canal', 'Compara o desempenho e conversão de cada canal de aquisição.', 'O canal com maior taxa de fechamento deve receber prioridade de investimento.', 'Redistribua o esforço da equipe para o canal que gera mais vendas reais.'),
+('insights_perdas', 'Análise de Perdas', 'Identifica onde e por que os negócios estão sendo perdidos.', 'Se mais de 40% das perdas ocorrem na mesma etapa, há um problema estrutural.', 'Revise a sua abordagem e os critérios de qualificação nesta fase crítica.')
+ON CONFLICT (module_name) DO UPDATE SET
+    title = EXCLUDED.title,
+    short_explanation = EXCLUDED.short_explanation,
+    interpretation_tip = EXCLUDED.interpretation_tip,
+    action_tip = EXCLUDED.action_tip,
+    updated_at = NOW();

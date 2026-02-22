@@ -180,7 +180,10 @@ export function useCRMStore(): CRMStore {
                 { data: activitiesData, error: activitiesError },
                 { data: logsData, error: logsError },
                 { data: companiesData },
-                { data: stagesData }
+                { data: stagesData },
+                { data: campaignsData },
+                { data: templatesData },
+                { data: sendersData }
             ] = await Promise.all([
                 supabase.from('deals').select('*'),
                 supabase.from('contacts').select('*'),
@@ -315,8 +318,8 @@ export function useCRMStore(): CRMStore {
             }
 
             // 7. Set Campaigns
-            if (arguments[6]?.data) {
-                setCampaigns(arguments[6].data.map((c: any) => ({
+            if (campaignsData) {
+                setCampaigns(campaignsData.map((c: any) => ({
                     ...c,
                     fromName: c.from_name,
                     fromEmail: c.from_email,
@@ -334,8 +337,8 @@ export function useCRMStore(): CRMStore {
             }
 
             // 8. Set Templates
-            if (arguments[7]?.data) {
-                setEmailTemplates(arguments[7].data.map((t: any) => ({
+            if (templatesData) {
+                setEmailTemplates(templatesData.map((t: any) => ({
                     ...t,
                     htmlContent: t.html_content,
                     jsonContent: t.json_content,
@@ -345,8 +348,8 @@ export function useCRMStore(): CRMStore {
             }
 
             // 9. Set Senders
-            if (arguments[8]?.data) {
-                setCampaignSenders(arguments[8].data.map((s: any) => ({
+            if (sendersData) {
+                setCampaignSenders(sendersData.map((s: any) => ({
                     ...s,
                     isVerified: s.is_verified,
                     verificationToken: s.verification_token,
@@ -551,6 +554,17 @@ export function useCRMStore(): CRMStore {
                 setDeals(prev => prev.map(d => d.id === id ? originalDeal : d));
             } else {
                 console.log('✅ Update successful for:', id);
+
+                // Extra safety: Sync deal_analytics status if status was changed
+                if (dbUpdates.status) {
+                    supabase.from('deal_analytics').update({
+                        status_final: dbUpdates.status,
+                        closed_at: dbUpdates.status !== 'open' ? new Date().toISOString() : null,
+                        updated_at: new Date().toISOString()
+                    }).eq('deal_id', id).then(({ error: syncErr }) => {
+                        if (syncErr) console.warn('Sync deal_analytics warning:', syncErr);
+                    });
+                }
             }
         }
     };

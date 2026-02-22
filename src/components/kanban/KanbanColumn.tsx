@@ -22,49 +22,56 @@ interface Props {
 export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview, onEditStage, searchTerm }: Props) {
     const { activities } = useCRM();
 
-    // Sort tasks by priority
-    const sortedTasks = useMemo(() => {
+    // Pre-calculate activity data for all tasks in this column (Optimized)
+    const dealActivityData = useMemo(() => {
         const now = new Date();
+        const dataMap = new Map<string, { nextActivity?: { title: string; dueDate?: string }; priority: number; date?: Date }>();
 
-        return [...tasks].sort((a, b) => {
-            // Get next activity for each deal
-            const getNextActivity = (dealId: string) => {
-                const openActivities = activities.filter(act => act.dealId === dealId && !act.completed);
-                return openActivities.sort((x, y) => {
-                    if (!x.dueDate) return 1;
-                    if (!y.dueDate) return -1;
-                    return x.dueDate.localeCompare(y.dueDate);
-                })[0];
-            };
+        tasks.forEach(task => {
+            const dealActivities = activities.filter(act => act.dealId === task.id && !act.completed);
+            let nextActivity;
+            let date;
 
-            const activityA = getNextActivity(a.id);
-            const activityB = getNextActivity(b.id);
-
-            const dateA = activityA?.dueDate ? parseISO(activityA.dueDate) : undefined;
-            const dateB = activityB?.dueDate ? parseISO(activityB.dueDate) : undefined;
-
-            // Priority calculation (lower number = higher priority)
-            const getPriority = (date: Date | undefined) => {
-                if (!date) return 3; // No activity (Amarela)
-                if (isBefore(date, now)) return 1; // Overdue (Vermelha)
-                if (isToday(date)) return 2; // Today (Verde)
-                return 4; // Future (Branca)
-            };
-
-            const priorityA = getPriority(dateA);
-            const priorityB = getPriority(dateB);
-
-            if (priorityA !== priorityB) {
-                return priorityA - priorityB;
+            if (dealActivities.length > 0) {
+                const earliest = dealActivities.reduce((prev, curr) => {
+                    if (!prev.dueDate) return curr;
+                    if (!curr.dueDate) return prev;
+                    return curr.dueDate < prev.dueDate ? curr : prev;
+                });
+                nextActivity = earliest;
+                date = earliest.dueDate ? parseISO(earliest.dueDate) : undefined;
             }
 
-            if (dateA && dateB) {
-                return dateA.getTime() - dateB.getTime();
-            }
+            const getPriority = (d: Date | undefined) => {
+                if (!d) return 3; // No activity (Yellow)
+                if (isBefore(d, now)) return 1; // Overdue (Red)
+                if (isToday(d)) return 2; // Today (Green)
+                return 4; // Future (White)
+            };
 
-            return 0;
+            const priority = getPriority(date);
+            dataMap.set(task.id, { nextActivity, priority, date });
         });
+
+        return dataMap;
     }, [tasks, activities]);
+
+    const sortedTasks = useMemo(() => {
+        return [...tasks].sort((a, b) => {
+            const dataA = dealActivityData.get(a.id);
+            const dataB = dealActivityData.get(b.id);
+
+            if (!dataA || !dataB) return 0;
+
+            if (dataA.priority !== dataB.priority) return dataA.priority - dataB.priority;
+            if (dataA.date && dataB.date) return dataA.date.getTime() - dataB.date.getTime();
+
+            const posA = a.position || 0;
+            const posB = b.position || 0;
+            if (posA !== posB) return posA - posB;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+    }, [tasks, dealActivityData]);
 
     const tasksIds = useMemo(() => {
         return sortedTasks.map((task) => task.id);
@@ -122,7 +129,14 @@ export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview
             <div className="flex-grow flex flex-col gap-3 px-2 overflow-x-hidden overflow-y-auto scrollbar-thin scrollbar-thumb-border">
                 <SortableContext items={tasksIds}>
                     {sortedTasks.map((task) => (
-                        <KanbanCard key={task.id} deal={task} currency={currency} onPreview={onPreview} searchTerm={searchTerm} />
+                        <KanbanCard
+                            key={task.id}
+                            deal={task}
+                            currency={currency}
+                            onPreview={onPreview}
+                            searchTerm={searchTerm}
+                            nextActivityData={dealActivityData.get(task.id)?.nextActivity}
+                        />
                     ))}
                 </SortableContext>
 

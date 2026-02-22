@@ -1,8 +1,14 @@
 import { useInsights } from '@/contexts/InsightsContext';
 import VariationBadge from './VariationBadge';
 import { Flame, BatteryWarning, BatteryCharging, BatteryFull } from 'lucide-react';
+import QuickGuide from '../ui/QuickGuide';
 
-export default function IntensityModule() {
+interface Props {
+    activeGuide: string | null;
+    setActiveGuide: (name: string | null) => void;
+}
+
+export default function IntensityModule({ activeGuide, setActiveGuide }: Props) {
     const { data, loading } = useInsights();
 
     if (loading || !data) {
@@ -24,6 +30,15 @@ export default function IntensityModule() {
 
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
+            <div className="flex items-center">
+                <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Intensidade de Contatos</h2>
+                <QuickGuide
+                    moduleName="insights_intensidade"
+                    activeGuide={activeGuide}
+                    setActiveGuide={setActiveGuide}
+                />
+            </div>
+
             {/* 1. KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <KPICard

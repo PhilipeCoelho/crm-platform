@@ -1,7 +1,13 @@
 import { useInsights } from '@/contexts/InsightsContext';
 import VariationBadge from './VariationBadge';
+import QuickGuide from '../ui/QuickGuide';
 
-export default function ExecutiveSummary() {
+interface Props {
+    activeGuide: string | null;
+    setActiveGuide: (name: string | null) => void;
+}
+
+export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props) {
     const { data, loading } = useInsights();
 
     if (loading || !data) {
@@ -17,7 +23,18 @@ export default function ExecutiveSummary() {
     const { current, variation } = data;
 
     return (
-        <div>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                    <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Status do Período</h2>
+                    <QuickGuide
+                        moduleName="insights_resumo"
+                        activeGuide={activeGuide}
+                        setActiveGuide={setActiveGuide}
+                    />
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard
                     title="Total de Negócios"

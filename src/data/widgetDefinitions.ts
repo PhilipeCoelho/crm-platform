@@ -1,0 +1,312 @@
+import { InsightsData } from '@/services/insights';
+import { Percent, Users, Clock, CalendarHeart, Zap, BarChart, DollarSign, Target, BarChart3, CheckCircle2, XCircle, TrendingUp, CheckSquare, PlusSquare, ArrowUpRight, AlertCircle, Activity } from 'lucide-react';
+import { Currency } from '@/data/currencies';
+
+export type WidgetKey =
+    | 'receita'
+    | 'pipeline'
+    | 'negocios_criados'
+    | 'ganhos'
+    | 'perdidos'
+    | 'conversao'
+    | 'taxa_perda'
+    | 'media_contatos'
+    | 'tempo_medio_ciclo'
+    | 'taxa_reuniao'
+    | 'percentual_7_contatos'
+    | 'percentual_7_contatos'
+    | 'canal_mais_ganho'
+    | 'atividades_concluidas'
+    | 'atividades_criadas'
+    | 'taxa_execucao'
+    | 'media_execucao'
+    | 'negocios_sem_atividade';
+
+export type WidgetCategory = 'revenue' | 'conversion' | 'intensity' | 'velocity' | 'loss' | 'channel' | 'execution';
+
+export interface WidgetDefinition {
+    key: WidgetKey;
+    title: string;
+    description: string;
+    icon: any;
+    color: string;
+    redirectLink: string;
+    widget_available?: boolean;
+    metric_category: WidgetCategory;
+    getValue: (data: InsightsData | null, currency?: Currency) => { value: string | number, microDescription: string, variation?: number | null };
+}
+
+export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
+    {
+        key: 'receita',
+        title: 'Receita',
+        description: 'Total em dinheiro de negócios fechados como "Ganho" no período.',
+        icon: DollarSign,
+        color: 'bg-emerald-500/10 text-emerald-500',
+        redirectLink: '/insights',
+        widget_available: true,
+        metric_category: 'revenue',
+        getValue: (data, currency) => {
+            const val = data?.current?.dashboardFlow?.receita || 0;
+            return {
+                value: currency ? new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(val) : val,
+                microDescription: 'Receita gerada nos últimos 7 dias',
+                variation: data?.variation?.wonValue
+            };
+        }
+    },
+    {
+        key: 'pipeline',
+        title: 'Pipeline',
+        description: 'Soma do valor de todos os negócios que estão atualmente em aberto nas etapas.',
+        icon: Target,
+        color: 'bg-primary/10 text-primary',
+        redirectLink: '/insights',
+        widget_available: true,
+        metric_category: 'revenue',
+        getValue: (data, currency) => {
+            const val = data?.current?.dashboardFlow?.pipelineValue || 0;
+            return {
+                value: currency ? new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(val) : val,
+                microDescription: 'Valor total atualmente em aberto',
+                variation: data?.variation?.openValue
+            };
+        }
+    },
+    {
+        key: 'negocios_criados',
+        title: 'Criados',
+        description: 'Quantidade total de novos negócios que entraram no funil no período.',
+        icon: BarChart3,
+        color: 'bg-blue-500/10 text-blue-500',
+        redirectLink: '/insights',
+        widget_available: true,
+        metric_category: 'conversion',
+        getValue: (data) => ({
+            value: data?.current?.totalDeals || 0,
+            microDescription: 'Negócios criados nos últimos 7 dias',
+            variation: data?.variation?.totalDeals
+        })
+    },
+    {
+        key: 'ganhos',
+        title: 'Ganhos',
+        description: 'Número de negócios que foram movidos para o status de "Ganho" no período.',
+        icon: CheckCircle2,
+        color: 'bg-emerald-500/10 text-emerald-500',
+        redirectLink: '/insights',
+        widget_available: true,
+        metric_category: 'conversion',
+        getValue: (data) => ({
+            value: data?.current?.dashboardFlow?.ganhos || 0,
+            microDescription: 'Negócios fechados como ganho nos últimos 7 dias',
+            variation: data?.variation?.totalWon
+        })
+    },
+    {
+        key: 'perdidos',
+        title: 'Perdidos',
+        description: 'Número de negócios que foram movidos para o status de "Perdido" no período.',
+        icon: XCircle,
+        color: 'bg-red-500/10 text-red-500',
+        redirectLink: '/insights',
+        widget_available: true,
+        metric_category: 'loss',
+        getValue: (data) => ({
+            value: data?.current?.dashboardFlow?.perdidos || 0,
+            microDescription: 'Negócios encerrados nos últimos 7 dias',
+            variation: data?.variation?.totalLost
+        })
+    },
+    {
+        key: 'conversao',
+        title: 'Conversão',
+        description: 'Percentual de negócios ganhos em relação ao total de negócios encerrados.',
+        icon: TrendingUp,
+        color: 'bg-purple-500/10 text-purple-500',
+        redirectLink: '/insights?tab=funil',
+        widget_available: true,
+        metric_category: 'conversion',
+        getValue: (data) => ({
+            value: `${data?.current?.dashboardFlow?.conversao?.toFixed(1) || 0}%`,
+            microDescription: 'Taxa de fechamento nos últimos 7 dias',
+            variation: data?.variation?.taxaFechamento
+        })
+    },
+    {
+        key: 'taxa_perda',
+        title: 'Taxa de Perda',
+        description: 'Percentual de negócios perdidos em relação ao total de negócios encerrados.',
+        icon: Percent,
+        color: 'bg-red-500/10 text-red-500',
+        redirectLink: '/insights?tab=perdas',
+        widget_available: true,
+        metric_category: 'loss',
+        getValue: (data) => ({
+            value: data ? `${data.current.lost.taxaPerda.toFixed(1)}%` : '—',
+            microDescription: 'Negócios perdidos no funil',
+            variation: data?.variation?.lost_taxaPerda
+        })
+    },
+    {
+        key: 'media_contatos',
+        title: 'Média de Contatos',
+        description: 'Quantidade média de interações (chamadas, e-mails, etc) por negócio.',
+        icon: Users,
+        color: 'bg-blue-500/10 text-blue-500',
+        redirectLink: '/insights?tab=intensidade',
+        widget_available: true,
+        metric_category: 'intensity',
+        getValue: (data) => ({
+            value: data ? data.current.intensity.mediaContatosPorNegocio.toFixed(1) : '—',
+            microDescription: 'Por negócio criado',
+            variation: data?.variation?.mediaContatosPorNegocio
+        })
+    },
+    {
+        key: 'tempo_medio_ciclo',
+        title: 'Tempo de Ciclo',
+        description: 'Média de dias que um negócio leva desde a criação até o fechamento como ganho.',
+        icon: Clock,
+        color: 'bg-amber-500/10 text-amber-500',
+        redirectLink: '/insights?tab=timing',
+        widget_available: true,
+        metric_category: 'velocity',
+        getValue: (data) => ({
+            value: data ? `${data.current.timing.tempoMedioCiclo.toFixed(0)} dias` : '—',
+            microDescription: 'Até o fechamento (ganho)',
+            variation: data?.variation?.tempoMedioCiclo
+        })
+    },
+    {
+        key: 'taxa_reuniao',
+        title: 'Taxa de Reunião',
+        description: 'Percentual de negócios que avançaram até a etapa de reunião de diagnóstico.',
+        icon: CalendarHeart,
+        color: 'bg-purple-500/10 text-purple-500',
+        redirectLink: '/insights?tab=funil',
+        widget_available: true,
+        metric_category: 'conversion',
+        getValue: (data) => {
+            if (!data) return { value: '—', microDescription: 'Conversão para reunião', variation: null };
+            const deals = data.current.funnel.totalDeals;
+            const reus = data.current.funnel.reuniaoCount;
+            const pct = deals > 0 ? (reus / deals) * 100 : 0;
+            return {
+                value: `${pct.toFixed(1)}%`,
+                microDescription: 'Conversão primária',
+                variation: data?.variation?.reuniaoCount // Rough approximation
+            };
+        }
+    },
+    {
+        key: 'percentual_7_contatos',
+        title: 'Alta Intensidade',
+        description: 'Negócios que receberam 7 ou mais atividades de acompanhamento/contato.',
+        icon: Zap,
+        color: 'bg-orange-500/10 text-orange-500',
+        redirectLink: '/insights?tab=intensidade',
+        widget_available: true,
+        metric_category: 'intensity',
+        getValue: (data) => ({
+            value: data ? `${data.current.intensity.percent7OuMais.toFixed(1)}%` : '—',
+            microDescription: 'Atingiram 7+ contatos'
+        })
+    },
+    {
+        key: 'canal_mais_ganho',
+        title: 'Melhor Canal',
+        description: 'Identifica qual meio de comunicação trouxe a maior taxa de conversão em vendas.',
+        icon: BarChart,
+        color: 'bg-emerald-500/10 text-emerald-500',
+        redirectLink: '/insights?tab=canais',
+        widget_available: true,
+        metric_category: 'channel',
+        getValue: (data) => {
+            if (!data) return { value: '—', microDescription: 'Canal com maior conversão' };
+            const { taxaFechamentoMessage, taxaFechamentoEmail, taxaFechamentoCall } = data.current.channel;
+            const max = Math.max(taxaFechamentoMessage, taxaFechamentoEmail, taxaFechamentoCall);
+
+            let canalStr = '—';
+            if (max > 0) {
+                if (max === taxaFechamentoMessage) canalStr = 'Mensagem';
+                else if (max === taxaFechamentoEmail) canalStr = 'Email';
+                else if (max === taxaFechamentoCall) canalStr = 'Ligação';
+            }
+            return {
+                value: canalStr,
+                microDescription: max > 0 ? `${max.toFixed(1)}% de ganho` : 'Sem dados suficientes'
+            };
+        }
+    },
+    {
+        key: 'atividades_concluidas',
+        title: 'Atividades concluídas',
+        description: 'Total de tarefas, reuniões e chamadas marcadas como feitas pela equipe.',
+        icon: CheckSquare,
+        color: 'bg-emerald-500/10 text-emerald-500',
+        redirectLink: '/activities?filter=Últimos%207%20dias',
+        widget_available: true,
+        metric_category: 'execution',
+        getValue: (data) => ({
+            value: data?.current?.dashboardFlow?.atividadesConcluidas || 0,
+            microDescription: 'Atividades concluídas nos últimos 7 dias'
+        })
+    },
+    {
+        key: 'atividades_criadas',
+        title: 'Atividades criadas',
+        description: 'Total de novas atividades que foram agendadas para os negócios no período.',
+        icon: PlusSquare,
+        color: 'bg-blue-500/10 text-blue-500',
+        redirectLink: '/activities?filter=Últimos%207%20dias',
+        widget_available: true,
+        metric_category: 'execution',
+        getValue: (data) => ({
+            value: data?.current?.dashboardFlow?.atividadesCriadas || 0,
+            microDescription: 'Atividades criadas nos últimos 7 dias'
+        })
+    },
+    {
+        key: 'taxa_execucao',
+        title: 'Taxa de Execução',
+        description: 'Percentual de atividades concluídas em relação ao total agendado para o período.',
+        icon: Activity,
+        color: 'bg-purple-500/10 text-purple-500',
+        redirectLink: '/activities?filter=Últimos%207%20dias',
+        widget_available: true,
+        metric_category: 'execution',
+        getValue: (data) => ({
+            value: `${data?.current?.dashboardFlow?.taxaExecucao?.toFixed(1) || 0}%`,
+            microDescription: 'Percentual de atividades concluídas nos últimos 7 dias'
+        })
+    },
+    {
+        key: 'media_execucao',
+        title: 'Média de Execução',
+        description: 'Frequência média de atividades realizadas para cada negócio em aberto.',
+        icon: ArrowUpRight,
+        color: 'bg-indigo-500/10 text-indigo-500',
+        redirectLink: '/activities?filter=Últimos%207%20dias',
+        widget_available: true,
+        metric_category: 'execution',
+        getValue: (data) => ({
+            value: data?.current?.dashboardFlow?.mediaExecucao?.toFixed(1) || 0,
+            microDescription: 'Média de atividades por negócio criado nos últimos 7 dias'
+        })
+    },
+    {
+        key: 'negocios_sem_atividade',
+        title: 'Sem Atividade',
+        description: 'Quantidade de negócios ativos que não possuem nenhuma atividade agendada ou realizada.',
+        icon: AlertCircle,
+        color: 'bg-orange-500/10 text-orange-500',
+        redirectLink: '/pipeline',
+        widget_available: true,
+        metric_category: 'execution',
+        getValue: (data) => ({
+            value: data?.current?.dashboardFlow?.negociosSemAtividade || 0,
+            microDescription: 'Negócios abertos sem atividade nos últimos 7 dias'
+        })
+    }
+];

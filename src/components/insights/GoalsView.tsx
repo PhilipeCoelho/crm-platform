@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Target } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Goal } from '@/config/goalConfig';
@@ -13,17 +13,37 @@ interface SavedGoal extends Goal {
 
 export default function GoalsView() {
     const { deals, activities } = useCRM();
-    const [goals, setGoals] = useState<SavedGoal[]>([]);
+    const [goals, setGoals] = useState<SavedGoal[]>(() => {
+        const saved = localStorage.getItem('crm_goals');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    });
     const [showBuilder, setShowBuilder] = useState(false);
+
+    // Persist goals to LocalStorage when they change
+    useEffect(() => {
+        localStorage.setItem('crm_goals', JSON.stringify(goals));
+    }, [goals]);
 
     // Calcular valores atuais para cada meta
     const calculateCurrentValue = (goal: SavedGoal): number => {
         const startDate = new Date(goal.startDate);
         const endDate = new Date(goal.endDate);
+        const TEST_THRESHOLD = new Date('2026-02-23T00:00:00.000Z');
+
+        // Filtrar dados antes do limiar de testes (ignorar tudo antes de 23/Fev/2026)
+        const validDeals = deals.filter(d => new Date(d.createdAt) >= TEST_THRESHOLD);
+        const validActivities = activities.filter(a => a.createdAt ? new Date(a.createdAt) >= TEST_THRESHOLD : true);
 
         switch (goal.type) {
             case 'deals_won':
-                return deals.filter(d =>
+                return validDeals.filter(d =>
                     d.status === 'won' &&
                     new Date(d.createdAt) >= startDate &&
                     new Date(d.createdAt) <= endDate
@@ -31,7 +51,7 @@ export default function GoalsView() {
 
             case 'deals_revenue':
             case 'total_revenue':
-                return deals
+                return validDeals
                     .filter(d =>
                         d.status === 'won' &&
                         new Date(d.createdAt) >= startDate &&
@@ -40,7 +60,7 @@ export default function GoalsView() {
                     .reduce((sum, d) => sum + d.value, 0);
 
             case 'activities_completed':
-                return activities.filter(a =>
+                return validActivities.filter(a =>
                     a.completed &&
                     a.dueDate &&
                     new Date(a.dueDate) >= startDate &&

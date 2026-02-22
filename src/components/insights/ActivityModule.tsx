@@ -1,8 +1,14 @@
 import { useInsights } from '@/contexts/InsightsContext';
 import VariationBadge from './VariationBadge';
 import { MessageCircle, Mail, PhoneCall } from 'lucide-react';
+import QuickGuide from '../ui/QuickGuide';
 
-export default function ActivityModule() {
+interface Props {
+    activeGuide: string | null;
+    setActiveGuide: (name: string | null) => void;
+}
+
+export default function ActivityModule({ activeGuide, setActiveGuide }: Props) {
     const { data, loading } = useInsights();
 
     if (loading || !data) {
@@ -18,6 +24,15 @@ export default function ActivityModule() {
 
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
+            <div className="flex items-center">
+                <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Métricas de Execução</h2>
+                <QuickGuide
+                    moduleName="insights_execucao"
+                    activeGuide={activeGuide}
+                    setActiveGuide={setActiveGuide}
+                />
+            </div>
+
             {/* 1. KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard

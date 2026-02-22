@@ -1,281 +1,57 @@
-import { useDashboardData, ProductivityFilter, RevenueFilter } from '@/hooks/useDashboardData';
-import NewActivityModal from '@/components/activities/NewActivityModal';
-
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Calendar, Plus, ArrowRight, DollarSign, TrendingUp, BarChart3, XCircle, ChevronDown, CalendarDays, Target, Euro, CheckSquare, Sparkles } from 'lucide-react';
-import ActivityList from '@/components/activities/ActivityList';
+import { useState, useMemo, useEffect } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
-import { format, parseISO } from 'date-fns';
+import { Plus, AlertTriangle, CalendarDays, ArrowRight, Target, CheckCircle2, Settings, LayoutDashboard } from 'lucide-react';
+import ActivityList from '@/components/activities/ActivityList';
 import { Currency } from '@/data/currencies';
-
-// --- Components ---
-
-function ProductivityFilterSelector({ value, onChange, customRange, onCustomRangeChange }: {
-    value: ProductivityFilter,
-    onChange: (v: ProductivityFilter) => void,
-    customRange: { start: Date | null, end: Date | null },
-    onCustomRangeChange: (r: { start: Date | null, end: Date | null }) => void
-}) {
-    const [isOpen, setIsOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    const options: { label: string, value: ProductivityFilter }[] = [
-        { label: 'Hoje', value: 'today' },
-        { label: 'Este Mês', value: 'month' },
-        { label: 'Últimos 30 dias', value: '30d' },
-        { label: 'Últimos 90 dias', value: '90d' },
-        { label: 'Personalizado', value: 'custom' },
-    ];
-
-    const currentLabel = options.find(o => o.value === value)?.label;
-
-    useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
-        };
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, []);
-
-    return (
-        <div className="relative" ref={ref}>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-2 py-1 text-xs font-medium bg-secondary/50 hover:bg-secondary text-foreground rounded transition-colors border border-border/50"
-            >
-                <Calendar size={12} className="text-muted-foreground" />
-                <span className="capitalize max-w-[100px] truncate">{currentLabel}</span>
-                <ChevronDown size={12} className="opacity-50" />
-            </button>
-
-            {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="p-1 grid grid-cols-1 gap-0.5">
-                        {options.map(opt => (
-                            <button
-                                key={opt.value}
-                                onClick={() => {
-                                    onChange(opt.value);
-                                    if (opt.value !== 'custom') setIsOpen(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors
-                                    ${value === opt.value
-                                        ? 'bg-primary/10 text-primary font-medium'
-                                        : 'hover:bg-muted text-foreground'
-                                    }`}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {value === 'custom' && (
-                        <div className="p-2 border-t border-border/50 space-y-2 bg-muted/20">
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Início</label>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
-                                        value={customRange.start ? format(customRange.start, 'yyyy-MM-dd') : ''}
-                                        onChange={(e) => onCustomRangeChange({ ...customRange, start: e.target.value ? parseISO(e.target.value) : null })}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Fim</label>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
-                                        value={customRange.end ? format(customRange.end, 'yyyy-MM-dd') : ''}
-                                        onChange={(e) => onCustomRangeChange({ ...customRange, end: e.target.value ? parseISO(e.target.value) : null })}
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="w-full bg-primary text-primary-foreground text-xs py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
-                            >
-                                Aplicar
-                            </button>
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-}
-
-function RevenueFilterSelector({ value, onChange, customRange, onCustomRangeChange }: {
-    value: RevenueFilter,
-    onChange: (v: RevenueFilter) => void,
-    customRange: { start: Date | null, end: Date | null },
-    onCustomRangeChange: (r: { start: Date | null, end: Date | null }) => void
-}) {
-    const [isOpen, setIsOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    const options: { label: string, value: RevenueFilter }[] = [
-        { label: 'Este Mês', value: 'this_month' },
-        { label: 'Mês Anterior', value: 'last_month' },
-        { label: 'Últimos 30 dias', value: '30d' },
-        { label: 'Últimos 90 dias', value: '90d' },
-        { label: 'Personalizado', value: 'custom' },
-    ];
-
-    const currentLabel = options.find(o => o.value === value)?.label;
-
-    useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
-        };
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, []);
-
-    return (
-        <div className="relative" ref={ref}>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-2 py-1 text-xs font-medium bg-secondary/50 hover:bg-secondary text-foreground rounded transition-colors border border-border/50"
-            >
-                <Calendar size={12} className="text-muted-foreground" />
-                <span className="capitalize max-w-[100px] truncate">{currentLabel}</span>
-                <ChevronDown size={12} className="opacity-50" />
-            </button>
-
-            {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="p-1 grid grid-cols-1 gap-0.5">
-                        {options.map(opt => (
-                            <button
-                                key={opt.value}
-                                onClick={() => {
-                                    onChange(opt.value);
-                                    if (opt.value !== 'custom') setIsOpen(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors
-                                ${value === opt.value
-                                        ? 'bg-primary/10 text-primary font-medium'
-                                        : 'hover:bg-muted text-foreground'
-                                    }`}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {value === 'custom' && (
-                        <div className="p-2 border-t border-border/50 space-y-2 bg-muted/20">
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Início</label>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
-                                        value={customRange.start ? format(customRange.start, 'yyyy-MM-dd') : ''}
-                                        onChange={(e) => onCustomRangeChange({ ...customRange, start: e.target.value ? parseISO(e.target.value) : null })}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase text-muted-foreground font-semibold">Fim</label>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-background border border-border rounded-md px-2 py-1 text-xs"
-                                        value={customRange.end ? format(customRange.end, 'yyyy-MM-dd') : ''}
-                                        onChange={(e) => onCustomRangeChange({ ...customRange, end: e.target.value ? parseISO(e.target.value) : null })}
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="w-full bg-primary text-primary-foreground text-xs py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
-                            >
-                                Aplicar
-                            </button>
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-}
-
-const MOTIVATIONAL_QUOTES = [
-    "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
-    "A persistência é o caminho do êxito.",
-    "Não espere por oportunidades, crie-as.",
-    "Grandes resultados requerem grandes ambições.",
-    "Seu único limite é você mesmo.",
-    "Foco no objetivo, força na luta e fé na vitória.",
-    "A disciplina é a mãe do sucesso.",
-    "Hoje é um dia perfeito para começar.",
-    "Transforme seus obstáculos em degraus para o sucesso.",
-    "Acredite no seu potencial e os resultados virão."
-];
+import { getInsightsData, InsightsData } from '@/services/insights';
+import { generateStrategicRecommendations } from '@/services/recommendations';
+import { parseISO, isBefore, isToday, subDays } from 'date-fns';
+import { filterRealActivities } from '@/utils/activityHelpers';
+import { useNavigate } from 'react-router-dom';
+import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
+import WidgetManagerModal from '@/components/dashboard/WidgetManagerModal';
+import { WIDGET_DEFINITIONS } from '@/data/widgetDefinitions';
 
 export default function Dashboard({ currency }: { currency: Currency }) {
     const { user } = useSupabaseAuth();
-    const { stats, lists, actions } = useDashboardData();
-    const { activities, pipelines, openNewDealModal } = useCRM();
+    const { deals, activities, pipelines, openNewDealModal, updateActivity, deleteActivity } = useCRM();
+    const navigate = useNavigate();
 
-    const [showAllOverdue, setShowAllOverdue] = useState(false);
+    const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const [showAllToday, setShowAllToday] = useState(false);
-    const [showAllUpcoming, setShowAllUpcoming] = useState(false);
-    const [showAllNoAction, setShowAllNoAction] = useState(false);
+    const { widgets: customWidgets, saveWidgets } = useDashboardWidgets();
+    const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
 
-    // Follow-up suggestion state
-    const [dealToSuggestActivity, setDealToSuggestActivity] = useState<string | null>(null);
-    const [isNewActivityModalOpen, setIsNewActivityModalOpen] = useState(false);
+    // Prioridade (Engine de Recomendação)
+    const priorityRecommendation = useMemo(() => {
+        if (!insightsData) return null;
+        const recs = generateStrategicRecommendations(insightsData);
+        return recs.length > 0 ? recs[0] : null; // Pega apenas a maior prioridade
+    }, [insightsData]);
 
-    // Identify the default stage for new deals from dashboard (Default to "Prospect")
-    const defaultStageId = useMemo(() => {
-        const stages = pipelines['sales']?.stages || [];
-        // Priority 1: A stage named "Prospect"
-        const prospect = stages.find(s => s.title.toLowerCase().includes('prospect'));
-        if (prospect) return prospect.id;
+    // Initial data fetch using Insights central function
+    useEffect(() => {
+        const fetchInsights = async () => {
+            setIsLoading(true);
+            try {
+                const now = new Date();
+                const start = subDays(now, 7).toISOString();
+                const end = now.toISOString();
 
-        // Priority 2: Traditional second stage if 'new' is the first
-        if (stages.length > 1 && stages[0].id === 'new') return stages[1].id;
-
-        // Fallback to literal 'contacted' ID if it exists in the list
-        if (stages.some(s => s.id === 'contacted')) return 'contacted';
-
-        // Final fallback
-        return stages[0]?.id || 'new';
-    }, [pipelines]);
-
-    // Override toggle function to detect completion and suggest next action
-    const handleToggleWithSuggestion = (id: string) => {
-        const activity = activities.find(a => a.id === id);
-        const wasCompleted = activity?.completed;
-
-        // Perform the toggle
-        actions.handleToggleActivity(id);
-
-        // If it was open and now is completed, check for next steps
-        if (!wasCompleted && activity?.dealId) {
-            // Wait for state to update (using activities from CRM context)
-            // Or better, check the current open activities for this deal
-            const openRemaining = activities.filter(a => a.dealId === activity.dealId && !a.completed && a.id !== id);
-
-            if (openRemaining.length === 0) {
-                // Delay slightly to allow the checkmark animation to finish
-                setTimeout(() => {
-                    setDealToSuggestActivity(activity.dealId || null);
-                }, 500);
+                const data = await getInsightsData(start, end);
+                setInsightsData(data);
+            } catch (error) {
+                console.error("Error fetching insights for dashboard:", error);
+            } finally {
+                setIsLoading(false);
             }
-        }
-    };
-
-    // Daily Quote Logic - Random selection on each mount/refresh
-    const dailyQuote = useMemo(() => {
-        const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
-        return MOTIVATIONAL_QUOTES[randomIndex];
+        };
+        fetchInsights();
     }, []);
 
-    // Greeting logic based on time of day
+    // Greeting
     const greeting = useMemo(() => {
         const hour = new Date().getHours();
         if (hour < 12) return "Bom dia";
@@ -283,466 +59,323 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         return "Boa noite";
     }, []);
 
-    // Welcome Section - Fast name resolution
-    const firstName = useMemo(() => {
-        const metadataName = user?.user_metadata?.name?.split(' ')[0];
-        if (metadataName) {
-            localStorage.setItem('cached_user_name', metadataName);
-            return metadataName;
-        }
-        const cached = localStorage.getItem('cached_user_name');
-        return cached || '';
-    }, [user]);
+    const firstName = useMemo(() => user?.user_metadata?.name?.split(' ')[0] || 'Usuário', [user]);
 
-    const showGreeting = firstName !== '';
+    // Handle New Deal Button
+    const defaultStageId = useMemo(() => {
+        const stages = pipelines['sales']?.stages || [];
+        const prospect = stages.find(s => s.title.toLowerCase().includes('prospect'));
+        if (prospect) return prospect.id;
+        if (stages.length > 1 && stages[0].id === 'new') return stages[1].id;
+        return 'new';
+    }, [pipelines]);
 
-    // Determine what to show in Productivity Card
-    const isTodayView = stats.productivityFilter === 'today';
-    const displayCount = isTodayView ? stats.todayProductivityScore : stats.productivityCount;
-    const progressPercent = Math.min((stats.todayProductivityScore / stats.activityGoal) * 100, 100);
+    // // Format currency helper
+    // const formatCurrency = (val: number) => {
+    //     return new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(val);
+    // };
+
+    // Alertas Operacionais (Lists built locally while Phase 11 engine is not ready)
+    const alertLists = useMemo(() => {
+        const realActivities = filterRealActivities(activities);
+        const openRealActivities = realActivities.filter(a => !a.completed);
+        const now = new Date();
+
+        const overdueActivities = openRealActivities.filter(a => {
+            if (!a.dueDate) return false;
+            const dueDate = parseISO(a.dueDate);
+            return isBefore(dueDate, now) && !isToday(dueDate);
+        });
+
+        const todayActivities = openRealActivities.filter(a => {
+            if (!a.dueDate) return false;
+            return isToday(parseISO(a.dueDate));
+        });
+
+        const dealsWithoutAction = deals.filter(deal => {
+            if (deal.status !== 'open') return false;
+            return !realActivities.some(a => a.dealId === deal.id && !a.completed);
+        });
+
+        return { overdueActivities, todayActivities, dealsWithoutAction };
+    }, [activities, deals]);
+
+    const handleToggleActivity = (id: string) => {
+        const activity = activities.find(a => a.id === id);
+        if (activity) updateActivity(id, { completed: !activity.completed });
+    };
+
+    const handleDeleteActivity = (id: string) => {
+        if (window.confirm('Excluir atividade?')) deleteActivity(id);
+    };
+
+    const Widget = ({ title, value, description, icon: Icon, color, redirectLink, isVisible = true, showPeriodBadge = true }: any) => {
+        if (!isVisible) return null;
+        return (
+            <div
+                onClick={() => redirectLink && navigate(redirectLink)}
+                className="bg-card border border-border rounded-xl p-3 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/30 transition-all cursor-pointer group flex flex-col justify-between flex-1 min-w-[120px] max-w-full relative overflow-hidden"
+            >
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <div className={`p-1.5 rounded-lg ${color}`}>
+                            <Icon size={16} className="group-hover:scale-110 transition-transform" />
+                        </div>
+                        {showPeriodBadge && (
+                            <div className="bg-muted text-muted-foreground text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded shrink-0">
+                                Últimos 7 dias
+                            </div>
+                        )}
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate" title={title}>{title}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                        <h3 className="text-xl font-black text-foreground truncate" title={`${value}`}>{value}</h3>
+                    </div>
+                </div>
+                {description && <p className="text-[9px] text-muted-foreground mt-2 font-medium border-t border-border/50 pt-1.5 truncate" title={description}>{description}</p>}
+            </div>
+        );
+    };
+
 
     return (
         <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
-            <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-8">
+            <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
 
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                    {/* Welcome */}
-                    <div className={`transition-opacity duration-200 ${showGreeting ? 'opacity-100' : 'opacity-0'}`}>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {/* HEADER SECTION */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border/50 pb-6">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
                             {greeting}, {firstName}.
                         </h1>
                         <p className="text-muted-foreground mt-1 text-sm">
-                            {dailyQuote}
+                            Este é o seu painel de decisão rápida.
                         </p>
                     </div>
 
-                    {/* Actions ONLY - Filter is gone */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
+                        {/* New Deal */}
                         <button
                             onClick={() => openNewDealModal(defaultStageId)}
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm transition-all shadow-primary/20 active:scale-95"
                         >
-
                             <Plus size={16} />
                             Novo Negócio
                         </button>
                     </div>
                 </div>
 
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse pt-6">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="bg-card w-full h-[140px] rounded-xl border border-border/50"></div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="space-y-10 pt-2">
 
-                    {/* 1. Productivity Goal (Meta Diária / Produtividade) */}
-                    <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="w-full">
-                                <div className="flex items-center justify-between mb-2 w-full">
-                                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <Target size={16} className="text-primary" />
-                                        {isTodayView ? 'Meta Diária de Prospecção' : 'Prospecção'}
-                                    </p>
-                                    <ProductivityFilterSelector
-                                        value={stats.productivityFilter}
-                                        onChange={actions.setProductivityFilter}
-                                        customRange={stats.productivityCustomRange}
-                                        onCustomRangeChange={actions.setProductivityCustomRange}
-                                    />
-                                </div>
-
-                                {isTodayView ? (
-                                    // Today: Input for Goal + Comparison
-                                    <div>
-                                        <div className="hidden"> {/* Hidden input placeholder for accessibility or if we want to toggle edit */} </div>
-                                        <div className="flex items-baseline gap-2 mt-1">
-                                            <h3 className="text-3xl font-bold text-foreground">{displayCount}</h3>
-                                            <span className="text-sm text-muted-foreground/60 font-medium flex items-center gap-1">
-                                                /
-                                                <input
-                                                    type="number"
-                                                    value={stats.activityGoal}
-                                                    onChange={(e) => actions.handleActivityGoalChange(Number(e.target.value))}
-                                                    className="w-10 bg-transparent border-b border-dashed border-border focus:border-primary outline-none text-center"
-                                                />
+                        {/* BLOCO 0 - TEMA PRIORITÁRIO */}
+                        <section>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                                Tema Prioritário
+                            </h2>
+                            {priorityRecommendation ? (
+                                <div className={`border rounded-xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all ${priorityRecommendation.impacto === 'alto'
+                                    ? 'bg-rose-500/5 border-rose-500/30 border-l-4 border-l-rose-500'
+                                    : 'bg-amber-500/5 border-amber-500/30 border-l-4 border-l-amber-500'
+                                    }`}>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${priorityRecommendation.impacto === 'alto'
+                                                ? 'bg-rose-500 text-white'
+                                                : 'bg-amber-500 text-white'
+                                                }`}>
+                                                {priorityRecommendation.impacto} Impacto
+                                            </span>
+                                            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                                                {priorityRecommendation.area}
                                             </span>
                                         </div>
+                                        <h3 className={`text-xl font-bold mb-1 ${priorityRecommendation.impacto === 'alto' ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'
+                                            }`}>
+                                            {priorityRecommendation.titulo}
+                                        </h3>
+                                        <p className="text-sm text-foreground/80 font-medium">
+                                            {priorityRecommendation.mensagem}
+                                        </p>
                                     </div>
-                                ) : (
-                                    // Range: Show Total
-                                    <div className="flex items-baseline gap-2 mt-1">
-                                        <h3 className="text-3xl font-bold text-foreground">{displayCount}</h3>
-                                        <span className="text-sm text-muted-foreground font-medium">atividades concluídas</span>
+                                    <div className="md:shrink-0">
+                                        <button
+                                            onClick={() => navigate('/insights')}
+                                            className={`px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-all ${priorityRecommendation.impacto === 'alto'
+                                                ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-500/30'
+                                                : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-500/30'
+                                                }`}
+                                        >
+                                            Analisar no Insights
+                                            <ArrowRight size={16} />
+                                        </button>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* Icon Indicator */}
-                            {isTodayView && (
-                                <div className={`ml-4 p-3 rounded-lg ${displayCount >= stats.activityGoal ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}>
-                                    {displayCount >= stats.activityGoal ? <CheckCircle2 size={24} /> : <TrendingUp size={24} />}
-                                </div>
-                            )}
-                            {!isTodayView && (
-                                <div className="ml-4 p-3 rounded-lg bg-primary/10 text-primary">
-                                    <CheckSquare size={24} />
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-2 mt-auto min-h-[1.5rem] flex items-end">
-                            {isTodayView ? (
-                                <div className="w-full">
-                                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${displayCount >= stats.activityGoal ? 'bg-success' : 'bg-primary'}`}
-                                            style={{ width: `${progressPercent}%` }}
-                                        />
-                                    </div>
-                                    <p className="text-xs text-muted-foreground/80 text-right mt-1">
-                                        {displayCount >= stats.activityGoal ? 'Meta batida! 🚀' : `${stats.activityGoal - displayCount} restantes`}
-                                    </p>
                                 </div>
                             ) : (
-                                <p className="text-xs text-muted-foreground">
-                                    Negócios relacionados: <span className="font-medium text-foreground">{/* Potentially filtering deals dealt with? Keeping simple for now */} -</span>
-                                </p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* 2. Monthly Revenue */}
-                    <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="w-full">
-                                <div className="flex justify-between items-center w-full mb-2">
-                                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                        <Euro size={16} className="text-yellow-500" />
-                                        {stats.isRevenueGoalVisible ? 'Receita (Mensal)' : 'Receita (Período)'}
-                                    </p>
-                                    <RevenueFilterSelector
-                                        value={stats.revenueFilter}
-                                        onChange={actions.setRevenueFilter}
-                                        customRange={stats.revenueCustomRange}
-                                        onCustomRangeChange={actions.setRevenueCustomRange}
-                                    />
+                                <div className="bg-emerald-500/5 border-l-4 border-l-emerald-500 border-border rounded-xl p-6 shadow-sm flex items-center justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="px-2.5 py-0.5 rounded bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider">
+                                                Estável
+                                            </span>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                                            Operação Saudável
+                                        </h3>
+                                        <p className="text-sm text-foreground/80 font-medium">
+                                            Performance estável. Nenhum gargalo crítico detectado no período.
+                                        </p>
+                                    </div>
+                                    <CheckCircle2 size={40} className="text-emerald-500 opacity-20" />
                                 </div>
+                            )}
+                        </section>
 
-                                {stats.isRevenueGoalVisible ? (
-                                    // Month View: Show Goal
-                                    <>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <input
-                                                type="number"
-                                                value={stats.revenueGoal}
-                                                onChange={(e) => actions.handleRevenueGoalChange(Number(e.target.value))}
-                                                className="text-xs text-muted-foreground bg-transparent border-b border-dashed border-border focus:border-primary focus:text-foreground outline-none w-20"
+                        {/* BLOCO CUSTOMIZÁVEL - WIDGETS ESTRATÉGICOS */}
+                        <section className="pt-2">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                                    Widgets Estratégicos
+                                </h2>
+                                <button
+                                    onClick={() => setIsWidgetModalOpen(true)}
+                                    className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors bg-muted/30 px-3 py-1.5 rounded-lg border border-border/50 hover:border-border"
+                                >
+                                    <Settings size={14} />
+                                    Gerenciar Widgets
+                                </button>
+                            </div>
+
+                            {customWidgets.length === 0 ? (
+                                <div className="border border-dashed border-border rounded-xl p-10 flex flex-col items-center justify-center text-center bg-card/50">
+                                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                                        <LayoutDashboard size={28} className="text-primary" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground mb-2">Seu painel estratégico está vazio</h3>
+                                    <p className="text-sm text-muted-foreground mb-6 max-w-[300px]">
+                                        Adicione métricas do Insights para montar sua visão.
+                                    </p>
+                                    <button
+                                        onClick={() => setIsWidgetModalOpen(true)}
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                                    >
+                                        <Settings size={16} />
+                                        Gerenciar Widgets
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-stretch gap-3 overflow-x-auto pb-4 custom-scrollbar">
+                                    {customWidgets.map(widget => {
+                                        const def = WIDGET_DEFINITIONS.find(d => d.key === widget.widget_key);
+                                        if (!def) return null;
+                                        const { value, microDescription } = def.getValue(insightsData, currency);
+
+                                        return (
+                                            <Widget
+                                                key={widget.id || widget.widget_key}
+                                                title={def.title}
+                                                value={value}
+                                                description={microDescription}
+                                                icon={def.icon}
+                                                color={def.color}
+                                                redirectLink={def.redirectLink}
+                                                showPeriodBadge={def.key !== 'pipeline'}
                                             />
-                                            <span className="text-[10px] text-muted-foreground uppercase">Meta</span>
-                                        </div>
-                                        <div className="flex items-baseline gap-2">
-                                            <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(stats.currentRevenue)}</h3>
-                                            <span className="text-sm text-muted-foreground/60 font-medium">/ {new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code, notation: 'compact' }).format(stats.revenueGoal)}</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    // Historical View: Just Total
-                                    <div className="mt-4">
-                                        <h3 className="text-3xl font-bold text-foreground">{new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(stats.currentRevenue)}</h3>
-                                        <p className="text-sm text-muted-foreground font-medium mt-1">faturado no período</p>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* BLOCO 2 - ATENÇÃO IMEDIATA */}
+                        <section>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                                Atenção Imediata
+                            </h2>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                                {/* Atrasadas */}
+                                <div className="bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-5 flex flex-col h-[350px]">
+                                    <h3 className="text-red-600 dark:text-red-400 font-bold flex items-center gap-2 mb-4">
+                                        <AlertTriangle size={18} />
+                                        Atrasadas ({alertLists.overdueActivities.length})
+                                    </h3>
+                                    <div className="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
+                                        {alertLists.overdueActivities.length === 0 ? (
+                                            <p className="text-sm text-red-500/60 font-medium">Belo trabalho! Sem atrasos.</p>
+                                        ) : (
+                                            <ActivityList
+                                                activities={alertLists.overdueActivities}
+                                                onToggle={handleToggleActivity}
+                                                onDelete={handleDeleteActivity}
+                                            />
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
 
-                        <div className="space-y-2 mt-auto min-h-[1.5rem]">
-                            {stats.isRevenueGoalVisible ? (
-                                <>
-                                    <div className="w-full bg-secondary h-2 rounded-full overflow-hidden relative">
-                                        <div
-                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.currentRevenue >= stats.revenueGoal ? 'bg-success' : 'bg-yellow-500'}`}
-                                            style={{ width: `${Math.min((stats.currentRevenue / stats.revenueGoal) * 100, 100)}%` }}
-                                        />
+                                {/* Para Hoje */}
+                                <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 flex flex-col h-[350px]">
+                                    <h3 className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2 mb-4">
+                                        <CalendarDays size={18} />
+                                        Para Hoje ({alertLists.todayActivities.length})
+                                    </h3>
+                                    <div className="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
+                                        {alertLists.todayActivities.length === 0 ? (
+                                            <p className="text-sm text-emerald-500/60 font-medium">Tudo limpo para hoje.</p>
+                                        ) : (
+                                            <ActivityList
+                                                activities={alertLists.todayActivities}
+                                                onToggle={handleToggleActivity}
+                                                onDelete={handleDeleteActivity}
+                                            />
+                                        )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground/80 text-right">
-                                        {stats.currentRevenue >= stats.revenueGoal ? 'Meta batida! 🔥' : `${((stats.currentRevenue / stats.revenueGoal) * 100).toFixed(1)}% alcançado`}
-                                    </p>
-                                </>
-                            ) : (
-                                <div className="h-2 w-full bg-secondary/30 rounded-full" /> // Placeholder/Neutral bar
-                            )}
-                        </div>
-                    </div>
+                                </div>
 
-                    {/* 3. Pipeline Value (Small) */}
-                    <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-3 bg-green-500/10 rounded-full text-green-500">
-                            <DollarSign size={20} />
-                        </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Valor em Pipeline</p>
-                            <p className="text-xl font-bold text-foreground mt-0.5">
-                                {new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(stats.totalPipelineValue)}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* 4. Open Deals (Small) */}
-                    <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-3 bg-primary/10 rounded-full text-primary">
-                            <BarChart3 size={20} />
-                        </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Negócios Abertos</p>
-                            <p className="text-xl font-bold text-foreground mt-0.5">{stats.totalOpenDeals}</p>
-                        </div>
-                    </div>
-
-                    {/* 5. Won Deals (Small) */}
-                    <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-3 bg-primary/10 rounded-full text-primary">
-                            <TrendingUp size={20} />
-                        </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Ganhos no Mês</p>
-                            <p className="text-xl font-bold text-foreground mt-0.5">{stats.wonDealsCount}</p>
-                        </div>
-                    </div>
-
-                    {/* 6. Lost Deals (Small) */}
-                    <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-3 bg-red-500/10 rounded-full text-red-500">
-                            <XCircle size={20} />
-                        </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Perdidos no Mês</p>
-                            <p className="text-xl font-bold text-foreground mt-0.5">{stats.lostDealsCount}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Activities Grid - Prioritized Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-
-                    {/* Left Column: Immediate Focus (Atrasadas + Hoje) */}
-                    <div className="space-y-6">
-                        {/* 1. Atrasadas */}
-                        <div className="bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
-                            <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-2">
-                                    <AlertTriangle size={18} />
-                                    Atrasadas ({lists.overdueActivities.length})
-                                </h3>
-                            </div>
-
-                            <div className="flex-1 min-h-0 space-y-1">
-                                {lists.overdueActivities.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic p-2">Nenhuma atividade atrasada.</p>
-                                ) : (
-                                    <ActivityList
-                                        activities={lists.overdueActivities.slice(0, showAllOverdue ? undefined : 3)}
-                                        onToggle={handleToggleWithSuggestion}
-                                        onDelete={actions.handleDeleteActivity}
-                                    />
-                                )}
-                            </div>
-
-                            {lists.overdueActivities.length > 3 && (
-                                <button
-                                    onClick={() => setShowAllOverdue(!showAllOverdue)}
-                                    className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 self-start"
-                                >
-                                    {showAllOverdue ? 'Mostrar menos' : `Ver todas(${lists.overdueActivities.length - 3} mais)`} <ArrowRight size={12} />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* 2. Para Hoje */}
-                        <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
-                            <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-2">
-                                    <CalendarDays size={18} />
-                                    Para Hoje ({lists.todayActivities.length})
-                                </h3>
-                            </div>
-
-                            <div className="flex-1 min-h-0 space-y-1">
-                                {lists.todayActivities.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic p-2">Tudo limpo por hoje!</p>
-                                ) : (
-                                    <ActivityList
-                                        activities={lists.todayActivities.slice(0, showAllToday ? undefined : 3)}
-                                        onToggle={handleToggleWithSuggestion}
-                                        onDelete={actions.handleDeleteActivity}
-                                    />
-                                )}
-                            </div>
-
-                            {lists.todayActivities.length > 3 && (
-                                <button
-                                    onClick={() => setShowAllToday(!showAllToday)}
-                                    className="mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 self-start"
-                                >
-                                    {showAllToday ? 'Mostrar menos' : `Ver todas(${lists.todayActivities.length - 3} mais)`} <ArrowRight size={12} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right Column: Secondary Balance (Sem Atividade + Futuras) */}
-                    <div className="space-y-6">
-                        {/* 3. Sem Atividade (Deals without action) */}
-                        <div className="bg-muted/5 dark:bg-muted/10 border border-border/10 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
-                            <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-muted-foreground font-semibold flex items-center gap-2">
-                                    <AlertTriangle size={18} />
-                                    Sem Atividade ({lists.dealsWithoutAction.length})
-                                </h3>
-                            </div>
-
-                            <div className="flex-1 min-h-0 space-y-1">
-                                {lists.dealsWithoutAction.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic p-2">Todos os negócios têm ações.</p>
-                                ) : (
-                                    <div className="space-y-2">
-                                        {lists.dealsWithoutAction.slice(0, showAllNoAction ? undefined : 3).map(deal => (
-                                            <div
-                                                key={deal.id}
-                                                onClick={() => actions.navigate(`/deals/${deal.id}`)}
-                                                className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:shadow-md transition-all cursor-pointer group"
-                                            >
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                                                        <AlertTriangle size={14} className="text-amber-600" />
+                                {/* Sem Atividade */}
+                                <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 rounded-xl p-5 flex flex-col h-[350px]">
+                                    <h3 className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-2 mb-4">
+                                        <Target size={18} />
+                                        Sem Atividade ({alertLists.dealsWithoutAction.length})
+                                    </h3>
+                                    <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                        {alertLists.dealsWithoutAction.length === 0 ? (
+                                            <p className="text-sm text-amber-500/60 font-medium">Nenhum negócio abandonado.</p>
+                                        ) : (
+                                            alertLists.dealsWithoutAction.map(deal => (
+                                                <div
+                                                    key={deal.id}
+                                                    className="p-3 rounded-lg border border-amber-500/20 bg-card hover:bg-amber-500/10 transition-colors cursor-pointer group flex items-center justify-between"
+                                                >
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-foreground truncate">{deal.title}</p>
+                                                        <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Sem próximos passos guiados</p>
                                                     </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-medium text-foreground truncate">{deal.title}</p>
-                                                        <p className="text-[10px] text-muted-foreground mt-0.5">Sem atividade agendada</p>
-                                                    </div>
+                                                    <ArrowRight size={14} className="text-amber-500 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                                 </div>
-                                                <ArrowRight size={14} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-                                        ))}
+                                            ))
+                                        )}
                                     </div>
-                                )}
+                                </div>
+
                             </div>
-
-                            {lists.dealsWithoutAction.length > 3 && (
-                                <button
-                                    onClick={() => setShowAllNoAction(!showAllNoAction)}
-                                    className="mt-3 text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 self-start"
-                                >
-                                    {showAllNoAction ? 'Mostrar menos' : `Ver todas(${lists.dealsWithoutAction.length - 3} mais)`} <ArrowRight size={12} />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* 4. Futuras (Upcoming) */}
-                        <div className="bg-card dark:bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col min-h-0">
-                            <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-foreground/80 dark:text-foreground/70 font-semibold flex items-center gap-2">
-                                    <Calendar size={18} />
-                                    Planejado ({lists.upcomingActivities.length})
-                                </h3>
-                            </div>
-
-                            <div className="flex-1 min-h-0 space-y-1">
-                                {lists.upcomingActivities.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic p-2">Nenhuma atividade futura agendada.</p>
-                                ) : (
-                                    <ActivityList
-                                        activities={lists.upcomingActivities.slice(0, showAllUpcoming ? undefined : 3)}
-                                        onToggle={handleToggleWithSuggestion}
-                                        onDelete={actions.handleDeleteActivity}
-                                    />
-                                )}
-                            </div>
-
-                            {lists.upcomingActivities.length > 3 && (
-                                <button
-                                    onClick={() => setShowAllUpcoming(!showAllUpcoming)}
-                                    className="mt-3 text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 self-start"
-                                >
-                                    {showAllUpcoming ? 'Mostrar menos' : `Ver todas(${lists.upcomingActivities.length - 3} mais)`} <ArrowRight size={12} />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* 5. Histórico Recente (History - Completed) */}
-                        <div className="bg-muted/30 dark:bg-muted/10 border border-border/50 dark:border-border/30 rounded-xl p-5 shadow-sm flex flex-col min-h-0">
-                            <div className="flex items-center gap-2 mb-4">
-                                <h3 className="text-muted-foreground font-semibold flex items-center gap-2">
-                                    <CheckCircle2 size={18} />
-                                    Concluídas Recentemente
-                                </h3>
-                            </div>
-
-                            <div className="flex-1 min-h-0 space-y-1 opacity-70 hover:opacity-100 transition-opacity">
-                                {(lists as any).completedActivities?.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic p-2">Nenhuma atividade concluída.</p>
-                                ) : (
-                                    <ActivityList
-                                        activities={(lists as any).completedActivities}
-                                        onToggle={handleToggleWithSuggestion}
-                                        onDelete={actions.handleDeleteActivity}
-                                    />
-                                )}
-                            </div>
-                        </div>
+                        </section>
                     </div>
-                </div>
+                )}
             </div>
 
-
-
-            {/* Follow-up Suggestion Prompt */}
-            {
-                dealToSuggestActivity && (
-                    <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-right-full duration-300">
-                        <div className="bg-primary text-primary-foreground p-4 rounded-xl shadow-2xl border border-primary-foreground/10 flex flex-col gap-3 min-w-[300px]">
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-2">
-                                    <Sparkles size={18} className="text-yellow-300 animate-pulse" />
-                                    <h4 className="font-bold text-sm">Ótimo trabalho!</h4>
-                                </div>
-                                <button onClick={() => setDealToSuggestActivity(null)} className="text-primary-foreground/60 hover:text-primary-foreground">
-                                    <XCircle size={16} />
-                                </button>
-                            </div>
-                            <p className="text-xs text-primary-foreground/90 leading-relaxed">
-                                Você completou a última atividade deste negócio. <br />
-                                <strong>Que tal agendar o próximo passo agora?</strong>
-                            </p>
-                            <div className="flex gap-2 mt-1">
-                                <button
-                                    onClick={() => {
-                                        setIsNewActivityModalOpen(true);
-                                        // Keeping dealToSuggestActivity set so we know which deal to use
-                                    }}
-                                    className="flex-1 bg-white text-primary text-xs font-bold py-2 rounded-lg hover:bg-white/90 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Plus size={14} />
-                                    Agendar Próxima
-                                </button>
-                                <button
-                                    onClick={() => setDealToSuggestActivity(null)}
-                                    className="px-3 py-2 text-xs font-medium text-white/80 hover:text-white transition-colors"
-                                >
-                                    Depois
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            <NewActivityModal
-                isOpen={isNewActivityModalOpen}
-                onClose={() => {
-                    setIsNewActivityModalOpen(false);
-                    setDealToSuggestActivity(null);
-                }}
-                preselectedDealId={dealToSuggestActivity || undefined}
+            <WidgetManagerModal
+                isOpen={isWidgetModalOpen}
+                onClose={() => setIsWidgetModalOpen(false)}
+                currentWidgets={customWidgets}
+                onSave={saveWidgets}
             />
-        </div >
+        </div>
     );
 }

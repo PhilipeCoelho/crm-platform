@@ -1,8 +1,13 @@
 import { useInsights } from '@/contexts/InsightsContext';
-// import removed
 import { Target, AlertCircle, BarChart2 } from 'lucide-react';
+import QuickGuide from '../ui/QuickGuide';
 
-export default function FunnelModule() {
+interface Props {
+    activeGuide: string | null;
+    setActiveGuide: (name: string | null) => void;
+}
+
+export default function FunnelModule({ activeGuide, setActiveGuide }: Props) {
     const { data, loading } = useInsights();
 
     if (loading) {
@@ -22,9 +27,18 @@ export default function FunnelModule() {
             {/* 2. Visualização do Funil */}
             <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 w-full">
                 <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h3 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Conversão do Funil</h3>
-                        <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-1">Visão do fluxo de negócios por etapa principal</p>
+                    <div className="flex items-center gap-2">
+                        <div>
+                            <div className="flex items-center">
+                                <h3 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Conversão do Funil</h3>
+                                <QuickGuide
+                                    moduleName="insights_funil"
+                                    activeGuide={activeGuide}
+                                    setActiveGuide={setActiveGuide}
+                                />
+                            </div>
+                            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-1">Visão do fluxo de negócios por etapa principal</p>
+                        </div>
                     </div>
                     <div className="p-2 rounded-xl bg-primary/10">
                         <BarChart2 size={24} className="text-primary" />

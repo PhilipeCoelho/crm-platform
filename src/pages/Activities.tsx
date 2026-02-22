@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Currency } from '@/data/currencies';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Search,
     Plus,
@@ -23,7 +23,7 @@ import {
     Pencil,
     Check
 } from 'lucide-react';
-import { format, isToday, isTomorrow, isBefore, isAfter, startOfToday, startOfWeek, endOfWeek, addWeeks, parseISO } from 'date-fns';
+import { format, isToday, isTomorrow, isBefore, isAfter, startOfToday, startOfWeek, endOfWeek, addWeeks, parseISO, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import GlobalActivityModal from '@/components/activities/GlobalActivityModal';
@@ -36,7 +36,7 @@ import { filterRealActivities } from '@/utils/activityHelpers';
 // Types
 import { Activity } from '@/types/schema';
 
-type FilterType = 'Para fazer' | 'Vencido' | 'Hoje' | 'Amanhã' | 'Esta semana' | 'Próxima semana' | 'Selecionar período' | 'Todos';
+type FilterType = 'Para fazer' | 'Vencido' | 'Hoje' | 'Amanhã' | 'Esta semana' | 'Próxima semana' | 'Últimos 7 dias' | 'Selecionar período' | 'Todos';
 
 const DEFAULT_COLUMNS = ['completed', 'title', 'dealId', 'priority', 'contactId', 'email', 'phone', 'companyId', 'dueDate', 'duration', 'ownerId'];
 
@@ -46,8 +46,13 @@ export default function Activities({ currency: _currency }: { currency: Currency
     const navigate = useNavigate();
 
     // States
+    const [searchParams] = useSearchParams();
+    const urlFilter = searchParams.get('filter') as FilterType | null;
+
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeFilter, setActiveFilter] = useState<FilterType>('Todos');
+    const [activeFilter, setActiveFilter] = useState<FilterType>(
+        (urlFilter && ['Para fazer', 'Vencido', 'Hoje', 'Amanhã', 'Esta semana', 'Próxima semana', 'Últimos 7 dias', 'Todos'].includes(urlFilter)) ? urlFilter : 'Todos'
+    );
     const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
@@ -114,6 +119,17 @@ export default function Activities({ currency: _currency }: { currency: Currency
                     const start = startOfWeek(addWeeks(today, 1), { weekStartsOn: 1 });
                     const end = endOfWeek(addWeeks(today, 1), { weekStartsOn: 1 });
                     if (!(isAfter(date, start) && isBefore(date, end)) || activity.completed) return false;
+                } else if (activeFilter === 'Últimos 7 dias') {
+                    const sevenDaysAgo = subDays(new Date(), 7);
+                    const createdAt = activity.createdAt ? parseISO(activity.createdAt) : null;
+                    const completedAt = activity.completedAt ? parseISO(activity.completedAt) : null;
+                    const dueDate = activity.dueDate ? parseISO(activity.dueDate) : null;
+
+                    const isCreatedRecent = createdAt && isAfter(createdAt, sevenDaysAgo);
+                    const isCompletedRecent = completedAt && isAfter(completedAt, sevenDaysAgo);
+                    const isDueRecent = dueDate && isAfter(dueDate, sevenDaysAgo) && isBefore(dueDate, new Date());
+
+                    return isCreatedRecent || isCompletedRecent || isDueRecent;
                 }
             }
 
@@ -257,7 +273,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
 
                 {/* Horizontal Quick Filters Bar */}
                 <div className="flex items-center gap-2 mt-6 overflow-x-auto no-scrollbar scroll-smooth">
-                    {(['Todos', 'Para fazer', 'Vencido', 'Hoje', 'Amanhã', 'Esta semana', 'Próxima semana', 'Selecionar período'] as FilterType[]).map(filter => (
+                    {(['Todos', 'Para fazer', 'Vencido', 'Hoje', 'Amanhã', 'Esta semana', 'Próxima semana', 'Últimos 7 dias', 'Selecionar período'] as FilterType[]).map(filter => (
                         <button
                             key={filter}
                             onClick={() => setActiveFilter(filter)}

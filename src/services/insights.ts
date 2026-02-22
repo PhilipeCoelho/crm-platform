@@ -8,6 +8,20 @@ export interface InsightsStats {
     mediaContatos: number;
     mediaDiasFechamento: number;
     totalValor: number;
+    wonValue: number;
+    openValue: number;
+    dashboardFlow: {
+        ganhos: number;
+        perdidos: number;
+        receita: number;
+        conversao: number;
+        pipelineValue: number;
+        atividadesConcluidas: number;
+        atividadesCriadas: number;
+        taxaExecucao: number;
+        mediaExecucao: number;
+        negociosSemAtividade: number;
+    };
 }
 
 export interface FunnelData {
@@ -114,6 +128,27 @@ export async function getInsightsData(
         const endOfDay = end.includes('T') ? end : `${end}T23:59:59.999Z`;
         const startOfDay = start.includes('T') ? start : `${start}T00:00:00.000Z`;
 
+        const IGNORE_TEST_DATA_BEFORE = '2026-02-22T00:00:00.000Z'; // Ajustado para hoje para "esquecer o passado" de testes recente
+
+        // 1. Buscar Estágios válidos para evitar "negócios fantasma" (que não aparem no board)
+        const { data: validStages } = await supabase.from('stages').select('id');
+        const validStageIds = new Set(validStages?.map(s => s.id) || []);
+
+        // 2. Buscar os IDs Reais dos negócios abertos no Pipeline (Sanity Check)
+        // Só incluímos negócios que estão em estágios VÁLIDOS e ATIVOS
+        const { data: realOpenDeals } = await supabase.from('deals').select('id, stage_id, value').eq('status', 'open');
+        let globalOpenValue = 0;
+        const openDealsIds = new Set(
+            realOpenDeals
+                ?.filter(d => {
+                    const isValid = validStageIds.has(d.stage_id);
+                    if (isValid) globalOpenValue += Number(d.value || 0);
+                    return isValid;
+                })
+                .map(d => d.id.toLowerCase()) || []
+        );
+
+        // 3. Buscar dados de analytics
         const { data, error } = await supabase
             .from('deal_analytics')
             .select('*')
@@ -124,38 +159,62 @@ export async function getInsightsData(
             return { ...emptyStats(), funnel: emptyFunnel(), activity: emptyActivity(), intensity: emptyIntensity(), timing: emptyTiming(), channel: emptyChannel(), lost: emptyLost() };
         }
 
-        const currentData = data || [];
+        let currentData = data || [];
+
+        // Filtro rigoroso de Data de Lançamento (ignorar testes anteriores a 22 Fev)
+        currentData = currentData.filter(d => {
+            if (d.status_final === 'open') {
+                // Sanidade: Se o negócio consta como aberto no analytics mas NÃO está no set de IDs abertos reais e ativos, 
+                // significa que ele é um "fantasma" (Ex: Caso Tagides ou negócio sem etapa).
+                if (!openDealsIds.has(String(d.deal_id).toLowerCase())) {
+                    return false;
+                }
+
+                // Se é aberto antigo, mantemos na contagem, mas ZERAMOS as atividades de registro de teste
+                if (d.created_at < IGNORE_TEST_DATA_BEFORE) {
+                    d.total_atividades = 0;
+                    d.total_mensagens = 0;
+                    d.total_emails = 0;
+                    d.total_ligacoes = 0;
+                    d.total_analises = 0;
+                    d.total_auditorias = 0;
+                    d.total_contatos_realizados = 0;
+                    d.contatos_ate_reuniao = 0;
+                    d.contatos_ate_fechamento = 0;
+                    d.total_respostas = 0;
+                    d.tempo_medio_entre_contatos = 0;
+                    d.dias_totais_no_funil = 0;
+                }
+                return true;
+            } else {
+                // Se é fechado (won/lost) e foi fechado ou criado antes do corte de hoje, nós deletamos dos cálculos
+                const refDate = d.closed_at || d.created_at;
+                if (refDate < IGNORE_TEST_DATA_BEFORE) {
+                    return false;
+                }
+                return true;
+            }
+        });
 
         // Regras de filtragem do Funil (usando as datas ajustadas para tempo)
         const dealsCreated = currentData.filter(d => (d.created_at as string) >= startOfDay && (d.created_at as string) <= endOfDay);
 
-        // Se o negócio foi fechado no período OU se ele já está como won/lost e estamos vendo "Todo o Período"
-        const dealsClosed = currentData.filter(d => {
-            if (d.status_final === 'open') return false;
-
-            const closedAt = d.closed_at as string;
-            if (closedAt) {
-                return closedAt >= startOfDay && closedAt <= endOfDay;
-            }
-
-            // Fallback para negócios sincronizados sem closed_at (usamos created_at como proxy se for won/lost)
-            const createdAt = d.created_at as string;
-            return createdAt >= startOfDay && createdAt <= endOfDay;
-        });
-
-        const totalDeals = dealsCreated.filter(d => d.status_final === 'open').length;
-        const totalWon = dealsClosed.filter(d => d.status_final === 'won').length;
-        const totalLost = dealsClosed.filter(d => d.status_final === 'lost').length;
+        // REGRA OFICIAL ANTIGRAVITY (Fev 2026):
+        // KPI "Total de Negócios" = Volume real de negócios criados dentro do período (independente do status).
+        const totalDeals = dealsCreated.length;
+        const totalWon = dealsCreated.filter(d => d.status_final === 'won').length;
+        const totalLost = dealsCreated.filter(d => d.status_final === 'lost').length;
 
         const totalAtividades = dealsCreated.reduce((sum, d) => sum + (d.total_atividades || 0), 0);
         const totalContatos = dealsCreated.reduce((sum, d) => sum + (d.total_contatos_realizados || 0), 0);
         const mediaContatos = totalDeals > 0 ? totalContatos / totalDeals : 0;
 
-        const wonDeals = dealsClosed.filter(d => d.status_final === 'won');
+        const wonDeals = dealsCreated.filter(d => d.status_final === 'won');
         const totalDiasFechamento = wonDeals.reduce((sum, d) => sum + (d.dias_ate_fechamento || 0), 0);
         const mediaDiasFechamento = wonDeals.length > 0 ? totalDiasFechamento / wonDeals.length : 0;
 
         const taxaFechamento = totalDeals > 0 ? (totalWon / totalDeals) * 100 : 0;
+        const taxaPerda = totalDeals > 0 ? (totalLost / totalDeals) * 100 : 0;
 
         // Fase 3: Contagem Exata por Etapa (Visão de Snapshot do Pipeline)
         const prospectCount = dealsCreated.filter(d =>
@@ -218,8 +277,8 @@ export async function getInsightsData(
         const negociosCom7OuMais = openDealsCreated.filter(d => (d.total_contatos_realizados || 0) >= 7).length;
         const percent7OuMais = totalDeals > 0 ? (negociosCom7OuMais / totalDeals) * 100 : 0;
 
-        const encerradosAntes5 = dealsClosed.filter(d =>
-            (d.total_contatos_realizados || 0) < 5
+        const encerradosAntes5 = dealsCreated.filter(d =>
+            (d.status_final !== 'open') && (d.total_contatos_realizados || 0) < 5
         ).length;
         const percentEncerradosAntes5 = (totalWon + totalLost) > 0 ? (encerradosAntes5 / (totalWon + totalLost)) * 100 : 0;
 
@@ -297,17 +356,17 @@ export async function getInsightsData(
         const taxaReuniaoEmail = totalEmail > 0 ? (reuniaoEmail / totalEmail) * 100 : 0;
         const taxaReuniaoCall = totalCall > 0 ? (reuniaoCall / totalCall) * 100 : 0;
 
-        const fechamentoMessage = dealsClosed.filter(d => d.canal_mais_usado === 'message' && d.status_final === 'won').length;
-        const fechamentoEmail = dealsClosed.filter(d => d.canal_mais_usado === 'email' && d.status_final === 'won').length;
-        const fechamentoCall = dealsClosed.filter(d => d.canal_mais_usado === 'call' && d.status_final === 'won').length;
+        const fechamentoMessage = dealsCreated.filter(d => d.canal_mais_usado === 'message' && d.status_final === 'won').length;
+        const fechamentoEmail = dealsCreated.filter(d => d.canal_mais_usado === 'email' && d.status_final === 'won').length;
+        const fechamentoCall = dealsCreated.filter(d => d.canal_mais_usado === 'call' && d.status_final === 'won').length;
 
         const taxaFechamentoMessage = totalMessage > 0 ? (fechamentoMessage / totalMessage) * 100 : 0;
         const taxaFechamentoEmail = totalEmail > 0 ? (fechamentoEmail / totalEmail) * 100 : 0;
         const taxaFechamentoCall = totalCall > 0 ? (fechamentoCall / totalCall) * 100 : 0;
 
         // Fase 8: Módulo de Perdas
-        const lostDeals = dealsClosed.filter(d => d.status_final === 'lost');
-        const taxaPerda = totalDeals > 0 ? (totalLost / totalDeals) * 100 : 0;
+        const lostDeals = dealsCreated.filter(d => d.status_final === 'lost');
+        // taxaPerda já foi calculada acima na Fase 2
 
         const tempoMedioAtePerda = lostDeals.length > 0
             ? lostDeals.reduce((sum, d) => sum + (d.dias_totais_no_funil || 0), 0) / lostDeals.length
@@ -341,6 +400,42 @@ export async function getInsightsData(
             percentual: totalLost > 0 ? (motivosMap[motivo] / totalLost) * 100 : 0
         })).sort((a, b) => b.quantidade - a.quantidade);
 
+        // Dashboard Flow Metrics
+        const flowGanhosDeals = currentData.filter(d => d.status_final === 'won' && d.closed_at && (d.closed_at as string) >= startOfDay && (d.closed_at as string) <= endOfDay);
+        const flowPerdidosDeals = currentData.filter(d => d.status_final === 'lost' && d.closed_at && (d.closed_at as string) >= startOfDay && (d.closed_at as string) <= endOfDay);
+        const flowGanhosCount = flowGanhosDeals.length;
+        const flowPerdidosCount = flowPerdidosDeals.length;
+        const flowReceita = flowGanhosDeals.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0);
+        const flowConversao = (flowGanhosCount + flowPerdidosCount) > 0 ? (flowGanhosCount / (flowGanhosCount + flowPerdidosCount)) * 100 : 0;
+
+        // Dashboard Execution metrics (fetching activities within 7 days)
+        // We select 'type' to filter ONLY real activities (calls, meetings, etc) matching the UI logic
+        const { data: flowActivitiesRaw } = await supabase
+            .from('activities')
+            .select('id, status, created_at, completed_at, deal_id, type')
+            .or(`created_at.gte.${startOfDay},completed_at.gte.${startOfDay}`);
+
+        const flowActivities = flowActivitiesRaw?.filter(a => {
+            // 1. Must be a "Real" activity type (no internal notes)
+            const REAL_TYPES = ['call', 'meeting', 'task', 'email', 'message', 'instagram', 'analysis', 'audit'];
+            if (!REAL_TYPES.includes(a.type)) return false;
+
+            // 2. Must respect the global test data cutoff
+            if (a.created_at < IGNORE_TEST_DATA_BEFORE) return false;
+
+            return true;
+        });
+
+        const atividadesCriadas = flowActivities?.filter(a => (a.created_at as string) >= startOfDay && (a.created_at as string) <= endOfDay).length || 0;
+        const atividadesConcluidas = flowActivities?.filter(a => a.status === 'completed' && a.completed_at && (a.completed_at as string) >= startOfDay && (a.completed_at as string) <= endOfDay).length || 0;
+        const taxaExecucao = atividadesCriadas > 0 ? (atividadesConcluidas / atividadesCriadas) * 100 : 0;
+        const mediaExecucao = totalDeals > 0 ? (atividadesConcluidas / totalDeals) : 0;
+
+        const dealsComAtividade7d = new Set(
+            flowActivities?.filter(a => (a.created_at as string) >= startOfDay && a.deal_id && openDealsIds.has(a.deal_id.toLowerCase())).map(a => a.deal_id.toLowerCase())
+        );
+        const negociosSemAtividade = openDealsIds.size - dealsComAtividade7d.size;
+
         return {
             totalDeals,
             totalWon,
@@ -348,7 +443,21 @@ export async function getInsightsData(
             totalAtividades,
             mediaContatos,
             mediaDiasFechamento,
-            totalValor: 0,
+            totalValor: dealsCreated.reduce((sum, d) => sum + (d.total_faturado_nesta_fase || 0), 0),
+            wonValue: dealsCreated.filter(d => d.status_final === 'won').reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0),
+            openValue: openDealsCreated.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0),
+            dashboardFlow: {
+                ganhos: flowGanhosCount,
+                perdidos: flowPerdidosCount,
+                receita: flowReceita,
+                conversao: flowConversao,
+                pipelineValue: globalOpenValue,
+                atividadesConcluidas,
+                atividadesCriadas,
+                taxaExecucao,
+                mediaExecucao,
+                negociosSemAtividade
+            },
             funnel: {
                 totalDeals,
                 totalWon,
@@ -497,7 +606,21 @@ function emptyStats(): InsightsStats {
         totalAtividades: 0,
         mediaContatos: 0,
         mediaDiasFechamento: 0,
-        totalValor: 0
+        totalValor: 0,
+        wonValue: 0,
+        openValue: 0,
+        dashboardFlow: {
+            ganhos: 0,
+            perdidos: 0,
+            receita: 0,
+            conversao: 0,
+            pipelineValue: 0,
+            atividadesConcluidas: 0,
+            atividadesCriadas: 0,
+            taxaExecucao: 0,
+            mediaExecucao: 0,
+            negociosSemAtividade: 0
+        }
     };
 }
 

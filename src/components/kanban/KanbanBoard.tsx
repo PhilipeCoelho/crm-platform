@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useCRM } from "@/contexts/CRMContext";
 import { Deal } from "@/types/schema";
 import KanbanColumn from "./KanbanColumn";
@@ -105,68 +105,84 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     }, [statusFilter]);
 
     // Filter deals for current pipeline
-    const pipelineDeals = deals.filter(deal => deal.pipelineId === currentPipelineId);
+    // Filter deals for current pipeline (Memoized)
+    const pipelineDeals = useMemo(() =>
+        deals.filter(deal => deal.pipelineId === currentPipelineId),
+        [deals, currentPipelineId]);
 
-    // --- Filter Logic ---
-    const normalizeText = (text: string) =>
-        text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+    // --- Optimized Filter Logic ---
+    const normalizeText = useCallback((text: string) =>
+        text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ""), []);
 
-    const normalizeDigits = (text: string) => text.replace(/\D/g, "");
-    const searchUpper = normalizeText(searchTerm);
-    const searchDigits = normalizeDigits(searchTerm);
+    const normalizeDigits = useCallback((text: string) => text.replace(/\D/g, ""), []);
 
-    const filteredDeals = pipelineDeals.filter(deal => {
-        // Find linked info for deeper search
-        const contact = contacts.find(c => c.id === deal.contactId);
-        const company = companies.find(c => c.id === deal.companyId);
+    const filteredDeals = useMemo(() => {
+        const searchUpper = normalizeText(searchTerm);
+        const searchDigits = normalizeDigits(searchTerm);
 
-        const dealTitle = normalizeText(deal.title);
-        const contactName = contact ? normalizeText(contact.name) : '';
-        const companyName = company ? normalizeText(company.name) : '';
-        const contactPhone = contact?.phone ? normalizeText(contact.phone) : '';
-        const contactEmail = contact?.email ? normalizeText(contact.email) : '';
-        const contactPhoneDigits = contact?.phone ? normalizeDigits(contact.phone) : '';
+        // Pre-create Maps for O(1) lookups
+        const contactMap = new Map(contacts.map(c => [c.id, c]));
+        const companyMap = new Map(companies.map(c => [c.id, c]));
+        const openActivitiesByDeal = new Map<string, typeof activities>();
 
-        const matchesSearch = dealTitle.includes(searchUpper) ||
-            contactName.includes(searchUpper) ||
-            companyName.includes(searchUpper) ||
-            contactPhone.includes(searchUpper) ||
-            contactEmail.includes(searchUpper) ||
-            (searchDigits.length >= 7 && contactPhoneDigits.includes(searchDigits));
+        activities.forEach(a => {
+            if (a.completed || !a.dealId) return;
+            if (!openActivitiesByDeal.has(a.dealId)) {
+                openActivitiesByDeal.set(a.dealId, []);
+            }
+            openActivitiesByDeal.get(a.dealId)!.push(a);
+        });
 
+        const todayStr = new Date().toISOString().split('T')[0];
 
+        return pipelineDeals.filter((deal: Deal) => {
+            const contact = deal.contactId ? contactMap.get(deal.contactId) : undefined;
+            const company = deal.companyId ? companyMap.get(deal.companyId) : undefined;
 
-        // View Mode Logic
-        let matchesView = true;
-        const dealActivities = activities.filter(a => a.dealId === deal.id && !a.completed);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+            const dealTitle = normalizeText(deal.title);
+            const contactName = contact ? normalizeText(contact.name) : '';
+            const companyName = company ? normalizeText(company.name) : '';
+            const contactPhone = contact?.phone ? normalizeText(contact.phone) : '';
+            const contactEmail = contact?.email ? normalizeText(contact.email) : '';
+            const contactPhoneDigits = contact?.phone ? normalizeDigits(contact.phone) : '';
 
-        if (viewMode === 'today') {
-            matchesView = dealActivities.some(a => {
-                if (!a.dueDate) return false;
-                const d = new Date(a.dueDate);
-                return d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
-            });
-        } else if (viewMode === 'overdue') {
-            matchesView = dealActivities.some(a => {
-                if (!a.dueDate) return false;
-                return a.dueDate < new Date().toISOString().split('T')[0];
-            });
-        } else if (viewMode === 'no-action') {
-            matchesView = dealActivities.length === 0;
-        } else if (viewMode === 'high-value') {
-            matchesView = deal.value >= 10000;
-        }
+            const matchesSearch = !searchTerm ||
+                dealTitle.includes(searchUpper) ||
+                contactName.includes(searchUpper) ||
+                companyName.includes(searchUpper) ||
+                contactPhone.includes(searchUpper) ||
+                contactEmail.includes(searchUpper) ||
+                (searchDigits.length >= 7 && contactPhoneDigits.includes(searchDigits));
 
-        const matchesStatus = statusFilter === 'all' ? true : deal.status === statusFilter;
-        return matchesSearch && matchesView && matchesStatus;
-    }).sort((a, b) => {
-        const posA = a.position || 0;
-        const posB = b.position || 0;
-        if (posA !== posB) return posA - posB;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+            if (!matchesSearch) return false;
+
+            // Priority / View Mode Logic
+            let matchesView = true;
+            const dealActivities = openActivitiesByDeal.get(deal.id) || [];
+
+            if (viewMode === 'today') {
+                matchesView = dealActivities.some(a => a.dueDate?.split('T')[0] === todayStr);
+            } else if (viewMode === 'overdue') {
+                matchesView = dealActivities.some(a => a.dueDate && a.dueDate.split('T')[0] < todayStr);
+            } else if (viewMode === 'no-action') {
+                matchesView = dealActivities.length === 0;
+            } else if (viewMode === 'high-value') {
+                matchesView = deal.value >= 10000;
+            }
+
+            if (!matchesView) return false;
+
+            const matchesStatus = statusFilter === 'all' ? true : deal.status === statusFilter;
+            const isActuallyActive = statusFilter === 'open' ? deal.status === 'open' : true;
+
+            return matchesStatus && isActuallyActive;
+        }).sort((a: Deal, b: Deal) => {
+            const posA = a.position || 0;
+            const posB = b.position || 0;
+            if (posA !== posB) return posA - posB;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+    }, [pipelineDeals, contacts, companies, activities, searchTerm, viewMode, statusFilter, normalizeText, normalizeDigits]);
 
 
     const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
@@ -542,7 +558,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                         <KanbanColumn
                                             key={col.id}
                                             column={col}
-                                            tasks={filteredDeals.filter(d => d.stageId === col.id)}
+                                            tasks={filteredDeals.filter((d: Deal) => d.stageId === col.id)}
                                             onAdd={openNewDealModal}
                                             currency={currency}
                                             onPreview={handleDealClick}
@@ -601,7 +617,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
             setDragStartDeals(deals);
             setActiveDeal(deal || null);
-
         }
     }
 

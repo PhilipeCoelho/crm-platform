@@ -1,8 +1,14 @@
 import { useInsights } from '@/contexts/InsightsContext';
 import VariationBadge from './VariationBadge';
 import { MessageCircle, Mail, Phone, CalendarCheck2, CheckCircle2, TrendingUp } from 'lucide-react';
+import QuickGuide from '../ui/QuickGuide';
 
-export default function ChannelModule() {
+interface Props {
+    activeGuide: string | null;
+    setActiveGuide: (name: string | null) => void;
+}
+
+export default function ChannelModule({ activeGuide, setActiveGuide }: Props) {
     const { data, loading } = useInsights();
 
     if (loading || !data) {
@@ -19,9 +25,18 @@ export default function ChannelModule() {
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
             {/* 1. Titulo Central */}
-            <div className="flex items-center gap-3 mb-2">
-                <TrendingUp size={28} className="text-primary" />
-                <h2 className="text-2xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Eficácia por Canal</h2>
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                    <TrendingUp size={28} className="text-primary" />
+                    <div className="flex items-center">
+                        <h2 className="text-2xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Eficácia por Canal</h2>
+                        <QuickGuide
+                            moduleName="insights_canais"
+                            activeGuide={activeGuide}
+                            setActiveGuide={setActiveGuide}
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* 2. Distribuição de Uso */}

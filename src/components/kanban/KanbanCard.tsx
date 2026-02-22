@@ -14,6 +14,7 @@ interface Props {
     currency: Currency;
     onPreview?: (dealId: string, position: { x: number; y: number }) => void;
     searchTerm?: string;
+    nextActivityData?: { title: string; dueDate?: string };
 }
 
 // Interface for the Base component that handles rendering logic
@@ -29,22 +30,15 @@ export interface DealCardBaseProps extends Props {
     style?: React.CSSProperties; // Allow overriding style
 }
 
-export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, style: propStyle }: DealCardBaseProps) {
-    const { contacts, companies, activities, deleteDeal, moveDeal, pipelines } = useCRM();
+export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, style: propStyle, nextActivityData }: DealCardBaseProps) {
+    const { contacts, companies, deleteDeal, moveDeal, pipelines } = useCRM();
     const navigate = useNavigate();
 
     // Activity Logic
-    const openActivities = activities.filter(a => a.dealId === deal.id && !a.completed);
-    const nextActivity = openActivities.sort((a, b) => {
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return a.dueDate.localeCompare(b.dueDate);
-    })[0];
-
-    const hasNextAction = !!nextActivity;
+    const hasNextAction = !!nextActivityData;
 
     const now = new Date();
-    const rawActivityDate = nextActivity?.dueDate;
+    const rawActivityDate = nextActivityData?.dueDate;
     const dueDate = rawActivityDate ? parseISO(rawActivityDate) : undefined;
 
     // Priority Status Determination (Time-sensitive)
@@ -81,7 +75,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
         return {
             dot: 'bg-muted-foreground/40',
             icon: ChevronRight,
-            label: nextActivity?.title || 'Futuro'
+            label: nextActivityData?.title || 'Futuro'
         };
     };
 
