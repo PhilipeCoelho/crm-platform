@@ -50,7 +50,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
             const val = data?.current?.dashboardFlow?.receita || 0;
             return {
                 value: currency ? new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(val) : val,
-                microDescription: 'Receita gerada nos últimos 7 dias',
+                microDescription: 'Receita gerada',
                 variation: data?.variation?.wonValue
             };
         }
@@ -84,7 +84,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'conversion',
         getValue: (data) => ({
             value: data?.current?.totalDeals || 0,
-            microDescription: 'Negócios criados nos últimos 7 dias',
+            microDescription: 'Negócios criados',
             variation: data?.variation?.totalDeals
         })
     },
@@ -99,7 +99,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'conversion',
         getValue: (data) => ({
             value: data?.current?.dashboardFlow?.ganhos || 0,
-            microDescription: 'Negócios fechados como ganho nos últimos 7 dias',
+            microDescription: 'Negócios fechados como ganho',
             variation: data?.variation?.totalWon
         })
     },
@@ -114,7 +114,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'loss',
         getValue: (data) => ({
             value: data?.current?.dashboardFlow?.perdidos || 0,
-            microDescription: 'Negócios encerrados nos últimos 7 dias',
+            microDescription: 'Negócios encerrados',
             variation: data?.variation?.totalLost
         })
     },
@@ -129,7 +129,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'conversion',
         getValue: (data) => ({
             value: `${data?.current?.dashboardFlow?.conversao?.toFixed(1) || 0}%`,
-            microDescription: 'Taxa de fechamento nos últimos 7 dias',
+            microDescription: 'Taxa de fechamento',
             variation: data?.variation?.taxaFechamento
         })
     },
@@ -250,7 +250,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'execution',
         getValue: (data) => ({
             value: data?.current?.dashboardFlow?.atividadesConcluidas || 0,
-            microDescription: 'Atividades concluídas nos últimos 7 dias'
+            microDescription: 'Atividades concluídas'
         })
     },
     {
@@ -264,7 +264,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'execution',
         getValue: (data) => ({
             value: data?.current?.dashboardFlow?.atividadesCriadas || 0,
-            microDescription: 'Atividades criadas nos últimos 7 dias'
+            microDescription: 'Atividades criadas'
         })
     },
     {
@@ -278,7 +278,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'execution',
         getValue: (data) => ({
             value: `${data?.current?.dashboardFlow?.taxaExecucao?.toFixed(1) || 0}%`,
-            microDescription: 'Percentual de atividades concluídas nos últimos 7 dias'
+            microDescription: 'Percentual de atividades concluídas'
         })
     },
     {
@@ -292,7 +292,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'execution',
         getValue: (data) => ({
             value: data?.current?.dashboardFlow?.mediaExecucao?.toFixed(1) || 0,
-            microDescription: 'Média de atividades por negócio criado nos últimos 7 dias'
+            microDescription: 'Média de atividades por negócio criado'
         })
     },
     {
@@ -306,7 +306,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         metric_category: 'execution',
         getValue: (data) => ({
             value: data?.current?.dashboardFlow?.negociosSemAtividade || 0,
-            microDescription: 'Negócios abertos sem atividade nos últimos 7 dias'
+            microDescription: 'Negócios abertos sem atividade'
         })
     }
 ];

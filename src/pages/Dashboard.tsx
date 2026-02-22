@@ -12,14 +12,15 @@ import { useNavigate } from 'react-router-dom';
 import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
 import WidgetManagerModal from '@/components/dashboard/WidgetManagerModal';
 import { WIDGET_DEFINITIONS } from '@/data/widgetDefinitions';
+let globalDashboardInsightsCache: InsightsData | null = null;
 
 export default function Dashboard({ currency }: { currency: Currency }) {
     const { user } = useSupabaseAuth();
     const { deals, activities, pipelines, openNewDealModal, updateActivity, deleteActivity } = useCRM();
     const navigate = useNavigate();
 
-    const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [insightsData, setInsightsData] = useState<InsightsData | null>(globalDashboardInsightsCache);
+    const [isLoading, setIsLoading] = useState(!globalDashboardInsightsCache);
 
     const { widgets: customWidgets, saveWidgets } = useDashboardWidgets();
     const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
@@ -31,16 +32,17 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         return recs.length > 0 ? recs[0] : null; // Pega apenas a maior prioridade
     }, [insightsData]);
 
-    // Initial data fetch using Insights central function
+    // Background auto-refresh data when deals/activities change with a debounce
     useEffect(() => {
         const fetchInsights = async () => {
-            setIsLoading(true);
+            if (!globalDashboardInsightsCache) setIsLoading(true);
             try {
                 const now = new Date();
                 const start = subDays(now, 7).toISOString();
                 const end = now.toISOString();
 
                 const data = await getInsightsData(start, end);
+                globalDashboardInsightsCache = data;
                 setInsightsData(data);
             } catch (error) {
                 console.error("Error fetching insights for dashboard:", error);
@@ -48,8 +50,14 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                 setIsLoading(false);
             }
         };
-        fetchInsights();
-    }, []);
+
+        // Debounce to allow Supabase triggers (Optimistic UI) to finish their job
+        const timer = setTimeout(() => {
+            fetchInsights();
+        }, 1500);
+
+        return () => clearTimeout(timer);
+    }, [deals, activities]);
 
     // Greeting
     const greeting = useMemo(() => {
