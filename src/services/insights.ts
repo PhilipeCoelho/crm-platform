@@ -34,9 +34,12 @@ export interface FunnelData {
     leadEngajadoCount: number;
     reuniaoCount: number;
     fechamentoCount: number;
+    propostaCount: number;
     prospectToLead: number;
     leadToLeadEngajado: number;
     leadEngajadoToReuniao: number;
+    reuniaoToProposta: number;
+    propostaToGanho: number;
     reuniaoToFechamento: number;
 }
 
@@ -51,6 +54,8 @@ export interface ActivityData {
     mediaAtividadesPorNegocio: number;
     mediaContatosAteReuniao: number;
     mediaContatosAteFechamento: number;
+    mediaFollowUpsAteFechamento: number;
+    taxaComparecimento: number;
 
     percentMensagens: number;
     percentEmails: number;
@@ -148,6 +153,19 @@ export async function getInsightsData(
                 .map(d => d.id.toLowerCase()) || []
         );
 
+        // 3. Fetch activities within this specific timeframe
+        const { data: flowActivitiesRaw } = await supabase
+            .from('activities')
+            .select('id, status, created_at, completed_at, deal_id, type')
+            .or(`created_at.gte.${startOfDay},completed_at.gte.${startOfDay}`);
+
+        const flowActivities = flowActivitiesRaw?.filter(a => {
+            const REAL_TYPES = ['call', 'meeting', 'task', 'email', 'message', 'instagram', 'analysis', 'audit'];
+            if (!REAL_TYPES.includes(a.type)) return false;
+            if (a.created_at < IGNORE_TEST_DATA_BEFORE) return false;
+            return true;
+        });
+
         // 3. Buscar dados de analytics
         const { data, error } = await supabase
             .from('deal_analytics')
@@ -227,15 +245,19 @@ export async function getInsightsData(
             d.etapa_onde_perdeu?.toLowerCase().includes('engajado')
         ).length;
 
-        // "Lead" não pode incluir "Lead Engajado"
         const leadCount = dealsCreated.filter(d =>
             (d.stage_atual?.toLowerCase().includes('lead') && !d.stage_atual?.toLowerCase().includes('engajado')) ||
             (d.etapa_onde_perdeu?.toLowerCase().includes('lead') && !d.etapa_onde_perdeu?.toLowerCase().includes('engajado'))
         ).length;
 
         const reuniaoCount = dealsCreated.filter(d =>
-            d.stage_atual?.toLowerCase().includes('reuni') ||
-            d.etapa_onde_perdeu?.toLowerCase().includes('reuni')
+            d.stage_atual?.toLowerCase().includes('reun') ||
+            d.etapa_onde_perdeu?.toLowerCase().includes('reun')
+        ).length;
+
+        const propostaCount = dealsCreated.filter(d =>
+            d.stage_atual?.toLowerCase().includes('proposta') ||
+            d.etapa_onde_perdeu?.toLowerCase().includes('proposta')
         ).length;
 
         const fechamentoCount = totalWon;
@@ -243,6 +265,8 @@ export async function getInsightsData(
         const prospectToLead = prospectCount > 0 ? (leadCount / prospectCount) * 100 : 0;
         const leadToLeadEngajado = leadCount > 0 ? (leadEngajadoCount / leadCount) * 100 : 0;
         const leadEngajadoToReuniao = leadEngajadoCount > 0 ? (reuniaoCount / leadEngajadoCount) * 100 : 0;
+        const reuniaoToProposta = reuniaoCount > 0 ? (propostaCount / reuniaoCount) * 100 : 0;
+        const propostaToGanho = propostaCount > 0 ? (totalWon / propostaCount) * 100 : 0;
         const reuniaoToFechamento = reuniaoCount > 0 ? (fechamentoCount / reuniaoCount) * 100 : 0;
 
         // Fase 4: Atividades
@@ -264,6 +288,15 @@ export async function getInsightsData(
         const mediaContatosAteFechamento = wonDeals.length > 0
             ? wonDeals.reduce((sum, d) => sum + (d.contatos_ate_fechamento || 0), 0) / wonDeals.length
             : 0;
+
+        const mediaFollowUpsAteFechamento = wonDeals.length > 0
+            ? wonDeals.reduce((sum, d) => sum + Math.max(0, (d.total_contatos_realizados || 0) - (d.contatos_ate_reuniao || 0)), 0) / wonDeals.length
+            : 0;
+
+        // Fetch Taxa de Comparecimento (Meetings completed vs Total meetings)
+        const totalMeetings = flowActivities?.filter(a => a.type === 'meeting').length || 0;
+        const completedMeetings = flowActivities?.filter(a => a.type === 'meeting' && a.status === 'completed').length || 0;
+        const taxaComparecimento = totalMeetings > 0 ? (completedMeetings / totalMeetings) * 100 : 0;
 
         const percentMensagens = totalAtividades > 0 ? (totalMensagens / totalAtividades) * 100 : 0;
         const percentEmails = totalAtividades > 0 ? (totalEmails / totalAtividades) * 100 : 0;
@@ -408,24 +441,6 @@ export async function getInsightsData(
         const flowReceita = flowGanhosDeals.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0);
         const flowConversao = (flowGanhosCount + flowPerdidosCount) > 0 ? (flowGanhosCount / (flowGanhosCount + flowPerdidosCount)) * 100 : 0;
 
-        // Dashboard Execution metrics (fetching activities within 7 days)
-        // We select 'type' to filter ONLY real activities (calls, meetings, etc) matching the UI logic
-        const { data: flowActivitiesRaw } = await supabase
-            .from('activities')
-            .select('id, status, created_at, completed_at, deal_id, type')
-            .or(`created_at.gte.${startOfDay},completed_at.gte.${startOfDay}`);
-
-        const flowActivities = flowActivitiesRaw?.filter(a => {
-            // 1. Must be a "Real" activity type (no internal notes)
-            const REAL_TYPES = ['call', 'meeting', 'task', 'email', 'message', 'instagram', 'analysis', 'audit'];
-            if (!REAL_TYPES.includes(a.type)) return false;
-
-            // 2. Must respect the global test data cutoff
-            if (a.created_at < IGNORE_TEST_DATA_BEFORE) return false;
-
-            return true;
-        });
-
         const atividadesCriadas = flowActivities?.filter(a => (a.created_at as string) >= startOfDay && (a.created_at as string) <= endOfDay).length || 0;
         const atividadesConcluidas = flowActivities?.filter(a => a.status === 'completed' && a.completed_at && (a.completed_at as string) >= startOfDay && (a.completed_at as string) <= endOfDay).length || 0;
         const taxaExecucao = atividadesCriadas > 0 ? (atividadesConcluidas / atividadesCriadas) * 100 : 0;
@@ -468,9 +483,12 @@ export async function getInsightsData(
                 leadEngajadoCount,
                 reuniaoCount,
                 fechamentoCount,
+                propostaCount,
                 prospectToLead,
                 leadToLeadEngajado,
                 leadEngajadoToReuniao,
+                reuniaoToProposta,
+                propostaToGanho,
                 reuniaoToFechamento
             },
             activity: {
@@ -483,6 +501,8 @@ export async function getInsightsData(
                 mediaAtividadesPorNegocio,
                 mediaContatosAteReuniao,
                 mediaContatosAteFechamento,
+                mediaFollowUpsAteFechamento,
+                taxaComparecimento,
                 percentMensagens,
                 percentEmails,
                 percentLigacoes
@@ -635,9 +655,12 @@ function emptyFunnel(): FunnelData {
         leadEngajadoCount: 0,
         reuniaoCount: 0,
         fechamentoCount: 0,
+        propostaCount: 0,
         prospectToLead: 0,
         leadToLeadEngajado: 0,
         leadEngajadoToReuniao: 0,
+        reuniaoToProposta: 0,
+        propostaToGanho: 0,
         reuniaoToFechamento: 0
     };
 }
@@ -653,6 +676,8 @@ function emptyActivity(): ActivityData {
         mediaAtividadesPorNegocio: 0,
         mediaContatosAteReuniao: 0,
         mediaContatosAteFechamento: 0,
+        mediaFollowUpsAteFechamento: 0,
+        taxaComparecimento: 0,
         percentMensagens: 0,
         percentEmails: 0,
         percentLigacoes: 0

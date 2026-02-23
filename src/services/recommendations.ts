@@ -173,6 +173,31 @@ export function generateStrategicRecommendations(data: InsightsData): StrategicR
         }
     }
 
+    // --- DIAGNÓSTICOS EDUCACIONAIS (ETAPAS) ---
+    if (current.funnel.leadEngajadoCount > 0) {
+        recs.push({
+            tipo: 'ajuste',
+            area: 'Diagnóstico',
+            impacto: 'baixo',
+            prioridade: 0,
+            titulo: 'Métricas de Engajamento',
+            mensagem: '🎯 MÉTRICAS QUE VOCÊ PRECISA MEDIR NESSA ETAPA: % Lead → Lead Engajado; % Lead Engajado → Reunião; Tempo médio até agendamento; Quantos toques até marcar reunião.',
+            recomendacao: 'Se o Lead Engajado não converte, o problema pode ser: Falta de urgência, Falta de dor, Falta de autoridade ou se você está indo para reunião cedo demais.'
+        });
+    }
+
+    if (current.funnel.fechamentoCount > 0 || current.funnel.propostaCount > 0) {
+        recs.push({
+            tipo: 'ajuste',
+            area: 'Diagnóstico',
+            impacto: 'baixo',
+            prioridade: 0,
+            titulo: 'Métricas de Fechamento',
+            mensagem: '📊 MÉTRICAS QUE AGORA VOCÊ CONSEGUE MEDIR: Taxa de comparecimento; % Reunião → Proposta; % Proposta → Ganho; Tempo médio até fechar; Quantos follow-ups até fechar.',
+            recomendacao: 'Analise o funil nessas transições para identificar onde o dinheiro está ficando na mesa.'
+        });
+    }
+
     // --- PRIORIZAÇÃO ---
     // Atribuir prioridade baseada no peso do impacto + fatores secundários (aumento ou problemas diretos de metas terão prioridade bônus no sort)
     recs.sort((a, b) => {
@@ -185,6 +210,6 @@ export function generateStrategicRecommendations(data: InsightsData): StrategicR
         return typeWeight[b.tipo] - typeWeight[a.tipo];
     });
 
-    // Renumerar e Limitar a 3 recomendações (Visão Estratégica)
-    return recs.slice(0, 3).map((r, i) => ({ ...r, prioridade: i + 1 }));
+    // Renumerar e Limitar a 5 recomendações (Visão Estratégica)
+    return recs.slice(0, 5).map((r, i) => ({ ...r, prioridade: i + 1 }));
 }

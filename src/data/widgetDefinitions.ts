@@ -20,7 +20,11 @@ export type WidgetKey =
     | 'atividades_criadas'
     | 'taxa_execucao'
     | 'media_execucao'
-    | 'negocios_sem_atividade';
+    | 'negocios_sem_atividade'
+    | 'taxa_comparecimento'
+    | 'reuniao_para_proposta'
+    | 'proposta_para_ganho'
+    | 'media_followups';
 
 export type WidgetCategory = 'revenue' | 'conversion' | 'intensity' | 'velocity' | 'loss' | 'channel' | 'execution';
 
@@ -307,6 +311,62 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         getValue: (data) => ({
             value: data?.current?.dashboardFlow?.negociosSemAtividade || 0,
             microDescription: 'Negócios abertos sem atividade'
+        })
+    },
+    {
+        key: 'taxa_comparecimento',
+        title: 'Taxa de Comparecimento',
+        description: 'Percentual de reuniões agendadas que foram efetivamente concluídas.',
+        icon: Users,
+        color: 'bg-emerald-500/10 text-emerald-500',
+        redirectLink: '/insights?tab=funil',
+        widget_available: true,
+        metric_category: 'conversion',
+        getValue: (data) => ({
+            value: `${data?.current?.activity?.taxaComparecimento?.toFixed(1) || 0}%`,
+            microDescription: 'Comparecimento em Reuniões'
+        })
+    },
+    {
+        key: 'reuniao_para_proposta',
+        title: 'Reunião → Proposta',
+        description: 'Percentual de reuniões que resultaram no envio de uma proposta.',
+        icon: ArrowUpRight,
+        color: 'bg-blue-500/10 text-blue-500',
+        redirectLink: '/insights?tab=funil',
+        widget_available: true,
+        metric_category: 'conversion',
+        getValue: (data) => ({
+            value: `${data?.current?.funnel?.reuniaoToProposta?.toFixed(1) || 0}%`,
+            microDescription: 'Eficiência de qualificação'
+        })
+    },
+    {
+        key: 'proposta_para_ganho',
+        title: 'Proposta → Ganho',
+        description: 'Percentual de propostas enviadas que foram fechadas como ganho.',
+        icon: Target,
+        color: 'bg-emerald-500/10 text-emerald-500',
+        redirectLink: '/insights?tab=funil',
+        widget_available: true,
+        metric_category: 'revenue',
+        getValue: (data) => ({
+            value: `${data?.current?.funnel?.propostaToGanho?.toFixed(1) || 0}%`,
+            microDescription: 'Taxa de fechamento de proposta'
+        })
+    },
+    {
+        key: 'media_followups',
+        title: 'Follow-ups até Ganho',
+        description: 'Média de atividades de acompanhamento realizadas após a reunião até o fechamento.',
+        icon: Activity,
+        color: 'bg-indigo-500/10 text-indigo-500',
+        redirectLink: '/insights?tab=intensidade',
+        widget_available: true,
+        metric_category: 'intensity',
+        getValue: (data) => ({
+            value: data?.current?.activity?.mediaFollowUpsAteFechamento?.toFixed(1) || 0,
+            microDescription: 'Toques pós-reunião'
         })
     }
 ];

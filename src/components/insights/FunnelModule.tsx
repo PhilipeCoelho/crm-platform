@@ -69,11 +69,17 @@ export default function FunnelModule({ activeGuide, setActiveGuide }: Props) {
                         count={current.funnel.reuniaoCount}
                         percent={current.funnel.leadEngajadoToReuniao}
                     />
-                    <FunnelDivider percent={current.funnel.reuniaoToFechamento} />
+                    <FunnelDivider percent={current.funnel.reuniaoToProposta} />
+                    <FunnelStep
+                        label="Proposta Enviada"
+                        count={current.funnel.propostaCount}
+                        percent={current.funnel.reuniaoToProposta}
+                    />
+                    <FunnelDivider percent={current.funnel.propostaToGanho} />
                     <FunnelStep
                         label="Fechamentos (Won)"
                         count={current.funnel.fechamentoCount}
-                        percent={current.funnel.reuniaoToFechamento}
+                        percent={current.funnel.propostaToGanho}
                         isLast
                     />
                 </div>
