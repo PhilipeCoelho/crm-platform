@@ -13,6 +13,7 @@ interface Props {
     onToggle: (id: string) => void;
     onDelete?: (id: string) => void;
     onEdit?: (activity: Activity) => void;
+    onItemClick?: (activity: Activity) => void;
 }
 
 const typeIcons: Record<string, any> = {
@@ -82,7 +83,7 @@ const statusStyles = {
     }
 };
 
-export default function ActivityList({ activities, onToggle, onDelete, onEdit }: Props) {
+export default function ActivityList({ activities, onToggle, onDelete, onEdit, onItemClick }: Props) {
     if (activities.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
@@ -106,13 +107,15 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                 return (
                     <div
                         key={activity.id}
+                        onClick={() => onItemClick?.(activity)}
                         className={`group/item relative flex items-start gap-2 p-1.5 sm:p-1.5 rounded-lg border bg-card/40 transition-all hover:shadow-sm
+                            ${onItemClick ? 'cursor-pointer' : ''}
                             ${(isCompleted || isCanceled) ? 'opacity-60 border-border' : `border-l-[3px] ${style.border.replace('border', 'border-l')}`}`}
                         // Note: Using border-l-3 for subtler indicator status if not completed
                         style={(!isCompleted && !isCanceled) ? { borderLeftColor: status === 'late' ? 'hsl(var(--destructive))' : status === 'today' ? 'hsl(var(--primary))' : undefined } : {}}
                     >
                         <button
-                            onClick={() => !isCanceled && onToggle(activity.id)}
+                            onClick={(e) => { e.stopPropagation(); !isCanceled && onToggle(activity.id); }}
                             className={`mt-0.5 shrink-0 h-9 w-9 sm:h-auto sm:w-auto flex items-center justify-center sm:block ${isCompleted ? 'text-primary' : isCanceled ? 'text-muted-foreground cursor-not-allowed' : 'text-muted-foreground hover:text-primary'} transition-colors`}
                             disabled={isCanceled}
                         >

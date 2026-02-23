@@ -16,7 +16,15 @@ let globalDashboardInsightsCache: InsightsData | null = null;
 
 export default function Dashboard({ currency }: { currency: Currency }) {
     const { user } = useSupabaseAuth();
-    const { deals, activities, pipelines, openNewDealModal, updateActivity, deleteActivity } = useCRM();
+    const {
+        deals,
+        activities,
+        pipelines,
+        openNewDealModal,
+        updateActivity,
+        deleteActivity,
+        openFocusDeal
+    } = useCRM();
     const navigate = useNavigate();
 
     const [insightsData, setInsightsData] = useState<InsightsData | null>(globalDashboardInsightsCache);
@@ -322,6 +330,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                                 activities={alertLists.overdueActivities}
                                                 onToggle={handleToggleActivity}
                                                 onDelete={handleDeleteActivity}
+                                                onItemClick={(activity) => activity.dealId && openFocusDeal(activity.dealId)}
                                             />
                                         )}
                                     </div>
@@ -341,6 +350,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                                 activities={alertLists.todayActivities}
                                                 onToggle={handleToggleActivity}
                                                 onDelete={handleDeleteActivity}
+                                                onItemClick={(activity) => activity.dealId && openFocusDeal(activity.dealId)}
                                             />
                                         )}
                                     </div>
@@ -359,6 +369,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                             alertLists.dealsWithoutAction.map(deal => (
                                                 <div
                                                     key={deal.id}
+                                                    onClick={() => openFocusDeal(deal.id)}
                                                     className="p-3 rounded-lg border border-amber-500/20 bg-card hover:bg-amber-500/10 transition-colors cursor-pointer group flex items-center justify-between"
                                                 >
                                                     <div>
