@@ -3,7 +3,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageSquare, Phone, Mail, Calendar, Info, BarChart3, Video, Instagram, CheckCircle2, StickyNote, History } from 'lucide-react';
 import { ActivityScriptPopover } from './ActivityScriptPopover';
-import { getScriptByTitle } from '@/services/cadence';
+import { getScriptByTitle, formatScript } from '@/services/cadence';
+import { useCRM } from '@/contexts/CRMContext';
 
 interface Props {
     activities: Activity[];
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function Timeline({ activities, logs = [], onReopen, onEdit, onDelete }: Props) {
+    const { contacts, companies, deals } = useCRM();
     // Combine and Sort by createdAt descending
     // Filter out logs that are linked to an activity to avoid duplicate separate entries
     const items = [
@@ -118,12 +120,25 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
                                     <div className="pl-1">
                                         <h4 className="text-sm font-bold text-foreground/90 flex items-center gap-1.5">
                                             {activity?.title}
-                                            {(activity?.tooltipScript || activity?.notes || (activity?.title && getScriptByTitle(activity.title))) && activity?.status !== 'completed' && (
-                                                <ActivityScriptPopover
-                                                    suggestion={activity?.notes}
-                                                    script={activity?.tooltipScript || (activity?.title ? getScriptByTitle(activity.title) : undefined)}
-                                                />
-                                            )}
+                                            {(activity?.tooltipScript || activity?.notes || (activity?.title && getScriptByTitle(activity.title))) && activity?.status !== 'completed' && (() => {
+                                                const rawScript = activity?.tooltipScript || (activity?.title ? getScriptByTitle(activity.title) : undefined);
+                                                const contact = contacts.find(c => c.id === activity?.contactId);
+                                                const company = companies.find(c => c.id === activity?.companyId);
+                                                const deal = deals.find(d => d.id === activity?.dealId);
+
+                                                const formattedScript = rawScript ? formatScript(rawScript, {
+                                                    contactName: contact?.name,
+                                                    companyName: company?.name,
+                                                    dealTitle: deal?.title
+                                                }) : undefined;
+
+                                                return (
+                                                    <ActivityScriptPopover
+                                                        suggestion={activity?.notes}
+                                                        script={formattedScript}
+                                                    />
+                                                );
+                                            })()}
                                         </h4>
 
                                         {/* Display linked observation below the activity title */}

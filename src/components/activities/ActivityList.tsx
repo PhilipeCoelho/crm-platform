@@ -5,7 +5,8 @@ import {
     History, Instagram, BarChart3, Video, XCircle
 } from 'lucide-react';
 import { ActivityScriptPopover } from './ActivityScriptPopover';
-import { getScriptByTitle } from '@/services/cadence';
+import { getScriptByTitle, formatScript } from '@/services/cadence';
+import { useCRM } from '@/contexts/CRMContext';
 import { format, isBefore, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -85,6 +86,7 @@ const statusStyles = {
 };
 
 export default function ActivityList({ activities, onToggle, onDelete, onEdit, onItemClick }: Props) {
+    const { contacts, companies, deals } = useCRM();
     if (activities.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
@@ -127,12 +129,25 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
                                 <h4 className={`text-[12px] sm:text-[11px] font-bold sm:font-semibold flex items-center gap-1.5 ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {activity.title}
-                                    {(activity.tooltipScript || activity.notes || getScriptByTitle(activity.title)) && !isCompleted && !isCanceled && (
-                                        <ActivityScriptPopover
-                                            suggestion={activity.notes}
-                                            script={activity.tooltipScript || getScriptByTitle(activity.title)}
-                                        />
-                                    )}
+                                    {(activity.tooltipScript || activity.notes || getScriptByTitle(activity.title)) && !isCompleted && !isCanceled && (() => {
+                                        const rawScript = activity.tooltipScript || getScriptByTitle(activity.title);
+                                        const contact = contacts.find(c => c.id === activity.contactId);
+                                        const company = companies.find(c => c.id === activity.companyId);
+                                        const deal = deals.find(d => d.id === activity.dealId);
+
+                                        const formattedScript = rawScript ? formatScript(rawScript, {
+                                            contactName: contact?.name,
+                                            companyName: company?.name,
+                                            dealTitle: deal?.title
+                                        }) : undefined;
+
+                                        return (
+                                            <ActivityScriptPopover
+                                                suggestion={activity.notes}
+                                                script={formattedScript}
+                                            />
+                                        );
+                                    })()}
                                     {isCanceled && <span className="ml-1 text-[9px] line-through font-normal">(Cancelada)</span>}
                                 </h4>
                                 <div className="flex items-center gap-4 sm:gap-2">

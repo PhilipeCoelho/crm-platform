@@ -32,7 +32,7 @@ import BulkEditActivitiesModal from '@/components/activities/BulkEditActivitiesM
 import ActivitiesMoreActions from '@/components/activities/ActivitiesMoreActions';
 import { PrivacyText } from '@/components/ui/PrivacyMask';
 import { ActivityScriptPopover } from '@/components/activities/ActivityScriptPopover';
-import { getScriptByTitle } from '@/services/cadence';
+import { getScriptByTitle, formatScript } from '@/services/cadence';
 import { filterRealActivities } from '@/utils/activityHelpers';
 
 // Types
@@ -498,12 +498,25 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                                             <span className={`truncate max-w-[250px] transition-all ${activity.completed ? 'line-through text-muted-foreground/40 opacity-70' : 'text-foreground dark:text-foreground'}`}>
                                                                                 <PrivacyText text={activity.title} type="text" />
                                                                             </span>
-                                                                            {(activity.tooltipScript || activity.notes || getScriptByTitle(activity.title)) && !activity.completed && (
-                                                                                <ActivityScriptPopover
-                                                                                    suggestion={activity.notes}
-                                                                                    script={activity.tooltipScript || getScriptByTitle(activity.title)}
-                                                                                />
-                                                                            )}
+                                                                            {(activity.tooltipScript || activity.notes || getScriptByTitle(activity.title)) && !activity.completed && (() => {
+                                                                                const rawScript = activity.tooltipScript || getScriptByTitle(activity.title);
+                                                                                const contact = contacts.find(c => c.id === activity.contactId);
+                                                                                const company = companies.find(c => c.id === activity.companyId);
+                                                                                const deal = deals.find(d => d.id === activity.dealId);
+
+                                                                                const formattedScript = rawScript ? formatScript(rawScript, {
+                                                                                    contactName: contact?.name,
+                                                                                    companyName: company?.name,
+                                                                                    dealTitle: deal?.title
+                                                                                }) : undefined;
+
+                                                                                return (
+                                                                                    <ActivityScriptPopover
+                                                                                        suggestion={activity.notes}
+                                                                                        script={formattedScript}
+                                                                                    />
+                                                                                );
+                                                                            })()}
                                                                         </div>
                                                                         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 mt-0.5">{activity.type || 'Tarefa'}</span>
                                                                     </div>

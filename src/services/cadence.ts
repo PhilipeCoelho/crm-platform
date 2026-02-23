@@ -239,6 +239,48 @@ export const FE_SEQUENCE_TEMPLATES: StageSequence[] = [
         isActive: true
     }
 ];
+export const formatScript = (
+    template: string,
+    context: {
+        contactName?: string;
+        companyName?: string;
+        dealTitle?: string;
+    }
+): string => {
+    let formatted = template;
+
+    // 1. Determine Identity (Pessoa vs Equipe)
+    const isTalkingToPerson = !!context.contactName;
+    const recipientName = context.contactName
+        ? context.contactName.split(' ')[0]
+        : (context.companyName || context.dealTitle || 'Equipe');
+
+    // 2. Replace Placeholders
+    formatted = formatted.replace(/\[Nome\]/g, recipientName);
+
+    const clinicName = context.companyName || context.dealTitle || 'sua clínica';
+    formatted = formatted.replace(/\[Nome da Clínica\]/g, clinicName);
+
+    // 3. Tone Adjustment: "Eu" -> "Nós" if talking as a team
+    if (!isTalkingToPerson) {
+        formatted = formatted.replace(/\bEu \b/g, 'Nós ');
+        formatted = formatted.replace(/\beu \b/g, 'nós ');
+        formatted = formatted.replace(/\bTrabalho\b/g, 'Trabalhamos');
+        formatted = formatted.replace(/\btrabalho\b/g, 'trabalhamos');
+        formatted = formatted.replace(/\bAjudei\b/g, 'Ajudamos');
+        formatted = formatted.replace(/\bajudei\b/g, 'ajudamos');
+        formatted = formatted.replace(/\bvendo\b/g, 'vendemos');
+        formatted = formatted.replace(/\bVendo\b/g, 'Vendemos');
+        formatted = formatted.replace(/\bEnviei-lhe\b/g, 'Enviámos-lhe');
+        formatted = formatted.replace(/\benviei-lhe\b/g, 'enviámos-lhe');
+        formatted = formatted.replace(/\bescrevo\b/g, 'escrevemos');
+        formatted = formatted.replace(/\bAnalisei\b/g, 'Analisámos');
+        formatted = formatted.replace(/\banalisei\b/g, 'analisámos');
+    }
+
+    return formatted;
+};
+
 export const getScriptByTitle = (title: string): string | undefined => {
     const template = LEAD_SEQUENCE_TEMPLATES.find(t => t.defaultTitle === title);
     if (template) return template.tooltipScript;
