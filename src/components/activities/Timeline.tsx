@@ -2,6 +2,7 @@ import { Activity, DealLog } from '@/types/schema';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageSquare, Phone, Mail, Calendar, Info, BarChart3, Video, Instagram, CheckCircle2, StickyNote, History } from 'lucide-react';
+import { ActivityScriptPopover } from './ActivityScriptPopover';
 
 interface Props {
     activities: Activity[];
@@ -114,7 +115,15 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
                                     </div>
                                 ) : (
                                     <div className="pl-1">
-                                        <h4 className="text-sm font-bold text-foreground/90">{activity?.title}</h4>
+                                        <h4 className="text-sm font-bold text-foreground/90 flex items-center gap-1.5">
+                                            {activity?.title}
+                                            {(activity?.tooltipScript || activity?.notes) && activity.status !== 'completed' && (
+                                                <ActivityScriptPopover
+                                                    suggestion={activity.notes}
+                                                    script={activity.tooltipScript}
+                                                />
+                                            )}
+                                        </h4>
 
                                         {/* Display linked observation below the activity title */}
                                         {(() => {
@@ -127,9 +136,6 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
                                             );
                                         })()}
 
-                                        {activity?.notes && (
-                                            <p className="mt-2 text-xs text-muted-foreground italic">"{activity.notes}"</p>
-                                        )}
                                     </div>
                                 )}
                             </div>

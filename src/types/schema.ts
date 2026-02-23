@@ -94,6 +94,8 @@ export interface Activity {
     status: 'pending' | 'completed' | 'canceled'; // Added for Cadence
     originStage?: string; // ex: "LEAD"
     sequenceId?: string;
+    isAutomatic?: boolean;
+    tooltipScript?: string;
 
     createdAt: string;
     updatedAt?: string;
@@ -137,6 +139,7 @@ export interface StageSequence {
     defaultDescription?: string;
     orderIndex: number;
     isActive: boolean;
+    tooltipScript?: string;
 }
 
 export interface Stage {

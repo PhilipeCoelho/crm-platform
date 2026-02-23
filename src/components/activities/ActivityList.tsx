@@ -4,6 +4,7 @@ import {
     StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare,
     History, Instagram, BarChart3, Video, XCircle
 } from 'lucide-react';
+import { ActivityScriptPopover } from './ActivityScriptPopover';
 import { format, isBefore, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -120,8 +121,14 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
 
                         <div className="flex-1 min-w-0 pt-2 sm:pt-0">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
-                                <h4 className={`text-[12px] sm:text-[11px] font-bold sm:font-semibold ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                <h4 className={`text-[12px] sm:text-[11px] font-bold sm:font-semibold flex items-center gap-1.5 ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {activity.title}
+                                    {(activity.tooltipScript || activity.notes) && !isCompleted && !isCanceled && (
+                                        <ActivityScriptPopover
+                                            suggestion={activity.notes}
+                                            script={activity.tooltipScript}
+                                        />
+                                    )}
                                     {isCanceled && <span className="ml-1 text-[9px] line-through font-normal">(Cancelada)</span>}
                                 </h4>
                                 <div className="flex items-center gap-4 sm:gap-2">
@@ -161,6 +168,7 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit }:
                                     {activity.description}
                                 </p>
                             )}
+
 
                             <div className="flex items-center gap-3 sm:gap-2 mt-1.5 sm:mt-1">
                                 <span className="inline-flex items-center gap-1 sm:gap-0.5 text-[8px] uppercase font-bold tracking-wider text-muted-foreground/60 bg-muted/40 px-1.5 py-0.5 rounded">

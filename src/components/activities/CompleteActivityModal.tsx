@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, X } from 'lucide-react';
+import { CheckCircle2, X, MessageSquare } from 'lucide-react';
 import { Activity } from '@/types/schema';
 import { useCRM } from '@/contexts/CRMContext';
 
@@ -55,6 +55,31 @@ export default function CompleteActivityModal({ isOpen, onClose, activity }: Pro
                             {activity.title}
                         </div>
                     </div>
+
+                    {/* Sugestão de Cadência */}
+                    {activity.notes && (
+                        <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <MessageSquare size={40} className="text-primary" />
+                            </div>
+                            <label className="block text-[10px] uppercase font-bold text-primary mb-2 tracking-widest flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                Sugestão da Cadência
+                            </label>
+                            <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                                {activity.notes.split('Ex:').map((part, i) => (
+                                    i === 0 ? (
+                                        <p key={i} className="mb-2 font-medium">{part.trim()}</p>
+                                    ) : (
+                                        <div key={i} className="mt-2 p-3 bg-white dark:bg-slate-900/50 rounded-lg border border-primary/10 shadow-sm italic text-primary dark:text-primary/90 font-medium">
+                                            <span className="not-italic text-[10px] font-bold block mb-1 text-primary/60 uppercase">Dica:</span>
+                                            "{part.trim()}"
+                                        </div>
+                                    )
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Completion Notes */}
                     <div>
