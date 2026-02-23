@@ -249,28 +249,40 @@ export const formatScript = (
 ): string => {
     let formatted = template;
 
+    // Clean logic for Business/Deal titles
+    const cleanLabel = (t: string) => t.replace(/\bNegócio\b:?\s*/gi, '').trim();
+
     // 1. Determine Identity (Pessoa vs Equipe)
     const isTalkingToPerson = !!context.contactName;
 
-    // Clean recipient name: remove Dr./Dra./Sr./Sra. and take first name
-    let cleanRecipient = context.contactName || '';
-    cleanRecipient = cleanRecipient.replace(/^(Dr\.|Dra\.|Sr\.|Sra\.|Prof\.|Doutor\(a\))\s+/gi, '');
-    const recipientName = isTalkingToPerson
-        ? cleanRecipient.split(' ')[0]
-        : (context.companyName || context.dealTitle || 'Equipe');
+    // Clean recipient name for [Nome] placeholder
+    let recipientName = 'Equipe';
+    if (isTalkingToPerson) {
+        recipientName = (context.contactName || '')
+            .replace(/^(Dr\.|Dra\.|Sr\.|Sra\.|Prof\.|Doutor\(a\))\s+/gi, '')
+            .split(' ')[0];
+    } else {
+        recipientName = cleanLabel(context.companyName || context.dealTitle || 'Equipe');
+    }
 
-    // 2. Replace Placeholders
+    // 2. Adjust Template for Tone/Identity
+    if (!isTalkingToPerson) {
+        // Remove "Dra./Dr." greeting if it's just the clinic/name
+        formatted = formatted.replace(/(Dra\.|Dr\.|Dra|Dr)\s+\[Nome\]/gi, '[Nome]');
+
+        // Grammar: "eu mostrar" -> "nós mostrarmos"
+        formatted = formatted.replace(/\beu mostrar\b/gi, 'nós mostrarmos');
+        formatted = formatted.replace(/\bEu mostrar\b/gi, 'Nós mostrarmos');
+    }
+
+    // 3. Replace Placeholders
     formatted = formatted.replace(/\[Nome\]/g, recipientName);
 
-    // Clean Clinic/Deal Name (remove "Negócio" prefix more thoroughly)
-    const cleanLogic = (t: string) => t.replace(/\bNegócio\b:?\s*/gi, '').trim();
-
     const rawClinicName = context.companyName || context.dealTitle || 'sua clínica';
-    const clinicName = cleanLogic(rawClinicName) || 'sua clínica';
-
+    const clinicName = cleanLabel(rawClinicName) || 'sua clínica';
     formatted = formatted.replace(/\[Nome da Clínica\]/g, clinicName);
 
-    // 3. Tone Adjustment: "Eu" -> "Nós" if talking as a team
+    // 4. General Tone Replacement (Eu -> Nós)
     if (!isTalkingToPerson) {
         formatted = formatted.replace(/\bEu \b/gi, 'Nós ');
         formatted = formatted.replace(/\beu \b/gi, 'nós ');
