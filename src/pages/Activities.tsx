@@ -31,6 +31,8 @@ import CustomizeColumnsModal from '@/components/activities/CustomizeColumnsModal
 import BulkEditActivitiesModal from '@/components/activities/BulkEditActivitiesModal';
 import ActivitiesMoreActions from '@/components/activities/ActivitiesMoreActions';
 import { PrivacyText } from '@/components/ui/PrivacyMask';
+import { ActivityScriptPopover } from '@/components/activities/ActivityScriptPopover';
+import { getScriptByTitle } from '@/services/cadence';
 import { filterRealActivities } from '@/utils/activityHelpers';
 
 // Types
@@ -492,9 +494,17 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                                                         {activity.type === 'followup' && <Clock size={15} />}
                                                                     </div>
                                                                     <div className="flex flex-col min-w-0">
-                                                                        <span className={`truncate max-w-[250px] transition-all ${activity.completed ? 'line-through text-muted-foreground/40 opacity-70' : 'text-foreground dark:text-foreground'}`}>
-                                                                            <PrivacyText text={activity.title} type="text" />
-                                                                        </span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`truncate max-w-[250px] transition-all ${activity.completed ? 'line-through text-muted-foreground/40 opacity-70' : 'text-foreground dark:text-foreground'}`}>
+                                                                                <PrivacyText text={activity.title} type="text" />
+                                                                            </span>
+                                                                            {(activity.tooltipScript || activity.notes || getScriptByTitle(activity.title)) && !activity.completed && (
+                                                                                <ActivityScriptPopover
+                                                                                    suggestion={activity.notes}
+                                                                                    script={activity.tooltipScript || getScriptByTitle(activity.title)}
+                                                                                />
+                                                                            )}
+                                                                        </div>
                                                                         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 mt-0.5">{activity.type || 'Tarefa'}</span>
                                                                     </div>
                                                                 </div>

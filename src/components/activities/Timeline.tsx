@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageSquare, Phone, Mail, Calendar, Info, BarChart3, Video, Instagram, CheckCircle2, StickyNote, History } from 'lucide-react';
 import { ActivityScriptPopover } from './ActivityScriptPopover';
+import { getScriptByTitle } from '@/services/cadence';
 
 interface Props {
     activities: Activity[];
@@ -117,10 +118,10 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
                                     <div className="pl-1">
                                         <h4 className="text-sm font-bold text-foreground/90 flex items-center gap-1.5">
                                             {activity?.title}
-                                            {(activity?.tooltipScript || activity?.notes) && activity.status !== 'completed' && (
+                                            {(activity?.tooltipScript || activity?.notes || (activity?.title && getScriptByTitle(activity.title))) && activity?.status !== 'completed' && (
                                                 <ActivityScriptPopover
-                                                    suggestion={activity.notes}
-                                                    script={activity.tooltipScript}
+                                                    suggestion={activity?.notes}
+                                                    script={activity?.tooltipScript || (activity?.title ? getScriptByTitle(activity.title) : undefined)}
                                                 />
                                             )}
                                         </h4>

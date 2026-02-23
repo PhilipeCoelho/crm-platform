@@ -249,6 +249,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
                 </div>
             )}
 
+
             {/* Value - Bottom Row */}
             <div className="pl-0.5 mt-1 flex items-center justify-between">
                 <span className="text-[11px] font-medium text-muted-foreground/50">

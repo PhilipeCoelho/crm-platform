@@ -5,6 +5,7 @@ import {
     History, Instagram, BarChart3, Video, XCircle
 } from 'lucide-react';
 import { ActivityScriptPopover } from './ActivityScriptPopover';
+import { getScriptByTitle } from '@/services/cadence';
 import { format, isBefore, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -126,10 +127,10 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
                                 <h4 className={`text-[12px] sm:text-[11px] font-bold sm:font-semibold flex items-center gap-1.5 ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {activity.title}
-                                    {(activity.tooltipScript || activity.notes) && !isCompleted && !isCanceled && (
+                                    {(activity.tooltipScript || activity.notes || getScriptByTitle(activity.title)) && !isCompleted && !isCanceled && (
                                         <ActivityScriptPopover
                                             suggestion={activity.notes}
-                                            script={activity.tooltipScript}
+                                            script={activity.tooltipScript || getScriptByTitle(activity.title)}
                                         />
                                     )}
                                     {isCanceled && <span className="ml-1 text-[9px] line-through font-normal">(Cancelada)</span>}

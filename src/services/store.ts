@@ -739,7 +739,8 @@ export function useCRMStore(): CRMStore {
             status: data.status || (data.completed ? 'completed' : 'pending'),
             houve_resposta: data.houveResposta !== undefined ? data.houveResposta : false,
             origin_stage: data.originStage,
-            sequence_id: data.sequenceId
+            sequence_id: data.sequenceId,
+            tooltip_script: data.tooltipScript
         };
 
         const optimisticActivity = {
@@ -793,6 +794,7 @@ export function useCRMStore(): CRMStore {
         if (synchronizedUpdates.contactId !== undefined) dbUpdates.contact_id = synchronizedUpdates.contactId;
         if (synchronizedUpdates.originStage !== undefined) dbUpdates.origin_stage = synchronizedUpdates.originStage;
         if (synchronizedUpdates.sequenceId !== undefined) dbUpdates.sequence_id = synchronizedUpdates.sequenceId;
+        if (synchronizedUpdates.tooltipScript !== undefined) dbUpdates.tooltip_script = synchronizedUpdates.tooltipScript;
 
         dbUpdates.updated_at = new Date().toISOString();
 

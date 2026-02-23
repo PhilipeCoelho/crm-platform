@@ -46,46 +46,48 @@ export function ActivityScriptPopover({ suggestion, script, className }: Props) 
                     onMouseEnter={handleEnter}
                     onMouseLeave={handleLeave}
                     className={cn(
-                        "inline-flex items-center justify-center h-4 w-4 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all cursor-help scale-110",
+                        "inline-flex items-center justify-center h-4 w-4 rounded-full bg-primary/5 text-primary/40 hover:bg-primary hover:text-white transition-all cursor-help",
                         className
                     )}
                 >
-                    <Info size={10} strokeWidth={3} />
+                    <Info size={10} strokeWidth={2.5} />
                 </button>
             </PopoverTrigger>
             <PopoverContent
-                side="top"
+                side="right"
                 align="start"
-                sideOffset={8}
-                className="w-80 p-4 shadow-2xl border-primary/20 bg-background/98 backdrop-blur-md z-[99999]"
+                sideOffset={12}
+                className="w-80 p-0 shadow-2xl border-border bg-background overflow-hidden z-[99999]"
                 onMouseEnter={handleEnter}
                 onMouseLeave={handleLeave}
             >
-                <div className="space-y-4">
+                <div className="flex flex-col">
                     {suggestion && (
-                        <div className="space-y-1.5">
-                            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest block">Objetivo / Sugestão</span>
-                            <p className="text-xs text-foreground/80 leading-relaxed font-medium">
+                        <div className="p-3 bg-muted/30">
+                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest block mb-1">SUGESTÃO</span>
+                            <p className="text-[11px] text-foreground font-medium leading-relaxed">
                                 {suggestion}
                             </p>
                         </div>
                     )}
 
                     {script && (
-                        <div className="space-y-3 pt-2 border-t border-border/50">
+                        <div className="p-3 space-y-2 border-t border-border/50">
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] uppercase font-bold text-primary tracking-widest">Script para Copiar</span>
+                                <span className="text-[9px] uppercase font-bold text-primary tracking-widest">SCRIPT SUGERIDO</span>
                                 <button
                                     onClick={handleCopy}
-                                    className="flex items-center gap-1.5 px-2 py-1 rounded bg-primary text-primary-foreground text-[10px] font-bold uppercase transition-all hover:opacity-90 active:scale-95"
+                                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[9px] font-bold uppercase transition-all hover:bg-primary hover:text-white active:scale-95"
                                 >
                                     {copied ? <Check size={10} /> : <Copy size={10} />}
                                     {copied ? 'Copiado!' : 'Copiar'}
                                 </button>
                             </div>
-                            <p className="text-xs text-primary bg-primary/5 p-3 rounded-lg border border-primary/10 italic font-medium leading-relaxed">
-                                "{script}"
-                            </p>
+                            <div className="relative group/script">
+                                <p className="text-[11px] text-foreground/90 bg-primary/[0.02] p-2.5 rounded border border-primary/10 italic font-medium leading-relaxed whitespace-pre-wrap">
+                                    {script}
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>
