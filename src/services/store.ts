@@ -260,7 +260,8 @@ export function useCRMStore(): CRMStore {
                     completedAt: a.completed_at,
                     houveResposta: a.houve_resposta,
                     originStage: a.origin_stage,
-                    sequenceId: a.sequence_id
+                    sequenceId: a.sequence_id,
+                    isAutomatic: a.is_automatic
                 })));
             }
 
