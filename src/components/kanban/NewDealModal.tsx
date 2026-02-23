@@ -19,7 +19,7 @@ const parseCurrency = (value: string): number => {
 };
 
 export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
-    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, updateCompany, addContact, isNewDealModalOpen, closeNewDealModal, newDealStageId, dealToEdit } = useCRM();
+    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, updateCompany, addContact, updateContact, isNewDealModalOpen, closeNewDealModal, newDealStageId, dealToEdit } = useCRM();
 
     const [title, setTitle] = useState('Negócio');
     const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false);
@@ -84,23 +84,81 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
     const handleOnClose = () => { closeNewDealModal(); };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault(); setIsSubmitting(true);
+        e.preventDefault();
+        setIsSubmitting(true);
         try {
-            let finalCoId = companyId; let finalCtId = contactId;
-            if (!finalCoId && companySearch) {
-                const ex = companies.find(c => c.name.toLowerCase() === companySearch.toLowerCase());
-                if (ex) { finalCoId = ex.id; if (website && ex.website !== website) await updateCompany(ex.id, { website }); }
-                else { const newCo = await addCompany({ name: companySearch, website: website || undefined }); finalCoId = newCo.id; }
+            let finalCoId = companyId;
+            let finalCtId = contactId;
+
+            // 1. Handle Company
+            if (companySearch) {
+                if (finalCoId) {
+                    // Update existing company if website changed
+                    const ex = companies.find(c => c.id === finalCoId);
+                    if (ex && website !== undefined && ex.website !== website) {
+                        await updateCompany(finalCoId, { website });
+                    }
+                } else {
+                    // Search or Create
+                    const ex = companies.find(c => c.name.toLowerCase() === companySearch.toLowerCase());
+                    if (ex) {
+                        finalCoId = ex.id;
+                        if (website !== undefined && ex.website !== website) await updateCompany(ex.id, { website });
+                    }
+                    else {
+                        const newCo = await addCompany({ name: companySearch, website: website || undefined });
+                        finalCoId = newCo.id;
+                    }
+                }
             }
-            if (!finalCtId && contactSearch) {
-                const ex = contacts.find(c => c.name.toLowerCase() === contactSearch.toLowerCase());
-                if (ex) finalCtId = ex.id;
-                else { const newCt = await addContact({ name: contactSearch, email, phone, companyId: finalCoId, status: 'lead' }); finalCtId = newCt.id; }
+
+            // 2. Handle Contact
+            if (contactSearch) {
+                if (finalCtId) {
+                    // Update existing contact if phone/email changed
+                    const ex = contacts.find(c => c.id === finalCtId);
+                    if (ex && (email !== ex.email || phone !== ex.phone)) {
+                        await updateContact(finalCtId, { email, phone });
+                    }
+                } else {
+                    // Search or Create
+                    const ex = contacts.find(c => c.name.toLowerCase() === contactSearch.toLowerCase());
+                    if (ex) {
+                        finalCtId = ex.id;
+                        if (email !== ex.email || phone !== ex.phone) await updateContact(ex.id, { email, phone });
+                    } else {
+                        const newCt = await addContact({ name: contactSearch, email, phone, companyId: finalCoId, status: 'lead' });
+                        finalCtId = newCt.id;
+                    }
+                }
             }
-            const dealData = { title, value: parseCurrency(value), currency, pipelineId: selectedPipelineId, stageId: selectedStageId, companyId: finalCoId, contactId: finalCtId, expectedCloseDate, tags: selectedLabels, source: source || undefined, instagramUrl, adLibraryUrl, status: dealToEdit?.status || 'open', priority: dealToEdit?.priority || 'medium' };
-            if (dealToEdit) await updateDeal(dealToEdit.id, dealData); else await addDeal(dealData);
+
+            const dealData = {
+                title,
+                value: parseCurrency(value),
+                currency,
+                pipelineId: selectedPipelineId,
+                stageId: selectedStageId,
+                companyId: finalCoId,
+                contactId: finalCtId,
+                expectedCloseDate,
+                tags: selectedLabels,
+                source: source || undefined,
+                instagramUrl,
+                adLibraryUrl,
+                status: dealToEdit?.status || 'open',
+                priority: dealToEdit?.priority || 'medium'
+            };
+
+            if (dealToEdit) await updateDeal(dealToEdit.id, dealData);
+            else await addDeal(dealData);
+
             handleOnClose();
-        } catch (error) { console.error(error); } finally { setIsSubmitting(false); }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const stages = pipelines[selectedPipelineId]?.stages || [];
