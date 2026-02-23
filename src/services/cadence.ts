@@ -251,33 +251,40 @@ export const formatScript = (
 
     // 1. Determine Identity (Pessoa vs Equipe)
     const isTalkingToPerson = !!context.contactName;
-    const recipientName = context.contactName
-        ? context.contactName.split(' ')[0]
+
+    // Clean recipient name: remove Dr./Dra./Sr./Sra. and take first name
+    let cleanRecipient = context.contactName || '';
+    cleanRecipient = cleanRecipient.replace(/^(Dr\.|Dra\.|Sr\.|Sra\.|Prof\.|Doutor\(a\))\s+/gi, '');
+    const recipientName = isTalkingToPerson
+        ? cleanRecipient.split(' ')[0]
         : (context.companyName || context.dealTitle || 'Equipe');
 
     // 2. Replace Placeholders
     formatted = formatted.replace(/\[Nome\]/g, recipientName);
 
-    // Clean Deal Title (remove "Negócio " prefix if present)
-    const cleanDealTitle = context.dealTitle ? context.dealTitle.replace(/^Negócio\s+/i, '') : '';
-    const clinicName = context.companyName || cleanDealTitle || 'sua clínica';
+    // Clean Clinic/Deal Name (remove "Negócio" prefix more thoroughly)
+    const cleanLogic = (t: string) => t.replace(/\bNegócio\b:?\s*/gi, '').trim();
+
+    const rawClinicName = context.companyName || context.dealTitle || 'sua clínica';
+    const clinicName = cleanLogic(rawClinicName) || 'sua clínica';
+
     formatted = formatted.replace(/\[Nome da Clínica\]/g, clinicName);
 
     // 3. Tone Adjustment: "Eu" -> "Nós" if talking as a team
     if (!isTalkingToPerson) {
-        formatted = formatted.replace(/\bEu \b/g, 'Nós ');
-        formatted = formatted.replace(/\beu \b/g, 'nós ');
-        formatted = formatted.replace(/\bTrabalho\b/g, 'Trabalhamos');
-        formatted = formatted.replace(/\btrabalho\b/g, 'trabalhamos');
-        formatted = formatted.replace(/\bAjudei\b/g, 'Ajudamos');
-        formatted = formatted.replace(/\bajudei\b/g, 'ajudamos');
-        formatted = formatted.replace(/\bvendo\b/g, 'vendemos');
-        formatted = formatted.replace(/\bVendo\b/g, 'Vendemos');
-        formatted = formatted.replace(/\bEnviei-lhe\b/g, 'Enviámos-lhe');
-        formatted = formatted.replace(/\benviei-lhe\b/g, 'enviámos-lhe');
-        formatted = formatted.replace(/\bescrevo\b/g, 'escrevemos');
-        formatted = formatted.replace(/\bAnalisei\b/g, 'Analisámos');
-        formatted = formatted.replace(/\banalisei\b/g, 'analisámos');
+        formatted = formatted.replace(/\bEu \b/gi, 'Nós ');
+        formatted = formatted.replace(/\beu \b/gi, 'nós ');
+        formatted = formatted.replace(/\bTrabalho\b/gi, 'Trabalhamos');
+        formatted = formatted.replace(/\btrabalho\b/gi, 'trabalhamos');
+        formatted = formatted.replace(/\bAjudei\b/gi, 'Ajudamos');
+        formatted = formatted.replace(/\bajudei\b/gi, 'ajudamos');
+        formatted = formatted.replace(/\bvendo\b/gi, 'vendemos');
+        formatted = formatted.replace(/\bVendo\b/gi, 'Vendemos');
+        formatted = formatted.replace(/\bEnviei-lhe\b/gi, 'Enviámos-lhe');
+        formatted = formatted.replace(/\benviei-lhe\b/gi, 'enviámos-lhe');
+        formatted = formatted.replace(/\bescrevo\b/gi, 'escrevemos');
+        formatted = formatted.replace(/\bAnalisei\b/gi, 'Analisámos');
+        formatted = formatted.replace(/\banalisei\b/gi, 'analisámos');
     }
 
     return formatted;

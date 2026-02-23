@@ -1041,8 +1041,7 @@ export function useCRMStore(): CRMStore {
         // Prospect stage should NEVER have automatic activities
         if (title.includes('PROSPECT')) return false;
 
-        if (sId === 'new') return true;
-
+        // Only trigger for stages clearly identified as "Lead" (and not specific sub-stages)
         if (title.includes('LEAD') &&
             !title.includes('ENGAJADO') &&
             !title.includes('RESPONDIDO') &&
@@ -1051,6 +1050,8 @@ export function useCRMStore(): CRMStore {
             !title.includes('FECHAMENTO') &&
             !title.includes('CONVERSA')) return true;
 
+        // 'new' is only a fallback if we can't find the title, but better to be safe
+        // If it's a new deal in a pipeline, we usually want it to be Prospect (manual)
         return false;
     };
 
