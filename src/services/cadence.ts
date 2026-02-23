@@ -258,7 +258,9 @@ export const formatScript = (
     // 2. Replace Placeholders
     formatted = formatted.replace(/\[Nome\]/g, recipientName);
 
-    const clinicName = context.companyName || context.dealTitle || 'sua clínica';
+    // Clean Deal Title (remove "Negócio " prefix if present)
+    const cleanDealTitle = context.dealTitle ? context.dealTitle.replace(/^Negócio\s+/i, '') : '';
+    const clinicName = context.companyName || cleanDealTitle || 'sua clínica';
     formatted = formatted.replace(/\[Nome da Clínica\]/g, clinicName);
 
     // 3. Tone Adjustment: "Eu" -> "Nós" if talking as a team
