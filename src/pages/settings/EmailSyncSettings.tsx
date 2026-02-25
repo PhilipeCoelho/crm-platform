@@ -18,7 +18,6 @@ export default function EmailSyncSettings() {
     const [accounts, setAccounts] = useState<any[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const [step, setStep] = useState(1); // 1: Provider, 2: Auth (Mock), 3: Options
-    const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
 
     // IMAP State
     const [imapConfig, setImapConfig] = useState({ user: '', password: '', host: '', port: 993 });
@@ -59,7 +58,6 @@ export default function EmailSyncSettings() {
     const resetForm = () => {
         setIsAdding(false);
         setStep(1);
-        setSelectedProvider(null);
         setImapConfig({ user: '', password: '', host: '', port: 993 });
         setVerificationError(null);
     };
@@ -297,7 +295,7 @@ export default function EmailSyncSettings() {
                                     {PROVIDERS.map(provider => (
                                         <button
                                             key={provider.id}
-                                            onClick={() => { setSelectedProvider(provider.id); setStep(2); }}
+                                            onClick={() => { setStep(2); }}
                                             className="flex items-center p-4 border border-border rounded-lg hover:border-primary hover:bg-muted/50 transition-all text-left gap-4 group"
                                         >
                                             <div className="w-10 h-10 flex items-center justify-center bg-muted rounded-full group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
