@@ -18,9 +18,17 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
     const { contacts, companies, deals } = useCRM();
     // Combine and Sort by createdAt descending
     // Filter out logs that are linked to an activity to avoid duplicate separate entries
+    // Combine and Sort by createdAt descending
+    // Filter out logs that are linked to an activity to avoid duplicate separate entries
     const items = [
         ...activities.map(a => ({ ...a, itemType: 'activity' as const })),
-        ...logs.filter(l => !l.activityId).map(l => ({ ...l, itemType: 'log' as const, type: 'note' as const, title: 'Nota' }))
+        ...logs.filter(l => {
+            // Hide logs that have an activityId (they show inside activities)
+            if (l.activityId) return false;
+            // Hide system "no notes" logs that somehow lost their link - they clutter the UI
+            if (l.logType === 'system' && l.content === 'Atividade concluída sem observações.') return false;
+            return true;
+        }).map(l => ({ ...l, itemType: 'log' as const, type: 'note' as const, title: 'Nota' }))
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     if (items.length === 0) {

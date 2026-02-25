@@ -241,9 +241,9 @@ export function useCRMStore(): CRMStore {
                 })));
             }
 
-            // 3. Map & Set Activities
+            // 3. Map & Set Activities (Merging Optimistic)
             if (activitiesData) {
-                setActivities(activitiesData.map(a => ({
+                const fetched: Activity[] = activitiesData.map(a => ({
                     ...a,
                     dealId: a.deal_id,
                     userId: a.user_id,
@@ -255,8 +255,22 @@ export function useCRMStore(): CRMStore {
                     houveResposta: a.houve_resposta,
                     originStage: a.origin_stage,
                     sequenceId: a.sequence_id,
-                    isAutomatic: a.is_automatic
-                })));
+                    isAutomatic: a.is_automatic,
+                    sequenceStep: a.sequence_step
+                }));
+
+                setActivities(prev => {
+                    // Keep optimistic ones that aren't in the fetched list yet
+                    const optimisticOnes = prev.filter(a => (a as any).isOptimistic);
+                    const filteredOptimistic = optimisticOnes.filter(opt =>
+                        !fetched.some(real =>
+                            real.dealId === opt.dealId &&
+                            real.title === opt.title &&
+                            real.status === opt.status
+                        )
+                    );
+                    return [...fetched, ...filteredOptimistic];
+                });
             }
 
             // 4. Map & Set Logs
@@ -377,19 +391,47 @@ export function useCRMStore(): CRMStore {
             }
         });
 
-        // Listen for DB Changes (Disabled temporarily to debug Drag & Drop race conditions)
-        /* const channel = supabase.channel('crm_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-                 // Optimization: Ignore if it's our own update? 
-                 // Supabase Realtime doesn't easily distinguish 'who' made the change without extra columns
-                console.log('⚡ Realtime update detected. Refetching...');
-                fetchAll();
+        // Listen for DB Changes (Realtime Sync)
+        const channel = supabase.channel('schema-db-changes')
+            .on('postgres_changes', { event: '*', schema: 'public' }, (payload: any) => {
+                console.log('🔔 Realtime change detected:', payload.table, payload.eventType);
+
+                if (payload.table === 'activities' && payload.eventType === 'INSERT') {
+                    const newAct = payload.new;
+                    const mapped: Activity = {
+                        ...newAct,
+                        dealId: newAct.deal_id,
+                        userId: newAct.user_id,
+                        createdAt: newAct.created_at,
+                        dueDate: newAct.date,
+                        completed: newAct.completed,
+                        status: newAct.status || 'pending',
+                        originStage: newAct.origin_stage,
+                        isAutomatic: newAct.is_automatic,
+                        sequenceStep: newAct.sequence_step
+                    };
+                    setActivities(prev => {
+                        if (prev.some(a => a.id === mapped.id)) return prev;
+                        // Remove matching optimistic placeholder
+                        const filtered = prev.filter(a => !((a as any).isOptimistic && a.dealId === mapped.dealId && a.title === mapped.title));
+                        return [...filtered, mapped];
+                    });
+                } else if (payload.table === 'activities' && payload.eventType === 'DELETE') {
+                    setActivities(prev => prev.filter(a => a.id !== payload.old.id));
+                } else {
+                    fetchAll();
+                }
             })
-            .subscribe(); */
+            .subscribe((status) => {
+                console.log('📡 Realtime status:', status);
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Realtime connected and listening for changes');
+                }
+            });
 
         return () => {
             authListener.unsubscribe();
-            // supabase.removeChannel(channel);
+            supabase.removeChannel(channel);
         };
     }, [fetchAll]);
 
@@ -416,6 +458,181 @@ export function useCRMStore(): CRMStore {
 
 
     // --- Actions ---
+
+    // --- Atomic Helper Actions ---
+
+    async function addLog(data: Omit<DealLog, 'id' | 'createdAt' | 'createdBy'>) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const tempId = generateId();
+        const newLogDto = {
+            id: tempId,
+            deal_id: data.dealId,
+            activity_id: data.activityId,
+            content: data.content,
+            log_type: data.logType,
+            created_by: user.id
+        };
+
+        const optimisticLog: DealLog = {
+            ...data,
+            id: tempId,
+            createdBy: user.id,
+            createdAt: new Date().toISOString()
+        };
+
+        setLogs(prev => [...prev, optimisticLog]);
+
+        const { error } = await supabase.from('deal_logs').insert(newLogDto);
+        if (error) {
+            console.error('Error creating log:', error);
+            alert(`Erro ao gerar histórico (Log): ${error.message}. Verifique se a tabela deal_logs existe.`);
+            setLogs(prev => prev.filter(l => l.id !== tempId));
+        }
+    }
+
+    async function deleteLog(id: string) {
+        setLogs(prev => prev.filter(l => l.id !== id));
+        const { error } = await supabase.from('deal_logs').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting log:', error);
+            alert(`Erro ao excluir nota: ${error.message}`);
+            fetchAll();
+        }
+    }
+
+    async function addActivity(data: any) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const tempId = generateId();
+
+        let normalizedDate = data.dueDate;
+        if (normalizedDate && normalizedDate.length === 10) {
+            normalizedDate = `${normalizedDate}T12:00:00.000Z`;
+        }
+
+        const newActivity = {
+            id: tempId,
+            title: data.title,
+            type: data.type,
+            date: normalizedDate || data.dueDate,
+            duration: data.duration,
+            deal_id: data.dealId,
+            user_id: user.id,
+            notes: data.notes,
+            completed: data.completed !== undefined ? data.completed : false,
+            status: data.status || (data.completed ? 'completed' : 'pending'),
+            houve_resposta: data.houveResposta !== undefined ? data.houveResposta : false,
+            origin_stage: data.originStage,
+            sequence_id: data.sequenceId,
+            sequence_step: data.sequenceStep,
+            tooltip_script: data.tooltipScript
+        };
+
+        const optimisticActivity = {
+            ...data,
+            dueDate: normalizedDate || data.dueDate,
+            id: tempId,
+            userId: user.id,
+            createdAt: new Date().toISOString()
+        };
+
+        setActivities(prev => [...prev, optimisticActivity]);
+
+        const { error } = await supabase.from('activities').insert(newActivity);
+        if (error) {
+            console.error('Error creating activity:', error);
+            alert(`Erro ao criar atividade: ${error.message} (Detalhe: ${error.details || ''})`);
+            setActivities(prev => prev.filter(a => a.id !== tempId));
+        }
+    }
+
+    async function updateActivity(id: string, updates: Partial<Activity>) {
+        const synchronizedUpdates = { ...updates };
+        if (updates.completed !== undefined) {
+            if (updates.status === undefined) {
+                synchronizedUpdates.status = updates.completed ? 'completed' : 'pending';
+            }
+            if (updates.completedAt === undefined) {
+                synchronizedUpdates.completedAt = updates.completed ? new Date().toISOString() : undefined;
+            }
+        }
+
+        setActivities(prev => prev.map(a => a.id === id ? { ...a, ...synchronizedUpdates } : a));
+
+        const dbUpdates: Record<string, unknown> = {};
+        if (synchronizedUpdates.title !== undefined) dbUpdates.title = synchronizedUpdates.title;
+        if (synchronizedUpdates.notes !== undefined) dbUpdates.notes = synchronizedUpdates.notes;
+        if (synchronizedUpdates.completed !== undefined) dbUpdates.completed = synchronizedUpdates.completed;
+        if (synchronizedUpdates.status !== undefined) dbUpdates.status = synchronizedUpdates.status;
+        if (synchronizedUpdates.completedAt !== undefined) dbUpdates.completed_at = synchronizedUpdates.completedAt;
+        if (synchronizedUpdates.houveResposta !== undefined) dbUpdates.houve_resposta = synchronizedUpdates.houveResposta;
+
+        if (synchronizedUpdates.dueDate !== undefined) {
+            let normalizedDate = synchronizedUpdates.dueDate;
+            if (normalizedDate && normalizedDate.length === 10) {
+                normalizedDate = `${normalizedDate}T12:00:00.000Z`;
+            }
+            dbUpdates.date = normalizedDate;
+        }
+        if (synchronizedUpdates.dealId !== undefined) dbUpdates.deal_id = synchronizedUpdates.dealId;
+        if (synchronizedUpdates.contactId !== undefined) dbUpdates.contact_id = synchronizedUpdates.contactId;
+        if (synchronizedUpdates.originStage !== undefined) dbUpdates.origin_stage = synchronizedUpdates.originStage;
+        if (synchronizedUpdates.sequenceId !== undefined) dbUpdates.sequence_id = synchronizedUpdates.sequenceId;
+        if (synchronizedUpdates.sequenceStep !== undefined) dbUpdates.sequence_step = synchronizedUpdates.sequenceStep;
+        if (synchronizedUpdates.tooltipScript !== undefined) dbUpdates.tooltip_script = synchronizedUpdates.tooltipScript;
+
+        dbUpdates.updated_at = new Date().toISOString();
+
+        const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
+        if (error) {
+            console.error('Update activity error', error);
+            alert(`Erro ao salvar atividade: ${error.message}.`);
+        } else if (synchronizedUpdates.completed === true) {
+            setTimeout(fetchAll, 300);
+        }
+    }
+
+    async function deleteActivity(id: string) {
+        setActivities(prev => prev.filter(a => a.id !== id));
+        await supabase.from('activities').delete().eq('id', id);
+    }
+
+    async function completeActivityWithLog(activityId: string, content?: string, houveResposta?: boolean) {
+        let activity = activities.find(a => a.id === activityId);
+        if (!activity) return;
+
+        if (activityId.startsWith('opt-')) {
+            const realActivity = activities.find(a =>
+                !a.id.startsWith('opt-') &&
+                a.dealId === activity?.dealId &&
+                a.title === activity?.title &&
+                a.status === 'pending'
+            );
+            if (realActivity) {
+                activity = realActivity;
+                activityId = realActivity.id;
+            }
+        }
+
+        const now = new Date().toISOString();
+
+        await updateActivity(activityId, {
+            completed: true,
+            status: 'completed',
+            completedAt: now,
+            houveResposta: houveResposta
+        });
+
+        await addLog({
+            dealId: activity.dealId!,
+            activityId: activityId.startsWith('opt-') ? undefined : activityId,
+            content: content?.trim() || "Atividade concluída sem observações.",
+            logType: content?.trim() ? 'activity_note' : 'system'
+        });
+    }
 
     const addDeal = async (data: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -574,7 +791,6 @@ export function useCRMStore(): CRMStore {
         if (position !== undefined) updates.position = position;
         if (pipelineId) updates.pipeline_id = pipelineId;
 
-        // Stage Automations now handled by Backend Trigger
         console.log('📦 Persistence: Moving deal', { id, ...updates });
         const { error } = await supabase.from('deals').update(updates).eq('id', id);
 
@@ -582,6 +798,44 @@ export function useCRMStore(): CRMStore {
             console.error('❌ Error moving deal:', error);
             alert(`Erro ao salvar movimento: ${error.message}`);
             fetchAll(); // Revert from DB
+        } else {
+            // 1. OPTIMISTIC CLEANUP (Remove old automatic activities immediately)
+            console.log('🧹 Optimistic Cleanup: Removing old automatic activities for deal', id);
+            setActivities(prev => prev.filter(a => !(a.dealId === id && a.isAutomatic === true && !a.completed)));
+
+            // 2. OPTIMISTIC ACTIVITY CREATION (Instant visual feedback)
+            const stages = Object.values(pipelines).flatMap(p => p.stages || []);
+            const targetStage = stages.find(s => s.id === stageId);
+            const stageName = targetStage?.title?.toUpperCase() || '';
+
+            let optimisticActivity: any = null;
+            const now = new Date().toISOString();
+            const deal = deals.find(d => d.id === id);
+
+            console.log('🔍 Analisando etapa para cadência:', { etapa: stageName, dealId: id });
+
+            if (stageName.includes('LEAD') && !stageName.includes('ENGAJADO')) {
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'WhatsApp: Mensagem inicial', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'LEAD', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+            } else if (stageName.includes('ENGAJADO')) {
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'Resposta + Pergunta Estratégica', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'ENGAJADO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+            } else if (stageName.includes('DIAGN') || stageName.includes('REUNI') || stageName.includes('AGENDA')) {
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'RD – Confirmação oficial', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'DIAGNOSTICO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+            } else if (stageName.includes('FECHAMENTO') || stageName.includes('PROPOSTA')) {
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'FE – Resumo pós-reunião', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'FECHAMENTO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+            }
+
+            if (optimisticActivity) {
+                console.log('✅ CADÊNCIA RECONHECIDA: Criando atividade:', optimisticActivity.title);
+                setActivities(prev => {
+                    const exists = prev.some(a => a.dealId === id && a.title === optimisticActivity.title);
+                    if (exists) return prev;
+                    return [...prev, optimisticActivity];
+                });
+            }
+
+            // 3. BACKGROUND REFRESH
+            setTimeout(fetchAll, 1000);
+            setTimeout(fetchAll, 4000);
         }
     };
 
@@ -701,167 +955,8 @@ export function useCRMStore(): CRMStore {
     };
 
 
-    // Stub implementations for others to match interface
-    const addActivity = async (data: any) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+    // --- Activities ---
 
-        const tempId = generateId();
-
-        // Normalize date to avoid timezone shifts (ensure it has a time, default to noon UTC if just date)
-        let normalizedDate = data.dueDate;
-        if (normalizedDate && normalizedDate.length === 10) {
-            normalizedDate = `${normalizedDate}T12:00:00.000Z`;
-        }
-
-        const newActivity = {
-            id: tempId,
-            title: data.title,
-            type: data.type,
-            date: normalizedDate || data.dueDate,
-            duration: data.duration,
-            deal_id: data.dealId,
-            user_id: user.id,
-            notes: data.notes,
-            completed: data.completed !== undefined ? data.completed : false,
-            status: data.status || (data.completed ? 'completed' : 'pending'),
-            houve_resposta: data.houveResposta !== undefined ? data.houveResposta : false,
-            origin_stage: data.originStage,
-            sequence_id: data.sequenceId,
-            tooltip_script: data.tooltipScript
-        };
-
-        const optimisticActivity = {
-            ...data,
-            dueDate: normalizedDate || data.dueDate,
-            id: tempId,
-            userId: user.id,
-            createdAt: new Date().toISOString()
-        };
-
-        setActivities(prev => [...prev, optimisticActivity]);
-
-        const { error } = await supabase.from('activities').insert(newActivity);
-        if (error) {
-            console.error('Error creating activity:', error);
-            alert(`Erro ao criar atividade: ${error.message} (Detalhe: ${error.details || ''})`);
-            setActivities(prev => prev.filter(a => a.id !== tempId));
-        }
-    };
-
-    const updateActivity = async (id: string, updates: Partial<Activity>) => {
-        // Sync status with completed if completed is provided
-        const synchronizedUpdates = { ...updates };
-        if (updates.completed !== undefined) {
-            if (updates.status === undefined) {
-                synchronizedUpdates.status = updates.completed ? 'completed' : 'pending';
-            }
-            if (updates.completedAt === undefined) {
-                synchronizedUpdates.completedAt = updates.completed ? new Date().toISOString() : undefined;
-            }
-        }
-
-        setActivities(prev => prev.map(a => a.id === id ? { ...a, ...synchronizedUpdates } : a));
-
-        const dbUpdates: Record<string, unknown> = {};
-        if (synchronizedUpdates.title !== undefined) dbUpdates.title = synchronizedUpdates.title;
-        if (synchronizedUpdates.notes !== undefined) dbUpdates.notes = synchronizedUpdates.notes;
-        if (synchronizedUpdates.completed !== undefined) dbUpdates.completed = synchronizedUpdates.completed;
-        if (synchronizedUpdates.status !== undefined) dbUpdates.status = synchronizedUpdates.status;
-        if (synchronizedUpdates.completedAt !== undefined) dbUpdates.completed_at = synchronizedUpdates.completedAt;
-        if (synchronizedUpdates.houveResposta !== undefined) dbUpdates.houve_resposta = synchronizedUpdates.houveResposta;
-
-        if (synchronizedUpdates.dueDate !== undefined) {
-            let normalizedDate = synchronizedUpdates.dueDate;
-            if (normalizedDate && normalizedDate.length === 10) {
-                normalizedDate = `${normalizedDate}T12:00:00.000Z`;
-            }
-            dbUpdates.date = normalizedDate;
-        }
-        if (synchronizedUpdates.dealId !== undefined) dbUpdates.deal_id = synchronizedUpdates.dealId;
-        if (synchronizedUpdates.contactId !== undefined) dbUpdates.contact_id = synchronizedUpdates.contactId;
-        if (synchronizedUpdates.originStage !== undefined) dbUpdates.origin_stage = synchronizedUpdates.originStage;
-        if (synchronizedUpdates.sequenceId !== undefined) dbUpdates.sequence_id = synchronizedUpdates.sequenceId;
-        if (synchronizedUpdates.tooltipScript !== undefined) dbUpdates.tooltip_script = synchronizedUpdates.tooltipScript;
-
-        dbUpdates.updated_at = new Date().toISOString();
-
-        const { error } = await supabase.from('activities').update(dbUpdates).eq('id', id);
-        if (error) {
-            console.error('Update activity error', error);
-            alert(`Erro ao salvar atividade: ${error.message}. Verifique se você rodou o comando SQL no Supabase.`);
-            // Optionally revert: fetchAll();
-        }
-    };
-
-    const deleteActivity = async (id: string) => {
-        setActivities(prev => prev.filter(a => a.id !== id));
-        await supabase.from('activities').delete().eq('id', id);
-    };
-
-    const addLog = async (data: Omit<DealLog, 'id' | 'createdAt' | 'createdBy'>) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const tempId = generateId();
-        const newLogDto = {
-            id: tempId,
-            deal_id: data.dealId,
-            activity_id: data.activityId,
-            content: data.content,
-            log_type: data.logType,
-            created_by: user.id
-        };
-
-        const optimisticLog: DealLog = {
-            ...data,
-            id: tempId,
-            createdBy: user.id,
-            createdAt: new Date().toISOString()
-        };
-
-        setLogs(prev => [...prev, optimisticLog]);
-
-        const { error } = await supabase.from('deal_logs').insert(newLogDto);
-        if (error) {
-            console.error('Error creating log:', error);
-            alert(`Erro ao gerar histórico (Log): ${error.message}. Verifique se a tabela deal_logs existe.`);
-            setLogs(prev => prev.filter(l => l.id !== tempId));
-        }
-    };
-
-    const deleteLog = async (id: string) => {
-        setLogs(prev => prev.filter(l => l.id !== id));
-        const { error } = await supabase.from('deal_logs').delete().eq('id', id);
-        if (error) {
-            console.error('Error deleting log:', error);
-            alert(`Erro ao excluir nota: ${error.message}`);
-            fetchAll();
-        }
-    };
-
-    const completeActivityWithLog = async (activityId: string, content?: string, houveResposta?: boolean) => {
-        const activity = activities.find(a => a.id === activityId);
-        if (!activity) return;
-
-        const now = new Date().toISOString();
-
-        // 1. Update Activity
-        await updateActivity(activityId, {
-            completed: true,
-            status: 'completed',
-            completedAt: now,
-            houveResposta: houveResposta
-        });
-
-        // 2. Add Log
-        await addLog({
-            dealId: activity.dealId!,
-            activityId: activity.id,
-            content: content?.trim() || "Atividade concluída sem observações.",
-            logType: content?.trim() ? 'activity_note' : 'system'
-        });
-    };
 
     const addCompany = async (data: Omit<Company, 'id' | 'createdAt'>) => {
         const { data: { user } } = await supabase.auth.getUser();

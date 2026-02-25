@@ -48,6 +48,7 @@ export interface Deal {
     contactId?: Id;
     companyId?: Id;
     ownerId?: Id;
+    userId?: Id;
 
     status: 'open' | 'won' | 'lost';
     priority: 'low' | 'medium' | 'high';
@@ -96,7 +97,7 @@ export interface Activity {
     sequenceId?: string;
     isAutomatic?: boolean;
     tooltipScript?: string;
-
+    sequenceStep?: number;
     createdAt: string;
     updatedAt?: string;
     completedAt?: string;
