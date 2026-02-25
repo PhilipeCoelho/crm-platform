@@ -29,6 +29,7 @@
     "express": "^5.2.1",
     "framer-motion": "^12.34.3",
     "imap": "^0.8.19",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.344.0",
     "mailparser": "^3.9.3",
     "nodemailer": "^8.0.1",

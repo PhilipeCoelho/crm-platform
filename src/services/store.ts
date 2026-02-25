@@ -1,15 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
-    Campaign, EmailTemplate, CampaignSender, StageSequence
+    Campaign, EmailTemplate, CampaignSender
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
-import {
-    LEAD_SEQUENCE_TEMPLATES,
-    ENGAGED_LEAD_SEQUENCE_TEMPLATES,
-    RD_SEQUENCE_TEMPLATES,
-    FE_SEQUENCE_TEMPLATES
-} from './cadence';
 
 
 // --- Types ---
@@ -529,10 +523,9 @@ export function useCRMStore(): CRMStore {
         if (finalUpdates.instagramUrl !== undefined) dbUpdates.instagram_url = finalUpdates.instagramUrl;
         if (finalUpdates.adLibraryUrl !== undefined) dbUpdates.ad_library_url = finalUpdates.adLibraryUrl;
 
-        // --- Cadence Logic Triggers ---
         if (updates.stageId && updates.stageId !== originalDeal.stageId) {
-            // Handle Stage Automations
-            await syncStageActivities(id, updates.stageId, originalDeal.stageId);
+            // Stage Automations now handled by Backend Trigger (backend_cadence_automation.sql)
+            console.log('📡 Stage change detected. Backend trigger will handle cadences.');
         }
 
         if (Object.keys(dbUpdates).length > 0) {
@@ -581,13 +574,7 @@ export function useCRMStore(): CRMStore {
         if (position !== undefined) updates.position = position;
         if (pipelineId) updates.pipeline_id = pipelineId;
 
-        // --- Cadence Logic Triggers ---
-        const originalDeal = deals.find(d => d.id === id);
-        if (originalDeal) {
-            // Handle Stage Automations
-            await syncStageActivities(id, stageId, originalDeal.stageId);
-        }
-
+        // Stage Automations now handled by Backend Trigger
         console.log('📦 Persistence: Moving deal', { id, ...updates });
         const { error } = await supabase.from('deals').update(updates).eq('id', id);
 
@@ -1026,224 +1013,9 @@ export function useCRMStore(): CRMStore {
         }
     };
 
-    // --- Cadence Automation Helpers ---
-
-    const isLeadStage = (sId: string) => {
-        // Find stage title
-        let title = '';
-        for (const pipeline of Object.values(pipelines)) {
-            const stage = pipeline.stages.find(s => s.id === sId);
-            if (stage) {
-                title = stage.title.toUpperCase();
-                break;
-            }
-        }
-
-        // Prospect stage should NEVER have automatic activities
-        if (title.includes('PROSPECT')) return false;
-
-        // Only trigger for stages clearly identified as "Lead" (and not specific sub-stages)
-        if (title.includes('LEAD') &&
-            !title.includes('ENGAJADO') &&
-            !title.includes('RESPONDIDO') &&
-            !title.includes('DIAGNÓSTICO') &&
-            !title.includes('DIAGNOSTICO') &&
-            !title.includes('FECHAMENTO') &&
-            !title.includes('CONVERSA')) return true;
-
-        // 'new' is only a fallback if we can't find the title, but better to be safe
-        // If it's a new deal in a pipeline, we usually want it to be Prospect (manual)
-        return false;
-    };
-
-    const isEngagedLeadStage = (sId: string) => {
-        for (const pipeline of Object.values(pipelines)) {
-            const stage = pipeline.stages.find(s => s.id === sId);
-            if (!stage) continue;
-            const title = stage.title.toUpperCase();
-            if (title.includes('ENGAJADO')) return true;
-        }
-        return false;
-    };
-
-    const isRDStage = (sId: string) => {
-        for (const pipeline of Object.values(pipelines)) {
-            const stage = pipeline.stages.find(s => s.id === sId);
-            if (!stage) continue;
-            const title = stage.title.toUpperCase();
-            if (title.includes('DIAGNÓSTICO') || title.includes('DIAGNOSTICO')) return true;
-        }
-        return false;
-    };
-
-    const isFEStage = (sId: string) => {
-        for (const pipeline of Object.values(pipelines)) {
-            const stage = pipeline.stages.find(s => s.id === sId);
-            if (!stage) continue;
-            const title = stage.title.toUpperCase();
-            if (title.includes('FECHAMENTO')) return true;
-        }
-        return false;
-    };
-
-    const syncStageActivities = async (dealId: string, stageId: string, oldStageId: string) => {
-        if (stageId === oldStageId) return;
-
-        console.log(`🔄 Syncing activities for deal ${dealId}: Moving from ${oldStageId} to ${stageId}`);
-
-        // 1. Cleanup ALL previous pending automatic activities
-        await cancelAllSequences(dealId);
-
-        // 2. Start new stage activities if applicable
-        if (isLeadStage(stageId)) {
-            await startSequence(dealId, 'LEAD', LEAD_SEQUENCE_TEMPLATES);
-        } else if (isEngagedLeadStage(stageId)) {
-            await startEngagedLeadSequence(dealId);
-        } else if (isRDStage(stageId)) {
-            await startSequence(dealId, 'REUNIÃO DE DIAGNÓSTICO', RD_SEQUENCE_TEMPLATES);
-        } else if (isFEStage(stageId)) {
-            await startSequence(dealId, 'FECHAMENTO', FE_SEQUENCE_TEMPLATES);
-        }
-    };
-
-    const cancelAllSequences = async (dealId: string) => {
-        console.log(`🗑️ Cleaning up ALL pending automatic activities for deal:`, dealId);
-
-        // Optimistic State Update
-        setActivities(prev => prev.filter(a =>
-            !(a.dealId === dealId && a.isAutomatic && a.status === 'pending')
-        ));
-
-        // Database Cleanup
-        const { error } = await supabase
-            .from('activities')
-            .delete()
-            .eq('deal_id', dealId)
-            .eq('is_automatic', true)
-            .eq('status', 'pending');
-
-        if (error) {
-            console.error(`❌ Error deleting automatic activities:`, error);
-            fetchAll();
-        }
-    };
-
-    const startSequence = async (dealId: string, originStage: string, templates: StageSequence[]) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        console.log(`🚀 Starting ${originStage} Sequence for deal:`, dealId);
-
-        // Check for existing activities to avoid duplication
-        const existingSequenceActivities = activities.filter(a => a.dealId === dealId && a.originStage === originStage);
-
-        const now = new Date();
-        const newActivities: any[] = [];
-
-        for (const template of templates) {
-            // Avoid duplication by title
-            if (existingSequenceActivities.some(a => a.title === template.defaultTitle)) continue;
-
-            const tempId = generateId();
-            const dueDate = new Date();
-            dueDate.setDate(now.getDate() + template.dayOffset);
-
-            let timePart = "12:00:00";
-            if (template.dayOffset === 0) {
-                const hourAhead = new Date();
-                hourAhead.setHours(now.getHours() + 1);
-                timePart = `${String(hourAhead.getHours()).padStart(2, '0')}:${String(hourAhead.getMinutes()).padStart(2, '0')}:00`;
-            }
-
-            const dueDateIso = `${dueDate.toISOString().split('T')[0]}T${timePart}.000Z`;
-
-            newActivities.push({
-                id: tempId,
-                user_id: user.id,
-                deal_id: dealId,
-                type: template.activityType,
-                title: template.defaultTitle,
-                notes: template.defaultDescription,
-                tooltip_script: template.tooltipScript, // Map to DB field
-                date: dueDateIso,
-                status: 'pending',
-                completed: false,
-                origin_stage: originStage,
-                sequence_id: template.id,
-                is_automatic: true
-            });
-        }
-
-        if (newActivities.length === 0) return;
-
-        // Optimistic Update
-        const optimisticActivities = newActivities.map(a => ({
-            id: a.id,
-            userId: a.user_id,
-            dealId: a.deal_id,
-            type: a.type,
-            title: a.title,
-            notes: a.notes,
-            tooltipScript: a.tooltip_script,
-            dueDate: a.date,
-            status: a.status,
-            completed: a.completed,
-            originStage: a.origin_stage,
-            sequenceId: a.sequence_id,
-            isAutomatic: a.is_automatic,
-            createdAt: now.toISOString()
-        }));
-
-        setActivities(prev => [...prev, ...optimisticActivities]);
-
-        const { error } = await supabase.from('activities').insert(newActivities);
-        if (error) {
-            console.error(`❌ Error creating ${originStage} sequence:`, error);
-            setActivities(prev => prev.filter(a => !newActivities.some(na => na.id === a.id)));
-        }
-    };
-
-
-    const startEngagedLeadSequence = async (dealId: string) => {
-        const dealActivities = activities.filter(a => a.dealId === dealId && a.completed);
-        const lastActivity = dealActivities.length > 0
-            ? dealActivities.sort((a, b) => new Date(b.completedAt || b.createdAt).getTime() - new Date(a.completedAt || a.createdAt).getTime())[0]
-            : null;
-        const channel = (lastActivity?.type as any) || 'message';
-
-        // Custom call to startSequence since we need to override channel
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const now = new Date();
-        const newActivities = ENGAGED_LEAD_SEQUENCE_TEMPLATES.map(template => {
-            const dueDate = new Date();
-            dueDate.setDate(now.getDate() + template.dayOffset);
-            let timePart = template.dayOffset === 0 ? "13:00:00" : "12:00:00";
-            const dueDateIso = `${dueDate.toISOString().split('T')[0]}T${timePart}.000Z`;
-
-            return {
-                id: generateId(),
-                user_id: user.id,
-                deal_id: dealId,
-                type: channel,
-                title: template.defaultTitle,
-                notes: template.defaultDescription,
-                date: dueDateIso,
-                status: 'pending',
-                completed: false,
-                origin_stage: 'LEAD ENGAJADO',
-                sequence_id: template.id,
-                is_automatic: true
-            };
-        });
-
-        setActivities(prev => [...prev, ...newActivities.map(a => ({
-            ...a, userId: a.user_id, dealId: a.deal_id, dueDate: a.date, originStage: a.origin_stage, sequenceId: a.sequence_id, isAutomatic: a.is_automatic, createdAt: now.toISOString()
-        } as any))]);
-
-        await supabase.from('activities').insert(newActivities);
-    };
+    // --- Backend Note ---
+    // Cadence automations are managed by the PostgreSQL trigger 'tr_deal_stage_cadence'.
+    // See backend_cadence_automation.sql for details.
 
 
     const reorderStages = async (pipelineId: string, newOrder: string[]) => {
@@ -1341,6 +1113,9 @@ export function useCRMStore(): CRMStore {
     };
 
     const addEmailTemplate = async (data: Omit<EmailTemplate, 'id' | 'createdAt'>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const tempId = generateId();
         const newTemplate = {
             id: tempId,
@@ -1349,7 +1124,8 @@ export function useCRMStore(): CRMStore {
             json_content: data.jsonContent,
             thumbnail: data.thumbnail,
             category: data.category,
-            is_public: data.isPublic
+            is_public: data.isPublic,
+            user_id: user.id
         };
 
         const optimisticTemplate: EmailTemplate = {
@@ -1384,12 +1160,16 @@ export function useCRMStore(): CRMStore {
     };
 
     const addCampaignSender = async (data: Omit<CampaignSender, 'id' | 'createdAt' | 'isVerified'>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const tempId = generateId();
         const newSender = {
             id: tempId,
             name: data.name,
             email: data.email,
-            is_verified: false
+            is_verified: false,
+            user_id: user.id
         };
 
         const optimisticSender: CampaignSender = {

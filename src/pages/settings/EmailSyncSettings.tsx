@@ -102,53 +102,48 @@ export default function EmailSyncSettings() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            // Save to Supabase
-            // Note: In a real app, we should encrypt the password before sending or handle it server-side.
-            // For this V1, we store it in the JSON config (be aware of security implications in prod).
-            const { error } = await supabase.from('email_accounts').insert({
-                user_id: user?.id,
-                email_address: imapConfig.user,
-                provider: selectedProvider || 'custom_imap',
-                status: 'active',
-                connection_config: {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Sessão não encontrada");
+
+            // Use the SECURE backend endpoint for encryption
+            const response = await fetch('http://localhost:3001/api/imap/add-account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({
+                    email: imapConfig.user,
+                    password: imapConfig.password,
                     host: imapConfig.host,
                     port: imapConfig.port,
-                    user: imapConfig.user,
-                    password: imapConfig.password, // SECURITY WARNING: Plain text storage for MVP
-                    tls: true
-                },
-                sync_settings: syncOptions,
-                last_sync_at: new Date().toISOString()
+                    tls: true,
+                    name: imapConfig.user // Default name
+                })
             });
 
-            if (error) throw error;
-
-            // Trigger initial sync in background
-            const { data: newAccount } = await supabase
-                .from('email_accounts')
-                .select('id')
-                .eq('email_address', imapConfig.user)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-
-            if (newAccount) {
-                const { data: { session } } = await supabase.auth.getSession();
-                fetch('http://localhost:3001/api/imap/sync', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session?.access_token}`
-                    },
-                    body: JSON.stringify({ accountId: newAccount.id })
-                }).catch(e => console.error('Initial sync trigger failed:', e));
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.details || errData.error || 'Erro ao salvar conta');
             }
+
+            const { data: newAccount } = await response.json();
+
+            // Trigger initial sync
+            fetch('http://localhost:3001/api/imap/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ accountId: newAccount.id })
+            }).catch(e => console.error('Initial sync trigger failed:', e));
 
             await fetchAccounts();
             resetForm();
         } catch (error: any) {
             console.error('Error saving account:', error);
-            alert(`Erro ao salvar conta: ${error.message || 'Erro desconhecido'}. Verifique se você executou a migração SQL no seu painel do Supabase.`);
+            alert(`Erro ao salvar conta: ${error.message || 'Erro desconhecido'}`);
         } finally {
             setIsSaving(false);
         }
