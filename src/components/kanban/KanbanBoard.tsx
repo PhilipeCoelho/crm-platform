@@ -76,7 +76,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     // Strict Types for Local State
     type ViewMode = 'all' | 'today' | 'overdue' | 'no-action' | 'high-value';
-    type StatusFilter = 'open' | 'won' | 'lost' | 'all';
+    type StatusFilter = 'open' | 'won' | 'lost' | 'desqualificado' | 'all';
 
     // Safe LocalStorage Parsers
     const getSavedViewMode = (): ViewMode => {
@@ -87,7 +87,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     const getSavedStatusFilter = (): StatusFilter => {
         const saved = localStorage.getItem('kanban_status_filter');
-        const validStatuses: StatusFilter[] = ['open', 'won', 'lost', 'all'];
+        const validStatuses: StatusFilter[] = ['open', 'won', 'lost', 'desqualificado', 'all'];
         return validStatuses.includes(saved as StatusFilter) ? (saved as StatusFilter) : 'open';
     };
 
@@ -172,7 +172,10 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
             if (!matchesView) return false;
 
-            const matchesStatus = statusFilter === 'all' ? true : deal.status === statusFilter;
+            const matchesStatus = statusFilter === 'all'
+                ? deal.status !== 'desqualificado'
+                : deal.status === statusFilter;
+
             const isActuallyActive = statusFilter === 'open' ? deal.status === 'open' : true;
 
             return matchesStatus && isActuallyActive;
@@ -260,6 +263,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                     { id: 'open', label: 'Abertos', icon: '🟢' },
                                     { id: 'won', label: 'Ganhos', icon: '🏆' },
                                     { id: 'lost', label: 'Perdidos', icon: '❌' },
+                                    { id: 'desqualificado', label: 'Desqualificados', icon: '🚫' },
                                     { id: 'all', label: 'Todos', icon: '📑' }
                                 ].map((s) => (
                                     <button
@@ -422,6 +426,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                             { id: 'open', label: 'Abertos', icon: '🟢' },
                                             { id: 'won', label: 'Ganhos', icon: '🏆' },
                                             { id: 'lost', label: 'Perdidos', icon: '❌' },
+                                            { id: 'desqualificado', label: 'Desqualificados', icon: '🚫' },
                                             { id: 'all', label: 'Todos', icon: '📑' }
                                         ].map((s) => (
                                             <button

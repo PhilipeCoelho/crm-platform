@@ -215,10 +215,15 @@ export async function getInsightsData(
         });
 
         // Regras de filtragem do Funil (usando as datas ajustadas para tempo)
-        const dealsCreated = currentData.filter(d => (d.created_at as string) >= startOfDay && (d.created_at as string) <= endOfDay);
+        // EXCLUSÃO DE DESQUALIFICADOS: Por padrão, desqualificados não entram em métricas de desempenho/conversão
+        const dealsCreated = currentData.filter(d =>
+            (d.created_at as string) >= startOfDay &&
+            (d.created_at as string) <= endOfDay &&
+            d.status_final !== 'desqualificado'
+        );
 
-        // REGRA OFICIAL ANTIGRAVITY (Fev 2026):
-        // KPI "Total de Negócios" = Volume real de negócios criados dentro do período (independente do status).
+        // REGRA OFICIAL ANTIGRAVITY (Fev 2026) - Atualizada:
+        // KPI "Total de Negócios" = Volume real de negócios criados dentro do período (exceto desqualificados).
         const totalDeals = dealsCreated.length;
         const totalWon = dealsCreated.filter(d => d.status_final === 'won').length;
         const totalLost = dealsCreated.filter(d => d.status_final === 'lost').length;

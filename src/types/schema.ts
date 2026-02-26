@@ -50,13 +50,15 @@ export interface Deal {
     ownerId?: Id;
     userId?: Id;
 
-    status: 'open' | 'won' | 'lost';
+    status: 'open' | 'won' | 'lost' | 'desqualificado';
     priority: 'low' | 'medium' | 'high';
     probability?: number;
     expectedCloseDate?: string;
     wonAt?: string; // ISO Date string
     lostAt?: string; // ISO Date string
     lostReason?: string;
+    disqualifiedAt?: string; // ISO Date string
+    disqualifiedReason?: string;
     createdAt: string;
     updatedAt: string;
 
@@ -108,7 +110,7 @@ export interface DealAnalytics {
     dealId: string;
     createdAt: string;
     closedAt?: string;
-    statusFinal: 'open' | 'won' | 'lost';
+    statusFinal: 'open' | 'won' | 'lost' | 'desqualificado';
     stageAtual: string;
     etapaOndePerdeu?: string;
     diasTotaisNoFunil: number;

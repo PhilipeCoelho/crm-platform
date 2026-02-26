@@ -718,15 +718,17 @@ export function useCRMStore(): CRMStore {
         if (updates.status && updates.status !== originalDeal.status) {
             if (updates.status === 'won' && !updates.wonAt) finalUpdates.wonAt = now;
             if (updates.status === 'lost' && !updates.lostAt) finalUpdates.lostAt = now;
+            if (updates.status === 'desqualificado' && !updates.disqualifiedAt) finalUpdates.disqualifiedAt = now;
 
             // Log History Activity
-            const statusLabels: Record<string, string> = { open: 'Aberto', won: 'Ganho', lost: 'Perdido' };
+            const statusLabels: Record<string, string> = { open: 'Aberto', won: 'Ganho', lost: 'Perdido', desqualificado: 'Desqualificado' };
             const historyTitle = `Status alterado de ${statusLabels[originalDeal.status]} para ${statusLabels[updates.status]}`;
 
             addActivity({
                 type: 'status_change',
                 title: historyTitle,
-                notes: updates.lostReason ? `Motivo: ${updates.lostReason}` : undefined,
+                notes: updates.lostReason ? `Motivo: ${updates.lostReason}` :
+                    updates.disqualifiedReason ? `Motivo: ${updates.disqualifiedReason}` : undefined,
                 dealId: id,
                 completed: true,
                 dueDate: now
@@ -751,6 +753,8 @@ export function useCRMStore(): CRMStore {
         if (finalUpdates.wonAt !== undefined) dbUpdates.won_at = finalUpdates.wonAt;
         if (finalUpdates.lostAt !== undefined) dbUpdates.lost_at = finalUpdates.lostAt;
         if (finalUpdates.lostReason !== undefined) dbUpdates.lost_reason = finalUpdates.lostReason;
+        if (finalUpdates.disqualifiedAt !== undefined) dbUpdates.disqualified_at = finalUpdates.disqualifiedAt;
+        if (finalUpdates.disqualifiedReason !== undefined) dbUpdates.disqualified_reason = finalUpdates.disqualifiedReason;
         if (finalUpdates.position !== undefined) dbUpdates.position = finalUpdates.position;
         if (finalUpdates.pipelineId !== undefined) dbUpdates.pipeline_id = finalUpdates.pipelineId;
         if (finalUpdates.leadSequenceStarted !== undefined) dbUpdates.lead_sequence_started = finalUpdates.leadSequenceStarted;
@@ -816,11 +820,18 @@ export function useCRMStore(): CRMStore {
             alert(`Erro ao salvar movimento: ${error.message}`);
             fetchAll(); // Revert from DB
         } else {
-            // 1. OPTIMISTIC CLEANUP (Remove old automatic activities immediately)
+            // 1. OPTIMISTIC CLEANUP (Remove ALL pending automatic activities to prevent duplicates/ghosts)
             console.log('🧹 Optimistic Cleanup: Removing old automatic activities for deal', id);
-            setActivities(prev => prev.filter(a => !(a.dealId === id && a.isAutomatic === true && !a.completed)));
+            setActivities(prev => prev.filter(a => {
+                const isDealActivity = a.dealId === id;
+                const isAutomatic = a.isAutomatic === true || (a as any).is_automatic === true;
+                const isPending = a.status === 'pending' || !a.status || !a.completed;
+                // Only keep manual tasks or completed tasks
+                return !(isDealActivity && isAutomatic && isPending);
+            }));
 
             // 2. OPTIMISTIC ACTIVITY CREATION (Instant visual feedback)
+            // This MUST match the backend templates in public.cadence_templates
             const stages = Object.values(pipelines).flatMap(p => p.stages || []);
             const targetStage = stages.find(s => s.id === stageId);
             const stageName = targetStage?.title?.toUpperCase() || '';
@@ -829,11 +840,12 @@ export function useCRMStore(): CRMStore {
             const now = new Date().toISOString();
             const deal = deals.find(d => d.id === id);
 
-            console.log('🔍 Analisando etapa para cadência:', { etapa: stageName, dealId: id });
+            console.log('🔍 Cadence Detection:', { stageName, id });
 
             if (stageName.includes('LEAD') && !stageName.includes('ENGAJADO')) {
                 optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'WhatsApp: Mensagem inicial', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'LEAD', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
             } else if (stageName.includes('ENGAJADO')) {
+                // FIXED: Match title with Master Cadence Fix
                 optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'Resposta + Pergunta Estratégica', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'ENGAJADO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
             } else if (stageName.includes('DIAGN') || stageName.includes('REUNI') || stageName.includes('AGENDA')) {
                 optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'RD – Confirmação oficial', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'DIAGNOSTICO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
@@ -842,9 +854,9 @@ export function useCRMStore(): CRMStore {
             }
 
             if (optimisticActivity) {
-                console.log('✅ CADÊNCIA RECONHECIDA: Criando atividade:', optimisticActivity.title);
                 setActivities(prev => {
-                    const exists = prev.some(a => a.dealId === id && a.title === optimisticActivity.title);
+                    // Avoid duplicating if real activity arrived quickly via refresh/realtime
+                    const exists = prev.some(a => a.dealId === id && a.title === optimisticActivity.title && (a.status === 'pending' || !a.completed));
                     if (exists) return prev;
                     return [...prev, optimisticActivity];
                 });

@@ -79,7 +79,7 @@ export default function PeopleView() {
     };
 
     const getOpenDealsCount = (contactId: string) => {
-        return deals.filter(d => d.contactId === contactId && d.status !== 'won' && d.status !== 'lost').length;
+        return deals.filter(d => d.contactId === contactId && d.status === 'open').length;
     };
 
     const getClosedDealsCount = (contactId: string) => {
@@ -404,10 +404,10 @@ export default function PeopleView() {
                                                     return (
                                                         <td key={col.id} className="px-4 py-3">
                                                             <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full ${contact.marketingStatus === 'subscribed'
-                                                                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                                                    : contact.marketingStatus === 'unsubscribed'
-                                                                        ? 'bg-red-100 text-red-700 border border-red-200'
-                                                                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                                                : contact.marketingStatus === 'unsubscribed'
+                                                                    ? 'bg-red-100 text-red-700 border border-red-200'
+                                                                    : 'bg-slate-100 text-slate-500 border border-slate-200'
                                                                 }`}>
                                                                 {contact.marketingStatus === 'subscribed' ? 'Inscrito' :
                                                                     contact.marketingStatus === 'unsubscribed' ? 'Cancelado' : 'Não Inscrito'}
