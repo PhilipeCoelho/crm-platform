@@ -59,9 +59,21 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
         setAdLibraryUrl('');
         setWebsite('');
         setSelectedStageId('');
+        setTouchedFields(new Set());
     };
 
     const [isInitialized, setIsInitialized] = useState(false);
+    const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+
+    const markFieldAsTouched = (field: string) => {
+        if (!isNewDealModalOpen) return;
+        setTouchedFields(prev => {
+            if (prev.has(field)) return prev;
+            const next = new Set(prev);
+            next.add(field);
+            return next;
+        });
+    };
 
     useEffect(() => {
         if (!isNewDealModalOpen) {
@@ -70,7 +82,6 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
         }
 
         if (isInitialized) return;
-        if (isLoading) return; // Wait for data to load before populating
 
         if (dealToEdit) {
             setTitle(dealToEdit.title);
@@ -81,20 +92,22 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
             setSelectedPipelineId(dealToEdit.pipelineId || 'sales');
             setSelectedStageId(dealToEdit.stageId);
             setSource(dealToEdit.source || '');
-
-            const linkedContact = contacts.find(c => c.id === dealToEdit.contactId);
-            setContactId(dealToEdit.contactId || '');
-            setContactSearch(linkedContact?.name || '');
-            setPhone(linkedContact?.phone || '');
-            setEmail(linkedContact?.email || '');
-
-            const linkedCompany = companies.find(c => c.id === dealToEdit.companyId);
-            setCompanyId(dealToEdit.companyId || '');
-            setCompanySearch(linkedCompany?.name || '');
-            setCompanyManuallyEdited(true);
             setInstagramUrl(dealToEdit.instagramUrl || '');
             setAdLibraryUrl(dealToEdit.adLibraryUrl || '');
-            setWebsite(linkedCompany?.website || '');
+
+            if (!isLoading) {
+                const linkedContact = contacts.find(c => c.id === dealToEdit.contactId);
+                setContactId(dealToEdit.contactId || '');
+                setContactSearch(linkedContact?.name || '');
+                setPhone(linkedContact?.phone || '');
+                setEmail(linkedContact?.email || '');
+
+                const linkedCompany = companies.find(c => c.id === dealToEdit.companyId);
+                setCompanyId(dealToEdit.companyId || '');
+                setCompanySearch(linkedCompany?.name || '');
+                setCompanyManuallyEdited(true);
+                setWebsite(linkedCompany?.website || '');
+            }
 
             setIsInitialized(true);
         } else {
@@ -108,19 +121,41 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
             }
             setIsInitialized(true);
         }
-    }, [isNewDealModalOpen, dealToEdit, newDealStageId, pipelines, contacts, companies, isInitialized, isLoading]);
+    }, [isNewDealModalOpen, dealToEdit, newDealStageId, pipelines, isInitialized, isLoading]);
 
     useEffect(() => {
-        if (isNewDealModalOpen && !dealToEdit && !companyManuallyEdited && !companyId) {
+        if (isNewDealModalOpen && dealToEdit && isInitialized && !isLoading) {
+            if (!touchedFields.has('contact')) {
+                const linkedContact = contacts.find(c => c.id === dealToEdit.contactId);
+                if (linkedContact) {
+                    setContactId(dealToEdit.contactId || '');
+                    setContactSearch(linkedContact.name);
+                    setPhone(p => touchedFields.has('phone') ? p : (linkedContact.phone || ''));
+                    setEmail(e => touchedFields.has('email') ? e : (linkedContact.email || ''));
+                }
+            }
+            if (!touchedFields.has('company')) {
+                const linkedCompany = companies.find(c => c.id === dealToEdit.companyId);
+                if (linkedCompany) {
+                    setCompanyId(dealToEdit.companyId || '');
+                    setCompanySearch(linkedCompany.name);
+                    setWebsite(w => touchedFields.has('website') ? w : (linkedCompany.website || ''));
+                }
+            }
+        }
+    }, [isLoading, contacts, companies, isNewDealModalOpen, dealToEdit, isInitialized, touchedFields]);
+
+    useEffect(() => {
+        if (isNewDealModalOpen && !dealToEdit && !companyManuallyEdited && !companyId && !touchedFields.has('company')) {
             setCompanySearch(contactSearch);
         }
-    }, [contactSearch, companyId, companyManuallyEdited, dealToEdit, isNewDealModalOpen]);
+    }, [contactSearch, companyId, companyManuallyEdited, dealToEdit, isNewDealModalOpen, touchedFields]);
 
     useEffect(() => {
-        if (isNewDealModalOpen && !isTitleManuallyEdited && !dealToEdit) {
+        if (isNewDealModalOpen && !isTitleManuallyEdited && !dealToEdit && !touchedFields.has('title')) {
             setTitle(contactSearch ? `Negócio ${contactSearch}` : 'Negócio');
         }
-    }, [contactSearch, isTitleManuallyEdited, dealToEdit, isNewDealModalOpen]);
+    }, [contactSearch, isTitleManuallyEdited, dealToEdit, isNewDealModalOpen, touchedFields]);
 
     const handleOnClose = () => { closeNewDealModal(); };
 
@@ -215,7 +250,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Pessoa de contato</label>
                         <div className="relative">
                             <User className="absolute left-3 top-2.5 text-slate-400" size={14} />
-                            <input type="text" className="w-full pl-9 pr-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary transition-colors" placeholder="Nome" value={contactSearch} onChange={(e) => { setContactSearch(e.target.value); setContactId(''); }} />
+                            <input type="text" className="w-full pl-9 pr-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary transition-colors" placeholder="Nome" value={contactSearch} onChange={(e) => { setContactSearch(e.target.value); setContactId(''); markFieldAsTouched('contact'); }} />
                             {contactId && <Check className="absolute right-3 top-2.5 text-emerald-500" size={14} />}
                         </div>
                         {contactSearch && !contactId && contactSuggestions.length > 0 && (
@@ -232,14 +267,14 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Organização</label>
                         <div className="relative">
                             <Building className="absolute left-3 top-2.5 text-slate-400" size={14} />
-                            <input type="text" className="w-full pl-9 pr-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary" placeholder="Empresa" value={companySearch} onChange={(e) => { setCompanySearch(e.target.value); setCompanyId(''); setCompanyManuallyEdited(true); }} />
+                            <input type="text" className="w-full pl-9 pr-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary" placeholder="Empresa" value={companySearch} onChange={(e) => { setCompanySearch(e.target.value); setCompanyId(''); setCompanyManuallyEdited(true); markFieldAsTouched('company'); }} />
                         </div>
                     </div>
 
                     {/* Linha 3: Título */}
                     <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Título do Negócio</label>
-                        <input type="text" className="w-full px-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs font-semibold outline-none focus:border-primary" value={title} onChange={(e) => { setTitle(e.target.value); setIsTitleManuallyEdited(true); }} />
+                        <input type="text" className="w-full px-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs font-semibold outline-none focus:border-primary" value={title} onChange={(e) => { setTitle(e.target.value); setIsTitleManuallyEdited(true); markFieldAsTouched('title'); }} />
                     </div>
 
                     {/* Linha 4: Valor & Data (Agrupados para salvar altura) */}
@@ -286,13 +321,13 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                     <div className="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Telefone / E-mail</label>
-                            <input type="tel" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary mb-1.5" placeholder="Telefone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                            <input type="email" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
+                            <input type="tel" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary mb-1.5" placeholder="Telefone" value={phone} onChange={(e) => { setPhone(e.target.value); markFieldAsTouched('phone'); }} />
+                            <input type="email" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary" placeholder="E-mail" value={email} onChange={(e) => { setEmail(e.target.value); markFieldAsTouched('email'); }} />
                         </div>
                         <div>
                             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Web / Instagram</label>
-                            <input type="text" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary mb-1.5" placeholder="Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
-                            <input type="text" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary" placeholder="@instagram" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} />
+                            <input type="text" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary mb-1.5" placeholder="Website" value={website} onChange={(e) => { setWebsite(e.target.value); markFieldAsTouched('website'); }} />
+                            <input type="text" className="w-full px-3 py-1.5 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary" placeholder="@instagram" value={instagramUrl} onChange={(e) => { setInstagramUrl(e.target.value); markFieldAsTouched('instagram'); }} />
                         </div>
                     </div>
 
