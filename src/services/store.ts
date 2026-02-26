@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
-    Campaign, EmailTemplate, CampaignSender
+    Campaign, EmailTemplate, CampaignSender, CadenceTemplate
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
 
@@ -18,6 +18,7 @@ export interface CRMStore {
     campaigns: Campaign[];
     emailTemplates: EmailTemplate[];
     campaignSenders: CampaignSender[];
+    cadenceTemplates: CadenceTemplate[];
     isLoading: boolean;
     isPipelineSettingsOpen: boolean;
     setPipelineSettingsOpen: (open: boolean) => void;
@@ -87,6 +88,9 @@ export interface CRMStore {
     deleteCampaignSender: (id: string) => Promise<void>;
     verifySender: (id: string) => Promise<void>;
 
+    // Cadence Templates
+    updateCadenceTemplate: (id: string, updates: Partial<CadenceTemplate>) => Promise<void>;
+
     // Merge Helpers (Optional, or just use atomic actions)
 }
 
@@ -111,6 +115,7 @@ export function useCRMStore(): CRMStore {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
     const [campaignSenders, setCampaignSenders] = useState<CampaignSender[]>([]);
+    const [cadenceTemplates, setCadenceTemplates] = useState<CadenceTemplate[]>([]);
     // *Correction*: User schema didn't fully specifying Company table. 
     // We will handle Companies as local-only for now OR map to a simple jsonb if needed. 
     // For this migration, let's keep companies in memory/local storage or create a table if requested. 
@@ -182,7 +187,8 @@ export function useCRMStore(): CRMStore {
                 { data: stagesData },
                 { data: campaignsData },
                 { data: templatesData },
-                { data: sendersData }
+                { data: sendersData },
+                { data: cadenceData }
             ] = await Promise.all([
                 supabase.from('deals').select('*'),
                 supabase.from('contacts').select('*'),
@@ -192,7 +198,8 @@ export function useCRMStore(): CRMStore {
                 supabase.from('stages').select('*').order('order_index', { ascending: true }),
                 supabase.from('campaigns').select('*'),
                 supabase.from('email_templates').select('*'),
-                supabase.from('senders').select('*')
+                supabase.from('senders').select('*'),
+                supabase.from('cadence_templates').select('*').order('tag', { ascending: true }).order('step', { ascending: true })
             ]);
 
             // Check for critical errors
@@ -368,6 +375,16 @@ export function useCRMStore(): CRMStore {
                     isVerified: s.is_verified,
                     verificationToken: s.verification_token,
                     createdAt: s.created_at
+                })));
+            }
+
+            // 10. Set Cadence Templates
+            if (cadenceData) {
+                setCadenceTemplates(cadenceData.map((t: any) => ({
+                    ...t,
+                    script: t.script,
+                    days: t.days,
+                    description: t.description || ''
                 })));
             }
 
@@ -1303,6 +1320,21 @@ export function useCRMStore(): CRMStore {
         await supabase.from('senders').update({ is_verified: true }).eq('id', id);
     };
 
+    const updateCadenceTemplate = async (id: string, updates: Partial<CadenceTemplate>) => {
+        setCadenceTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+
+        const dbUpdates: any = { ...updates };
+        delete dbUpdates.id;
+        dbUpdates.updated_at = new Date().toISOString();
+
+        const { error } = await supabase.from('cadence_templates').update(dbUpdates).eq('id', id);
+        if (error) {
+            console.error('Error updating cadence template:', error);
+            alert(`Erro ao salvar template: ${error.message}`);
+            fetchAll();
+        }
+    };
+
     return {
         users: [],
         companies,
@@ -1352,7 +1384,9 @@ export function useCRMStore(): CRMStore {
         addCampaignSender,
         updateCampaignSender,
         deleteCampaignSender,
-        verifySender
+        verifySender,
+        cadenceTemplates,
+        updateCadenceTemplate
     };
 }
 

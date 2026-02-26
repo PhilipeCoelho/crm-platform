@@ -33,6 +33,7 @@ import CampaignSettings from './pages/campaigns/CampaignSettings';
 import CampaignWizard from '@/pages/campaigns/CampaignWizard';
 import AlertsAndTips from './pages/campaigns/AlertsAndTips';
 import EmailInbox from './pages/email/EmailInbox';
+import CadenceSettings from '@/pages/settings/CadenceSettings';
 import {
     Tooltip,
     TooltipContent,
@@ -370,6 +371,21 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                             </button>
                                         </div>
 
+                                        {/* Cadência Switch */}
+                                        <div className="relative">
+                                            <NavLink
+                                                to="/settings/cadence"
+                                                onClick={() => setIsSettingsOpen(false)}
+                                                className="w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Zap size={14} className="text-primary" />
+                                                    <span>Cadência Automática</span>
+                                                </div>
+                                                <ChevronRight size={14} />
+                                            </NavLink>
+                                        </div>
+
                                         {/* Logout Button */}
                                         <div className="pt-2 mt-2 border-t border-border">
                                             <button
@@ -484,6 +500,7 @@ function App() {
                         <Route path="/campaigns/wizard" element={<CampaignWizard />} />
                         <Route path="/email" element={<EmailInbox />} />
                         <Route path="/insights" element={<Insights />} />
+                        <Route path="/settings/cadence" element={<CadenceSettings />} />
                         <Route path="/deals/:id" element={<DealDetails currency={selectedCurrency} />} />
                         <Route path="/companies/:id" element={<CompanyDetails />} />
                         <Route path="/contacts/:id" element={<ContactDetails />} />

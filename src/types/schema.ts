@@ -143,6 +143,17 @@ export interface StageSequence {
     tooltipScript?: string;
 }
 
+export interface CadenceTemplate {
+    id: Id;
+    tag: string;
+    step: number;
+    type: ActivityType | InternalEventType;
+    title: string;
+    description: string;
+    script: string;
+    days: number;
+}
+
 export interface Stage {
     id: Id;
     pipelineId: Id;
