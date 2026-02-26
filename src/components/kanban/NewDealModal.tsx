@@ -19,7 +19,7 @@ const parseCurrency = (value: string): number => {
 };
 
 export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
-    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, updateCompany, addContact, updateContact, isNewDealModalOpen, closeNewDealModal, newDealStageId, dealToEdit } = useCRM();
+    const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, updateCompany, addContact, updateContact, isNewDealModalOpen, closeNewDealModal, newDealStageId, dealToEdit, isLoading } = useCRM();
 
     const [title, setTitle] = useState('Negócio');
     const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false);
@@ -61,25 +61,66 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
         setSelectedStageId('');
     };
 
+    const [isInitialized, setIsInitialized] = useState(false);
+
     useEffect(() => {
-        if (isNewDealModalOpen) {
-            if (dealToEdit) {
-                setTitle(dealToEdit.title); setIsTitleManuallyEdited(true); setValue(dealToEdit.value.toString()); setExpectedCloseDate(dealToEdit.expectedCloseDate || new Date().toISOString().split('T')[0]);
-                setSelectedLabels(dealToEdit.tags || []); setSelectedPipelineId(dealToEdit.pipelineId || 'sales'); setSelectedStageId(dealToEdit.stageId); setSource(dealToEdit.source || '');
-                const linkedContact = contacts.find(c => c.id === dealToEdit.contactId); setContactId(dealToEdit.contactId || ''); setContactSearch(linkedContact?.name || ''); setPhone(linkedContact?.phone || ''); setEmail(linkedContact?.email || '');
-                const linkedCompany = companies.find(c => c.id === dealToEdit.companyId); setCompanyId(dealToEdit.companyId || ''); setCompanySearch(linkedCompany?.name || ''); setCompanyManuallyEdited(true); setInstagramUrl(dealToEdit.instagramUrl || ''); setAdLibraryUrl(dealToEdit.adLibraryUrl || ''); setWebsite(linkedCompany?.website || '');
-            } else {
-                resetForm();
-                if (newDealStageId) {
-                    const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === newDealStageId));
-                    if (pipe) { setSelectedPipelineId(pipe.id); setSelectedStageId(newDealStageId); }
+        if (!isNewDealModalOpen) {
+            setIsInitialized(false);
+            return;
+        }
+
+        if (isInitialized) return;
+        if (isLoading) return; // Wait for data to load before populating
+
+        if (dealToEdit) {
+            setTitle(dealToEdit.title);
+            setIsTitleManuallyEdited(true);
+            setValue(dealToEdit.value.toString());
+            setExpectedCloseDate(dealToEdit.expectedCloseDate || new Date().toISOString().split('T')[0]);
+            setSelectedLabels(dealToEdit.tags || []);
+            setSelectedPipelineId(dealToEdit.pipelineId || 'sales');
+            setSelectedStageId(dealToEdit.stageId);
+            setSource(dealToEdit.source || '');
+
+            const linkedContact = contacts.find(c => c.id === dealToEdit.contactId);
+            setContactId(dealToEdit.contactId || '');
+            setContactSearch(linkedContact?.name || '');
+            setPhone(linkedContact?.phone || '');
+            setEmail(linkedContact?.email || '');
+
+            const linkedCompany = companies.find(c => c.id === dealToEdit.companyId);
+            setCompanyId(dealToEdit.companyId || '');
+            setCompanySearch(linkedCompany?.name || '');
+            setCompanyManuallyEdited(true);
+            setInstagramUrl(dealToEdit.instagramUrl || '');
+            setAdLibraryUrl(dealToEdit.adLibraryUrl || '');
+            setWebsite(linkedCompany?.website || '');
+
+            setIsInitialized(true);
+        } else {
+            resetForm();
+            if (newDealStageId) {
+                const pipe = Object.values(pipelines).find(p => p.stages.some(s => s.id === newDealStageId));
+                if (pipe) {
+                    setSelectedPipelineId(pipe.id);
+                    setSelectedStageId(newDealStageId);
                 }
             }
+            setIsInitialized(true);
         }
-    }, [isNewDealModalOpen, dealToEdit, newDealStageId, pipelines, contacts, companies]);
+    }, [isNewDealModalOpen, dealToEdit, newDealStageId, pipelines, contacts, companies, isInitialized, isLoading]);
 
-    useEffect(() => { if (!dealToEdit && !companyManuallyEdited && !companyId) setCompanySearch(contactSearch); }, [contactSearch, companyId, companyManuallyEdited, dealToEdit]);
-    useEffect(() => { if (!isTitleManuallyEdited) setTitle(contactSearch ? `Negócio ${contactSearch}` : 'Negócio'); }, [contactSearch, isTitleManuallyEdited]);
+    useEffect(() => {
+        if (isNewDealModalOpen && !dealToEdit && !companyManuallyEdited && !companyId) {
+            setCompanySearch(contactSearch);
+        }
+    }, [contactSearch, companyId, companyManuallyEdited, dealToEdit, isNewDealModalOpen]);
+
+    useEffect(() => {
+        if (isNewDealModalOpen && !isTitleManuallyEdited && !dealToEdit) {
+            setTitle(contactSearch ? `Negócio ${contactSearch}` : 'Negócio');
+        }
+    }, [contactSearch, isTitleManuallyEdited, dealToEdit, isNewDealModalOpen]);
 
     const handleOnClose = () => { closeNewDealModal(); };
 
