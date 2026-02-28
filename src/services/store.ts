@@ -106,6 +106,20 @@ const generateId = () => {
     });
 };
 
+const adjustDateForWeekend = (isoDateString: string): string => {
+    if (!isoDateString) return isoDateString;
+    const date = new Date(isoDateString);
+    if (isNaN(date.getTime())) return isoDateString;
+
+    const day = date.getDay(); // 0 is Sunday, 6 is Saturday
+    if (day === 0) {
+        date.setDate(date.getDate() + 1); // Move to Monday
+    } else if (day === 6) {
+        date.setDate(date.getDate() + 2); // Move to Monday
+    }
+    return date.toISOString();
+};
+
 export function useCRMStore(): CRMStore {
     const [deals, setDeals] = useState<Deal[]>([]);
     const [contacts, setContacts] = useState<Contact[]>([]);
@@ -529,6 +543,7 @@ export function useCRMStore(): CRMStore {
         if (normalizedDate && normalizedDate.length === 10) {
             normalizedDate = `${normalizedDate}T12:00:00.000Z`;
         }
+        normalizedDate = adjustDateForWeekend(normalizedDate || data.dueDate);
 
         const newActivity = {
             id: tempId,
@@ -548,9 +563,10 @@ export function useCRMStore(): CRMStore {
             tooltip_script: data.tooltipScript
         };
 
+        let optimisticDate = normalizedDate || data.dueDate;
         const optimisticActivity = {
             ...data,
-            dueDate: normalizedDate || data.dueDate,
+            dueDate: optimisticDate,
             id: tempId,
             userId: user.id,
             createdAt: new Date().toISOString()
@@ -592,7 +608,7 @@ export function useCRMStore(): CRMStore {
             if (normalizedDate && normalizedDate.length === 10) {
                 normalizedDate = `${normalizedDate}T12:00:00.000Z`;
             }
-            dbUpdates.date = normalizedDate;
+            dbUpdates.date = adjustDateForWeekend(normalizedDate);
         }
         if (synchronizedUpdates.dealId !== undefined) dbUpdates.deal_id = synchronizedUpdates.dealId;
         if (synchronizedUpdates.contactId !== undefined) dbUpdates.contact_id = synchronizedUpdates.contactId;
@@ -837,20 +853,25 @@ export function useCRMStore(): CRMStore {
             const stageName = targetStage?.title?.toUpperCase() || '';
 
             let optimisticActivity: any = null;
-            const now = new Date().toISOString();
+            let targetDate = new Date().toISOString();
             const deal = deals.find(d => d.id === id);
 
             console.log('🔍 Cadence Detection:', { stageName, id });
 
             if (stageName.includes('LEAD') && !stageName.includes('ENGAJADO')) {
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'WhatsApp: Mensagem inicial', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'LEAD', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+                // First step for LEAD typically is at offset 0, but we must run weekend check
+                targetDate = adjustDateForWeekend(targetDate);
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'WhatsApp: Mensagem inicial', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'LEAD', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
             } else if (stageName.includes('ENGAJADO')) {
+                targetDate = adjustDateForWeekend(targetDate);
                 // FIXED: Match title with Master Cadence Fix
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'Resposta + Pergunta Estratégica', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'ENGAJADO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'Resposta + Pergunta Estratégica', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'ENGAJADO', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
             } else if (stageName.includes('DIAGN') || stageName.includes('REUNI') || stageName.includes('AGENDA')) {
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'RD – Confirmação oficial', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'DIAGNOSTICO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+                targetDate = adjustDateForWeekend(targetDate);
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'RD – Confirmação oficial', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'DIAGNOSTICO', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
             } else if (stageName.includes('FECHAMENTO') || stageName.includes('PROPOSTA')) {
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'FE – Resumo pós-reunião', dueDate: now, status: 'pending', isAutomatic: true, originStage: 'FECHAMENTO', sequenceStep: 1, userId: deal?.userId, createdAt: now, isOptimistic: true };
+                targetDate = adjustDateForWeekend(targetDate);
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'FE – Resumo pós-reunião', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'FECHAMENTO', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
             }
 
             if (optimisticActivity) {
