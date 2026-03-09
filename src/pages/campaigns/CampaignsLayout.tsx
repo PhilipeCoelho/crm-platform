@@ -41,7 +41,8 @@ export default function CampaignsLayout({ children }: CampaignsLayoutProps) {
 
                 <nav className="flex-1 px-3 space-y-1">
                     <NavLink
-                        to="/campaigns/email"
+                        to="/campaigns"
+                        end
                         className={({ isActive }) => `
                             flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all
                             ${isActive

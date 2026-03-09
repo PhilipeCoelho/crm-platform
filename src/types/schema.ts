@@ -227,10 +227,13 @@ export interface Campaign {
     replyTo?: string;
     templateId?: Id;
     listId?: string;
-    status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'paused';
+    content?: string;
+    recipients?: { email: string; personId?: string; dealId?: string }[];
+    status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'paused' | 'failed';
     scheduledAt?: string;
     sentAt?: string;
     sentCount: number;
+    deliveredCount: number;
     openedCount: number;
     clickedCount: number;
     createdBy: Id;

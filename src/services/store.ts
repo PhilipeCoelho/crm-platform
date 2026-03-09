@@ -78,6 +78,7 @@ export interface CRMStore {
     addCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'createdBy' | 'sentCount' | 'openedCount' | 'clickedCount'>) => Promise<void>;
     updateCampaign: (id: string, updates: Partial<Campaign>) => Promise<void>;
     deleteCampaign: (id: string) => Promise<void>;
+    duplicateCampaign: (campaign: Campaign) => Promise<void>;
 
     addEmailTemplate: (template: Omit<EmailTemplate, 'id' | 'createdAt'>) => Promise<void>;
     updateEmailTemplate: (id: string, updates: Partial<EmailTemplate>) => Promise<void>;
@@ -93,6 +94,9 @@ export interface CRMStore {
 
     // Merge Helpers (Optional, or just use atomic actions)
 }
+
+// Deal statuses automatically excluded from all campaign mailing lists
+const EXCLUDED_DEAL_STATUSES_FOR_CAMPAIGNS = ['lost', 'desqualificado'] as const;
 
 // --- Helpers ---
 const generateId = () => {
@@ -1200,10 +1204,22 @@ export function useCRMStore(): CRMStore {
     // --- Campaign Actions ---
 
     const addCampaign = async (data: Omit<Campaign, 'id' | 'createdAt' | 'createdBy' | 'sentCount' | 'openedCount' | 'clickedCount'>) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (!user || !session) return;
 
         const tempId = generateId();
+        const optimisticCampaign: Campaign = {
+            ...data,
+            id: tempId,
+            createdBy: user.id,
+            createdAt: new Date().toISOString(),
+            sentCount: data.recipients?.length || 0,
+            deliveredCount: 0,
+            openedCount: 0,
+            clickedCount: 0
+        };
+
         const newCampaign = {
             id: tempId,
             name: data.name,
@@ -1213,27 +1229,91 @@ export function useCRMStore(): CRMStore {
             reply_to: data.replyTo,
             template_id: data.templateId,
             list_id: data.listId,
-            status: data.status,
+            content: data.content,
+            status: data.status === 'sent' ? 'sending' : data.status,
+            sent_count: data.recipients?.length || 0,
+            delivered_count: 0,
             scheduled_at: data.scheduledAt,
+            sent_at: data.sentAt,
             created_by: user.id
-        };
-
-        const optimisticCampaign: Campaign = {
-            ...data,
-            id: tempId,
-            createdBy: user.id,
-            createdAt: new Date().toISOString(),
-            sentCount: 0,
-            openedCount: 0,
-            clickedCount: 0
         };
 
         setCampaigns(prev => [...prev, optimisticCampaign]);
 
+        // 1. Insert Campaign
         const { error } = await supabase.from('campaigns').insert(newCampaign);
         if (error) {
             console.error('Error adding campaign:', error);
             setCampaigns(prev => prev.filter(c => c.id !== tempId));
+            return;
+        }
+
+        // 2. Insert Recipients
+        if (data.recipients && data.recipients.length > 0) {
+            // --- Store-level safety filter ---
+            // Exclude recipients with invalid email or whose deal is lost/disqualified
+            const eligibleRecipients = data.recipients.filter(r => {
+                // Email must exist and be non-empty
+                if (!r.email || r.email.trim() === '' || !r.email.includes('@')) return false;
+                // If linked to a deal, that deal must not be excluded
+                if (r.dealId) {
+                    const linkedDeal = deals.find(d => d.id === r.dealId);
+                    if (linkedDeal && (EXCLUDED_DEAL_STATUSES_FOR_CAMPAIGNS as readonly string[]).includes(linkedDeal.status)) {
+                        console.warn(`🚫 [Campaign] Skipping recipient ${r.email} — deal ${r.dealId} is ${linkedDeal.status}`);
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            const skippedCount = data.recipients.length - eligibleRecipients.length;
+            if (skippedCount > 0) {
+                console.log(`🛡️ [Campaign] Filtered out ${skippedCount} ineligible recipient(s) (lost/disqualified deals or invalid emails).`);
+            }
+
+            const recipientsToInsert = eligibleRecipients.map(r => ({
+                campaign_id: tempId,
+                email: r.email,
+                person_id: r.personId,
+                deal_id: r.dealId,
+                status: data.status === 'sent' ? 'sent' : 'pending'
+            }));
+
+            const { error: recipientsError } = await supabase.from('campaign_recipients').insert(recipientsToInsert);
+            if (recipientsError) {
+                console.error('Error adding recipients:', recipientsError);
+            }
+
+            // 3. Dispatch Emails (if 'sent')
+            if (data.status === 'sent') {
+                try {
+                    console.log('🚀 [Store] Calling backend send-campaign for ID:', tempId);
+                    const response = await fetch('http://localhost:3001/api/send-campaign', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({
+                            campaignId: tempId
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('✅ [Store] Campaign API Success:', result);
+                        // Refresh to get latest statuses from DB
+                        fetchAll();
+                    } else {
+                        const errorMsg = await response.text();
+                        console.error('🔥 [Store] Campaign API Error:', errorMsg);
+                        setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: 'failed' } : c));
+                        await supabase.from('campaigns').update({ status: 'failed' }).eq('id', tempId);
+                    }
+                } catch (e) {
+                    console.error('🔥 [Store] Critical Fetch Error:', e);
+                }
+            }
         }
     };
 
@@ -1248,6 +1328,7 @@ export function useCRMStore(): CRMStore {
         if (updates.status !== undefined) dbUpdates.status = updates.status;
         if (updates.scheduledAt !== undefined) dbUpdates.scheduled_at = updates.scheduledAt;
         if (updates.sentAt !== undefined) dbUpdates.sent_at = updates.sentAt;
+        if (updates.deliveredCount !== undefined) dbUpdates.delivered_count = updates.deliveredCount;
 
         await supabase.from('campaigns').update(dbUpdates).eq('id', id);
     };
@@ -1255,6 +1336,23 @@ export function useCRMStore(): CRMStore {
     const deleteCampaign = async (id: string) => {
         setCampaigns(prev => prev.filter(c => c.id !== id));
         await supabase.from('campaigns').delete().eq('id', id);
+    };
+
+    const duplicateCampaign = async (campaign: Campaign) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { id, createdAt, sentAt, sentCount, openedCount, clickedCount, status, deliveredCount, ...baseData } = campaign;
+
+        await addCampaign({
+            ...baseData,
+            name: `${baseData.name} (Cópia)`,
+            status: 'draft',
+            sentCount: 0,
+            deliveredCount: 0,
+            openedCount: 0,
+            clickedCount: 0
+        } as any);
     };
 
     const addEmailTemplate = async (data: Omit<EmailTemplate, 'id' | 'createdAt'>) => {
@@ -1411,6 +1509,7 @@ export function useCRMStore(): CRMStore {
         addCampaign,
         updateCampaign,
         deleteCampaign,
+        duplicateCampaign,
         addEmailTemplate,
         updateEmailTemplate,
         deleteEmailTemplate,

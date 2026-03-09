@@ -9,6 +9,8 @@ export default function CampaignSettings() {
     const [activeTab, setActiveTab] = useState<Tab>('senders');
     const [isAddingSender, setIsAddingSender] = useState(false);
     const [newSender, setNewSender] = useState({ name: '', email: '' });
+    const [isTestingSMTP, setIsTestingSMTP] = useState(false);
+    const [smtpResult, setSmtpResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
 
     const handleAddSender = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,6 +20,37 @@ export default function CampaignSettings() {
             setNewSender({ name: '', email: '' });
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const handleTestSMTP = async () => {
+        setIsTestingSMTP(true);
+        setSmtpResult(null);
+        try {
+            const { supabase } = await import('@/lib/supabase');
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Não autenticado.");
+
+            const res = await fetch('http://localhost:3001/api/test-smtp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setSmtpResult({ success: true, message: 'SMTP conectado com sucesso.', details: data.messageId });
+            } else {
+                const error = await res.json();
+                setSmtpResult({ success: false, message: 'Falha na conexão SMTP.', details: error.error || error.details });
+            }
+        } catch (error: any) {
+            console.error('SMTP test error:', error);
+            setSmtpResult({ success: false, message: 'Erro ao tentar testar SMTP.', details: error.message });
+        } finally {
+            setIsTestingSMTP(false);
         }
     };
 
@@ -63,7 +96,15 @@ export default function CampaignSettings() {
             <div className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-slate-950/20 p-8">
                 {activeTab === 'senders' ? (
                     <div className="max-w-4xl mx-auto">
-                        <div className="flex justify-end mb-6">
+                        <div className="flex justify-end mb-6 gap-3">
+                            <button
+                                onClick={handleTestSMTP}
+                                disabled={isTestingSMTP}
+                                className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200 px-4 py-2 rounded font-bold text-sm transition-all shadow-sm"
+                            >
+                                {isTestingSMTP ? <span className="animate-spin text-lg">⚙️</span> : <Mail size={18} />}
+                                {isTestingSMTP ? 'Testando...' : 'Testar SMTP'}
+                            </button>
                             <button
                                 onClick={() => setIsAddingSender(true)}
                                 className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#1eb054] text-white px-4 py-2 rounded font-bold text-sm transition-all shadow-lg shadow-emerald-500/10"
@@ -72,6 +113,16 @@ export default function CampaignSettings() {
                                 Remetente
                             </button>
                         </div>
+
+                        {smtpResult && (
+                            <div className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${smtpResult.success ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                                {smtpResult.success ? <CheckCircle2 size={20} className="mt-0.5 shrink-0" /> : <AlertCircle size={20} className="mt-0.5 shrink-0" />}
+                                <div>
+                                    <h3 className="font-bold">{smtpResult.message}</h3>
+                                    {smtpResult.details && <p className="text-xs mt-1 opacity-80 font-mono break-all">{smtpResult.details}</p>}
+                                </div>
+                            </div>
+                        )}
 
                         {campaignSenders.length === 0 ? (
                             <div className="bg-white dark:bg-card border border-border rounded-2xl p-12 flex flex-col items-center text-center shadow-sm">

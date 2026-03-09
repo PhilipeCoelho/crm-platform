@@ -1,421 +1,410 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { QRCodeSVG } from 'qrcode.react';
+import { supabase } from '@/lib/supabase';
 import {
-    Plus,
-    Send,
-    Users,
-    Image as ImageIcon,
-    BarChart3,
-    Play,
-    Megaphone,
-    Shield,
-    Mail,
-    User,
-    Info,
-    ExternalLink,
-    CheckCircle2,
-    X,
-    Lock
+    Plus, Mail, Users, MoreVertical,
+    Copy, BarChart2, Filter, Calendar,
+    CheckCircle2, MousePointer2, Eye, Trash2
 } from 'lucide-react';
+import { Campaign } from '@/types/schema';
+
+type FilterStatus = 'all' | 'draft' | 'sent' | 'scheduled';
 
 export default function CampaignsDashboard() {
-    const { campaigns, campaignSenders, contacts, addCampaignSender } = useCRM();
+    const { campaigns, duplicateCampaign, deleteCampaign } = useCRM();
     const navigate = useNavigate();
-
-    // Checklist States
-    const [is2FAEnabled, setIs2FAEnabled] = useState(false); // Mock state for 2FA
-    const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
-    const [isSenderModalOpen, setIsSenderModalOpen] = useState(false);
-    const [newSender, setNewSender] = useState({ name: '', email: '' });
-
-    // Computed Checklist Items
-    const hasVerifiedSender = campaignSenders.some(s => s.isVerified);
-    const hasSubscribedContacts = contacts.some(c => c.marketingStatus === 'subscribed');
-    const isChecklistComplete = is2FAEnabled && hasVerifiedSender && hasSubscribedContacts;
-
-    const [view, setView] = useState<'onboarding' | 'setup' | 'list'>(() => {
-        const onboardingDone = localStorage.getItem('campaigns_onboarding_done');
-        if (onboardingDone !== 'true') return 'onboarding';
-        return isChecklistComplete ? 'list' : 'setup';
-    });
+    const [filter, setFilter] = useState<FilterStatus>('all');
+    const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+    const [reportLogs, setReportLogs] = useState<any[]>([]);
+    const [isLoadingReport, setIsLoadingReport] = useState(false);
 
     useEffect(() => {
-        if (view === 'setup' && isChecklistComplete) {
-            setView('list');
+        if (selectedCampaign) {
+            fetchReportLogs(selectedCampaign.id);
+        } else {
+            setReportLogs([]);
         }
-    }, [isChecklistComplete, view]);
+    }, [selectedCampaign]);
 
-    const handleStart = () => {
-        localStorage.setItem('campaigns_onboarding_done', 'true');
-        setView(isChecklistComplete ? 'list' : 'setup');
-    };
-
-    const handleEnable2FA = () => {
-        // Mock 2FA enabling process
-        setTimeout(() => {
-            setIs2FAEnabled(true);
-            setIs2FAModalOpen(false);
-        }, 1500);
-    };
-
-    const handleAddSender = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const fetchReportLogs = async (campaignId: string) => {
+        setIsLoadingReport(true);
         try {
-            await addCampaignSender(newSender);
-            setIsSenderModalOpen(false);
-            setNewSender({ name: '', email: '' });
-            alert('Remetente adicionado! Verifique seu e-mail (simulação: clique em verificar na lista de configurações).');
-        } catch (error) {
-            console.error(error);
+            const { data, error } = await supabase
+                .from('email_logs')
+                .select('*')
+                .eq('campaign_id', campaignId)
+                .order('sent_at', { ascending: false });
+
+            if (error) throw error;
+            setReportLogs(data || []);
+        } catch (e) {
+            console.error('Error fetching report logs:', e);
+        } finally {
+            setIsLoadingReport(false);
         }
     };
 
-    if (view === 'onboarding') {
+    const filteredCampaigns = useMemo(() => {
+        if (filter === 'all') return campaigns;
+        return campaigns.filter(c => c.status === filter);
+    }, [campaigns, filter]);
+
+    const formatPercent = (value: number, total: number) => {
+        if (!total) return '0%';
+        return `${((value / total) * 100).toFixed(1)}%`;
+    };
+
+    const StatusBadge = ({ status }: { status: string }) => {
+        const styles: Record<string, string> = {
+            sent: 'bg-emerald-500/10 text-emerald-500',
+            failed: 'bg-rose-500/10 text-rose-500',
+            sending: 'bg-blue-500/10 text-blue-500',
+            draft: 'bg-amber-500/10 text-amber-500',
+            scheduled: 'bg-purple-500/10 text-purple-500'
+        };
+
+        const labels: Record<string, string> = {
+            sent: 'Enviado',
+            failed: 'Erro',
+            sending: 'Enviando...',
+            draft: 'Rascunho',
+            scheduled: 'Agendado'
+        };
+
         return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                <div className="bg-white dark:bg-card w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                    <div className="flex flex-col md:flex-row h-full max-h-[90vh]">
-                        {/* Left: Video Section */}
-                        <div className="md:w-1/2 bg-slate-900 flex flex-col p-8 justify-center relative group">
-                            <div className="absolute top-8 left-8 flex items-center gap-3 z-10">
-                                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg">
-                                    <Megaphone size={20} />
-                                </div>
-                                <div className="text-white">
-                                    <h3 className="font-bold text-lg leading-tight">Campaigns by Pipedrive</h3>
-                                    <p className="text-slate-400 text-xs">Engage your customers with beautifully crafted emails</p>
-                                </div>
-                            </div>
-
-                            <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl mt-12">
-                                <img
-                                    src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"
-                                    alt="Video thumbnail"
-                                    className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <button className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl shadow-primary/30">
-                                        <Play fill="currentColor" size={24} className="ml-1" />
-                                    </button>
-                                </div>
-                                <div className="absolute bottom-4 right-4 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded">
-                                    16:05
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right: Content Section */}
-                        <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-between overflow-y-auto">
-                            <div>
-                                <h1 className="text-3xl font-bold text-foreground mb-8">Vamos começar com o Campaigns</h1>
-
-                                <div className="space-y-8">
-                                    <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
-                                            <Users size={24} />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-foreground">Use seus dados existentes</h4>
-                                            <p className="text-slate-500 text-sm mt-1 leading-relaxed">Transforme seus contatos de vendas existentes em uma lista de marketing segmentada em um clique.</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                                            <ImageIcon size={24} />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-foreground">Crie e envie uma campanha</h4>
-                                            <p className="text-slate-500 text-sm mt-1 leading-relaxed">Crie e envie designs de e-mail profissionais usando nosso editor intuitivo de arrastar e soltar.</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center shrink-0">
-                                            <BarChart3 size={24} />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-foreground">Obtenha insights e cresça</h4>
-                                            <p className="text-slate-500 text-sm mt-1 leading-relaxed">Acompanhe as taxas de abertura e cliques em tempo real enquanto suas campanhas são enviadas.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-12">
-                                <button
-                                    onClick={handleStart}
-                                    className="w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95"
-                                >
-                                    Começar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles[status] || styles.draft}`}>
+                {labels[status] || status}
+            </span>
         );
-    }
+    };
 
-    if (view === 'setup') {
-        return (
-            <div className="p-8 max-w-4xl mx-auto space-y-8">
+    const MetricCell = ({ value, total, highlight }: { value: number, total: number, label?: string, highlight?: boolean }) => (
+        <div className="flex flex-col items-center min-w-[80px]">
+            <div className={`text-sm font-semibold flex items-center gap-1 ${highlight ? 'text-orange-500' : 'text-foreground'}`}>
+                {value}
+                {highlight && <span title="Alto desempenho">🔥</span>}
+            </div>
+            <div className="text-[11px] opacity-60 font-medium text-center">
+                {formatPercent(value, total)}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="p-8 space-y-8 bg-[#F9FAFB] dark:bg-slate-950/20 h-full overflow-auto">
+            <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-bold text-foreground">Antes de começar a enviar campanhas</h1>
-                    <p className="text-muted-foreground text-sm">Siga o checklist abaixo para garantir que sua conta está pronta para o marketing por e-mail.</p>
+                    <h1 className="text-2xl font-bold text-foreground">Campanhas</h1>
+                    <p className="text-muted-foreground text-sm">Gerencie e analise o desempenho das suas comunicações.</p>
                 </div>
-
-                <div className="space-y-4">
-                    {/* Checklist Item 1: 2FA */}
-                    <div className={`bg-white dark:bg-card border ${is2FAEnabled ? 'border-emerald-200 bg-emerald-50/50' : 'border-border'} rounded-xl p-6 flex gap-6 shadow-sm hover:shadow-md transition-all`}>
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${is2FAEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'}`}>
-                            {is2FAEnabled ? <CheckCircle2 size={24} /> : <Shield size={24} />}
-                        </div>
-                        <div className="flex-1 space-y-3">
-                            <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-foreground">Ative o login por autenticação de 2 fatores (2FA)</h3>
-                                <Info size={14} className="text-muted-foreground cursor-help" />
-                            </div>
-                            <p className="text-muted-foreground text-sm leading-relaxed">
-                                A autenticação de dois fatores torna sua conta mais segura e ajuda a proteger seus dados de contato. É obrigatório para o envio de campanhas de marketing.
-                            </p>
-                            {!is2FAEnabled && (
-                                <button
-                                    onClick={() => setIs2FAModalOpen(true)}
-                                    className="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                                >
-                                    Ativar a 2FA
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Checklist Item 2: Sender */}
-                    <div className={`bg-white dark:bg-card border ${hasVerifiedSender ? 'border-emerald-200 bg-emerald-50/50' : 'border-border'} rounded-xl p-6 flex gap-6 shadow-sm hover:shadow-md transition-all`}>
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${hasVerifiedSender ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'}`}>
-                            {hasVerifiedSender ? <CheckCircle2 size={24} /> : <Mail size={24} />}
-                        </div>
-                        <div className="flex-1 space-y-3">
-                            <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-foreground">Adicionar informações de remetente</h3>
-                                <Info size={14} className="text-muted-foreground cursor-help" />
-                            </div>
-                            <p className="text-muted-foreground text-sm leading-relaxed">
-                                Configure as informações do remetente que aparecerão nos e-mails. É necessário pelo menos um remetente verificado.
-                                <Link to="#" className="text-primary hover:underline flex items-center gap-1 mt-1 font-semibold">
-                                    Saiba mais <ExternalLink size={12} />
-                                </Link>
-                            </p>
-                            {!hasVerifiedSender && (
-                                <button
-                                    onClick={() => setIsSenderModalOpen(true)}
-                                    className="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                                >
-                                    Adicionar remetente
-                                </button>
-                            )}
-                            {campaignSenders.length > 0 && !hasVerifiedSender && (
-                                <p className="text-xs text-amber-600 font-bold bg-amber-50 inline-block px-2 py-1 rounded">
-                                    * Você tem remetentes pendentes. Verifique-os em Configurações.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Checklist Item 3: Contacts */}
-                    <div className={`bg-white dark:bg-card border ${hasSubscribedContacts ? 'border-emerald-200 bg-emerald-50/50' : 'border-border'} rounded-xl p-6 flex gap-6 shadow-sm hover:shadow-md transition-all`}>
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${hasSubscribedContacts ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'}`}>
-                            {hasSubscribedContacts ? <CheckCircle2 size={24} /> : <User size={24} />}
-                        </div>
-                        <div className="flex-1 space-y-3">
-                            <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-foreground">Marque seus contatos como inscritos</h3>
-                            </div>
-                            <p className="text-muted-foreground text-sm leading-relaxed">
-                                Seus contatos devem ter o status de marketing definido como "Inscrito" (subscribed).
-                                <Link to="#" className="text-primary hover:underline flex items-center gap-1 mt-1 font-semibold">
-                                    Saiba mais <ExternalLink size={12} />
-                                </Link>
-                            </p>
-                            {!hasSubscribedContacts && (
-                                <button
-                                    onClick={() => navigate('/contacts')}
-                                    className="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                                >
-                                    Ir para contatos
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2FA Modal */}
-                {is2FAModalOpen && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white dark:bg-card w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                            <div className="p-6 border-b border-border flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-foreground">Ativar Autenticação (2FA)</h3>
-                                <button onClick={() => setIs2FAModalOpen(false)}><X size={20} className="text-muted-foreground" /></button>
-                            </div>
-                            <div className="p-8 flex flex-col items-center gap-6">
-                                <div className="bg-white p-2 rounded-lg border border-border shadow-sm">
-                                    <QRCodeSVG value="otpauth://totp/CRM:Usuario?secret=JBSWY3DPEHPK3PXP&issuer=CRM" size={160} />
-                                </div>
-                                <div className="text-center space-y-2">
-                                    <p className="text-sm font-bold">Escaneie o QR Code</p>
-                                    <p className="text-xs text-muted-foreground max-w-[260px]">Abra seu app autenticador (Google Auth ou Authy) e escaneie o código acima.</p>
-                                </div>
-
-                                <input type="text" placeholder="Digite o código de 6 dígitos" className="w-full text-center text-2xl tracking-widest p-3 border border-border rounded-lg outline-none focus:border-primary font-mono uppercase" maxLength={6} />
-
-                                <button
-                                    onClick={handleEnable2FA}
-                                    className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Lock size={16} />
-                                    Confirmar e Ativar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Add Sender Modal */}
-                {isSenderModalOpen && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white dark:bg-card w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                            <div className="p-6 border-b border-border">
-                                <h3 className="text-xl font-bold text-foreground">Adicionar novo remetente</h3>
-                            </div>
-                            <form onSubmit={handleAddSender} className="p-6 space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-foreground">Nome do remetente</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="Ex: Philipe Coelho"
-                                        className="w-full px-4 py-2 bg-muted/40 border border-border rounded-lg outline-none focus:border-primary transition-all"
-                                        value={newSender.name}
-                                        onChange={e => setNewSender(prev => ({ ...prev, name: e.target.value }))}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-foreground">E-mail do remetente</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="philipe@exemplo.com"
-                                        className="w-full px-4 py-2 bg-muted/40 border border-border rounded-lg outline-none focus:border-primary transition-all"
-                                        value={newSender.email}
-                                        onChange={e => setNewSender(prev => ({ ...prev, email: e.target.value }))}
-                                    />
-                                    <p className="text-[10px] text-muted-foreground italic">Vamos enviar um e-mail de verificação para este endereço.</p>
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsSenderModalOpen(false)}
-                                        className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg font-bold hover:bg-muted transition-all"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-all"
-                                    >
-                                        Adicionar e Verificar
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
+                <button
+                    onClick={() => navigate('/campaigns/new')}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+                >
+                    <Plus size={18} />
+                    Nova campanha
+                </button>
             </div>
-        );
-    }
 
-    if (view === 'list') {
-        return (
-            <div className="p-8 space-y-8">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-bold text-foreground">Campanhas de e-mail</h1>
-                        <p className="text-muted-foreground text-sm">Gerencie e acompanhe o desempenho de suas campanhas enviadas.</p>
-                    </div>
+            {/* Filtros */}
+            <div className="flex items-center gap-2 bg-white dark:bg-card p-1 border border-border rounded-lg self-start w-fit">
+                {(['all', 'draft', 'sent', 'scheduled'] as FilterStatus[]).map((f) => (
                     <button
-                        onClick={() => navigate('/campaigns/new')}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                        key={f}
+                        onClick={() => setFilter(f)}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${filter === f
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-muted-foreground hover:bg-muted'
+                            }`}
                     >
-                        <Plus size={18} />
-                        Nova campanha
+                        {f === 'all' ? 'Todos' : f === 'draft' ? 'Rascunho' : f === 'sent' ? 'Enviado' : 'Agendado'}
                     </button>
-                </div>
+                ))}
+            </div>
 
-                {campaigns.length === 0 ? (
-                    <div className="bg-white dark:bg-card border border-dashed border-border rounded-2xl p-12 flex flex-col items-center text-center space-y-4">
-                        <div className="w-20 h-20 rounded-full bg-primary/5 text-primary flex items-center justify-center">
-                            <Send size={40} />
-                        </div>
-                        <div className="max-w-md space-y-2">
-                            <h3 className="text-xl font-bold text-foreground">Nenhuma campanha enviada ainda</h3>
-                            <p className="text-muted-foreground text-sm">
-                                Comece criando sua primeira campanha para se envolver com seus contatos e impulsionar suas vendas.
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => navigate('/campaigns/new')}
-                            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-all"
-                        >
-                            Criar minha primeira campanha
-                        </button>
+            {filteredCampaigns.length === 0 ? (
+                <div className="bg-white dark:bg-card border border-dashed border-border rounded-2xl p-12 flex flex-col items-center text-center space-y-4">
+                    <div className="w-20 h-20 rounded-full bg-primary/5 text-primary flex items-center justify-center">
+                        <Filter size={40} className="text-muted-foreground/40" />
                     </div>
-                ) : (
-                    <div className="grid gap-4">
-                        {campaigns.map(campaign => (
-                            <div key={campaign.id} className="bg-white dark:bg-card border border-border rounded-xl p-6 flex items-center justify-between hover:shadow-md transition-all">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                                        <Mail size={24} />
+                    <div className="max-w-md space-y-2">
+                        <h3 className="text-xl font-bold text-foreground">Nenhuma campanha encontrada</h3>
+                        <p className="text-muted-foreground text-sm">
+                            Não existem campanhas correspondentes ao filtro selecionado.
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="bg-white dark:bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[1000px]">
+                            <thead>
+                                <tr className="border-b border-border bg-muted/30">
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Campanha</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Envio</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">Destinatários</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">Entregues</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">Aberturas</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">Cliques</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center">Status</th>
+                                    <th className="px-6 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {filteredCampaigns.map(campaign => {
+                                    const total = campaign.sentCount || 0;
+                                    const isOpenHigh = total > 0 && (campaign.openedCount / total) > 0.4;
+
+                                    return (
+                                        <tr
+                                            key={campaign.id}
+                                            className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                                            onClick={() => setSelectedCampaign(campaign)}
+                                        >
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                                        <Mail size={14} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">{campaign.name}</div>
+                                                        <div className="text-[10px] text-muted-foreground line-clamp-1">{campaign.subject}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
+                                                    <Calendar size={12} className="text-muted-foreground" />
+                                                    {campaign.sentAt ? (
+                                                        <span>
+                                                            {new Date(campaign.sentAt).toLocaleDateString()}<br />
+                                                            <span className="opacity-60">{new Date(campaign.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        </span>
+                                                    ) : '-'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="text-sm font-semibold">{total}</div>
+                                                <div className="text-[11px] opacity-60">100%</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <MetricCell value={campaign.deliveredCount || (campaign.status === 'sent' ? total : 0)} total={total} label="Entregues" />
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <MetricCell value={campaign.openedCount || 0} total={total} label="Aberturas" highlight={isOpenHigh} />
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <MetricCell value={campaign.clickedCount || 0} total={total} label="Cliques" />
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <StatusBadge status={campaign.status} />
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
+                                                    <button
+                                                        onClick={() => duplicateCampaign(campaign)}
+                                                        className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-all"
+                                                        title="Duplicar"
+                                                    >
+                                                        <Copy size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm('Tem certeza que deseja excluir esta campanha?')) {
+                                                                deleteCampaign(campaign.id);
+                                                            }
+                                                        }}
+                                                        className="p-1.5 hover:bg-rose-500/10 rounded-md text-muted-foreground hover:text-rose-500 transition-all"
+                                                        title="Excluir"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                    <button className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-all">
+                                                        <MoreVertical size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Relatório (Simplificado) */}
+            {selectedCampaign && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-card w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-border flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                                    <BarChart2 size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-foreground">{selectedCampaign.name}</h2>
+                                    <p className="text-sm text-muted-foreground">Relatório de desempenho</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Tem certeza que deseja excluir esta campanha?')) {
+                                            deleteCampaign(selectedCampaign.id!);
+                                            setSelectedCampaign(null);
+                                        }
+                                    }}
+                                    className="p-2 hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500 rounded-lg transition-colors border border-transparent hover:border-rose-500/20"
+                                    title="Excluir campanha"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                                <button onClick={() => setSelectedCampaign(null)} className="p-2 hover:bg-muted rounded-lg transition-colors">
+                                    <Plus size={24} className="rotate-45 text-muted-foreground" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                            {/* Grid de Métricas */}
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <div className="p-4 bg-muted/20 border border-border rounded-xl">
+                                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Destinatários</div>
+                                    <div className="text-2xl font-bold text-foreground">{selectedCampaign.sentCount}</div>
+                                    <div className="text-xs text-muted-foreground">100% da lista</div>
+                                </div>
+                                <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                                    <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Entregues</div>
+                                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                        {selectedCampaign.deliveredCount || (selectedCampaign.status === 'sent' ? selectedCampaign.sentCount : 0)}
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-foreground">{campaign.name}</h4>
-                                        <div className="flex items-center gap-3 mt-1">
-                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${campaign.status === 'sent' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
-                                                }`}>
-                                                {campaign.status}
+                                    <div className="text-xs text-emerald-600/60 font-medium">
+                                        {formatPercent(selectedCampaign.deliveredCount || (selectedCampaign.status === 'sent' ? selectedCampaign.sentCount : 0), selectedCampaign.sentCount)}
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                                    <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Aberturas</div>
+                                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedCampaign.openedCount}</div>
+                                    <div className="text-xs text-blue-600/60 font-medium">{formatPercent(selectedCampaign.openedCount, selectedCampaign.sentCount)}</div>
+                                </div>
+                                <div className="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
+                                    <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Cliques</div>
+                                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{selectedCampaign.clickedCount}</div>
+                                    <div className="text-xs text-indigo-600/60 font-medium">{formatPercent(selectedCampaign.clickedCount, selectedCampaign.sentCount)}</div>
+                                </div>
+                                <div className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl">
+                                    <div className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-1">Cancelamentos</div>
+                                    <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">0</div>
+                                    <div className="text-xs text-rose-600/60 font-medium">0%</div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-bold text-foreground px-1">Interações por Destinatário</h3>
+                                <div className="border border-border rounded-xl overflow-hidden bg-white dark:bg-card/50">
+                                    <div className="max-h-[300px] overflow-y-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-muted/30 border-b border-border">
+                                                    <th className="px-4 py-3 text-[10px] font-bold text-muted-foreground uppercase">Destinatário</th>
+                                                    <th className="px-4 py-3 text-[10px] font-bold text-muted-foreground uppercase">Envio</th>
+                                                    <th className="px-4 py-3 text-[10px] font-bold text-muted-foreground uppercase">Abertura</th>
+                                                    <th className="px-4 py-3 text-[10px] font-bold text-muted-foreground uppercase">Clique</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border">
+                                                {isLoadingReport ? (
+                                                    <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-muted-foreground">Carregando dados...</td></tr>
+                                                ) : reportLogs.length === 0 ? (
+                                                    <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-muted-foreground">Nenhum registro encontrado</td></tr>
+                                                ) : reportLogs.map((log: any) => (
+                                                    <tr key={log.id} className="text-xs hover:bg-muted/20 transition-colors">
+                                                        <td className="px-4 py-3 font-medium">{log.recipient_email}</td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-1.5 text-emerald-500 font-bold">
+                                                                <CheckCircle2 size={12} /> enviado
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {log.opened ? (
+                                                                <div className="flex items-center gap-1.5 text-blue-500 font-bold">
+                                                                    <Eye size={12} /> abriu
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-muted-foreground opacity-40">—</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {log.clicked ? (
+                                                                <div className="flex items-center gap-1.5 text-indigo-500 font-bold">
+                                                                    <MousePointer2 size={12} /> clicou
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-muted-foreground opacity-40">—</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="border border-border rounded-xl p-5 space-y-4">
+                                    <div className="flex items-center gap-2 font-bold text-foreground">
+                                        <Eye size={18} className="text-primary" />
+                                        Preview da Mensagem
+                                    </div>
+                                    <div className="text-sm p-4 bg-muted/30 rounded-lg whitespace-pre-wrap border border-border/50 text-muted-foreground font-serif">
+                                        {selectedCampaign.content || "Sem conteúdo"}
+                                    </div>
+                                </div>
+
+                                <div className="border border-border rounded-xl p-5 space-y-4">
+                                    <div className="flex items-center gap-2 font-bold text-foreground">
+                                        <Users size={18} className="text-primary" />
+                                        Detalhes do Envio
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between text-sm py-2 border-b border-border/50">
+                                            <span className="text-muted-foreground">Remetente</span>
+                                            <span className="font-medium">{selectedCampaign.fromName} ({selectedCampaign.fromEmail})</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm py-2 border-b border-border/50">
+                                            <span className="text-muted-foreground">Assunto</span>
+                                            <span className="font-medium">{selectedCampaign.subject}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm py-2 border-b border-border/50">
+                                            <span className="text-muted-foreground">Iniciado em</span>
+                                            <span className="font-medium">
+                                                {selectedCampaign.sentAt ? new Date(selectedCampaign.sentAt).toLocaleString() : 'Não enviado'}
                                             </span>
-                                            <span className="text-xs text-muted-foreground">Enviada em {new Date(campaign.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm py-2">
+                                            <span className="text-muted-foreground">Status Final</span>
+                                            <StatusBadge status={selectedCampaign.status} />
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center gap-8">
-                                    <div className="text-center">
-                                        <div className="text-lg font-bold text-foreground">{campaign.sentCount}</div>
-                                        <div className="text-[10px] text-muted-foreground uppercase font-bold">Enviados</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-lg font-bold text-foreground">{((campaign.openedCount / campaign.sentCount) * 100 || 0).toFixed(1)}%</div>
-                                        <div className="text-[10px] text-muted-foreground uppercase font-bold">Aberturas</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-lg font-bold text-foreground">{((campaign.clickedCount / campaign.sentCount) * 100 || 0).toFixed(1)}%</div>
-                                        <div className="text-[10px] text-muted-foreground uppercase font-bold">Cliques</div>
-                                    </div>
-                                    <button className="p-2 hover:bg-muted rounded-lg transition-colors">
-                                        <BarChart3 size={18} className="text-muted-foreground" />
-                                    </button>
-                                </div>
                             </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        );
-    }
+                        </div>
 
-    return null;
+                        <div className="p-4 bg-muted/30 border-t border-border flex justify-end">
+                            <button
+                                onClick={() => setSelectedCampaign(null)}
+                                className="px-6 py-2 bg-white dark:bg-card border border-border rounded-lg font-bold text-sm hover:bg-muted transition-all"
+                            >
+                                Fechar Relatório
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
+

@@ -57,7 +57,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         { path: '/activities', label: 'Atividades', icon: CalendarDays },
         { path: '/contacts', label: 'Contatos', icon: Users },
         { path: '/email', label: 'E-mail', icon: Inbox },
-        { path: '/campaigns/email', label: 'Campaigns', icon: Mail },
+        { path: '/campaigns', label: 'Campaigns', icon: Mail },
         { path: '/insights', label: 'Insights', icon: BarChart3 },
     ];
 
@@ -509,13 +509,13 @@ function App() {
                         <Route path="/campaigns/*" element={
                             <CampaignsLayout>
                                 <Routes>
-                                    <Route path="email" element={<CampaignsDashboard />} />
+                                    <Route index element={<CampaignsDashboard />} />
                                     <Route path="new" element={<CampaignWizard />} />
                                     <Route path="automated" element={<AutomatedCampaigns />} />
                                     <Route path="templates" element={<EmailTemplates />} />
                                     <Route path="settings" element={<CampaignSettings />} />
                                     <Route path="alerts" element={<AlertsAndTips />} />
-                                    <Route path="*" element={<Navigate to="email" replace />} />
+                                    <Route path="*" element={<Navigate to="" replace />} />
                                 </Routes>
                             </CampaignsLayout>
                         } />

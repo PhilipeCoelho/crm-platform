@@ -1,30 +1,31 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-dotenv.config({ path: resolve(__dirname, '.env') });
-dotenv.config({ path: resolve(__dirname, '.env.local') });
+const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-
-if(!supabaseUrl || !supabaseKey) { console.error("Missing keys"); process.exit(1); }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-async function test() {
-    const { data: user, error: userError } = await supabase.auth.signInWithPassword({
-        email: 'philipecoelho@example.com', // wait, we don't have their login. let's just do a select from the table, maybe RLS allows reading schema or empty?
+async function testInsert() {
+    // try to sign in with user to get their token
+    const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({
+        email: process.env.SMTP_USER,
+        password: process.env.SMTP_PASS // Just to see if we can get a session, wait, this might not be the user's supabase password.
     });
-    
-    // Actually we can just do a select without auth. It will return empty but if the table or column is missing we get an error!
-    const { data, error } = await supabase.from('user_dashboard_widgets').select('position').limit(1);
-    console.log("Select 'position' error:", error?.message || error?.code);
 
-    const { data: data2, error: error2 } = await supabase.from('user_dashboard_widgets').select('order_position').limit(1);
-    console.log("Select 'order_position' error:", error2?.message || error2?.code);
+    // Alternatively, just try to select
+    const { data, error } = await supabase.from('campaigns').select('*').limit(1);
+    console.log('Select Campaigns Error:', error);
+    console.log('Data:', data);
+
+    // Check if the table even has the columns by calling it
+    const { error: error2 } = await supabase.from('campaigns').insert({
+        name: 'Test',
+        subject: 'Test subject',
+        // created_by is missing so RLS will reject or violate foreign key, but we want to see if columns exist
+        from_name: 'test',
+        from_email: 'test@example.com',
+        content: 'hello'
+    });
+    console.log('Insert Error:', error2);
 }
-test();
+
+testInsert();

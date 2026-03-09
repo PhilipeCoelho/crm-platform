@@ -157,114 +157,73 @@ export async function getInsightsData(
         const { data: flowActivitiesRaw } = await supabase
             .from('activities')
             .select('id, status, created_at, completed_at, deal_id, type')
-            .or(`created_at.gte.${startOfDay},completed_at.gte.${startOfDay}`);
+            .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(completed_at.gte.${startOfDay},completed_at.lte.${endOfDay})`);
 
         const flowActivities = flowActivitiesRaw?.filter(a => {
             const REAL_TYPES = ['call', 'meeting', 'task', 'email', 'message', 'instagram', 'analysis', 'audit'];
             if (!REAL_TYPES.includes(a.type)) return false;
             if (a.created_at < IGNORE_TEST_DATA_BEFORE) return false;
             return true;
-        });
+        }) || [];
 
         // 3. Buscar dados de analytics
         const { data, error } = await supabase
             .from('deal_analytics')
             .select('*')
-            .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(closed_at.gte.${startOfDay},closed_at.lte.${endOfDay})`);
+            .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(closed_at.gte.${startOfDay},closed_at.lte.${endOfDay}),and(updated_at.gte.${startOfDay},updated_at.lte.${endOfDay})`);
 
         if (error) {
             console.error('Error fetching insights data:', error);
             return { ...emptyStats(), funnel: emptyFunnel(), activity: emptyActivity(), intensity: emptyIntensity(), timing: emptyTiming(), channel: emptyChannel(), lost: emptyLost() };
         }
 
-        let currentData = data || [];
-
-        // Filtro rigoroso de Data de Lançamento (ignorar testes anteriores a 22 Fev)
-        currentData = currentData.filter(d => {
-            if (d.status_final === 'open') {
-                // Sanidade: Se o negócio consta como aberto no analytics mas NÃO está no set de IDs abertos reais e ativos, 
-                // significa que ele é um "fantasma" (Ex: Caso Tagides ou negócio sem etapa).
-                if (!openDealsIds.has(String(d.deal_id).toLowerCase())) {
-                    return false;
-                }
-
-                // Se é aberto antigo, mantemos na contagem, mas ZERAMOS as atividades de registro de teste
-                if (d.created_at < IGNORE_TEST_DATA_BEFORE) {
-                    d.total_atividades = 0;
-                    d.total_mensagens = 0;
-                    d.total_emails = 0;
-                    d.total_ligacoes = 0;
-                    d.total_analises = 0;
-                    d.total_auditorias = 0;
-                    d.total_contatos_realizados = 0;
-                    d.contatos_ate_reuniao = 0;
-                    d.contatos_ate_fechamento = 0;
-                    d.total_respostas = 0;
-                    d.tempo_medio_entre_contatos = 0;
-                    d.dias_totais_no_funil = 0;
-                }
-                return true;
-            } else {
-                // Se é fechado (won/lost) e foi fechado ou criado antes do corte de hoje, nós deletamos dos cálculos
-                const refDate = d.closed_at || d.created_at;
-                if (refDate < IGNORE_TEST_DATA_BEFORE) {
-                    return false;
-                }
-                return true;
-            }
+        const validData = (data || []).filter(d => {
+            if (d.status_final === 'open' && !openDealsIds.has(String(d.deal_id).toLowerCase())) return false;
+            const refDate = d.closed_at || d.created_at;
+            if (refDate < IGNORE_TEST_DATA_BEFORE) return false;
+            return d.status_final !== 'desqualificado';
         });
 
-        // Regras de filtragem do Funil (usando as datas ajustadas para tempo)
-        // EXCLUSÃO DE DESQUALIFICADOS: Por padrão, desqualificados não entram em métricas de desempenho/conversão
-        const dealsCreated = currentData.filter(d =>
-            (d.created_at as string) >= startOfDay &&
-            (d.created_at as string) <= endOfDay &&
-            d.status_final !== 'desqualificado'
+        // Agrupamentos de negócios
+        const dealsCreated = validData.filter(d => (d.created_at as string) >= startOfDay && (d.created_at as string) <= endOfDay);
+        const dealsClosed = validData.filter(d => d.closed_at && (d.closed_at as string) >= startOfDay && (d.closed_at as string) <= endOfDay);
+        const dealsActive = validData.filter(d => (d.updated_at as string) >= startOfDay && (d.updated_at as string) <= endOfDay);
+
+        const wonDeals = dealsClosed.filter(d => d.status_final === 'won');
+        const lostDeals = dealsClosed.filter(d => d.status_final === 'lost');
+        const openDealsActive = dealsActive.filter(d => d.status_final === 'open');
+
+        const totalDeals = dealsCreated.length;
+        const totalWon = wonDeals.length;
+        const totalLost = lostDeals.length;
+
+        // Fase 4: Atividades no Período
+        const periodCompletedActivities = flowActivities.filter(a =>
+            a.status === 'completed' && a.completed_at && a.completed_at >= startOfDay && a.completed_at <= endOfDay
         );
 
-        // REGRA OFICIAL ANTIGRAVITY (Fev 2026) - Atualizada:
-        // KPI "Total de Negócios" = Volume real de negócios criados dentro do período (exceto desqualificados).
-        const totalDeals = dealsCreated.length;
-        const totalWon = dealsCreated.filter(d => d.status_final === 'won').length;
-        const totalLost = dealsCreated.filter(d => d.status_final === 'lost').length;
+        const totalMensagens = periodCompletedActivities.filter(a => a.type === 'message' || a.type === 'instagram').length;
+        const totalEmails = periodCompletedActivities.filter(a => a.type === 'email').length;
+        const totalLigacoes = periodCompletedActivities.filter(a => a.type === 'call').length;
+        const totalAnalises = periodCompletedActivities.filter(a => a.type === 'analysis').length;
+        const totalAuditorias = periodCompletedActivities.filter(a => a.type === 'audit').length;
+        const totalAtividades = periodCompletedActivities.length;
 
-        const totalAtividades = dealsCreated.reduce((sum, d) => sum + (d.total_atividades || 0), 0);
-        const totalContatos = dealsCreated.reduce((sum, d) => sum + (d.total_contatos_realizados || 0), 0);
-        const mediaContatos = totalDeals > 0 ? totalContatos / totalDeals : 0;
+        const totalContatos = totalMensagens + totalEmails + totalLigacoes;
+        const mediaContatos = dealsActive.length > 0 ? totalContatos / dealsActive.length : 0;
 
-        const wonDeals = dealsCreated.filter(d => d.status_final === 'won');
         const totalDiasFechamento = wonDeals.reduce((sum, d) => sum + (d.dias_ate_fechamento || 0), 0);
         const mediaDiasFechamento = wonDeals.length > 0 ? totalDiasFechamento / wonDeals.length : 0;
 
-        const taxaFechamento = totalDeals > 0 ? (totalWon / totalDeals) * 100 : 0;
-        const taxaPerda = totalDeals > 0 ? (totalLost / totalDeals) * 100 : 0;
+        const taxaFechamento = (totalWon + totalLost) > 0 ? (totalWon / (totalWon + totalLost)) * 100 : 0;
+        const taxaPerda = (totalWon + totalLost) > 0 ? (totalLost / (totalWon + totalLost)) * 100 : 0;
 
-        // Fase 3: Contagem Exata por Etapa (Visão de Snapshot do Pipeline)
-        const prospectCount = dealsCreated.filter(d =>
-            d.stage_atual?.toLowerCase().includes('prospect') ||
-            d.etapa_onde_perdeu?.toLowerCase().includes('prospect')
-        ).length;
-
-        const leadEngajadoCount = dealsCreated.filter(d =>
-            d.stage_atual?.toLowerCase().includes('engajado') ||
-            d.etapa_onde_perdeu?.toLowerCase().includes('engajado')
-        ).length;
-
-        const leadCount = dealsCreated.filter(d =>
-            (d.stage_atual?.toLowerCase().includes('lead') && !d.stage_atual?.toLowerCase().includes('engajado')) ||
-            (d.etapa_onde_perdeu?.toLowerCase().includes('lead') && !d.etapa_onde_perdeu?.toLowerCase().includes('engajado'))
-        ).length;
-
-        const reuniaoCount = dealsCreated.filter(d =>
-            d.stage_atual?.toLowerCase().includes('reun') ||
-            d.etapa_onde_perdeu?.toLowerCase().includes('reun')
-        ).length;
-
-        const propostaCount = dealsCreated.filter(d =>
-            d.stage_atual?.toLowerCase().includes('proposta') ||
-            d.etapa_onde_perdeu?.toLowerCase().includes('proposta')
-        ).length;
-
+        // Fase 3: Funil
+        const prospectCount = dealsActive.filter(d => d.stage_atual?.toLowerCase().includes('prospect') || d.etapa_onde_perdeu?.toLowerCase().includes('prospect')).length;
+        const leadEngajadoCount = dealsActive.filter(d => d.stage_atual?.toLowerCase().includes('engajado') || d.etapa_onde_perdeu?.toLowerCase().includes('engajado')).length;
+        const leadCount = dealsActive.filter(d => (d.stage_atual?.toLowerCase().includes('lead') && !d.stage_atual?.toLowerCase().includes('engajado')) || (d.etapa_onde_perdeu?.toLowerCase().includes('lead') && !d.etapa_onde_perdeu?.toLowerCase().includes('engajado'))).length;
+        const reuniaoCount = dealsActive.filter(d => d.stage_atual?.toLowerCase().includes('reun') || d.etapa_onde_perdeu?.toLowerCase().includes('reun')).length;
+        const propostaCount = dealsActive.filter(d => d.stage_atual?.toLowerCase().includes('proposta') || d.etapa_onde_perdeu?.toLowerCase().includes('proposta')).length;
         const fechamentoCount = totalWon;
 
         const prospectToLead = prospectCount > 0 ? (leadCount / prospectCount) * 100 : 0;
@@ -274,187 +233,102 @@ export async function getInsightsData(
         const propostaToGanho = propostaCount > 0 ? (totalWon / propostaCount) * 100 : 0;
         const reuniaoToFechamento = reuniaoCount > 0 ? (fechamentoCount / reuniaoCount) * 100 : 0;
 
-        // Fase 4: Atividades
-        const totalMensagens = dealsCreated.reduce((sum, d) => sum + (d.total_mensagens || 0), 0);
-        const totalEmails = dealsCreated.reduce((sum, d) => sum + (d.total_emails || 0), 0);
-        const totalLigacoes = dealsCreated.reduce((sum, d) => sum + (d.total_ligacoes || 0), 0);
-        const totalAnalises = dealsCreated.reduce((sum, d) => sum + (d.total_analises || 0), 0);
-        const totalAuditorias = dealsCreated.reduce((sum, d) => sum + (d.total_auditorias || 0), 0);
+        const mediaAtividadesPorNegocio = dealsActive.length > 0 ? totalAtividades / dealsActive.length : 0;
 
-        const mediaAtividadesPorNegocio = totalDeals > 0 ? totalAtividades / totalDeals : 0;
+        const reuniaoDeals = openDealsActive.filter(d => d.contatos_ate_reuniao !== null);
+        const mediaContatosAteReuniao = reuniaoDeals.length > 0 ? reuniaoDeals.reduce((sum, d) => sum + (d.contatos_ate_reuniao || 0), 0) / reuniaoDeals.length : 0;
+        const mediaContatosAteFechamento = wonDeals.length > 0 ? wonDeals.reduce((sum, d) => sum + (d.contatos_ate_fechamento || 0), 0) / wonDeals.length : 0;
+        const mediaFollowUpsAteFechamento = wonDeals.length > 0 ? wonDeals.reduce((sum, d) => sum + Math.max(0, (d.total_contatos_realizados || 0) - (d.contatos_ate_reuniao || 0)), 0) / wonDeals.length : 0;
 
-        const openDealsCreated = dealsCreated.filter(d => d.status_final === 'open');
-
-        const reuniaoDeals = openDealsCreated.filter(d => d.contatos_ate_reuniao !== null);
-        const mediaContatosAteReuniao = reuniaoDeals.length > 0
-            ? reuniaoDeals.reduce((sum, d) => sum + (d.contatos_ate_reuniao || 0), 0) / reuniaoDeals.length
-            : 0;
-
-        const mediaContatosAteFechamento = wonDeals.length > 0
-            ? wonDeals.reduce((sum, d) => sum + (d.contatos_ate_fechamento || 0), 0) / wonDeals.length
-            : 0;
-
-        const mediaFollowUpsAteFechamento = wonDeals.length > 0
-            ? wonDeals.reduce((sum, d) => sum + Math.max(0, (d.total_contatos_realizados || 0) - (d.contatos_ate_reuniao || 0)), 0) / wonDeals.length
-            : 0;
-
-        // Fetch Taxa de Comparecimento (Meetings completed vs Total meetings)
-        const totalMeetings = flowActivities?.filter(a => a.type === 'meeting').length || 0;
-        const completedMeetings = flowActivities?.filter(a => a.type === 'meeting' && a.status === 'completed').length || 0;
+        const totalMeetings = flowActivities.filter(a => a.type === 'meeting').length;
+        const completedMeetings = periodCompletedActivities.filter(a => a.type === 'meeting').length;
         const taxaComparecimento = totalMeetings > 0 ? (completedMeetings / totalMeetings) * 100 : 0;
 
         const percentMensagens = totalAtividades > 0 ? (totalMensagens / totalAtividades) * 100 : 0;
         const percentEmails = totalAtividades > 0 ? (totalEmails / totalAtividades) * 100 : 0;
         const percentLigacoes = totalAtividades > 0 ? (totalLigacoes / totalAtividades) * 100 : 0;
 
-        // Fase 5: Intensidade de Contatos (Baseada apenas em negócios abertos)
-        const mediaContatosPorNegocio = totalDeals > 0
-            ? openDealsCreated.reduce((sum, d) => sum + (d.total_contatos_realizados || 0), 0) / totalDeals
-            : 0;
+        const mediaContatosPorNegocio = dealsActive.length > 0 ? dealsActive.reduce((sum, d) => sum + (d.total_contatos_realizados || 0), 0) / dealsActive.length : 0;
+        const negociosCom7OuMais = dealsActive.filter(d => (d.total_contatos_realizados || 0) >= 7).length;
+        const percent7OuMais = dealsActive.length > 0 ? (negociosCom7OuMais / dealsActive.length) * 100 : 0;
 
-        const negociosCom7OuMais = openDealsCreated.filter(d => (d.total_contatos_realizados || 0) >= 7).length;
-        const percent7OuMais = totalDeals > 0 ? (negociosCom7OuMais / totalDeals) * 100 : 0;
-
-        const encerradosAntes5 = dealsCreated.filter(d =>
-            (d.status_final !== 'open') && (d.total_contatos_realizados || 0) < 5
-        ).length;
+        const encerradosAntes5 = dealsClosed.filter(d => d.status_final !== 'open' && (d.total_contatos_realizados || 0) < 5).length;
         const percentEncerradosAntes5 = (totalWon + totalLost) > 0 ? (encerradosAntes5 / (totalWon + totalLost)) * 100 : 0;
 
-        const faixa0_2 = openDealsCreated.filter(d => {
-            const c = d.total_contatos_realizados || 0;
-            return c >= 0 && c <= 2;
-        }).length;
-
-        const faixa3_5 = openDealsCreated.filter(d => {
-            const c = d.total_contatos_realizados || 0;
-            return c >= 3 && c <= 5;
-        }).length;
-
-        const faixa6_9 = openDealsCreated.filter(d => {
-            const c = d.total_contatos_realizados || 0;
-            return c >= 6 && c <= 9;
-        }).length;
-
-        const faixa10_plus = openDealsCreated.filter(d => {
-            const c = d.total_contatos_realizados || 0;
-            return c >= 10;
-        }).length;
+        const faixa0_2 = dealsActive.filter(d => (d.total_contatos_realizados || 0) >= 0 && (d.total_contatos_realizados || 0) <= 2).length;
+        const faixa3_5 = dealsActive.filter(d => (d.total_contatos_realizados || 0) >= 3 && (d.total_contatos_realizados || 0) <= 5).length;
+        const faixa6_9 = dealsActive.filter(d => (d.total_contatos_realizados || 0) >= 6 && (d.total_contatos_realizados || 0) <= 9).length;
+        const faixa10_plus = dealsActive.filter(d => (d.total_contatos_realizados || 0) >= 10).length;
 
         // Fase 6: Tempos e Ciclo
-        const tempoMedioAteReuniao = reuniaoDeals.length > 0
-            ? reuniaoDeals.reduce((sum, d) => sum + (d.dias_ate_reuniao || 0), 0) / reuniaoDeals.length
-            : 0;
+        const tempoMedioAteReuniao = reuniaoDeals.length > 0 ? reuniaoDeals.reduce((sum, d) => sum + (d.dias_ate_reuniao || 0), 0) / reuniaoDeals.length : 0;
+        const tempoMedioAteFechamento = wonDeals.length > 0 ? wonDeals.reduce((sum, d) => sum + (d.dias_ate_fechamento || 0), 0) / wonDeals.length : 0;
+        const tempoMedioCiclo = wonDeals.length > 0 ? wonDeals.reduce((sum, d) => sum + (d.dias_totais_no_funil || 0), 0) / wonDeals.length : 0;
+        const tempoMedioEntreContatos = dealsActive.length > 0 ? dealsActive.reduce((sum, d) => sum + (d.tempo_medio_entre_contatos || 0), 0) / dealsActive.length : 0;
 
-        const tempoMedioAteFechamento = wonDeals.length > 0
-            ? wonDeals.reduce((sum, d) => sum + (d.dias_ate_fechamento || 0), 0) / wonDeals.length
-            : 0;
-        const tempoMedioCiclo = wonDeals.length > 0
-            ? wonDeals.reduce((sum, d) => sum + (d.dias_totais_no_funil || 0), 0) / wonDeals.length
-            : 0;
-
-        const tempoMedioEntreContatos = totalDeals > 0
-            ? openDealsCreated.reduce((sum, d) => sum + (d.tempo_medio_entre_contatos || 0), 0) / totalDeals
-            : 0;
-
-        // Distribuição do Ciclo de Vendas focada em Ganhos (Won)
-        const ciclo_0_7 = wonDeals.filter(d => {
-            const dias = d.dias_totais_no_funil || 0;
-            return dias >= 0 && dias <= 7;
-        }).length;
-
-        const ciclo_8_15 = wonDeals.filter(d => {
-            const dias = d.dias_totais_no_funil || 0;
-            return dias >= 8 && dias <= 15;
-        }).length;
-
-        const ciclo_16_30 = wonDeals.filter(d => {
-            const dias = d.dias_totais_no_funil || 0;
-            return dias >= 16 && dias <= 30;
-        }).length;
-
-        const ciclo_30_plus = wonDeals.filter(d => {
-            const dias = d.dias_totais_no_funil || 0;
-            return dias > 30;
-        }).length;
+        const ciclo_0_7 = wonDeals.filter(d => (d.dias_totais_no_funil || 0) <= 7).length;
+        const ciclo_8_15 = wonDeals.filter(d => (d.dias_totais_no_funil || 0) >= 8 && (d.dias_totais_no_funil || 0) <= 15).length;
+        const ciclo_16_30 = wonDeals.filter(d => (d.dias_totais_no_funil || 0) >= 16 && (d.dias_totais_no_funil || 0) <= 30).length;
+        const ciclo_30_plus = wonDeals.filter(d => (d.dias_totais_no_funil || 0) > 30).length;
 
         // Fase 7: Avanço por Canal
-        const totalMessage = dealsCreated.filter(d => d.canal_mais_usado === 'message').length;
-        const totalEmail = dealsCreated.filter(d => d.canal_mais_usado === 'email').length;
-        const totalCall = dealsCreated.filter(d => d.canal_mais_usado === 'call').length;
+        const dealsNoPeriodo = [...new Set([...dealsActive, ...dealsClosed])];
 
-        const percentMessage = totalDeals > 0 ? (totalMessage / totalDeals) * 100 : 0;
-        const percentEmail = totalDeals > 0 ? (totalEmail / totalDeals) * 100 : 0;
-        const percentCall = totalDeals > 0 ? (totalCall / totalDeals) * 100 : 0;
+        const totalMessage = dealsNoPeriodo.filter(d => d.canal_mais_usado === 'message').length;
+        const totalEmail = dealsNoPeriodo.filter(d => d.canal_mais_usado === 'email').length;
+        const totalCall = dealsNoPeriodo.filter(d => d.canal_mais_usado === 'call').length;
 
-        const reuniaoMessage = dealsCreated.filter(d => d.canal_mais_usado === 'message' && d.contatos_ate_reuniao !== null).length;
-        const reuniaoEmail = dealsCreated.filter(d => d.canal_mais_usado === 'email' && d.contatos_ate_reuniao !== null).length;
-        const reuniaoCall = dealsCreated.filter(d => d.canal_mais_usado === 'call' && d.contatos_ate_reuniao !== null).length;
+        const percentMessage = dealsNoPeriodo.length > 0 ? (totalMessage / dealsNoPeriodo.length) * 100 : 0;
+        const percentEmail = dealsNoPeriodo.length > 0 ? (totalEmail / dealsNoPeriodo.length) * 100 : 0;
+        const percentCall = dealsNoPeriodo.length > 0 ? (totalCall / dealsNoPeriodo.length) * 100 : 0;
+
+        const reuniaoMessage = dealsNoPeriodo.filter(d => d.canal_mais_usado === 'message' && d.contatos_ate_reuniao !== null).length;
+        const reuniaoEmail = dealsNoPeriodo.filter(d => d.canal_mais_usado === 'email' && d.contatos_ate_reuniao !== null).length;
+        const reuniaoCall = dealsNoPeriodo.filter(d => d.canal_mais_usado === 'call' && d.contatos_ate_reuniao !== null).length;
 
         const taxaReuniaoMessage = totalMessage > 0 ? (reuniaoMessage / totalMessage) * 100 : 0;
         const taxaReuniaoEmail = totalEmail > 0 ? (reuniaoEmail / totalEmail) * 100 : 0;
         const taxaReuniaoCall = totalCall > 0 ? (reuniaoCall / totalCall) * 100 : 0;
 
-        const fechamentoMessage = dealsCreated.filter(d => d.canal_mais_usado === 'message' && d.status_final === 'won').length;
-        const fechamentoEmail = dealsCreated.filter(d => d.canal_mais_usado === 'email' && d.status_final === 'won').length;
-        const fechamentoCall = dealsCreated.filter(d => d.canal_mais_usado === 'call' && d.status_final === 'won').length;
+        const fechamentoMessage = wonDeals.filter(d => d.canal_mais_usado === 'message').length;
+        const fechamentoEmail = wonDeals.filter(d => d.canal_mais_usado === 'email').length;
+        const fechamentoCall = wonDeals.filter(d => d.canal_mais_usado === 'call').length;
 
         const taxaFechamentoMessage = totalMessage > 0 ? (fechamentoMessage / totalMessage) * 100 : 0;
         const taxaFechamentoEmail = totalEmail > 0 ? (fechamentoEmail / totalEmail) * 100 : 0;
         const taxaFechamentoCall = totalCall > 0 ? (fechamentoCall / totalCall) * 100 : 0;
 
         // Fase 8: Módulo de Perdas
-        const lostDeals = dealsCreated.filter(d => d.status_final === 'lost');
-        // taxaPerda já foi calculada acima na Fase 2
+        const tempoMedioAtePerda = lostDeals.length > 0 ? lostDeals.reduce((sum, d) => sum + (d.dias_totais_no_funil || 0), 0) / lostDeals.length : 0;
+        const mediaContatosAtePerda = lostDeals.length > 0 ? lostDeals.reduce((sum, d) => sum + (d.total_contatos_realizados || 0), 0) / lostDeals.length : 0;
 
-        const tempoMedioAtePerda = lostDeals.length > 0
-            ? lostDeals.reduce((sum, d) => sum + (d.dias_totais_no_funil || 0), 0) / lostDeals.length
-            : 0;
-
-        const mediaContatosAtePerda = lostDeals.length > 0
-            ? lostDeals.reduce((sum, d) => sum + (d.total_contatos_realizados || 0), 0) / lostDeals.length
-            : 0;
-
-        // Agrupar etapas onde perdeu
         const etapasMap: Record<string, number> = {};
         const motivosMap: Record<string, number> = {};
 
         lostDeals.forEach(d => {
             const etapa = d.etapa_onde_perdeu || 'Desconhecida';
             etapasMap[etapa] = (etapasMap[etapa] || 0) + 1;
-
             const motivo = d.motivo_perda || 'Sem motivo registrado';
             motivosMap[motivo] = (motivosMap[motivo] || 0) + 1;
         });
 
-        const etapasList = Object.keys(etapasMap).map(etapa => ({
-            etapa_onde_perdeu: etapa,
-            quantidade: etapasMap[etapa],
-            percentual: totalLost > 0 ? (etapasMap[etapa] / totalLost) * 100 : 0
-        })).sort((a, b) => b.quantidade - a.quantidade);
+        const etapasList = Object.keys(etapasMap).map(etapa => ({ etapa_onde_perdeu: etapa, quantidade: etapasMap[etapa], percentual: totalLost > 0 ? (etapasMap[etapa] / totalLost) * 100 : 0 })).sort((a, b) => b.quantidade - a.quantidade);
+        const motivosList = Object.keys(motivosMap).map(motivo => ({ motivo_perda: motivo, quantidade: motivosMap[motivo], percentual: totalLost > 0 ? (motivosMap[motivo] / totalLost) * 100 : 0 })).sort((a, b) => b.quantidade - a.quantidade);
 
-        const motivosList = Object.keys(motivosMap).map(motivo => ({
-            motivo_perda: motivo,
-            quantidade: motivosMap[motivo],
-            percentual: totalLost > 0 ? (motivosMap[motivo] / totalLost) * 100 : 0
-        })).sort((a, b) => b.quantidade - a.quantidade);
-
-        // Dashboard Flow Metrics
-        const flowGanhosDeals = currentData.filter(d => d.status_final === 'won' && d.closed_at && (d.closed_at as string) >= startOfDay && (d.closed_at as string) <= endOfDay);
-        const flowPerdidosDeals = currentData.filter(d => d.status_final === 'lost' && d.closed_at && (d.closed_at as string) >= startOfDay && (d.closed_at as string) <= endOfDay);
-        const flowGanhosCount = flowGanhosDeals.length;
-        const flowPerdidosCount = flowPerdidosDeals.length;
-        const flowReceita = flowGanhosDeals.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0);
+        const flowGanhosCount = wonDeals.length;
+        const flowPerdidosCount = lostDeals.length;
+        const flowReceita = wonDeals.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0);
         const flowConversao = (flowGanhosCount + flowPerdidosCount) > 0 ? (flowGanhosCount / (flowGanhosCount + flowPerdidosCount)) * 100 : 0;
 
-        const atividadesCriadas = flowActivities?.filter(a => (a.created_at as string) >= startOfDay && (a.created_at as string) <= endOfDay).length || 0;
-        const atividadesConcluidas = flowActivities?.filter(a => a.status === 'completed' && a.completed_at && (a.completed_at as string) >= startOfDay && (a.completed_at as string) <= endOfDay).length || 0;
+        const atividadesCriadas = flowActivities.filter(a => a.created_at && (a.created_at as string) >= startOfDay && (a.created_at as string) <= endOfDay).length;
+        const atividadesConcluidas = periodCompletedActivities.length;
         const taxaExecucao = atividadesCriadas > 0 ? (atividadesConcluidas / atividadesCriadas) * 100 : 0;
-        const mediaExecucao = totalDeals > 0 ? (atividadesConcluidas / totalDeals) : 0;
+        const mediaExecucao = dealsActive.length > 0 ? (atividadesConcluidas / dealsActive.length) : 0;
 
-        const dealsComAtividade7d = new Set(
-            flowActivities?.filter(a => (a.created_at as string) >= startOfDay && a.deal_id && openDealsIds.has(a.deal_id.toLowerCase())).map(a => a.deal_id.toLowerCase())
+        const dealsComAtividadeNoPeriodo = new Set(
+            periodCompletedActivities.filter(a => a.deal_id && openDealsIds.has(String(a.deal_id).toLowerCase())).map(a => String(a.deal_id).toLowerCase())
         );
-        const negociosSemAtividade = openDealsIds.size - dealsComAtividade7d.size;
+        const negociosSemAtividade = openDealsIds.size > 0 ? Math.max(0, openDealsIds.size - dealsComAtividadeNoPeriodo.size) : 0;
 
         return {
             totalDeals,
@@ -464,8 +338,8 @@ export async function getInsightsData(
             mediaContatos,
             mediaDiasFechamento,
             totalValor: dealsCreated.reduce((sum, d) => sum + (d.total_faturado_nesta_fase || 0), 0),
-            wonValue: dealsCreated.filter(d => d.status_final === 'won').reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0),
-            openValue: openDealsCreated.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0),
+            wonValue: wonDeals.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0),
+            openValue: openDealsActive.reduce((sum, d) => sum + (d.valor_ajustado || d.valor || 0), 0),
             dashboardFlow: {
                 ganhos: flowGanhosCount,
                 perdidos: flowPerdidosCount,
@@ -567,8 +441,9 @@ export async function getInsightsData(
 
         // Variation for metrics
         Object.keys(current).forEach(key => {
-            if (key !== 'funnel' && key !== 'activity' && key !== 'intensity' && key !== 'timing' && key !== 'channel') {
-                variation[key] = calculateVariation((current as any)[key], (previous as any)[key]);
+            if (key !== 'funnel' && key !== 'activity' && key !== 'intensity' && key !== 'timing' && key !== 'channel' && key !== 'lost' && key !== 'dashboardFlow') {
+                // @ts-ignore
+                variation[key] = calculateVariation(current[key], previous[key]);
             }
         });
 
@@ -577,31 +452,42 @@ export async function getInsightsData(
             variation[key] = calculateVariation((current.funnel as any)[key], (previous!.funnel as any)[key]);
         });
 
-        // Variation for activity
+        // Variação para Activity
         Object.keys(current.activity).forEach(key => {
-            variation[key] = calculateVariation((current.activity as any)[key], (previous!.activity as any)[key]);
+            // @ts-ignore
+            variation[key] = calculateVariation(current.activity[key], previous.activity[key]);
         });
 
-        // Variation for intensity
+        // Variação para Intensity
         Object.keys(current.intensity).forEach(key => {
-            variation[key] = calculateVariation((current.intensity as any)[key], (previous!.intensity as any)[key]);
+            // @ts-ignore
+            variation[key] = calculateVariation(current.intensity[key], previous.intensity[key]);
         });
 
-        // Variation for timing
+        // Variação para Timing
         Object.keys(current.timing).forEach(key => {
-            variation[key] = calculateVariation((current.timing as any)[key], (previous!.timing as any)[key]);
+            // @ts-ignore
+            variation[key] = calculateVariation(current.timing[key], previous.timing[key]);
         });
 
-        // Variation for channel
+        // Variação para Channel
         Object.keys(current.channel).forEach(key => {
-            variation[key] = calculateVariation((current.channel as any)[key], (previous!.channel as any)[key]);
+            // @ts-ignore
+            variation[key] = calculateVariation(current.channel[key], previous.channel[key]);
         });
 
-        // Variation for lost
-        variation['lost_totalLost'] = calculateVariation(current.lost.totalLost, previous!.lost.totalLost);
-        variation['lost_taxaPerda'] = calculateVariation(current.lost.taxaPerda, previous!.lost.taxaPerda);
-        variation['lost_tempoMedioAtePerda'] = calculateVariation(current.lost.tempoMedioAtePerda, previous!.lost.tempoMedioAtePerda);
-        variation['lost_mediaContatosAtePerda'] = calculateVariation(current.lost.mediaContatosAtePerda, previous!.lost.mediaContatosAtePerda);
+        // Variação para Lost
+        Object.keys(current.lost).forEach(key => {
+            if (key !== 'etapas' && key !== 'motivos') {
+                // @ts-ignore
+                variation[key] = calculateVariation(current.lost[key], previous.lost[key]);
+            }
+        });
+
+        Object.keys(current.dashboardFlow).forEach(key => {
+            // @ts-ignore
+            variation[key] = calculateVariation(current.dashboardFlow[key], previous.dashboardFlow[key]);
+        });
     }
 
     // Buscar Metas do Supabase

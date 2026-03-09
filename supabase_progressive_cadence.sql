@@ -22,6 +22,13 @@ CREATE TABLE IF NOT EXISTS public.cadence_steps (
     UNIQUE(cadence_id, step_order)
 );
 
+-- Enable RLS and add basic policies for cadence definitions and steps
+ALTER TABLE public.cadence_definitions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable full access for authenticated users" ON public.cadence_definitions FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+ALTER TABLE public.cadence_steps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable full access for authenticated users" ON public.cadence_steps FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
 -- 2. Enhance Activities table
 ALTER TABLE public.activities 
 ADD COLUMN IF NOT EXISTS sequence_step INT DEFAULT 1;
