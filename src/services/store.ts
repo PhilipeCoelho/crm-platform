@@ -808,6 +808,57 @@ export function useCRMStore(): CRMStore {
                         if (syncErr) console.warn('Sync deal_analytics warning:', syncErr);
                     });
                 }
+
+                // --- LIMPEZA AUTOMÁTICA DE ATIVIDADES PENDENTES ---
+                // Ao encerrar negócio (perdido ou desqualificado), remove todas as
+                // atividades pendentes. Atividades concluídas são preservadas no histórico.
+                const isClosingDeal =
+                    updates.status &&
+                    updates.status !== originalDeal.status &&
+                    (updates.status === 'lost' || updates.status === 'desqualificado');
+
+                if (isClosingDeal) {
+                    const PENDING_STATUSES = ['pending', 'aberta', 'agendada'];
+
+                    // 1. Identificar atividades pendentes deste negócio no estado local
+                    const pendingActivityIds = activities
+                        .filter(a =>
+                            a.dealId === id &&
+                            !a.completed &&
+                            PENDING_STATUSES.includes(a.status)
+                        )
+                        .map(a => a.id);
+
+                    console.log(`🧹 [Deal Closed] Removing ${pendingActivityIds.length} pending activity(ies) for deal ${id}`);
+
+                    if (pendingActivityIds.length > 0) {
+                        // 2. Remoção otimista do estado local
+                        setActivities(prev => prev.filter(a => !pendingActivityIds.includes(a.id)));
+
+                        // 3. Deleção no Supabase — remove apenas atividades não concluídas e pendentes
+                        const { error: delErr } = await supabase
+                            .from('activities')
+                            .delete()
+                            .eq('deal_id', id)
+                            .eq('completed', false)
+                            .in('status', PENDING_STATUSES);
+
+                        if (delErr) {
+                            console.error('⚠️ [Deal Closed] Error deleting pending activities:', delErr);
+                        } else {
+                            console.log(`✅ [Deal Closed] ${pendingActivityIds.length} pending activity(ies) removed.`);
+
+                            // 4. Registrar evento no histórico do negócio
+                            addActivity({
+                                type: 'system',
+                                title: '🧹 Atividades pendentes removidas automaticamente após encerramento do negócio.',
+                                dealId: id,
+                                completed: true,
+                                dueDate: now
+                            });
+                        }
+                    }
+                }
             }
         }
     };

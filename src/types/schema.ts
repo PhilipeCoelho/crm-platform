@@ -74,7 +74,7 @@ export interface Deal {
 export type ActivityType = 'call' | 'meeting' | 'task' | 'email' | 'message' | 'instagram' | 'analysis' | 'audit';
 
 // Tipos de eventos internos (não são atividades)
-export type InternalEventType = 'note' | 'fileUpload' | 'status_change' | 'followup';
+export type InternalEventType = 'note' | 'fileUpload' | 'status_change' | 'followup' | 'system';
 
 export interface Activity {
     id: Id;
