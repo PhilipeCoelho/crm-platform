@@ -9,7 +9,6 @@ import {
     Phone,
     Mail,
     CheckCircle2,
-    Clock,
     CheckCircle,
     Building2,
     X,
@@ -26,7 +25,6 @@ import {
     AlarmClock,
     Filter,
     ClipboardList,
-    User,
 } from 'lucide-react';
 import {
     format,
@@ -92,16 +90,7 @@ const typeIcon: Record<string, React.ElementType> = {
     instagram: MessageSquare,
 };
 
-const typeLabel: Record<string, string> = {
-    call: 'Ligação',
-    email: 'Email',
-    message: 'WhatsApp',
-    meeting: 'Reunião',
-    task: 'Tarefa',
-    audit: 'Visita',
-    analysis: 'Análise',
-    instagram: 'Instagram',
-};
+
 
 const typeColor: Record<string, string> = {
     call: 'text-blue-500 bg-blue-500/10',
@@ -734,12 +723,11 @@ interface CardProps {
 
 function ActivityCard({
     activity, isSelected, onToggleSelect, onToggleComplete, onEdit, onDelete,
-    onNavigateDeal, onNavigateContact, deal, contact, company,
+    onNavigateDeal, onNavigateContact, deal, contact,
     contacts, companies, deals
 }: CardProps) {
     const Icon = typeIcon[activity.type] || CheckCircle2;
     const iconColors = typeColor[activity.type] || 'text-muted-foreground bg-muted';
-    const label = typeLabel[activity.type] || activity.type;
     const priority = getActivityPriority(activity);
     const styles = priorityStyles(priority);
 
