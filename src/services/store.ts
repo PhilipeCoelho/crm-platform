@@ -818,14 +818,14 @@ export function useCRMStore(): CRMStore {
                     (updates.status === 'lost' || updates.status === 'desqualificado');
 
                 if (isClosingDeal) {
-                    const PENDING_STATUSES = ['pending', 'aberta', 'agendada'];
+                    const PENDING_STATUSES = ['pending', 'aberta', 'agendada', 'canceled'];
 
                     // 1. Identificar atividades pendentes deste negócio no estado local
                     const pendingActivityIds = activities
                         .filter(a =>
                             a.dealId === id &&
                             !a.completed &&
-                            PENDING_STATUSES.includes(a.status)
+                            (PENDING_STATUSES.includes(a.status) || !a.status || a.status === 'pending')
                         )
                         .map(a => a.id);
 
@@ -835,13 +835,12 @@ export function useCRMStore(): CRMStore {
                         // 2. Remoção otimista do estado local
                         setActivities(prev => prev.filter(a => !pendingActivityIds.includes(a.id)));
 
-                        // 3. Deleção no Supabase — remove apenas atividades não concluídas e pendentes
+                        // 3. Deleção no Supabase — remove todas as atividades não concluídas
                         const { error: delErr } = await supabase
                             .from('activities')
                             .delete()
                             .eq('deal_id', id)
-                            .eq('completed', false)
-                            .in('status', PENDING_STATUSES);
+                            .eq('completed', false);
 
                         if (delErr) {
                             console.error('⚠️ [Deal Closed] Error deleting pending activities:', delErr);

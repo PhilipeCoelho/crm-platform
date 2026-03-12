@@ -172,6 +172,9 @@ export default function Activities({ currency: _currency }: { currency: Currency
     // ── Filtered & Grouped Activities ─────────────────────────────────────────
     const filteredActivities = useMemo(() => {
         let result = filterRealActivities(activities);
+        // Sempre ocultar atividades canceladas da tela global de atividades
+        result = result.filter(a => a.status !== 'canceled');
+
         const today = startOfToday();
 
         // Search
@@ -256,10 +259,10 @@ export default function Activities({ currency: _currency }: { currency: Currency
         const in7 = endOfDay(addDays(today, 7));
 
         return {
-            pending: real.filter(a => !a.completed).length,
-            overdue: real.filter(a => !a.completed && a.dueDate && isBefore(parseISO(a.dueDate), today)).length,
-            todayCount: real.filter(a => !a.completed && a.dueDate && isToday(parseISO(a.dueDate))).length,
-            next7: real.filter(a => !a.completed && a.dueDate && isAfter(parseISO(a.dueDate), today) && isBefore(parseISO(a.dueDate), in7)).length,
+            pending: real.filter(a => !a.completed && a.status !== 'canceled').length,
+            overdue: real.filter(a => !a.completed && a.status !== 'canceled' && a.dueDate && isBefore(parseISO(a.dueDate), today)).length,
+            todayCount: real.filter(a => !a.completed && a.status !== 'canceled' && a.dueDate && isToday(parseISO(a.dueDate))).length,
+            next7: real.filter(a => !a.completed && a.status !== 'canceled' && a.dueDate && isAfter(parseISO(a.dueDate), today) && isBefore(parseISO(a.dueDate), in7)).length,
         };
     }, [activities]);
 

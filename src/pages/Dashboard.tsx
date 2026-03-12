@@ -94,7 +94,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     // Alertas Operacionais (Lists built locally while Phase 11 engine is not ready)
     const alertLists = useMemo(() => {
         const realActivities = filterRealActivities(activities);
-        const openRealActivities = realActivities.filter(a => !a.completed);
+        const openRealActivities = realActivities.filter(a => !a.completed && a.status !== 'canceled');
         const now = new Date();
 
         const overdueActivities = openRealActivities.filter(a => {
