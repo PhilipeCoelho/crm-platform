@@ -113,92 +113,64 @@ export const EMAIL_LAYOUT_THEMES = [
     {
         id: 'simple',
         name: 'Carta Pessoal 1:1',
-        description: 'Design minimalista que simula um e-mail escrito à mão. Máxima taxa de entrega.',
+        description: 'Design limpo e direto. Simula um e-mail pessoal do Outlook/Gmail. Maior taxa de resposta.',
         styles: {
-            container: "font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;",
+            container: "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.5; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;",
             header: "display: none;",
-            content: "font-size: 16px; margin-bottom: 30px;",
-            footer: "margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 12px; font-style: italic;"
+            content: "font-size: 16px; white-space: pre-wrap;",
+            footer: "margin-top: 40px; border-top: 1px solid #eeeeee; padding-top: 20px; color: #777777; font-size: 12px;"
         }
     },
     {
         id: 'professional',
         name: 'Acelerador de Vendas',
-        description: 'Layout focado em autoridade. Título forte, design limpo e CTA centralizado.',
+        description: 'Layout corporativo de alto nível. Transmite autoridade e escala.',
         styles: {
-            container: "font-family: 'Inter', -apple-system, sans-serif; line-height: 1.8; color: #1e293b; max-width: 600px; margin: 20px auto; padding: 0; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;",
-            header: "background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 30px; text-align: center; color: #ffffff;",
+            container: "font-family: 'Inter', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 650px; margin: 20px auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);",
+            header: "background-color: #f8fafc; padding: 30px 40px; border-bottom: 1px solid #e2e8f0; text-align: left;",
             content: "padding: 40px; font-size: 16px;",
-            footer: "padding: 30px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; color: #64748b; font-size: 12px; text-align: center;"
+            footer: "padding: 30px 40px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 12px;"
         }
     },
     {
         id: 'consultative',
-        name: 'Construtor de Confiança',
-        description: 'Design consultivo com blocos estruturados e assinatura premium.',
+        name: 'Consultivo Premium',
+        description: 'Design focado em estruturação de argumentos e assinatura de autoridade.',
         styles: {
-            container: "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-left: 5px solid #3b82f6;",
-            header: "margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #edf2f7;",
-            content: "font-size: 15px; background: #fafafa; padding: 25px; border-radius: 8px;",
-            footer: "margin-top: 40px; padding-top: 20px; border-top: 2px solid #3b82f6; color: #1e293b; font-size: 14px; font-weight: bold;"
-        }
-    },
-    {
-        id: 'impact',
-        name: 'Digital Authority (Dark)',
-        description: 'Modo escuro premium. Impacto visual imediato para anúncios exclusivos.',
-        styles: {
-            container: "font-family: Arial, sans-serif; line-height: 1.6; color: #f8fafc; max-width: 600px; margin: 0 auto; padding: 50px; background-color: #020617; border-radius: 0; border-top: 8px solid #38bdf8;",
-            header: "text-align: center; margin-bottom: 50px;",
-            content: "background: rgba(255,255,255,0.03); padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 16px;",
-            footer: "margin-top: 60px; text-align: center; color: #64748b; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;"
+            container: "font-family: Georgia, serif; line-height: 1.8; color: #2d3748; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #ffffff;",
+            header: "margin-bottom: 40px; text-align: center; border-bottom: 3px double #e2e8f0; padding-bottom: 20px;",
+            content: "font-size: 17px;",
+            footer: "margin-top: 50px; padding-top: 30px; border-top: 1px solid #e2e8f0; font-family: sans-serif;"
         }
     }
 ];
 
 export function wrapContentInTheme(content: string, themeId: string, logoUrl?: string, signature?: string) {
     const theme = EMAIL_LAYOUT_THEMES.find(t => t.id === themeId) || EMAIL_LAYOUT_THEMES[0];
-    const isDark = themeId === 'impact';
-    const accentColor = isDark ? '#38bdf8' : '#3b82f6';
     
-    // Auto-detect button-like lines and style them
-    let stylizedContent = content;
-    if (content.includes('→') || content.includes('Agendar')) {
-        stylizedContent = content.replace(/<p>(.*?)(→|Agendar)(.*?)<\/p>/gi, (match) => {
-            return `<div style="text-align: center; margin: 30px 0;"><a href="#" style="display: inline-block; padding: 14px 32px; background-color: ${accentColor}; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">${match.replace(/<\/?p>/g, '')}</a></div>`;
-        });
-    }
+    // Clean content restoration (remove the messy forced DIVs/Colors if any)
+    const cleanContent = content; 
 
     return `
         <div style="${theme.styles.container}">
             ${themeId !== 'simple' ? `
             <div style="${theme.styles.header}">
-                ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 44px;"/>` : `<div style="font-weight: 900; font-size: 20px; letter-spacing: -0.5px; color: ${isDark ? '#fff' : accentColor};">PROPOSTA ESTRATÉGICA</div>`}
+                ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 35px;"/>` : `<div style="font-weight: bold; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Informativo Estratégico</div>`}
             </div>
             ` : ''}
             
             <div style="${theme.styles.content}">
-                ${stylizedContent}
+                ${cleanContent}
             </div>
 
             <div style="${theme.styles.footer}">
-                ${themeId === 'consultative' ? `
-                    <table border="0" cellpadding="0" cellspacing="0" style="margin-top: 20px;">
-                        <tr>
-                            <td style="vertical-align: top; padding-right: 15px;">
-                                <div style="width: 50px; hieght: 50px; background-color: #3b82f6; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; height: 50px;">${(signature || 'P').charAt(0)}</div>
-                            </td>
-                            <td>
-                                <div style="font-weight: bold; font-size: 16px;">${signature || 'Consultor Estratégico'}</div>
-                                <div style="color: #64748b; font-size: 12px;">Especialista em Performance B2B</div>
-                            </td>
-                        </tr>
-                    </table>
-                ` : (signature || 'Enviado via CRM Inteligente')}
-                <div style="margin-top: 20px; font-size: 10px; opacity: 0.6;">
-                    Este e-mail é exclusivo para parceiros de negócio. 
+                <div style="margin-bottom: 15px;">
+                    ${signature || 'Atenciosamente,'}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+                    Este é um e-mail de relacionamento profissional.
                     <br/>
-                    Para não receber mais, <a href="#" style="color: inherit; text-decoration: underline;">clique aqui para descadastrar</a>.
+                    Para gerenciar suas preferências ou cancelar inscrição, <a href="#" style="color: #3b82f6;">clique aqui</a>.
                 </div>
             </div>
         </div>
