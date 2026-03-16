@@ -170,7 +170,7 @@ export function wrapContentInTheme(content: string, themeId: string, logoUrl?: s
                 <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
                     Este é um e-mail de relacionamento profissional.
                     <br/>
-                    Para gerenciar suas preferências ou cancelar inscrição, <a href="#" style="color: #3b82f6;">clique aqui</a>.
+                    Para gerenciar suas preferências ou cancelar inscrição, <a href="{{unsubscribe_url}}" style="color: #3b82f6;">clique aqui</a>.
                 </div>
             </div>
         </div>

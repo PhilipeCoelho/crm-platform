@@ -217,6 +217,44 @@ app.get('/api/email/click/:log_id', async (req, res) => {
     })();
 });
 
+// Unsubscribe Endpoint
+app.get('/api/email/unsubscribe/:log_id', async (req, res) => {
+    const { log_id } = req.params;
+    logToFile(`📥 [Unsubscribe] Requested for log ID: ${log_id}`);
+
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { data: log, error: fetchErr } = await supabase.from('email_logs').select('recipient_email').eq('id', log_id).single();
+        
+        if (fetchErr || !log) {
+            logToFile(`❌ [Unsubscribe] Log not found for ID: ${log_id}`);
+            return res.status(404).send('Link de descadastro inválido ou expirado.');
+        }
+
+        const { error: insertErr } = await supabase.from('unsubscribed_emails').insert([{ email: log.recipient_email }]);
+        
+        if (insertErr && insertErr.code !== '23505') { // ignore duplicate warnings
+            logToFile(`❌ [Unsubscribe] Erro ao salvar email (${log.recipient_email}): ${insertErr.message}`);
+        } else {
+            logToFile(`✅ [Unsubscribe] Email ${log.recipient_email} descadastrado com sucesso.`);
+        }
+
+        res.send(`
+            <html>
+                <body style="font-family: Arial, sans-serif; text-align: center; margin-top: 80px; color: #333; background-color: #f9fafb;">
+                    <div style="background-color: #ffffff; padding: 40px; border-radius: 12px; max-width: 400px; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <h2 style="color: #ef4444;">Inscrição Cancelada</h2>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.6;">O e-mail <strong>${log.recipient_email}</strong> foi removido da nossa lista e você não receberá mais campanhas ou mensagens promocionais.</p>
+                    </div>
+                </body>
+            </html>
+        `);
+    } catch (e) {
+        logToFile(`❌ [Unsubscribe] Error: ${e.message}`);
+        res.status(500).send('Erro interno do servidor ao processar o cancelamento.');
+    }
+});
+
 
 // Helper for Tracking Injection & Variable Replacement
 function injectTracking(body, baseUrl, logId, variables = {}) {
@@ -240,6 +278,14 @@ function injectTracking(body, baseUrl, logId, variables = {}) {
         const trackUrl = `${baseUrl}/api/email/click/${logId}?url=${encodeURIComponent(url)}`;
         return match.replace(`href="${url}"`, `href="${trackUrl}"`);
     });
+
+    // 4. Force discreet Unsubscribe link if missing
+    if (!html.includes('/api/email/unsubscribe/')) {
+        const unsubscribeHtml = `<div style="margin-top: 50px; padding-top: 20px; font-size: 11px; color: #94a3b8; font-family: sans-serif;">Para não receber mais e-mails como este, <a href="${baseUrl}/api/email/unsubscribe/${logId}" style="color: inherit; text-decoration: underline;">cancele sua inscrição aqui</a>.</div>`;
+        html = html.includes('</body>')
+            ? html.replace('</body>', `${unsubscribeHtml}</body>`)
+            : html + unsubscribeHtml;
+    }
 
     return html;
 }
@@ -320,7 +366,9 @@ app.post('/api/send-email', authenticate, async (req, res) => {
         const tempLogId = randomUUID();
         
         // Fetch variables for single email if needed
-        let variables = {};
+        let variables = {
+            unsubscribe_url: `${baseUrl}/api/email/unsubscribe/${tempLogId}`
+        };
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         if (person_id) {
@@ -437,6 +485,24 @@ app.post('/api/send-campaign', authenticate, async (req, res) => {
             logToFile(`✅ [Campaign] Using ad-hoc campaign data with ${recipients.length} recipients.`);
         }
 
+        // 3. Drop unsubscribed emails
+        const { data: unsubData, error: unsubErr } = await supabase.from('unsubscribed_emails').select('email');
+        if (!unsubErr && unsubData && unsubData.length > 0) {
+            const unsubSet = new Set(unsubData.map(u => u.email));
+            const beforeUnsub = recipients.length;
+            recipients = recipients.filter(r => !unsubSet.has(r.email));
+            if (recipients.length < beforeUnsub) {
+                logToFile(`🛡️ [Filter] Removed ${beforeUnsub - recipients.length} recipient(s) who unsubscribed.`);
+            }
+        } else if (unsubErr) {
+            logToFile(`⚠️ [Filter] Could not fetch unsubscribed emails (table might not exist yet): ${unsubErr.message}`);
+        }
+
+        if (recipients.length === 0) {
+            logToFile(`❌ [Filter] No eligible recipients remain after unsubscribed filter. Aborting send.`);
+            return res.status(422).json({ error: 'No eligible recipients after filtering out unsubscribed contacts.' });
+        }
+
         // Fetch Names/Companies for all recipients to enable variables
         const personIds = recipients.map(r => r.person_id).filter(Boolean);
         const { data: peopleData } = personIds.length > 0 
@@ -485,7 +551,8 @@ app.post('/api/send-campaign', authenticate, async (req, res) => {
                 const variables = {
                     name: personName,
                     client_name: personName,
-                    saudacao: `Olá, ${personName}`
+                    saudacao: `Olá, ${personName}`,
+                    unsubscribe_url: `${baseUrl}/api/email/unsubscribe/${tempLogId}`
                 };
 
                 // Inject Tracking & Variables
