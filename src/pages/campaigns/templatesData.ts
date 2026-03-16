@@ -109,6 +109,66 @@ export const DEFAULT_TEMPLATES: TemplateStructure[] = [
     }
 ];
 
+export const EMAIL_LAYOUT_THEMES = [
+    {
+        id: 'simple',
+        name: 'Carta Pessoal',
+        description: 'Texto limpo, alta taxa de entrega e sensação de e-mail 1:1.',
+        styles: {
+            container: "font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; padding: 20px;",
+            header: "display: none;",
+            footer: "margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 13px;"
+        }
+    },
+    {
+        id: 'professional',
+        name: 'Executivo Moderno',
+        description: 'Visual corporativo clean com foco em legibilidade e autoridade.',
+        styles: {
+            container: "font-family: 'Inter', -apple-system, sans-serif; line-height: 1.7; color: #1e293b; max-width: 600px; margin: 20px auto; padding: 40px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);",
+            header: "margin-bottom: 30px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px;",
+            footer: "margin-top: 40px; padding-top: 20px; color: #64748b; font-size: 12px; text-align: center;"
+        }
+    },
+    {
+        id: 'impact',
+        name: 'Impacto & Vendas',
+        description: 'Contraste alto, focado em levar o usuário para o botão de ação.',
+        styles: {
+            container: "font-family: Arial, sans-serif; line-height: 1.6; color: #ffffff; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #0f172a; border-radius: 0;",
+            header: "text-align: center; margin-bottom: 40px;",
+            footer: "margin-top: 60px; text-align: center; color: #94a3b8; font-size: 12px;"
+        }
+    }
+];
+
+export function wrapContentInTheme(content: string, themeId: string, logoUrl?: string, signature?: string) {
+    const theme = EMAIL_LAYOUT_THEMES.find(t => t.id === themeId) || EMAIL_LAYOUT_THEMES[0];
+    const isDark = themeId === 'impact';
+    const textColor = isDark ? '#f8fafc' : '#334155';
+    const accentColor = isDark ? '#38bdf8' : '#2563eb';
+
+    return `
+        <div style="${theme.styles.container}">
+            ${themeId !== 'simple' ? `
+            <div style="${theme.styles.header}">
+                ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 40px;"/>` : `<div style="font-weight: bold; font-size: 18px; color: ${accentColor};">INSIGHTS EXCLUSIVOS</div>`}
+            </div>
+            ` : ''}
+            
+            <div style="font-size: 16px; color: ${textColor};">
+                ${content}
+            </div>
+
+            <div style="${theme.styles.footer}">
+                ${signature || 'Enviado via CRM Inteligente'}
+                <br/>
+                <span style="font-size: 11px; opacity: 0.7;">Para não receber mais estes e-mails, responda com "Descadastrar"</span>
+            </div>
+        </div>
+    `;
+}
+
 export function renderTemplateHTML(category: TemplateCategory, data: Record<string, any>) {
     const baseStyle = "font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border: 1px solid #eaeaea; border-radius: 8px;";
     const btnStyle = "display: inline-block; padding: 12px 24px; background-color: #0f172a; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; text-align: center;";
