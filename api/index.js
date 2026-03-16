@@ -218,17 +218,23 @@ app.get('/api/email/click/:log_id', async (req, res) => {
 });
 
 
-// Helper for Tracking Injection
-function injectTracking(body, baseUrl, logId) {
-    let html = body; // Mantemos o HTML original, sem corromper com <br> nos \n
+// Helper for Tracking Injection & Variable Replacement
+function injectTracking(body, baseUrl, logId, variables = {}) {
+    let html = body;
 
-    // Inject Tracking Pixel
+    // 1. Replace variables {{name}}, {{client_name}}, etc.
+    Object.keys(variables).forEach(key => {
+        const regex = new RegExp(`{{${key}}}`, 'gi');
+        html = html.replace(regex, variables[key] || '');
+    });
+
+    // 2. Inject Tracking Pixel
     const pixel = `<img src="${baseUrl}/api/email/open/${logId}" width="1" height="1" style="display:none;" />`;
     html = html.includes('</body>')
         ? html.replace('</body>', `${pixel}</body>`)
         : html + pixel;
 
-    // Track Links
+    // 3. Track Links
     html = html.replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi, (match, url) => {
         if (!url || url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('#') || url.includes('/api/email/')) return match;
         const trackUrl = `${baseUrl}/api/email/click/${logId}?url=${encodeURIComponent(url)}`;
@@ -312,7 +318,17 @@ app.post('/api/send-email', authenticate, async (req, res) => {
 
         const baseUrl = process.env.TRACKING_BASE_URL || `${req.protocol}://${req.get('host')}`;
         const tempLogId = randomUUID();
-        const finalHtml = injectTracking(body, baseUrl, tempLogId);
+        
+        // Fetch variables for single email if needed
+        let variables = {};
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        if (person_id) {
+            const { data: person } = await supabase.from('people').select('name').eq('id', person_id).single();
+            if (person) variables.name = person.name;
+        }
+
+        const finalHtml = injectTracking(body, baseUrl, tempLogId, variables);
 
         const info = await transporter.sendMail({
             from: `"${SMTP_FROM_NAME || 'CRM System'}" <${SMTP_USER}>`,
@@ -322,7 +338,6 @@ app.post('/api/send-email', authenticate, async (req, res) => {
         });
 
         // Log to email_logs
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         await supabase.from('email_logs').insert({
             id: tempLogId,
             user_id: req.user.sub,
@@ -422,6 +437,14 @@ app.post('/api/send-campaign', authenticate, async (req, res) => {
             logToFile(`✅ [Campaign] Using ad-hoc campaign data with ${recipients.length} recipients.`);
         }
 
+        // Fetch Names/Companies for all recipients to enable variables
+        const personIds = recipients.map(r => r.person_id).filter(Boolean);
+        const { data: peopleData } = personIds.length > 0 
+            ? await supabase.from('people').select('id, name').in('id', personIds)
+            : { data: [] };
+        
+        const peopleMap = new Map(peopleData?.map(p => [p.id, p.name]) || []);
+
         const subject = campaign.subject;
         const body = campaign.content || '';
         const fromName = campaign.from_name || '';
@@ -457,9 +480,17 @@ app.post('/api/send-campaign', authenticate, async (req, res) => {
                 const tempLogId = randomUUID();
                 logToFile(`   🔑 Generated log ID: ${tempLogId}`);
 
-                // Inject Tracking
-                const finalHtml = injectTracking(body, baseUrl, tempLogId);
-                logToFile(`   🔗 Tracking injected for ${recipient.email}.`);
+                // Variable logic
+                const personName = peopleMap.get(recipient.person_id) || 'Cliente';
+                const variables = {
+                    name: personName,
+                    client_name: personName,
+                    saudacao: `Olá, ${personName}`
+                };
+
+                // Inject Tracking & Variables
+                const finalHtml = injectTracking(body, baseUrl, tempLogId, variables);
+                logToFile(`   🔗 Tracking and Variables injected for ${recipient.email}.`);
 
                 const mailOptions = {
                     from: sender,
