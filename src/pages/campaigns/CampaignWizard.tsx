@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ChevronRight, ChevronLeft, Send, X, AlertCircle, Users, FileText, Check, Search, ShieldCheck, Sparkles, LayoutTemplate, Clock, Edit3, Palette } from 'lucide-react';
-import { DEFAULT_TEMPLATES, renderTemplateHTML, TemplateCategory, EMAIL_LAYOUT_THEMES, wrapContentInTheme } from './templatesData';
+import { ChevronRight, ChevronLeft, Send, X, AlertCircle, Users, FileText, Check, Search, ShieldCheck, Sparkles, LayoutTemplate, Clock, Edit3 } from 'lucide-react';
+import { DEFAULT_TEMPLATES, renderTemplateHTML, TemplateCategory } from './templatesData';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -29,8 +29,6 @@ export default function CampaignWizard() {
         senderId: '',
         content: '', // Used for blank HTML/Text
     });
-    const [selectedLayoutTheme, setSelectedLayoutTheme] = useState('simple');
-    const [hoveredThemeId, setHoveredThemeId] = useState<string | null>(null);
 
     // Step 3: Audience (Filters)
     const [audienceMode, setAudienceMode] = useState<'pipeline' | 'specific'>('pipeline');
@@ -132,9 +130,8 @@ export default function CampaignWizard() {
 
     const getFinalHTMLContent = () => {
         if (selectedTemplateSource === 'blank' || (selectedTemplateSource === 'db' && Object.keys(editData).length === 0)) {
-            // Aplica o tema de layout (priorizando o hover para prévia rápida)
-            const themeToApply = hoveredThemeId || selectedLayoutTheme;
-            return wrapContentInTheme(campaignData.content, themeToApply, undefined, selectedSender?.name);
+            // Retorna o conteúdo direto do editor dentro de um container padrão e limpo
+            return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 20px;">${campaignData.content}</div>`;
         }
         return renderTemplateHTML(editCategory as TemplateCategory, editData);
     };
@@ -635,39 +632,7 @@ export default function CampaignWizard() {
                                 </div>
                             </div>
 
-                            {/* Layout Selector - NEW */}
-                            {(selectedTemplateSource === 'blank' || (selectedTemplateSource === 'db' && Object.keys(editData).length === 0)) && (
-                                <div className="bg-white dark:bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-2 font-bold text-sm">
-                                        <Palette size={16} className="text-primary" />
-                                        <span>Estrutura de Layout</span>
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {EMAIL_LAYOUT_THEMES.map(theme => (
-                                            <button
-                                                key={theme.id}
-                                                onClick={() => setSelectedLayoutTheme(theme.id)}
-                                                onMouseEnter={() => setHoveredThemeId(theme.id)}
-                                                onMouseLeave={() => setHoveredThemeId(null)}
-                                                className={`text-left p-3 rounded-lg border transition-all ${selectedLayoutTheme === theme.id 
-                                                    ? 'border-primary bg-primary/5 ring-1 ring-primary' 
-                                                    : 'border-border hover:bg-muted/50'}`}
-                                            >
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-xs font-bold">{theme.name}</span>
-                                                    {(selectedLayoutTheme === theme.id || hoveredThemeId === theme.id) && (
-                                                        <div className="flex items-center gap-1">
-                                                            {hoveredThemeId === theme.id && <span className="text-[9px] bg-primary text-white px-1 rounded animate-pulse">PRÉVIA</span>}
-                                                            <Check size={12} className="text-primary" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <p className="text-[10px] text-muted-foreground leading-tight">{theme.description}</p>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+
 
                             <div className="bg-muted/30 border border-border rounded-xl p-4 flex flex-col gap-3">
                                 <button
