@@ -112,32 +112,46 @@ export const DEFAULT_TEMPLATES: TemplateStructure[] = [
 export const EMAIL_LAYOUT_THEMES = [
     {
         id: 'simple',
-        name: 'Carta Pessoal',
-        description: 'Texto limpo, alta taxa de entrega e sensação de e-mail 1:1.',
+        name: 'Carta Pessoal 1:1',
+        description: 'Design minimalista que simula um e-mail escrito à mão. Máxima taxa de entrega.',
         styles: {
-            container: "font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; padding: 20px;",
+            container: "font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;",
             header: "display: none;",
-            footer: "margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 13px;"
+            content: "font-size: 16px; margin-bottom: 30px;",
+            footer: "margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 12px; font-style: italic;"
         }
     },
     {
         id: 'professional',
-        name: 'Executivo Moderno',
-        description: 'Visual corporativo clean com foco em legibilidade e autoridade.',
+        name: 'Acelerador de Vendas',
+        description: 'Layout focado em autoridade. Título forte, design limpo e CTA centralizado.',
         styles: {
-            container: "font-family: 'Inter', -apple-system, sans-serif; line-height: 1.7; color: #1e293b; max-width: 600px; margin: 20px auto; padding: 40px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);",
-            header: "margin-bottom: 30px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px;",
-            footer: "margin-top: 40px; padding-top: 20px; color: #64748b; font-size: 12px; text-align: center;"
+            container: "font-family: 'Inter', -apple-system, sans-serif; line-height: 1.8; color: #1e293b; max-width: 600px; margin: 20px auto; padding: 0; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;",
+            header: "background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 30px; text-align: center; color: #ffffff;",
+            content: "padding: 40px; font-size: 16px;",
+            footer: "padding: 30px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; color: #64748b; font-size: 12px; text-align: center;"
+        }
+    },
+    {
+        id: 'consultative',
+        name: 'Construtor de Confiança',
+        description: 'Design consultivo com blocos estruturados e assinatura premium.',
+        styles: {
+            container: "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-left: 5px solid #3b82f6;",
+            header: "margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #edf2f7;",
+            content: "font-size: 15px; background: #fafafa; padding: 25px; border-radius: 8px;",
+            footer: "margin-top: 40px; padding-top: 20px; border-top: 2px solid #3b82f6; color: #1e293b; font-size: 14px; font-weight: bold;"
         }
     },
     {
         id: 'impact',
-        name: 'Impacto & Vendas',
-        description: 'Contraste alto, focado em levar o usuário para o botão de ação.',
+        name: 'Digital Authority (Dark)',
+        description: 'Modo escuro premium. Impacto visual imediato para anúncios exclusivos.',
         styles: {
-            container: "font-family: Arial, sans-serif; line-height: 1.6; color: #ffffff; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #0f172a; border-radius: 0;",
-            header: "text-align: center; margin-bottom: 40px;",
-            footer: "margin-top: 60px; text-align: center; color: #94a3b8; font-size: 12px;"
+            container: "font-family: Arial, sans-serif; line-height: 1.6; color: #f8fafc; max-width: 600px; margin: 0 auto; padding: 50px; background-color: #020617; border-radius: 0; border-top: 8px solid #38bdf8;",
+            header: "text-align: center; margin-bottom: 50px;",
+            content: "background: rgba(255,255,255,0.03); padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-size: 16px;",
+            footer: "margin-top: 60px; text-align: center; color: #64748b; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;"
         }
     }
 ];
@@ -145,25 +159,47 @@ export const EMAIL_LAYOUT_THEMES = [
 export function wrapContentInTheme(content: string, themeId: string, logoUrl?: string, signature?: string) {
     const theme = EMAIL_LAYOUT_THEMES.find(t => t.id === themeId) || EMAIL_LAYOUT_THEMES[0];
     const isDark = themeId === 'impact';
-    const textColor = isDark ? '#f8fafc' : '#334155';
-    const accentColor = isDark ? '#38bdf8' : '#2563eb';
+    const accentColor = isDark ? '#38bdf8' : '#3b82f6';
+    
+    // Auto-detect button-like lines and style them
+    let stylizedContent = content;
+    if (content.includes('→') || content.includes('Agendar')) {
+        stylizedContent = content.replace(/<p>(.*?)(→|Agendar)(.*?)<\/p>/gi, (match) => {
+            return `<div style="text-align: center; margin: 30px 0;"><a href="#" style="display: inline-block; padding: 14px 32px; background-color: ${accentColor}; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">${match.replace(/<\/?p>/g, '')}</a></div>`;
+        });
+    }
 
     return `
         <div style="${theme.styles.container}">
             ${themeId !== 'simple' ? `
             <div style="${theme.styles.header}">
-                ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 40px;"/>` : `<div style="font-weight: bold; font-size: 18px; color: ${accentColor};">INSIGHTS EXCLUSIVOS</div>`}
+                ${logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height: 44px;"/>` : `<div style="font-weight: 900; font-size: 20px; letter-spacing: -0.5px; color: ${isDark ? '#fff' : accentColor};">PROPOSTA ESTRATÉGICA</div>`}
             </div>
             ` : ''}
             
-            <div style="font-size: 16px; color: ${textColor};">
-                ${content}
+            <div style="${theme.styles.content}">
+                ${stylizedContent}
             </div>
 
             <div style="${theme.styles.footer}">
-                ${signature || 'Enviado via CRM Inteligente'}
-                <br/>
-                <span style="font-size: 11px; opacity: 0.7;">Para não receber mais estes e-mails, responda com "Descadastrar"</span>
+                ${themeId === 'consultative' ? `
+                    <table border="0" cellpadding="0" cellspacing="0" style="margin-top: 20px;">
+                        <tr>
+                            <td style="vertical-align: top; padding-right: 15px;">
+                                <div style="width: 50px; hieght: 50px; background-color: #3b82f6; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; height: 50px;">${(signature || 'P').charAt(0)}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: bold; font-size: 16px;">${signature || 'Consultor Estratégico'}</div>
+                                <div style="color: #64748b; font-size: 12px;">Especialista em Performance B2B</div>
+                            </td>
+                        </tr>
+                    </table>
+                ` : (signature || 'Enviado via CRM Inteligente')}
+                <div style="margin-top: 20px; font-size: 10px; opacity: 0.6;">
+                    Este e-mail é exclusivo para parceiros de negócio. 
+                    <br/>
+                    Para não receber mais, <a href="#" style="color: inherit; text-decoration: underline;">clique aqui para descadastrar</a>.
+                </div>
             </div>
         </div>
     `;

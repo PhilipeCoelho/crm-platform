@@ -30,6 +30,7 @@ export default function CampaignWizard() {
         content: '', // Used for blank HTML/Text
     });
     const [selectedLayoutTheme, setSelectedLayoutTheme] = useState('simple');
+    const [hoveredThemeId, setHoveredThemeId] = useState<string | null>(null);
 
     // Step 3: Audience (Filters)
     const [audienceMode, setAudienceMode] = useState<'pipeline' | 'specific'>('pipeline');
@@ -131,8 +132,9 @@ export default function CampaignWizard() {
 
     const getFinalHTMLContent = () => {
         if (selectedTemplateSource === 'blank' || (selectedTemplateSource === 'db' && Object.keys(editData).length === 0)) {
-            // Aplica o tema de layout selecionado ao conteúdo do editor
-            return wrapContentInTheme(campaignData.content, selectedLayoutTheme, undefined, selectedSender?.name);
+            // Aplica o tema de layout (priorizando o hover para prévia rápida)
+            const themeToApply = hoveredThemeId || selectedLayoutTheme;
+            return wrapContentInTheme(campaignData.content, themeToApply, undefined, selectedSender?.name);
         }
         return renderTemplateHTML(editCategory as TemplateCategory, editData);
     };
@@ -645,13 +647,20 @@ export default function CampaignWizard() {
                                             <button
                                                 key={theme.id}
                                                 onClick={() => setSelectedLayoutTheme(theme.id)}
+                                                onMouseEnter={() => setHoveredThemeId(theme.id)}
+                                                onMouseLeave={() => setHoveredThemeId(null)}
                                                 className={`text-left p-3 rounded-lg border transition-all ${selectedLayoutTheme === theme.id 
                                                     ? 'border-primary bg-primary/5 ring-1 ring-primary' 
                                                     : 'border-border hover:bg-muted/50'}`}
                                             >
                                                 <div className="flex items-center justify-between mb-1">
                                                     <span className="text-xs font-bold">{theme.name}</span>
-                                                    {selectedLayoutTheme === theme.id && <Check size={12} className="text-primary" />}
+                                                    {(selectedLayoutTheme === theme.id || hoveredThemeId === theme.id) && (
+                                                        <div className="flex items-center gap-1">
+                                                            {hoveredThemeId === theme.id && <span className="text-[9px] bg-primary text-white px-1 rounded animate-pulse">PRÉVIA</span>}
+                                                            <Check size={12} className="text-primary" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <p className="text-[10px] text-muted-foreground leading-tight">{theme.description}</p>
                                             </button>
