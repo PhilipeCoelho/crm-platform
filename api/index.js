@@ -260,10 +260,13 @@ app.get('/api/email/unsubscribe/:log_id', async (req, res) => {
 function injectTracking(body, baseUrl, logId, variables = {}) {
     let html = body;
 
-    // 1. Replace variables {{name}}, {{client_name}}, etc.
+    // 1. Replace variables {{name}}, [nome], etc. (case insensitive, supporting spaces inside brackets)
     Object.keys(variables).forEach(key => {
-        const regex = new RegExp(`{{${key}}}`, 'gi');
-        html = html.replace(regex, variables[key] || '');
+        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex1 = new RegExp(`{{\\s*${escapedKey}\\s*}}`, 'gi');
+        const regex2 = new RegExp(`\\[\\s*${escapedKey}\\s*\\]`, 'gi');
+        html = html.replace(regex1, variables[key] || '');
+        html = html.replace(regex2, variables[key] || '');
     });
 
     // 2. Inject Tracking Pixel
@@ -372,8 +375,12 @@ app.post('/api/send-email', authenticate, async (req, res) => {
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         if (person_id) {
-            const { data: person } = await supabase.from('people').select('name').eq('id', person_id).single();
-            if (person) variables.name = person.name;
+            const { data: person } = await supabase.from('contacts').select('name').eq('id', person_id).single();
+            if (person) {
+                variables.name = person.name;
+                variables.nome = person.name; // Suporte para [Nome]
+                variables['nome da clinica'] = 'sua clínica'; // Fallback
+            }
         }
 
         const finalHtml = injectTracking(body, baseUrl, tempLogId, variables);
@@ -506,7 +513,7 @@ app.post('/api/send-campaign', authenticate, async (req, res) => {
         // Fetch Names/Companies for all recipients to enable variables
         const personIds = recipients.map(r => r.person_id).filter(Boolean);
         const { data: peopleData } = personIds.length > 0 
-            ? await supabase.from('people').select('id, name').in('id', personIds)
+            ? await supabase.from('contacts').select('id, name').in('id', personIds)
             : { data: [] };
         
         const peopleMap = new Map(peopleData?.map(p => [p.id, p.name]) || []);
@@ -549,10 +556,12 @@ app.post('/api/send-campaign', authenticate, async (req, res) => {
                 // Variable logic
                 const personName = peopleMap.get(recipient.person_id) || 'Cliente';
                 const variables = {
-                    name: personName,
-                    client_name: personName,
-                    saudacao: `Olá, ${personName}`,
-                    unsubscribe_url: `${baseUrl}/api/email/unsubscribe/${tempLogId}`
+                    'name': personName,
+                    'nome': personName,
+                    'client_name': personName,
+                    'nome da clinica': 'sua clínica', // Placeholder caso não haja
+                    'saudacao': `Olá, ${personName}`,
+                    'unsubscribe_url': `${baseUrl}/api/email/unsubscribe/${tempLogId}`
                 };
 
                 // Inject Tracking & Variables
