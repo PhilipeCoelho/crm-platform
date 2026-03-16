@@ -770,6 +770,11 @@ app.post('/api/imap/verify', authenticate, (req, res) => {
     imap.connect();
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Hardened Server running on port ${PORT}`);
-});
+// Only start the server locally, otherwise export the app for Vercel Serverless
+if (process.env.NODE_ENV !== 'production' && process.env.VERCEL !== '1') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Hardened Server running on port ${PORT}`);
+    });
+}
+
+export default app;

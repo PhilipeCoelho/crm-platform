@@ -382,7 +382,9 @@ export function useCRMStore(): CRMStore {
                     htmlContent: t.html_content,
                     jsonContent: t.json_content,
                     isPublic: t.is_public,
-                    createdAt: t.created_at
+                    createdAt: t.created_at,
+                    subject: t.subject,
+                    category: t.category
                 })));
             }
 
@@ -1338,7 +1340,7 @@ export function useCRMStore(): CRMStore {
             if (data.status === 'sent') {
                 try {
                     console.log('🚀 [Store] Calling backend send-campaign for ID:', tempId);
-                    const response = await fetch('http://localhost:3001/api/send-campaign', {
+                    const response = await fetch('/api/send-campaign', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1362,6 +1364,9 @@ export function useCRMStore(): CRMStore {
                     }
                 } catch (e) {
                     console.error('🔥 [Store] Critical Fetch Error:', e);
+                    setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: 'failed' } : c));
+                    await supabase.from('campaigns').update({ status: 'failed' }).eq('id', tempId);
+                    alert('Erro ao enviar campanha. O servidor (backend) pode estar desligado. Inicie o "npm run dev".');
                 }
             }
         }
@@ -1413,6 +1418,7 @@ export function useCRMStore(): CRMStore {
         const newTemplate = {
             id: tempId,
             name: data.name,
+            subject: data.subject,
             html_content: data.htmlContent,
             json_content: data.jsonContent,
             thumbnail: data.thumbnail,
@@ -1441,8 +1447,11 @@ export function useCRMStore(): CRMStore {
 
         const dbUpdates: any = {};
         if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.subject !== undefined) dbUpdates.subject = updates.subject;
         if (updates.htmlContent !== undefined) dbUpdates.html_content = updates.htmlContent;
         if (updates.jsonContent !== undefined) dbUpdates.json_content = updates.jsonContent;
+        if (updates.category !== undefined) dbUpdates.category = updates.category;
+        if (updates.thumbnail !== undefined) dbUpdates.thumbnail = updates.thumbnail;
 
         await supabase.from('email_templates').update(dbUpdates).eq('id', id);
     };

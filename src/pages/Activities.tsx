@@ -1,19 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Currency } from '@/data/currencies';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import {
     Search,
     Plus,
-    Calendar,
     Phone,
     Mail,
     CheckCircle2,
-    CheckCircle,
     Building2,
     X,
-    SearchX,
-    RefreshCw,
     Trash2,
     Pencil,
     Check,
@@ -22,9 +18,13 @@ import {
     Video,
     BarChart3,
     MessageSquare,
-    AlarmClock,
     Filter,
     ClipboardList,
+    PlayCircle,
+    SkipForward,
+    CalendarClock,
+    PhoneOff,
+    CheckSquare
 } from 'lucide-react';
 import {
     format,
@@ -35,21 +35,18 @@ import {
     startOfToday,
     endOfDay,
     addDays,
+    differenceInDays,
     startOfMonth,
     endOfMonth,
     parseISO,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useIsMobile } from '@/hooks/useMediaQuery';
 import GlobalActivityModal from '@/components/activities/GlobalActivityModal';
 import BulkEditActivitiesModal from '@/components/activities/BulkEditActivitiesModal';
 import ActivitiesMoreActions from '@/components/activities/ActivitiesMoreActions';
-import { PrivacyText } from '@/components/ui/PrivacyMask';
-import { ActivityScriptPopover } from '@/components/activities/ActivityScriptPopover';
 import DealDetailsModal from '@/components/kanban/DealDetailsModal';
-import { getScriptByTitle, formatScript } from '@/services/cadence';
 import { filterRealActivities } from '@/utils/activityHelpers';
-import { Activity, ActivityType } from '@/types/schema';
+import { Activity, ActivityType, Deal } from '@/types/schema';
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -59,15 +56,6 @@ type ResponsavelFilter = 'todos' | 'eu' | 'equipe';
 type QuickTypeFilter = 'Todos' | ActivityType;
 
 const PERIOD_OPTIONS: PeriodFilter[] = ['Hoje', 'Amanhã', 'Próximos 7 dias', 'Atrasadas', 'Este mês', 'Todos'];
-
-const TYPE_OPTIONS: { id: ActivityType; label: string }[] = [
-    { id: 'call', label: 'Ligação' },
-    { id: 'email', label: 'Email' },
-    { id: 'message', label: 'WhatsApp' },
-    { id: 'meeting', label: 'Reunião' },
-    { id: 'task', label: 'Tarefa' },
-    { id: 'audit', label: 'Visita' },
-];
 
 const QUICK_TYPE_FILTERS: { id: QuickTypeFilter; label: string }[] = [
     { id: 'Todos', label: 'Todos' },
@@ -90,17 +78,15 @@ const typeIcon: Record<string, React.ElementType> = {
     instagram: MessageSquare,
 };
 
-
-
 const typeColor: Record<string, string> = {
-    call: 'text-blue-500 bg-blue-500/10',
-    email: 'text-orange-500 bg-orange-500/10',
-    message: 'text-green-500 bg-green-500/10',
-    meeting: 'text-violet-500 bg-violet-500/10',
-    task: 'text-sky-500 bg-sky-500/10',
-    audit: 'text-rose-500 bg-rose-500/10',
-    analysis: 'text-amber-500 bg-amber-500/10',
-    instagram: 'text-pink-500 bg-pink-500/10',
+    call: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10',
+    email: 'text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-500/10',
+    message: 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10',
+    meeting: 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-500/10',
+    task: 'text-slate-600 bg-slate-100 dark:text-slate-400 dark:bg-slate-500/10',
+    audit: 'text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-500/10',
+    analysis: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10',
+    instagram: 'text-pink-600 bg-pink-50 dark:text-pink-400 dark:bg-pink-500/10',
 };
 
 // ─── Helpers  ─────────────────────────────────────────────────────────────────
@@ -114,41 +100,17 @@ function getActivityPriority(activity: Activity): 'overdue' | 'today' | 'future'
     return 'future';
 }
 
-function priorityStyles(p: 'overdue' | 'today' | 'future') {
-    if (p === 'overdue') return {
-        border: 'border-l-red-500',
-        badge: 'bg-red-500/10 text-red-500',
-        label: 'Atrasada',
-        dot: 'bg-red-500',
-    };
-    if (p === 'today') return {
-        border: 'border-l-orange-500',
-        badge: 'bg-orange-500/10 text-orange-500',
-        label: 'Hoje',
-        dot: 'bg-orange-500',
-    };
-    return {
-        border: 'border-l-emerald-500',
-        badge: 'bg-emerald-500/10 text-emerald-500',
-        label: 'Futuro',
-        dot: 'bg-emerald-500',
-    };
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function Activities({ currency: _currency }: { currency: Currency }) {
-    const { activities, deals, contacts, companies, updateActivity, deleteActivity } = useCRM();
-    const isMobile = useIsMobile();
-    const navigate = useNavigate();
+    const { activities, deals, contacts, companies, users, updateActivity, deleteActivity, pipelines } = useCRM();
     const [searchParams] = useSearchParams();
 
     // ── Filter State ──────────────────────────────────────────────────────────
     const [searchQuery, setSearchQuery] = useState('');
     const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('Todos');
     const [selectedTypes, setSelectedTypes] = useState<ActivityType[]>([]);
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('todos');
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('pendente'); // Default to pending for execution focus
     const [responsavelFilter, setResponsavelFilter] = useState<ResponsavelFilter>('todos');
-
 
     // Custom date range
     const [customStart, setCustomStart] = useState('');
@@ -161,6 +123,10 @@ export default function Activities({ currency: _currency }: { currency: Currency
     const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
     const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
     const [showFilters, setShowFilters] = useState(false);
+    
+    // Execution Mode State
+    const [isExecutionMode, setIsExecutionMode] = useState(false);
+    const [executionCompletedCount, setExecutionCompletedCount] = useState(0);
 
     // Sync URL filter
     useEffect(() => {
@@ -169,15 +135,13 @@ export default function Activities({ currency: _currency }: { currency: Currency
         else if (urlFilter === 'Hoje') setPeriodFilter('Hoje');
     }, [searchParams]);
 
-    // ── Filtered & Grouped Activities ─────────────────────────────────────────
-    const filteredActivities = useMemo(() => {
+    // ── Pre-Filter for Tab Counts ──────────────────────────────────────────────────
+    const baseActivitiesForTabs = useMemo(() => {
         let result = filterRealActivities(activities);
-        // Sempre ocultar atividades canceladas da tela global de atividades
         result = result.filter(a => a.status !== 'canceled');
 
         const today = startOfToday();
 
-        // Search
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             result = result.filter(a => {
@@ -193,12 +157,6 @@ export default function Activities({ currency: _currency }: { currency: Currency
             });
         }
 
-        // Type filter (multi-selection)
-        if (selectedTypes.length > 0) {
-            result = result.filter(a => selectedTypes.includes(a.type as ActivityType));
-        }
-
-        // Period filter
         if (periodFilter !== 'Todos') {
             if (periodFilter === 'Hoje') {
                 result = result.filter(a => a.dueDate && isToday(parseISO(a.dueDate)));
@@ -232,7 +190,6 @@ export default function Activities({ currency: _currency }: { currency: Currency
             }
         }
 
-        // Status filter
         if (statusFilter === 'pendente') {
             result = result.filter(a => !a.completed && a.status !== 'canceled');
         } else if (statusFilter === 'concluído') {
@@ -241,12 +198,52 @@ export default function Activities({ currency: _currency }: { currency: Currency
             result = result.filter(a => !a.completed && a.dueDate && isBefore(parseISO(a.dueDate), today));
         }
 
-        // Sort by dueDate asc (nulls last)
+        return result;
+    }, [activities, searchQuery, periodFilter, statusFilter, customStart, customEnd, deals, contacts, companies]);
+
+    // ── Filtered & Ordered Activities ─────────────────────────────────────────
+    const filteredActivities = useMemo(() => {
+        let result = baseActivitiesForTabs;
+
+        if (selectedTypes.length > 0) {
+            result = result.filter(a => selectedTypes.includes(a.type as ActivityType));
+        }
+
+        const today = startOfToday();
+
+        // Smart Ordering: Overdue -> Today -> High Priority Deals (Engaged) -> Others
         result.sort((a, b) => {
-            if (!a.dueDate && !b.dueDate) return 0;
-            if (!a.dueDate) return 1;
-            if (!b.dueDate) return -1;
-            return a.dueDate.localeCompare(b.dueDate);
+            // Priority 1: Completed status (completed go to bottom)
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+
+            const dateA = a.dueDate ? parseISO(a.dueDate) : null;
+            const dateB = b.dueDate ? parseISO(b.dueDate) : null;
+            const dealA = deals.find(d => d.id === a.dealId);
+            const dealB = deals.find(d => d.id === b.dealId);
+
+            // Priority 2: Atrasadas
+            const isAOverdue = dateA && isBefore(dateA, today);
+            const isBOverdue = dateB && isBefore(dateB, today);
+            if (isAOverdue && !isBOverdue) return -1;
+            if (!isAOverdue && isBOverdue) return 1;
+
+            // Priority 3: Hoje
+            const isAToday = dateA && isToday(dateA);
+            const isBToday = dateB && isToday(dateB);
+            if (isAToday && !isBToday) return -1;
+            if (!isAToday && isBToday) return 1;
+
+            // Priority 4: Leads mais engajados (Proxy: Deal Priority High)
+            const isAEngaged = dealA?.priority === 'high';
+            const isBEngaged = dealB?.priority === 'high';
+            if (isAEngaged && !isBEngaged) return -1;
+            if (!isAEngaged && isBEngaged) return 1;
+
+            // Secondary: Temporal Date Order
+            if (!dateA && !dateB) return 0;
+            if (!dateA) return 1;
+            if (!dateB) return -1;
+            return dateA.getTime() - dateB.getTime();
         });
 
         return result;
@@ -269,34 +266,54 @@ export default function Activities({ currency: _currency }: { currency: Currency
     // ── Grouping ──────────────────────────────────────────────────────────────
     const groups = useMemo(() => {
         const today = startOfToday();
-        const overdue: Activity[] = [];
-        const todayArr: Activity[] = [];
-        const tomorrowArr: Activity[] = [];
-        const upcoming: Activity[] = [];
-        const completed: Activity[] = [];
+        const priority1: Activity[] = []; // CRÍTICAS — MAIS DE 14 DIAS
+        const priority2: Activity[] = []; // ATRASADAS — 7 A 14 DIAS
+        const priority3: Activity[] = []; // RECENTES — ÚLTIMOS 7 DIAS
+        const todayArr: Activity[] = [];  // HOJE
+        const upcoming: Activity[] = [];  // PRÓXIMOS DIAS
+        const completed: Activity[] = []; // CONCLUÍDAS
 
         for (const a of filteredActivities) {
             if (a.completed) { completed.push(a); continue; }
-            if (!a.dueDate) { upcoming.push(a); continue; }
+            if (!a.dueDate) { priority3.push(a); continue; }
+            
             const d = parseISO(a.dueDate);
-            if (isBefore(d, today)) { overdue.push(a); continue; }
+            if (isBefore(d, today)) { 
+                const diff = differenceInDays(today, d);
+                if (diff > 14) {
+                    priority1.push(a);
+                } else if (diff >= 7) {
+                    priority2.push(a);
+                } else {
+                    priority3.push(a);
+                }
+                continue; 
+            }
             if (isToday(d)) { todayArr.push(a); continue; }
-            if (isTomorrow(d)) { tomorrowArr.push(a); continue; }
             upcoming.push(a);
         }
 
-        const result: { label: string; color: string; icon: React.ElementType; activities: Activity[] }[] = [];
-        if (overdue.length) result.push({ label: 'Atrasadas', color: 'text-red-500 border-red-500/30 bg-red-500/5', icon: AlarmClock, activities: overdue });
-        if (todayArr.length) result.push({ label: 'Hoje', color: 'text-orange-500 border-orange-500/30 bg-orange-500/5', icon: Calendar, activities: todayArr });
-        if (tomorrowArr.length) result.push({ label: 'Amanhã', color: 'text-yellow-500 border-yellow-500/30 bg-yellow-500/5', icon: Calendar, activities: tomorrowArr });
-        if (upcoming.length) result.push({ label: 'Próximos dias', color: 'text-emerald-500 border-emerald-500/30 bg-emerald-500/5', icon: Calendar, activities: upcoming });
-        if (completed.length) result.push({ label: 'Concluídas', color: 'text-muted-foreground border-border bg-muted/20', icon: CheckCircle, activities: completed });
+        const result: { label: string; activities: Activity[] }[] = [];
+        if (priority1.length) result.push({ label: 'CRÍTICAS — MAIS DE 14 DIAS', activities: priority1 });
+        if (priority2.length) result.push({ label: 'ATRASADAS — 7 A 14 DIAS', activities: priority2 });
+        if (priority3.length) result.push({ label: 'RECENTES — ÚLTIMOS 7 DIAS', activities: priority3 });
+        if (todayArr.length) result.push({ label: 'HOJE', activities: todayArr });
+        if (upcoming.length) result.push({ label: 'PRÓXIMOS DIAS', activities: upcoming });
+        if (completed.length) result.push({ label: 'CONCLUÍDAS', activities: completed });
         return result;
+    }, [filteredActivities]);
+
+    // Execution Mode activities
+    const executableActivities = useMemo(() => {
+        return filteredActivities.filter(a => !a.completed);
     }, [filteredActivities]);
 
     // ── Handlers ──────────────────────────────────────────────────────────────
     const handleToggleComplete = (id: string, completed: boolean) => {
         updateActivity(id, { completed, completedAt: completed ? new Date().toISOString() : undefined });
+        if (isExecutionMode && completed) {
+            setExecutionCompletedCount(prev => prev + 1);
+        }
     };
 
     const handleBulkComplete = async () => {
@@ -328,48 +345,129 @@ export default function Activities({ currency: _currency }: { currency: Currency
 
     const hasActiveFilters = periodFilter !== 'Todos' || selectedTypes.length > 0 || statusFilter !== 'todos' || responsavelFilter !== 'todos' || searchQuery;
 
+    const findStageTitle = (deal?: Deal) => {
+        if (!deal) return null;
+        const pipeline = pipelines[deal.pipelineId || 'sales'];
+        const stage = pipeline?.stages.find(s => s.id === deal.stageId);
+        return stage?.title || 'Lead';
+    };
+
     // ─── Render ───────────────────────────────────────────────────────────────
     return (
-        <div className="flex flex-col h-full bg-background overflow-hidden">
+        <div className="flex flex-col h-full bg-[#FCFCFD] dark:bg-slate-950 overflow-hidden relative">
 
-            {/* ── Header ─────────────────────────────────────────────────── */}
-            <div className="bg-card border-b border-border/60 px-4 sm:px-6 pt-5 pb-0 z-20 shadow-sm">
-                {/* Title row */}
-                <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                            <ClipboardList size={18} className="text-primary" />
+            {/* ── ZONA 1 & 2: HEADER MINIMALISTA ─────────────────────────────────── */}
+            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 py-5 z-20 sticky top-0 flex flex-col gap-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                            <ClipboardList size={20} />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-foreground tracking-tight">Atividades</h1>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                                <RefreshCw size={9} className="text-emerald-500 animate-spin-slow" />
-                                <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">Sincronização Ativa</span>
-                            </div>
+                            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Vendas & Execução</h1>
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{executableActivities.length} atividades aguardando execução</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                        {[
+                            { id: 'Atrasadas', label: 'atrasadas', count: summaryStats.overdue, isPeriod: true, colorClasses: 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/20', dot: 'bg-rose-500' },
+                            { id: 'pendente', label: 'pendentes', count: summaryStats.pending, isPeriod: false, colorClasses: 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-400 dark:hover:bg-amber-500/20', dot: 'bg-amber-500' },
+                            { id: 'Hoje', label: 'hoje', count: summaryStats.todayCount, isPeriod: true, colorClasses: 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700', dot: 'bg-slate-500' },
+                            { id: 'Próximos 7 dias', label: 'próx. 7 dias', count: summaryStats.next7, isPeriod: true, colorClasses: 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:border-indigo-500/30 dark:text-indigo-400 dark:hover:bg-indigo-500/20', dot: 'bg-indigo-500' },
+                        ].map((f) => {
+                            const isActive = f.isPeriod ? periodFilter === f.id : (statusFilter === f.id && periodFilter === 'Todos');
+                            return (
+                                <button
+                                    key={f.id}
+                                    onClick={() => {
+                                        if (f.isPeriod) { setPeriodFilter(f.id as PeriodFilter); setStatusFilter('todos'); }
+                                        else { setStatusFilter(f.id as StatusFilter); setPeriodFilter('Todos'); }
+                                    }}
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-all 
+                                        ${isActive ? f.colorClasses + ' ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-slate-300 dark:ring-slate-600 scale-105' : 'bg-transparent border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className={`w-2 h-2 rounded-full ${f.dot}`}></span>
+                                    <span className="font-bold text-sm tracking-tight">{f.count} <span className="font-medium opacity-80">{f.label}</span></span>
+                                </button>
+                            );
+                        })}
+
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2 hidden lg:block"></div>
+
+                        <button
+                            onClick={() => setIsNewModalOpen(true)}
+                            className="hidden lg:flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 px-5 py-2.5 rounded-full text-slate-600 dark:text-slate-300 transition-all font-bold text-sm"
+                        >
+                            <Plus size={16} strokeWidth={3} /> <span className="hidden xl:inline">Nova</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => {
+                                setIsExecutionMode(true);
+                                setExecutionCompletedCount(0);
+                            }}
+                            disabled={executableActivities.length === 0}
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full font-bold transition-all text-sm disabled:opacity-50 shadow-sm shadow-indigo-500/20"
+                        >
+                            <PlayCircle size={18} />
+                            <span>Executar</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Filtros Secundários com Contagem (Estilo Tabs) */}
+                <div className="flex flex-col-reverse lg:flex-row lg:items-center justify-between gap-4 mt-2">
+                    <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto pb-px scrollbar-hide">
+                        {QUICK_TYPE_FILTERS.map(({ id, label }) => {
+                            const isActive = id === 'Todos' ? selectedTypes.length === 0 : selectedTypes.includes(id as ActivityType);
+                            const count = id === 'Todos' 
+                                ? baseActivitiesForTabs.length 
+                                : baseActivitiesForTabs.filter(a => a.type === id).length;
+                            return (
+                                <button
+                                    key={id}
+                                    onClick={() => {
+                                        if (id === 'Todos') setSelectedTypes([]);
+                                        else toggleType(id as ActivityType);
+                                    }}
+                                    className={`flex items-center gap-2 px-5 py-3 border-b-2 transition-all text-sm font-semibold whitespace-nowrap
+                                        ${isActive
+                                            ? 'text-indigo-600 border-indigo-600 dark:text-indigo-400 dark:border-indigo-500 bg-indigo-50/50 dark:bg-indigo-500/5'
+                                            : 'text-slate-500 border-transparent hover:text-slate-800 dark:hover:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                                >
+                                    <span>{label}</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold
+                                        ${isActive ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}
+                                    `}>{count}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="relative group hidden lg:block">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Pesquisar..."
+                                className="w-64 pl-9 pr-4 py-1.5 bg-transparent border-b border-slate-200 dark:border-slate-700 text-sm focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 font-medium text-slate-900 dark:text-white"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+
                         <button
                             onClick={() => setShowFilters(v => !v)}
-                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold border transition-all
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs transition-all border
                                 ${showFilters || hasActiveFilters
-                                    ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
-                                    : 'bg-muted/30 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground'}`}
+                                    ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 border-indigo-100 dark:border-indigo-500/20'
+                                    : 'text-slate-500 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                         >
-                            <Filter size={15} />
-                            <span className="hidden sm:inline">Filtros</span>
-                            {hasActiveFilters && (
-                                <span className="w-4 h-4 rounded-full bg-white/20 text-white text-[9px] font-bold flex items-center justify-center">
-                                    {[
-                                        periodFilter !== 'Todos' ? 1 : 0,
-                                        selectedTypes.length,
-                                        statusFilter !== 'todos' ? 1 : 0,
-                                        responsavelFilter !== 'todos' ? 1 : 0,
-                                    ].reduce((a, b) => a + b, 0)}
-                                </span>
-                            )}
+                            <Filter size={14} />
+                            <span>Filtros</span>
                         </button>
+                        
                         <ActivitiesMoreActions
                             filteredActivities={filteredActivities}
                             deals={deals}
@@ -377,305 +475,150 @@ export default function Activities({ currency: _currency }: { currency: Currency
                             companies={companies}
                             visibleColumns={['completed', 'title', 'dealId', 'contactId', 'companyId', 'dueDate', 'ownerId']}
                         />
-                        <button
-                            onClick={() => setIsNewModalOpen(true)}
-                            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 text-sm active:scale-95"
-                        >
-                            <Plus size={16} />
-                            <span>Nova</span>
-                        </button>
                     </div>
                 </div>
+            </div>
 
-                {/* ── Summary strip ──────────────────────────────────────── */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                    {[
-                        {
-                            label: 'Pendentes', value: summaryStats.pending, color: 'from-primary/20 to-primary/5 text-primary border-primary/20',
-                            onClick: () => { setStatusFilter('pendente'); setPeriodFilter('Todos'); }
-                        },
-                        {
-                            label: 'Atrasadas', value: summaryStats.overdue, color: 'from-red-500/20 to-red-500/5 text-red-500 border-red-500/20',
-                            onClick: () => { setPeriodFilter('Atrasadas'); setStatusFilter('todos'); }
-                        },
-                        {
-                            label: 'Hoje', value: summaryStats.todayCount, color: 'from-orange-500/20 to-orange-500/5 text-orange-500 border-orange-500/20',
-                            onClick: () => { setPeriodFilter('Hoje'); setStatusFilter('todos'); }
-                        },
-                        {
-                            label: 'Próximos 7 dias', value: summaryStats.next7, color: 'from-emerald-500/20 to-emerald-500/5 text-emerald-500 border-emerald-500/20',
-                            onClick: () => { setPeriodFilter('Próximos 7 dias'); setStatusFilter('todos'); }
-                        },
-                    ].map(({ label, value, color, onClick }) => (
-                        <button
-                            key={label}
-                            onClick={onClick}
-                            className={`flex flex-col items-start p-3 rounded-2xl border bg-gradient-to-br ${color} transition-all hover:scale-[1.02] active:scale-95 text-left`}
-                        >
-                            <span className="text-2xl font-black">{value}</span>
-                            <span className="text-[10px] font-semibold uppercase tracking-widest opacity-70 mt-0.5">{label}</span>
-                        </button>
-                    ))}
-                </div>
-
-                {/* ── Advanced Filter Panel ──────────────────────────────── */}
-                {showFilters && (
-                    <div className="border border-border/60 rounded-2xl p-4 mb-5 bg-muted/20 space-y-4">
-                        {/* Row 1: Search + Period */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {/* Search */}
-                            <div className="relative group">
-                                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar atividade, negócio, contato..."
-                                    className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium placeholder:text-muted-foreground/40 transition-all"
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-
-                            {/* Period */}
-                            <div className="flex items-center gap-2">
-                                <Calendar size={15} className="text-muted-foreground/50 shrink-0" />
-                                <select
-                                    value={periodFilter}
-                                    onChange={e => setPeriodFilter(e.target.value as PeriodFilter)}
-                                    className="flex-1 py-2.5 px-3 bg-card border border-border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
-                                >
-                                    {PERIOD_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                                    <option value="Personalizado">Personalizado</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Custom date range */}
-                        {periodFilter === 'Personalizado' && (
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">De</label>
-                                    <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
-                                        className="w-full py-2.5 px-3 bg-card border border-border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">Até</label>
-                                    <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
-                                        className="w-full py-2.5 px-3 bg-card border border-border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Row 2: Type multi-select */}
+            {/* Advanced Filters Overlay */}
+            {showFilters && (
+                <div className="mx-8 mt-4 p-8 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-2xl animate-in slide-in-from-top-6 duration-500 z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                         <div>
-                            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2 block">Tipo de atividade</label>
-                            <div className="flex flex-wrap gap-2">
-                                {TYPE_OPTIONS.map(({ id, label }) => {
-                                    const Icon = typeIcon[id] || CheckCircle2;
-                                    const isSelected = selectedTypes.includes(id);
-                                    return (
-                                        <button
-                                            key={id}
-                                            onClick={() => toggleType(id)}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all
-                                                ${isSelected
-                                                    ? 'bg-primary text-white border-primary shadow-sm shadow-primary/20'
-                                                    : 'bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'}`}
-                                        >
-                                            <Icon size={12} />
-                                            {label}
-                                        </button>
-                                    );
-                                })}
+                            <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-3 block">Período</label>
+                            <select
+                                value={periodFilter}
+                                onChange={e => setPeriodFilter(e.target.value as PeriodFilter)}
+                                className="w-full py-3 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-700 dark:text-slate-200"
+                            >
+                                {PERIOD_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                                <option value="Personalizado">Data Personalizada</option>
+                            </select>
+                            {periodFilter === 'Personalizado' && (
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
+                                        className="w-full py-2 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none" />
+                                    <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
+                                        className="w-full py-2 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none" />
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div>
+                            <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-3 block">Tipo de Status</label>
+                            <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                {(['todos', 'pendente', 'concluído'] as StatusFilter[]).map((s) => (
+                                    <button
+                                        key={s}
+                                        onClick={() => setStatusFilter(s)}
+                                        className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all
+                                            ${statusFilter === s ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        {s === 'todos' ? 'Todos' : s === 'pendente' ? 'Abertas' : 'Feitas'}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Row 3: Status + Responsável */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">Status</label>
-                                <select
-                                    value={statusFilter}
-                                    onChange={e => setStatusFilter(e.target.value as StatusFilter)}
-                                    className="w-full py-2.5 px-3 bg-card border border-border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
-                                >
-                                    <option value="todos">Todos</option>
-                                    <option value="pendente">Pendente</option>
-                                    <option value="concluído">Concluído</option>
-                                    <option value="atrasado">Atrasado</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">Responsável</label>
-                                <select
-                                    value={responsavelFilter}
-                                    onChange={e => setResponsavelFilter(e.target.value as ResponsavelFilter)}
-                                    className="w-full py-2.5 px-3 bg-card border border-border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
-                                >
-                                    <option value="todos">Todos</option>
-                                    <option value="eu">Eu</option>
-                                    <option value="equipe">Equipe</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider mb-3 block">Responsável</label>
+                            <select
+                                value={responsavelFilter}
+                                onChange={e => setResponsavelFilter(e.target.value as ResponsavelFilter)}
+                                className="w-full py-3 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-700 dark:text-slate-200"
+                            >
+                                <option value="todos">Toda a Equipe</option>
+                                <option value="eu">Apenas Minhas</option>
+                            </select>
                         </div>
-
-                        {/* Clear */}
-                        {hasActiveFilters && (
+                    </div>
+                    
+                    {hasActiveFilters && (
+                        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                            <span className="text-xs font-medium text-slate-400 italic">Dica: Use os atalhos do topo para filtros rápidos.</span>
                             <button
                                 onClick={clearAllFilters}
-                                className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-destructive transition-colors"
+                                className="px-6 py-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-black rounded-xl hover:text-rose-500 transition-colors uppercase tracking-widest"
                             >
-                                <X size={13} />
-                                Limpar todos os filtros
+                                Limpar Todos
                             </button>
-                        )}
-                    </div>
-                )}
+                        </div>
+                    )}
+                </div>
+            )}
 
-                {/* ── Quick type pills ───────────────────────────────────────── */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-4">
-                    {QUICK_TYPE_FILTERS.map(({ id, label }) => {
-                        const Icon = id !== 'Todos' ? (typeIcon[id] || CheckCircle2) : ClipboardList;
-                        const isActive = id === 'Todos' ? selectedTypes.length === 0 : selectedTypes.includes(id as ActivityType);
-                        return (
-                            <button
-                                key={id}
-                                onClick={() => {
-                                    if (id === 'Todos') {
-                                        setSelectedTypes([]);
-                                    } else {
-                                        toggleType(id as ActivityType);
-                                    }
-                                }}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition-all
-                                    ${isActive
-                                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
-                                        : 'bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground'}`}
-                            >
-                                <Icon size={12} />
-                                {label}
-                            </button>
-                        );
-                    })}
+            {/* ── ZONA 3: LISTA DE EXECUÇÃO MINIMALISTA ──────────────────────── */}
+            <div className="flex-1 overflow-auto bg-white dark:bg-slate-950">
+                <div className="max-w-7xl mx-auto py-8 px-8">
+                    {filteredActivities.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                            <CheckCircle2 size={40} className="opacity-20 text-slate-400 mb-6" />
+                            <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300 mb-2">Inbox Zero!</h3>
+                            <p className="text-sm">Todas as tarefas foram concluídas.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-10">
+                            {groups.map(group => (
+                                <section key={group.label}>
+                                    <div className="flex items-center gap-3 mb-3 pl-2">
+                                        <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                                            {group.label}
+                                        </h3>
+                                        <span className="text-xs font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                                            {group.activities.length}
+                                        </span>
+                                    </div>
 
-                    {/* Active search pill */}
-                    {searchQuery && (
-                        <button
-                            onClick={() => setSearchQuery('')}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary border border-primary/20 whitespace-nowrap"
-                        >
-                            <Search size={11} />
-                            "{searchQuery}"
-                            <X size={11} />
-                        </button>
+                                    <div className="border-t border-slate-100 dark:border-slate-800/80">
+                                        {group.activities.map(activity => {
+                                            const deal = deals.find(d => d.id === activity.dealId);
+                                            const contact = contacts.find(c => c.id === activity.contactId);
+                                            return (
+                                                <ActivityCompactRow
+                                                    key={activity.id}
+                                                    activity={activity}
+                                                    users={users}
+                                                    isSelected={selectedActivities.includes(activity.id)}
+                                                    onToggleSelect={() =>
+                                                        setSelectedActivities(prev =>
+                                                            prev.includes(activity.id) ? prev.filter(i => i !== activity.id) : [...prev, activity.id]
+                                                        )
+                                                    }
+                                                    onToggleComplete={() => handleToggleComplete(activity.id, !activity.completed)}
+                                                    onEdit={() => {
+                                                        if (activity.dealId) setSelectedDealId(activity.dealId);
+                                                        else setEditingActivity(activity);
+                                                    }}
+                                                    onDelete={() => deleteActivity(activity.id)}
+                                                    deal={deal}
+                                                    contact={contact}
+                                                    stageTitle={findStageTitle(deal)}
+                                                    onReschedule={() => setEditingActivity(activity)}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
 
-            {/* ── Content ─────────────────────────────────────────────────── */}
-            <div className="flex-1 overflow-auto custom-scrollbar bg-background">
-                {filteredActivities.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-32 text-muted-foreground/40 px-4">
-                        <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mb-5">
-                            <SearchX size={36} className="opacity-40" />
-                        </div>
-                        <h3 className="text-lg font-bold text-foreground mb-1">Nenhuma atividade encontrada</h3>
-                        <p className="text-sm text-muted-foreground/60 text-center max-w-xs">
-                            Tente ajustar os filtros ou termos de busca.
-                        </p>
-                        <button
-                            onClick={clearAllFilters}
-                            className="mt-5 text-xs font-bold text-primary uppercase tracking-widest hover:underline"
-                        >
-                            Limpar filtros
-                        </button>
-                    </div>
-                ) : (
-                    <div className="p-4 sm:p-6 space-y-8">
-                        {groups.map(group => (
-                            <section key={group.label}>
-                                {/* Group header */}
-                                <div className={`flex items-center gap-2 mb-3 px-1`}>
-                                    <group.icon size={14} className={group.color.split(' ')[0]} />
-                                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${group.color.split(' ')[0]}`}>
-                                        {group.label}
-                                    </span>
-                                    <span className="text-[10px] font-bold text-muted-foreground/40 ml-1">
-                                        ({group.activities.length})
-                                    </span>
-                                    <div className="flex-1 h-px bg-border/50 ml-2" />
-                                </div>
-
-                                {/* Activity cards */}
-                                <div className="space-y-2.5">
-                                    {group.activities.map(activity => (
-                                        <ActivityCard
-                                            key={activity.id}
-                                            activity={activity}
-                                            isSelected={selectedActivities.includes(activity.id)}
-                                            onToggleSelect={() =>
-                                                setSelectedActivities(prev =>
-                                                    prev.includes(activity.id) ? prev.filter(i => i !== activity.id) : [...prev, activity.id]
-                                                )
-                                            }
-                                            onToggleComplete={() => handleToggleComplete(activity.id, !activity.completed)}
-                                            onEdit={() => {
-                                                if (activity.dealId) {
-                                                    setSelectedDealId(activity.dealId);
-                                                } else {
-                                                    setEditingActivity(activity);
-                                                }
-                                            }}
-                                            onDelete={() => deleteActivity(activity.id)}
-                                            onNavigateDeal={dealId => navigate(`/deals/${dealId}`)}
-                                            onNavigateContact={contactId => navigate(`/contacts/${contactId}`)}
-                                            deal={deals.find(d => d.id === activity.dealId)}
-                                            contact={contacts.find(c => c.id === activity.contactId)}
-                                            company={companies.find(c => c.id === (activity.companyId || deals.find(d => d.id === activity.dealId)?.companyId))}
-                                            contacts={contacts}
-                                            companies={companies}
-                                            deals={deals}
-                                            isMobile={isMobile}
-                                        />
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/* ── Bottom stats bar ─────────────────────────────────────────── */}
-            <div className="border-t border-border/60 px-5 py-2.5 bg-card flex items-center gap-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-                <span>Total: <span className="text-foreground">{filteredActivities.length}</span></span>
-                <div className="w-px h-3 bg-border" />
-                <span>Concluídas: <span className="text-emerald-500">{filteredActivities.filter(a => a.completed).length}</span></span>
-                <div className="w-px h-3 bg-border" />
-                <span>Pendentes: <span className="text-orange-500">{filteredActivities.filter(a => !a.completed).length}</span></span>
-            </div>
-
             {/* ── Bulk Actions ─────────────────────────────────────────────── */}
             {selectedActivities.length > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1A1D26] text-white px-8 py-4 rounded-[28px] flex items-center gap-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300 z-[100] border border-white/10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center font-bold text-sm">
-                            {selectedActivities.length}
-                        </div>
-                        <span className="text-sm font-semibold">selecionadas</span>
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-white/10 text-white px-10 py-4 rounded-3xl flex items-center gap-10 shadow-2xl animate-in slide-in-from-bottom-12 duration-500 z-[100]">
+                    <div className="flex items-center gap-4">
+                        <span className="w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center text-sm font-black text-white">{selectedActivities.length}</span>
+                        <span className="text-sm font-black uppercase tracking-widest text-slate-200">Selecionadas</span>
                     </div>
-                    <div className="w-px h-6 bg-white/10" />
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => setIsBulkEditModalOpen(true)} className="flex items-center gap-1.5 text-sm font-bold hover:text-primary transition-colors">
-                            <Pencil size={15} /> Editar
-                        </button>
-                        <button onClick={handleBulkComplete} className="flex items-center gap-1.5 text-sm font-bold hover:text-emerald-400 transition-colors">
-                            <CheckCircle size={15} /> Concluir
-                        </button>
-                        <button onClick={handleBulkDelete} className="flex items-center gap-1.5 text-sm font-bold hover:text-red-400 transition-colors">
-                            <Trash2 size={15} /> Excluir
-                        </button>
+                    <div className="w-px h-8 bg-slate-700" />
+                    <div className="flex items-center gap-8">
+                        <button onClick={() => setIsBulkEditModalOpen(true)} className="text-sm font-black text-slate-300 hover:text-white transition-colors uppercase tracking-widest">Editar</button>
+                        <button onClick={handleBulkComplete} className="text-sm font-black text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-widest">Concluir</button>
+                        <button onClick={handleBulkDelete} className="text-sm font-black text-rose-400 hover:text-rose-300 transition-colors uppercase tracking-widest">Excluir</button>
                     </div>
-                    <button onClick={() => setSelectedActivities([])} className="p-1.5 hover:bg-white/10 rounded-full transition-colors">
-                        <X size={16} />
+                    <button onClick={() => setSelectedActivities([])} className="ml-6 p-2 hover:bg-white/10 rounded-full transition-colors text-slate-500 hover:text-white">
+                        <X size={20} />
                     </button>
                 </div>
             )}
@@ -701,11 +644,26 @@ export default function Activities({ currency: _currency }: { currency: Currency
                 dealId={selectedDealId}
                 currency={_currency}
             />
+
+            {/* Execution Mode Overlay */}
+            {isExecutionMode && (
+                <ExecutionMode
+                    activities={executableActivities}
+                    deals={deals}
+                    contacts={contacts}
+                    completedCount={executionCompletedCount}
+                    onClose={() => setIsExecutionMode(false)}
+                    onComplete={(id) => handleToggleComplete(id, true)}
+                    onReschedule={(activity) => {
+                        setEditingActivity(activity);
+                    }}
+                />
+            )}
         </div>
     );
 }
 
-// ─── Activity Card Component ──────────────────────────────────────────────────
+// ─── Compact Activity Row Component ──────────────────────────────────────────
 interface CardProps {
     activity: Activity;
     isSelected: boolean;
@@ -713,138 +671,281 @@ interface CardProps {
     onToggleComplete: () => void;
     onEdit: () => void;
     onDelete: () => void;
-    onNavigateDeal: (id: string) => void;
-    onNavigateContact: (id: string) => void;
-    deal?: { id: string; title: string };
-    contact?: { id: string; name: string; email?: string; phone?: string };
-    company?: { id: string; name: string };
-    contacts: any[];
-    companies: any[];
-    deals: any[];
-    isMobile?: boolean;
+    deal?: Deal;
+    contact?: any;
+    users: any[];
+    stageTitle: string | null;
+    onReschedule?: () => void;
 }
 
-function ActivityCard({
-    activity, isSelected, onToggleSelect, onToggleComplete, onEdit, onDelete,
-    onNavigateDeal, onNavigateContact, deal, contact,
-    contacts, companies, deals
+function ActivityCompactRow({
+    activity, isSelected, onToggleComplete, onEdit, onDelete,
+    deal, contact, stageTitle, onReschedule
 }: CardProps) {
     const Icon = typeIcon[activity.type] || CheckCircle2;
-    const iconColors = typeColor[activity.type] || 'text-muted-foreground bg-muted';
     const priority = getActivityPriority(activity);
-    const styles = priorityStyles(priority);
 
-    // Script logic
-    const rawScript = activity.tooltipScript || getScriptByTitle(activity.title);
-    const contactForScript = contacts.find(c => c.id === activity.contactId);
-    const companyForScript = companies.find(c => c.id === activity.companyId);
-    const dealForScript = deals.find(d => d.id === activity.dealId);
-    const formattedScript = rawScript ? formatScript(rawScript, {
-        contactName: contactForScript?.name,
-        companyName: companyForScript?.name,
-        dealTitle: dealForScript?.title
-    }) : undefined;
-    const hasScript = (activity.tooltipScript || activity.notes || rawScript) && !activity.completed;
+    const isOverdue = priority === 'overdue';
+
+    const urgencyColor = useMemo(() => {
+        if (activity.completed || !activity.dueDate) return 'bg-slate-200 dark:bg-slate-700';
+        const d = parseISO(activity.dueDate);
+        const today = startOfToday();
+        if (isBefore(d, today)) {
+            const diff = differenceInDays(today, d);
+            if (diff > 14) return 'bg-rose-500';
+            if (diff >= 7) return 'bg-amber-500';
+        }
+        return 'bg-slate-300 dark:bg-slate-600';
+    }, [activity.completed, activity.dueDate]);
+
+    const relativeTime = useMemo(() => {
+        if (!activity.dueDate) return '';
+        const d = parseISO(activity.dueDate);
+        const today = startOfToday();
+        if (isToday(d)) return 'Hoje';
+        if (isTomorrow(d)) return 'Amanhã';
+        const diff = differenceInDays(today, d);
+        if (diff > 0) return diff === 1 ? 'ontem' : `${diff} dias atrás`;
+        return `Em ${Math.abs(diff)} dias`;
+    }, [activity.dueDate]);
 
     return (
-        <div
-            onClick={onEdit}
-            className={`group relative bg-card border border-border/40 rounded-xl transition-all hover:bg-muted/30 cursor-pointer
-            border-l-[3px] ${activity.completed ? 'border-l-border/30 opacity-70' : styles.border}
-            ${isSelected ? 'ring-2 ring-primary/30 bg-primary/5' : ''}`}
+        <div 
+            className={`relative group flex items-start sm:items-center gap-4 py-4 px-5 mb-3 rounded-2xl border bg-white dark:bg-slate-900 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800
+                ${activity.completed ? 'opacity-60 grayscale' : ''} 
+                ${isSelected ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-500/30' : 'border-slate-200/50'}`}
         >
-            <div className="flex items-center gap-3 px-3 py-2.5">
-                {/* Selection & Complete toggle */}
-                <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
-                    <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={onToggleSelect}
-                        className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary/20 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                    />
-                    <button
-                        onClick={onToggleComplete}
-                        className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 transition-all
-                            ${activity.completed
-                                ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
-                                : 'border-border hover:border-primary hover:bg-primary/10 active:scale-95'}`}
+            {/* Urgency Color Bar */}
+            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${urgencyColor}`} />
+
+            {/* Checkbox */}
+            <button 
+                onClick={(e) => { e.stopPropagation(); onToggleComplete(); }}
+                className={`w-5 h-5 rounded-[4px] border flex items-center justify-center shrink-0 transition-all cursor-pointer
+                    ${activity.completed 
+                        ? 'bg-slate-200 border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-400' 
+                        : 'bg-transparent border-slate-300 dark:border-slate-600 text-transparent hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-400'}`}
+            >
+                <Check size={12} strokeWidth={4} />
+            </button>
+
+            {/* Ícone Diferenciado do Canal */}
+            <div className={`shrink-0 w-8 h-8 rounded-[10px] flex items-center justify-center border
+                ${activity.completed ? 'bg-slate-50 text-slate-400 border-slate-100 dark:bg-slate-800/80 dark:border-slate-800' : `${typeColor[activity.type]} border-white/50 dark:border-slate-800/50`}`}>
+                <Icon size={16} strokeWidth={2.5} />
+            </div>
+
+            {/* Main Info (Single/Tight Line) */}
+            <div className="flex-1 min-w-0 pr-4 flex items-center gap-2 cursor-pointer" onClick={onEdit}>
+                
+                <h4 className={`text-[15px] font-bold truncate hover:underline hover:text-indigo-600 dark:hover:text-indigo-400
+                    ${activity.completed ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+                    {activity.title}
+                </h4>
+
+                <div className="flex items-center gap-2 text-[13px] text-slate-500 dark:text-slate-400 truncate">
+                    {deal ? (
+                        <span 
+                            className="font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 truncate max-w-[180px]"
+                            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                        >
+                            {deal.title}
+                        </span>
+                    ) : contact ? (
+                        <span className="font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-700 dark:text-slate-300 truncate">{contact.name}</span>
+                    ) : null}
+
+                    {stageTitle && (
+                        <>
+                            <span className="text-slate-300 dark:text-slate-700">•</span>
+                            <span className="truncate max-w-[150px] font-medium text-slate-600 dark:text-slate-400 hidden sm:inline">{stageTitle}</span>
+                        </>
+                    )}
+
+                    {contact?.phone && (
+                        <>
+                            <span className="text-slate-300 dark:text-slate-700">•</span>
+                            <span className="truncate hidden md:flex items-center gap-1 font-mono text-xs"><Phone size={12}/> {contact.phone}</span>
+                        </>
+                    )}
+
+                    {activity.dueDate && (
+                        <>
+                            <span className="text-slate-300 dark:text-slate-700">•</span>
+                            <span className={`shrink-0 font-medium ${isOverdue && !activity.completed ? 'text-rose-500' : ''}`}>
+                                {format(parseISO(activity.dueDate), "dd MMM", { locale: ptBR })} 
+                                <span className={isOverdue && !activity.completed ? 'text-rose-500' : 'text-slate-400'}> · {relativeTime}</span>
+                            </span>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Quick Actions Restritas ao Hover */}
+            <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 bg-gradient-to-l from-white via-white dark:from-slate-900 dark:via-slate-900 to-transparent pl-8">
+                {!activity.completed && (
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onToggleComplete(); }}
+                        className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:text-emerald-400 text-xs font-black uppercase rounded-lg transition-all"
                     >
-                        {activity.completed && <Check size={12} className="stroke-[3]" />}
+                        <Check size={14} strokeWidth={3} />
+                        Concluir
+                    </button>
+                )}
+                <div className="flex items-center gap-1 border-l border-slate-200 dark:border-slate-700 pl-2 ml-1">
+                    {onReschedule && !activity.completed && (
+                         <button 
+                            onClick={(e) => { e.stopPropagation(); onReschedule(); }}
+                            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            title="Reagendar"
+                        >
+                            <CalendarClock size={16} />
+                        </button>
+                    )}
+                    {contact?.phone && (
+                        <a 
+                            href={`tel:${contact.phone}`} 
+                            className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            title="Ligar"
+                        >
+                            <Phone size={16} />
+                        </a>
+                    )}
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onEdit(); }} 
+                        className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title="Anotar / Editar"
+                    >
+                        <Pencil size={16} />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onDelete(); }} 
+                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title="Excluir"
+                    >
+                        <Trash2 size={16} />
                     </button>
                 </div>
+            </div>
+        </div>
+    );
+}
 
-                {/* Type icon (Small) */}
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconColors}`}>
-                    <Icon size={14} />
-                </div>
+// ─── Refined Execution Mode Component ─────────────────────────────────────────
+function ExecutionMode({ activities, deals, contacts, completedCount, onClose, onComplete, onReschedule }: {
+    activities: Activity[], deals: Deal[], contacts: any[], completedCount: number, onClose: () => void, onComplete: (id: string) => void, onReschedule: (a: Activity) => void
+}) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const activeA = activities[currentIndex];
 
-                {/* Main Content (Horizontal Line) */}
-                <div className="flex-1 flex items-center justify-between min-w-0 gap-4">
-                    <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                            <h4 className={`text-sm font-bold truncate ${activity.completed ? 'line-through text-muted-foreground/50' : 'text-foreground'}`}>
-                                <PrivacyText text={activity.title} type="text" />
-                            </h4>
-                            {hasScript && (
-                                <span onClick={e => e.stopPropagation()}>
-                                    <ActivityScriptPopover suggestion={activity.notes} script={formattedScript} />
+    // Auto-close if finished
+    useEffect(() => {
+        if (currentIndex >= activities.length && activities.length > 0) {
+            onClose();
+        }
+    }, [currentIndex, activities, onClose]);
+
+    if (!activeA) return null;
+
+    const Icon = typeIcon[activeA.type] || CheckCircle2;
+    const deal = deals.find(d => d.id === activeA.dealId);
+    const contact = contacts.find(c => c.id === activeA.contactId);
+
+    const handleCompleteNext = () => {
+        onComplete(activeA.id);
+        setCurrentIndex(v => v + 1);
+    };
+
+    const handleNoAnswer = () => {
+        setCurrentIndex(v => v + 1);
+    };
+
+    const handleSkip = () => {
+        setCurrentIndex(v => v + 1);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[200] bg-slate-950/98 backdrop-blur-xl flex flex-col animate-in fade-in duration-500">
+            <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
+                <div className="w-full max-w-2xl bg-white dark:bg-slate-900 border-none shadow-[0_0_80px_rgba(79,70,229,0.15)] rounded-[48px] overflow-hidden p-12 flex flex-col animate-in zoom-in-95 duration-700">
+                    
+                    {/* Header: Progress Counter */}
+                    <div className="mb-12 flex items-center justify-between">
+                        <div className="flex flex-col gap-2">
+                            <span className="text-[11px] font-black text-indigo-500 uppercase tracking-[0.3em]">Modo de Alta Performance</span>
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-black text-slate-400 whitespace-nowrap">
+                                    {completedCount + currentIndex} de {activities.length + completedCount} atividades concluídas
                                 </span>
-                            )}
+                                <div className="w-48 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-indigo-500 transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1)" 
+                                        style={{ width: `${((completedCount + currentIndex) / (activities.length + completedCount)) * 100}%` }} 
+                                    />
+                                </div>
+                            </div>
                         </div>
-
-                        <div className="flex items-center gap-3 mt-0.5">
-                            {deal && (
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onNavigateDeal(deal.id); }}
-                                    className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline truncate max-w-[150px]"
-                                >
-                                    <Building2 size={10} className="opacity-70" />
-                                    <PrivacyText text={deal.title} type="text" />
-                                </button>
-                            )}
-                            {contact && (
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onNavigateContact(contact.id); }}
-                                    className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground truncate max-w-[120px]"
-                                >
-                                    <div className="w-3.5 h-3.5 rounded-full bg-muted flex items-center justify-center text-[7px] font-bold uppercase">
-                                        {contact.name.charAt(0)}
-                                    </div>
-                                    <PrivacyText text={contact.name} type="name" />
-                                </button>
-                            )}
-                        </div>
+                        <button onClick={onClose} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400 hover:text-rose-500"><X size={28} /></button>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
-                        {activity.dueDate && (
-                            <div className="flex flex-col items-end">
-                                <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
-                                    <Calendar size={10} className={activity.completed ? 'opacity-40' : priority === 'overdue' ? 'text-red-500' : priority === 'today' ? 'text-orange-500' : 'text-emerald-500'} />
-                                    <span className={activity.completed ? 'opacity-50' : priority === 'overdue' ? 'text-red-500' : priority === 'today' ? 'text-orange-500' : ''}>
-                                        {format(parseISO(activity.dueDate), "dd/MM", { locale: ptBR })}
-                                    </span>
+                    <div className="flex flex-col items-center text-center">
+                        <div className={`w-24 h-24 rounded-[32px] flex items-center justify-center mb-8 shadow-2xl border border-white/10 rotate-3 ${typeColor[activeA.type] || 'bg-slate-500 text-white'}`}>
+                            <Icon size={44} strokeWidth={2.5} />
+                        </div>
+                        
+                        <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter leading-tight">{activeA.title}</h2>
+                        
+                        <div className="flex flex-col gap-5 items-center justify-center mt-2 mb-12">
+                            {deal && (
+                                <div className="flex items-center gap-3 bg-indigo-50/50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-6 py-2.5 rounded-[22px] font-black border border-indigo-100/50 dark:border-indigo-500/20 text-md uppercase tracking-wider shadow-sm">
+                                    <Building2 size={18} /> {deal.title}
                                 </div>
-                                <span className="text-[9px] font-bold opacity-40">
-                                    {format(parseISO(activity.dueDate), "HH:mm")}
-                                </span>
+                            )}
+                            {contact && (
+                                <div className="flex flex-col gap-2">
+                                    <span className="text-lg font-bold text-slate-700 dark:text-slate-300">{contact.name}</span>
+                                    <div className="flex gap-8 text-slate-400 font-bold uppercase tracking-widest text-xs">
+                                        {contact.phone && <span className="flex items-center gap-2 hover:text-indigo-600 transition-colors"><Phone size={14} /> {contact.phone}</span>}
+                                        {contact.email && <span className="flex items-center gap-2 hover:text-indigo-600 transition-colors"><Mail size={14} /> {contact.email}</span>}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {activeA.notes && (
+                            <div className="w-full bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-3xl p-8 mb-12 text-left shadow-inner">
+                                <span className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-400 mb-4 block">Observações do Negócio</span>
+                                <p className="text-slate-600 dark:text-slate-300 font-bold text-lg leading-relaxed">{activeA.notes}</p>
                             </div>
                         )}
 
-                        <div className="w-px h-6 bg-border/40 hidden sm:block" />
-
-                        {/* Actions (Always visible or compact) */}
-                        <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                            {contact?.phone && (
-                                <a href={`tel:${contact.phone}`} className="p-1.5 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-colors border border-transparent hover:border-blue-500/20">
-                                    <Phone size={14} />
-                                </a>
-                            )}
-                            <button onClick={onEdit} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground/60 hover:text-primary transition-colors border border-transparent hover:border-border">
-                                <Pencil size={14} />
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                            <button 
+                                onClick={handleSkip}
+                                className="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-400 text-slate-500 dark:text-slate-400 font-black rounded-3xl flex items-center justify-center gap-2 transition-all active:scale-95 uppercase tracking-widest text-xs"
+                            >
+                                <SkipForward size={20} /> Pular
                             </button>
-                            <button onClick={onDelete} className="p-1.5 hover:bg-destructive/10 rounded-lg text-muted-foreground/60 hover:text-destructive transition-colors">
-                                <Trash2 size={14} />
+                            <button 
+                                onClick={handleNoAnswer}
+                                className="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-400 hover:text-amber-600 text-slate-500 font-black rounded-3xl flex items-center justify-center gap-2 transition-all active:scale-95 uppercase tracking-widest text-xs"
+                            >
+                                <PhoneOff size={20} /> Não atendeu
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    onReschedule(activeA);
+                                }}
+                                className="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600 text-slate-500 font-black rounded-3xl flex items-center justify-center gap-2 transition-all active:scale-95 uppercase tracking-widest text-xs"
+                            >
+                                <CalendarClock size={20} /> Reagendar
+                            </button>
+                            <button 
+                                onClick={handleCompleteNext}
+                                className="px-8 py-4 bg-emerald-600 text-white font-black rounded-3xl flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-500/20 active:scale-95 uppercase tracking-widest text-xs"
+                            >
+                                <CheckSquare size={20} /> Concluir
                             </button>
                         </div>
                     </div>
@@ -870,14 +971,12 @@ function QuickEditModal({ activity, onClose, onSave }: QuickEditModalProps) {
         const d = new Date(activity.dueDate);
         return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     });
-    const [duration, setDuration] = useState(activity.duration || 30);
     const [notes, setNotes] = useState(activity.notes || '');
 
     const handleSave = () => {
         const updates: Partial<Activity> = {
             title,
             type: type as any,
-            duration,
             notes,
         };
         if (dueDate) {
@@ -896,102 +995,93 @@ function QuickEditModal({ activity, onClose, onSave }: QuickEditModalProps) {
     ];
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center bg-slate-900/80 backdrop-blur-md p-0 sm:p-4" onClick={onClose}>
             <div
-                className="bg-card w-full max-w-md sm:rounded-3xl rounded-t-3xl border border-border shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300"
+                className="bg-white dark:bg-slate-900 w-full max-w-lg sm:rounded-[48px] rounded-t-[48px] border-none shadow-2xl flex flex-col max-h-[95vh] overflow-hidden animate-in slide-in-from-bottom-12 duration-500"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-                    <h3 className="text-base font-bold">Editar Atividade</h3>
-                    <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-xl text-muted-foreground transition-colors">
-                        <X size={18} />
+                <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 dark:border-slate-800">
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Editar Atividade</h3>
+                    <button onClick={onClose} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl text-slate-400 transition-colors">
+                        <X size={24} />
                     </button>
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                <div className="flex-1 overflow-y-auto p-10 space-y-10">
                     {/* Title */}
                     <div>
-                        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">Título</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 block">Título da Atividade</label>
                         <input
                             type="text"
                             value={title}
                             onChange={e => setTitle(e.target.value)}
-                            className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-lg font-bold outline-none ring-2 ring-transparent focus:ring-indigo-500/20 transition-all text-slate-900 dark:text-white shadow-inner"
                         />
                     </div>
 
-                    {/* Type */}
+                    {/* Type Selection */}
                     <div>
-                        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2 block">Tipo</label>
-                        <div className="flex flex-wrap gap-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 block">Meio de Contato</label>
+                        <div className="grid grid-cols-3 gap-3">
                             {TYPE_OPTS.map(({ value, label, Icon }) => (
                                 <button
                                     key={value}
                                     onClick={() => setType(value as any)}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all
-                                        ${type === value ? 'bg-primary text-white border-primary' : 'bg-card text-muted-foreground border-border hover:border-primary/40'}`}
+                                    className={`flex flex-col items-center justify-center gap-3 p-5 rounded-[22px] border transition-all
+                                        ${type === value 
+                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-600/20 scale-105' 
+                                            : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-indigo-400'}`}
                                 >
-                                    <Icon size={12} />{label}
+                                    <Icon size={24} strokeWidth={type === value ? 3 : 2} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Date & Time */}
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Date & Time Grid */}
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">Data</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 block">Dia da Execução</label>
                             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-muted/30 border border-border rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
+                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-md font-bold text-slate-900 dark:text-white outline-none ring-2 focus:ring-indigo-500/20" />
                         </div>
                         <div>
-                            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">Hora</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 block">Horário</label>
                             <input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)}
-                                className="w-full px-3 py-2.5 bg-muted/30 border border-border rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
+                                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-md font-bold text-slate-900 dark:text-white outline-none ring-2 focus:ring-indigo-500/20" />
                         </div>
                     </div>
 
-                    {/* Duration */}
+                    {/* Notes Field */}
                     <div>
-                        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2 block">Duração</label>
-                        <div className="flex gap-2">
-                            {[15, 30, 60, 90].map(d => (
-                                <button key={d} onClick={() => setDuration(d)}
-                                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all
-                                        ${duration === d ? 'bg-primary text-white border-primary' : 'bg-card text-muted-foreground border-border hover:border-primary/40'}`}>
-                                    {d}min
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Notes */}
-                    <div>
-                        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5 block">Observações</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 block">Detalhamento / Contexto</label>
                         <textarea
                             value={notes}
                             onChange={e => setNotes(e.target.value)}
                             rows={4}
-                            placeholder="Adicione detalhes sobre a atividade..."
-                            className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                            placeholder="Descreva o objetivo desta interação..."
+                            className="w-full px-6 py-5 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-md font-bold text-slate-700 dark:text-slate-300 outline-none ring-2 focus:ring-indigo-500/20 transition-all resize-none shadow-inner"
                         />
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted/20">
-                    <button onClick={onClose} className="px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted rounded-xl transition-all">Cancelar</button>
+                {/* Footer buttons */}
+                <div className="flex items-center justify-end gap-6 px-10 py-8 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
+                    <button onClick={onClose} className="px-6 py-3 text-sm font-black text-slate-400 hover:text-rose-500 transition-all uppercase tracking-widest">Descartar</button>
                     <button
                         onClick={handleSave}
                         disabled={!title.trim()}
-                        className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                        className="px-10 py-4 bg-indigo-600 text-white text-sm font-black rounded-3xl shadow-2xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-40"
                     >
-                        Salvar alterações
+                        Salvar Alterações
                     </button>
                 </div>
             </div>
         </div>
     );
 }
+
+

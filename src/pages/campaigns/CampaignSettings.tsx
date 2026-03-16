@@ -31,7 +31,7 @@ export default function CampaignSettings() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) throw new Error("Não autenticado.");
 
-            const res = await fetch('http://localhost:3001/api/test-smtp', {
+            const res = await fetch('/api/test-smtp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

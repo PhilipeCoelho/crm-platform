@@ -210,6 +210,7 @@ export const DEFAULT_PIPELINES: Record<string, Pipeline> = {
 export interface EmailTemplate {
     id: Id;
     name: string;
+    subject?: string;
     htmlContent: string;
     jsonContent?: string;
     thumbnail?: string;

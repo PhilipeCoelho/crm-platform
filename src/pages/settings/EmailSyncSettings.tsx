@@ -68,7 +68,7 @@ export default function EmailSyncSettings() {
         setVerificationError(null);
 
         try {
-            const response = await fetch('http://localhost:3001/api/imap/verify', {
+            const response = await fetch('/api/imap/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(imapConfig)
@@ -104,7 +104,7 @@ export default function EmailSyncSettings() {
             if (!session) throw new Error("Sessão não encontrada");
 
             // Use the SECURE backend endpoint for encryption
-            const response = await fetch('http://localhost:3001/api/imap/add-account', {
+            const response = await fetch('/api/imap/add-account', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ export default function EmailSyncSettings() {
             const { data: newAccount } = await response.json();
 
             // Trigger initial sync
-            fetch('http://localhost:3001/api/imap/sync', {
+            fetch('/api/imap/sync', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

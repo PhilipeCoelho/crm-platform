@@ -1,139 +1,282 @@
-import { Plus, FileText, Type, Image as ImageIcon, Star, List, Code, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle2, ChevronLeft, Save, Copy, LayoutTemplate, X, Edit3 } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
+import { DEFAULT_TEMPLATES, renderTemplateHTML, TemplateCategory, TEMPLATE_CATEGORIES, TemplateStructure } from './templatesData';
 
 export default function EmailTemplates() {
     const { emailTemplates, addEmailTemplate, deleteEmailTemplate } = useCRM();
 
-    const handleCreateTemplate = async () => {
-        const name = prompt('Nome do modelo:');
-        if (name) {
-            await addEmailTemplate({
-                name,
-                htmlContent: '<h1>Seu Novo Modelo</h1>',
-                isPublic: true
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<TemplateStructure | null>(null);
+    const [editData, setEditData] = useState<Record<string, any>>({});
+    const [editName, setEditName] = useState('');
+    const [editSubject, setEditSubject] = useState('');
+    const [editCategory, setEditCategory] = useState<TemplateCategory>('Newsletter');
+
+    const dbTemplates = emailTemplates;
+
+    const startEditing = (template: TemplateStructure | any, isDbTemplate = false) => {
+        setIsEditing(true);
+
+        if (isDbTemplate) {
+            const json = typeof template.jsonContent === 'string' ? JSON.parse(template.jsonContent) : template.jsonContent;
+            setSelectedTemplate({
+                id: template.id,
+                name: template.name,
+                category: template.category || 'Newsletter',
+                subject: template.subject || '',
+                thumbnail: template.thumbnail || '',
+                defaultData: json || {}
             });
+            setEditName(template.name);
+            setEditSubject(template.subject || '');
+            setEditCategory(template.category || 'Newsletter');
+            setEditData(json || {});
+        } else {
+            setSelectedTemplate(template);
+            setEditName(`${template.name} (Cópia)`);
+            setEditSubject(template.subject);
+            setEditCategory(template.category);
+            setEditData({ ...template.defaultData });
         }
     };
 
-    return (
-        <div className="flex flex-col h-full overflow-hidden">
-            {/* Page Header */}
-            <div className="bg-white dark:bg-card border-b border-border p-6 flex flex-row justify-between items-center shrink-0">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-bold text-foreground">Modelos de e-mail</h1>
-                    <p className="text-muted-foreground text-sm font-medium">Gerencie e crie designs para suas campanhas.</p>
-                </div>
+    const handleSave = async () => {
+        if (!selectedTemplate) return;
 
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleCreateTemplate}
-                        className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded font-bold text-sm transition-all shadow-lg active:scale-95"
+        const htmlContent = renderTemplateHTML(editCategory, editData);
+        
+        await addEmailTemplate({
+            name: editName,
+            subject: editSubject,
+            category: editCategory,
+            htmlContent,
+            jsonContent: JSON.stringify(editData),
+            thumbnail: selectedTemplate.thumbnail || '',
+            isPublic: true
+        });
+
+        setIsEditing(false);
+        setSelectedTemplate(null);
+    };
+
+    const handleDeleteDbTemplate = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (confirm('Tem certeza que deseja excluir este modelo salvo?')) {
+            await deleteEmailTemplate(id);
+        }
+    };
+
+    if (isEditing && selectedTemplate) {
+        return (
+            <div className="flex flex-col h-full bg-[#F9FAFB] dark:bg-slate-950/20 overflow-hidden">
+                <div className="bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => setIsEditing(false)}
+                            className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                        <h1 className="text-xl font-bold text-foreground">Construtor de Modelo de Conversão</h1>
+                    </div>
+                    <button 
+                        onClick={handleSave}
+                        className="flex items-center gap-2 px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition-all shadow-md active:scale-95"
                     >
-                        <Plus size={18} />
-                        Modelo
+                        <Save size={18} />
+                        Salvar Modelo
                     </button>
                 </div>
-            </div>
 
-            {/* Content Area */}
-            <div className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-slate-950/20">
-                {emailTemplates.length === 0 ? (
-                    /* Empty State */
-                    <div className="flex flex-col items-center justify-center p-12 text-center h-full">
-                        <div className="w-full max-w-xl space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {/* Illustration Container */}
-                            <div className="relative mx-auto w-full max-w-sm aspect-[4/3] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
-                                {/* Fake Toolbar */}
-                                <div className="flex items-center justify-between border-b border-border pb-4">
-                                    <div className="flex items-center gap-2">
-                                        <FileText size={16} className="text-muted-foreground" />
-                                        <div className="h-2 w-24 bg-muted rounded" />
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <div className="p-1 px-2 border border-border rounded text-[10px] font-bold text-muted-foreground">Preview</div>
-                                        <div className="p-1 px-2 bg-emerald-500 rounded text-[10px] font-bold text-white">Save</div>
-                                    </div>
+                <div className="flex-1 flex overflow-hidden">
+                    <div className="w-[400px] bg-white dark:bg-card border-r border-border flex flex-col h-full overflow-y-auto custom-scrollbar">
+                        <div className="p-5 space-y-6">
+                            <div className="space-y-4 border-b border-border pb-6">
+                                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <LayoutTemplate size={16}/> Configurações Gerais
+                                </h3>
+                                <div>
+                                    <label className="text-xs font-semibold text-foreground mb-1 block">Nome do Modelo (Interno)</label>
+                                    <input 
+                                        type="text" 
+                                        value={editName}
+                                        onChange={e => setEditName(e.target.value)}
+                                        className="w-full p-2.5 bg-muted/40 border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    />
                                 </div>
-
-                                {/* Editor Canvas Placeholder */}
-                                <div className="flex-1 bg-muted/20 rounded-lg border border-dashed border-border flex flex-col p-4 gap-4">
-                                    <div className="h-8 w-2/3 bg-white dark:bg-slate-800 rounded mx-auto shadow-sm" />
-                                    <div className="h-24 w-full bg-white dark:bg-slate-800 rounded shadow-sm" />
-                                    <div className="h-10 w-1/3 bg-emerald-500 rounded-lg mx-auto shadow-md" />
+                                <div>
+                                    <label className="text-xs font-semibold text-foreground mb-1 block">Assunto Padrão</label>
+                                    <input 
+                                        type="text" 
+                                        value={editSubject}
+                                        onChange={e => setEditSubject(e.target.value)}
+                                        className="w-full p-2.5 bg-muted/40 border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        placeholder="Ex: Como faturar 3x mais"
+                                    />
                                 </div>
-
-                                {/* Floating Tool Icons Overlay */}
-                                <div className="absolute top-1/4 -right-2 space-y-2 translate-x-1/2">
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                        <Type size={20} />
-                                    </div>
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-emerald-500">
-                                        <ImageIcon size={20} />
-                                    </div>
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-amber-500">
-                                        <Star size={20} />
-                                    </div>
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-primary">
-                                        <List size={20} />
-                                    </div>
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-border flex items-center justify-center text-slate-500">
-                                        <Code size={20} />
-                                    </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-foreground mb-1 block">Categoria Estrutural</label>
+                                    <select 
+                                        value={editCategory}
+                                        onChange={e => {
+                                            const newCat = e.target.value as TemplateCategory;
+                                            setEditCategory(newCat);
+                                        }}
+                                        className="w-full p-2.5 bg-muted/40 border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    >
+                                        {TEMPLATE_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    </select>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <h2 className="text-3xl font-bold text-foreground">Crie modelos de e-mail personalizados</h2>
-                                <p className="text-slate-500 text-lg max-w-lg mx-auto leading-relaxed">
-                                    Use o poder do editor do Pipedrive de arrastar e soltar para criar designs incríveis que convertem.
-                                </p>
-                            </div>
-
-                            <div className="flex justify-center pt-4">
-                                <button
-                                    onClick={handleCreateTemplate}
-                                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-4 rounded-xl font-bold transition-all shadow-xl shadow-primary/20 active:scale-95 text-lg"
-                                >
-                                    <Plus size={24} />
-                                    Criar modelo
-                                </button>
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Edit3 size={16}/> Conteúdo da Mensagem
+                                </h3>
+                                
+                                {Object.keys(editData).map(key => {
+                                    if(key === 'insights' || key === 'benefits') {
+                                        return (
+                                            <div key={key}>
+                                                <label className="text-xs font-semibold text-foreground mb-1 block capitalize">{key} (Itens separados por vírgula)</label>
+                                                <textarea 
+                                                    value={(editData[key] || []).join(', ')}
+                                                    onChange={e => setEditData({...editData, [key]: e.target.value.split(',').map(s => s.trim())})}
+                                                    className="w-full p-2.5 bg-muted/40 border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px]"
+                                                />
+                                            </div>
+                                        )
+                                    }
+                                    return (
+                                        <div key={key}>
+                                            <label className="text-xs font-semibold text-foreground mb-1 block capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label>
+                                            <textarea 
+                                                value={editData[key] || ''}
+                                                onChange={e => setEditData({...editData, [key]: e.target.value})}
+                                                className="w-full p-2.5 bg-muted/40 border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[40px]"
+                                            />
+                                        </div>
+                                    )
+                                })}
                             </div>
                         </div>
                     </div>
-                ) : (
-                    <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {emailTemplates.map(template => (
-                            <div key={template.id} className="group bg-white dark:bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all h-[360px] flex flex-col">
-                                <div className="flex-1 bg-muted/20 relative overflow-hidden flex items-center justify-center border-b border-border">
-                                    {template.thumbnail ? (
-                                        <img src={template.thumbnail} alt={template.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="text-muted-foreground flex flex-col items-center gap-2">
-                                            <FileText size={48} className="opacity-20" />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Sem Visualização</span>
+
+                    <div className="flex-1 bg-[#F1F5F9] dark:bg-slate-900/50 p-8 flex flex-col items-center overflow-y-auto">
+                        <div className="w-full max-w-[650px] space-y-4">
+                            <div className="bg-white dark:bg-card border border-border rounded-xl p-4 shadow-sm flex items-center justify-between">
+                                <span className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Preview em Tempo Real</span>
+                                <span className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded">{editCategory}</span>
+                            </div>
+
+                            <div 
+                                className="bg-white border border-border rounded-xl shadow-xl overflow-hidden min-h-[500px]"
+                                dangerouslySetInnerHTML={{ __html: renderTemplateHTML(editCategory, editData) }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col h-full overflow-hidden">
+            <div className="bg-white dark:bg-card border-b border-border p-6 flex flex-row justify-between items-center shrink-0">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold text-foreground">Modelos de e-mail</h1>
+                    <p className="text-muted-foreground text-sm font-medium">Use estruturas de alta conversão comprovadas ou crie as suas.</p>
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-slate-950/20 p-8 space-y-12">
+                <div className="space-y-4">
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                        Meus Modelos Salvos
+                        <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs">{dbTemplates.length}</span>
+                    </h2>
+                    
+                    {dbTemplates.length === 0 ? (
+                        <div className="p-8 border border-dashed border-border rounded-2xl bg-white/50 dark:bg-card/50 text-center">
+                            <p className="text-muted-foreground text-sm">Você ainda não tem modelos salvos. Escolha um dos modelos premium abaixo e clique em Salvar para criar a sua biblioteca.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {dbTemplates.map(template => (
+                                <div 
+                                    key={template.id} 
+                                    onClick={() => startEditing(template, true)}
+                                    className="group cursor-pointer bg-white dark:bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:border-primary/50 transition-all flex flex-col"
+                                >
+                                    <div className="h-[140px] bg-muted/20 relative overflow-hidden flex items-center justify-center border-b border-border">
+                                        {template.thumbnail ? (
+                                            <img src={template.thumbnail} alt={template.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        ) : (
+                                            <LayoutTemplate size={32} className="text-muted-foreground/30" />
+                                        )}
+                                        <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors" />
+                                    </div>
+                                    <div className="p-4 flex flex-col gap-1">
+                                        <div className="flex justify-between items-start">
+                                            <h4 className="font-bold text-foreground truncate text-sm">{template.name}</h4>
+                                            <button 
+                                                onClick={(e) => handleDeleteDbTemplate(template.id, e)}
+                                                className="text-muted-foreground hover:text-red-500 transition-colors bg-white dark:bg-card z-10 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                                            >
+                                                <X size={14} />
+                                            </button>
                                         </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                        <button className="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm hover:bg-slate-50">Editar</button>
-                                        <button className="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm hover:bg-slate-50">Preview</button>
+                                        <div className="text-[11px] font-semibold text-primary">{template.category || 'Personalizado'}</div>
                                     </div>
                                 </div>
-                                <div className="p-4 flex items-center justify-between">
-                                    <div>
-                                        <h4 className="font-bold text-foreground truncate max-w-[160px]">{template.name}</h4>
-                                        <p className="text-[10px] text-muted-foreground font-bold uppercase mt-0.5">Criado em {new Date(template.createdAt).toLocaleDateString()}</p>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-bold">Biblioteca Alta Conversão</h2>
+                        <span className="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] uppercase font-bold tracking-wider rounded">Recomendado</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                        {DEFAULT_TEMPLATES.map(template => (
+                            <div 
+                                key={template.id} 
+                                className="group bg-white dark:bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all h-[280px] flex flex-col relative"
+                            >
+                                <div className="absolute top-3 right-3 z-10">
+                                    <span className="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-sm">{template.category}</span>
+                                </div>
+                                <div className="flex-1 relative overflow-hidden flex items-center justify-center border-b border-border bg-slate-900">
+                                    <img 
+                                        src={template.thumbnail} 
+                                        alt={template.name} 
+                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" 
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                    
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                        <button 
+                                            onClick={() => startEditing(template, false)}
+                                            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold text-sm hover:scale-105 transition-transform shadow-xl flex items-center gap-2"
+                                        >
+                                            <Copy size={16} />
+                                            Usar e Editar
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => deleteEmailTemplate(template.id)}
-                                        className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                </div>
+                                <div className="p-4 bg-card h-[80px]">
+                                    <h4 className="font-bold text-foreground text-sm line-clamp-1">{template.name}</h4>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1" title={template.subject}>Assunto: {template.subject}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
-                )}
+                </div>
+
             </div>
         </div>
     );

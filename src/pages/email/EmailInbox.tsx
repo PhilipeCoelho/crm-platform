@@ -119,7 +119,7 @@ export default function EmailInbox() {
         setIsSyncing(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            const response = await fetch('http://localhost:3001/api/imap/sync', {
+            const response = await fetch('/api/imap/sync', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

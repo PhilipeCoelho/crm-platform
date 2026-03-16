@@ -13,5 +13,11 @@ export default defineConfig({
   server: {
     open: true, // Opens browser automatically
     host: true, // Listen on all local IPs
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
   }
 })
