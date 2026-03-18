@@ -182,12 +182,12 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                                 </div>
                             </div>
 
-                            {activity.description && (
+                            {activity.notes && (
                                 <div className="mt-2 space-y-1">
                                     <div className="flex items-center gap-1.5 opacity-80">
                                         <span className="text-[8px] font-bold uppercase tracking-wider text-primary bg-primary/5 px-1 rounded">Objetivo</span>
                                         <p className="text-[11px] leading-snug text-foreground/80 font-medium">
-                                            {activity.description}
+                                            {activity.notes}
                                         </p>
                                     </div>
                                 </div>
