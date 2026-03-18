@@ -92,7 +92,7 @@ export default function CampaignsDashboard() {
     );
 
     return (
-        <div className="p-8 space-y-8 bg-[#F9FAFB] dark:bg-slate-950/20 h-full overflow-auto">
+        <div className="p-8 space-y-8 bg-[#F9FAFB] dark:bg-background/20 h-full overflow-auto">
             <div className="flex items-center justify-between">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-bold text-foreground">Campanhas</h1>
@@ -289,10 +289,10 @@ export default function CampaignsDashboard() {
                                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedCampaign.openedCount}</div>
                                     <div className="text-xs text-blue-600/60 font-medium">{formatPercent(selectedCampaign.openedCount, selectedCampaign.sentCount)}</div>
                                 </div>
-                                <div className="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
-                                    <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Cliques</div>
-                                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{selectedCampaign.clickedCount}</div>
-                                    <div className="text-xs text-indigo-600/60 font-medium">{formatPercent(selectedCampaign.clickedCount, selectedCampaign.sentCount)}</div>
+                                <div className="p-4 bg-sky-500/5 border border-indigo-500/20 rounded-xl">
+                                    <div className="text-[10px] font-bold text-primary dark:text-primary uppercase tracking-widest mb-1">Cliques</div>
+                                    <div className="text-2xl font-bold text-primary dark:text-primary">{selectedCampaign.clickedCount}</div>
+                                    <div className="text-xs text-primary/60 font-medium">{formatPercent(selectedCampaign.clickedCount, selectedCampaign.sentCount)}</div>
                                 </div>
                                 <div className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl">
                                     <div className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-1">Cancelamentos</div>
@@ -338,7 +338,7 @@ export default function CampaignsDashboard() {
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             {log.clicked ? (
-                                                                <div className="flex items-center gap-1.5 text-indigo-500 font-bold">
+                                                                <div className="flex items-center gap-1.5 text-sky-500 font-bold">
                                                                     <MousePointer2 size={12} /> clicou
                                                                 </div>
                                                             ) : (

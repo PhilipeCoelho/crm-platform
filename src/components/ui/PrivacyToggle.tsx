@@ -22,7 +22,7 @@ export function PrivacyToggle({ className, variant = 'icon' }: PrivacyToggleProp
                     "flex items-center w-full text-left gap-3 px-3 py-2 rounded-lg transition-all min-h-[40px]",
                     isPrivacyMode
                         ? "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 font-medium"
-                        : "hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-amber-400",
+                        : "hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 hover:text-[#141414] dark:text-slate-400 dark:hover:text-amber-400",
                     className
                 )}
             >

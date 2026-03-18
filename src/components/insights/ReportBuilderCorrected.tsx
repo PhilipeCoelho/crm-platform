@@ -308,7 +308,7 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
                     {currentStep === 'source' && (
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                                <Info size={20} className="text-primary shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">Escolha a fonte de dados</p>
                                     <p>A fonte define quais métricas, filtros e visualizações estarão disponíveis. Esta escolha não pode ser alterada depois.</p>
@@ -345,7 +345,7 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
                     {currentStep === 'metrics' && sourceConfig && (
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                                <Info size={20} className="text-primary shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">Métricas disponíveis para: {dataSource}</p>
                                     <p>Selecione uma ou mais métricas para analisar. As opções são limitadas pela fonte de dados escolhida.</p>
@@ -384,7 +384,7 @@ export default function ReportBuilderCorrected({ initialConfig, onSave, onCancel
                     {currentStep === 'filters' && sourceConfig && (
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                                <Info size={20} className="text-primary shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">Filtros (opcional)</p>
                                     <p>Refine os dados do relatório aplicando filtros. Você pode pular esta etapa se não precisar de filtros.</p>

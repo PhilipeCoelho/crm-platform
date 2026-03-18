@@ -51,29 +51,32 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
     const getStatusIndicator = () => {
         if (isOverdue) {
             return {
-                dot: 'bg-red-500',
-                text: 'text-red-600 dark:text-red-400',
+                dot: 'bg-destructive/12 border border-destructive/20',
+                text: 'text-destructive',
                 icon: Clock,
                 label: 'Atrasado'
             };
         }
         if (isTodayActivity) {
             return {
-                dot: 'bg-emerald-500',
+                dot: 'bg-warning/12 border border-warning/20',
+                text: 'text-warning',
                 icon: ChevronRight,
                 label: 'Hoje'
             };
         }
         if (noActivity) {
             return {
-                dot: 'bg-amber-400',
+                dot: 'bg-muted border border-border',
+                text: 'text-muted-foreground',
                 icon: AlertTriangle,
                 label: 'Sem atividade'
             };
         }
         // Future (neutral)
         return {
-            dot: 'bg-muted-foreground/40',
+            dot: 'bg-info/12 border border-info/20',
+            text: 'text-info',
             icon: ChevronRight,
             label: nextActivityData?.title || 'Futuro'
         };
@@ -171,7 +174,7 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className="group relative p-2.5 rounded-[10px] border transition-all duration-[120ms] ease-out cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-card dark:bg-card border-border shadow-sm hover:shadow-md"
+            className="group relative p-3 rounded-xl border transition-all duration-200 cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-card dark:bg-card dark:hover:bg-muted border-border premium-shadow shadow-sm hover:shadow-md"
         >
             {/* Status Icon - Bottom Right Corner */}
             {status.icon === AlertTriangle ? (
@@ -183,10 +186,10 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
                 </div>
             ) : (
                 <div
-                    className={`absolute bottom-2 right-2 w-[18px] h-[18px] rounded-full shrink-0 flex items-center justify-center ${status.dot} shadow-sm`}
+                    className={`absolute bottom-2 right-2 px-1.5 h-[18px] rounded-full shrink-0 flex items-center justify-center ${status.dot} shadow-sm`}
                     title={status.label}
                 >
-                    <StatusIcon size={11} strokeWidth={3} className="text-white" />
+                    <StatusIcon size={10} strokeWidth={3} className={status.text || "text-foreground"} />
                 </div>
             )}
 

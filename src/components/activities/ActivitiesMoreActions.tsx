@@ -155,7 +155,7 @@ export default function ActivitiesMoreActions({
                     </button>
 
                     <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                        <Settings2 size={18} className="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white" />
+                        <Settings2 size={18} className="text-slate-400 group-hover:text-[#141414] dark:group-hover:text-white" />
                         <span>Configurações de atividade</span>
                     </button>
 

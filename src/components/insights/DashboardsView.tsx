@@ -78,7 +78,7 @@ export default function DashboardsView() {
     ];
 
     return (
-        <div className="h-full flex flex-col overflow-hidden bg-[#F7F9FC] dark:bg-[#0B1220]">
+        <div className="h-full flex flex-col overflow-hidden bg-[#F7F9FC] dark:bg-[#0D0D0D]">
             {/* Content Container (Everything scrolls together) */}
             <div className="flex-1 overflow-auto custom-scrollbar">
 
@@ -86,7 +86,7 @@ export default function DashboardsView() {
                 <StrategicDiagnostics />
 
                 {/* Tabs Navigation */}
-                <div className="border-b border-[#E5E7EB] dark:border-[#1F2937] px-6 pt-12 mb-8">
+                <div className="border-b border-[#E5E7EB] dark:border-[#1F1F1F] px-6 pt-12 mb-8">
                     <div className="max-w-[1200px] mx-auto flex space-x-8 overflow-x-auto no-scrollbar min-w-max">
                         {tabs.map(tab => (
                             <button
@@ -94,7 +94,7 @@ export default function DashboardsView() {
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`pb-3 text-sm font-semibold tracking-wide transition-colors relative ${activeTab === tab.id
                                     ? 'text-primary'
-                                    : 'text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-[#F9FAFB]'
+                                    : 'text-[#6B7280] dark:text-[#8A8A8A] hover:text-[#111827] dark:hover:text-[#EAEAEA]'
                                     }`}
                             >
                                 {tab.label}

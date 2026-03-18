@@ -31,7 +31,7 @@ export default function TimingModule({ activeGuide, setActiveGuide }: Props) {
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
             <div className="flex items-center">
-                <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Velocidade e Ciclo</h2>
+                <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Velocidade e Ciclo</h2>
                 <QuickGuide
                     moduleName="insights_tempo"
                     activeGuide={activeGuide}
@@ -72,11 +72,11 @@ export default function TimingModule({ activeGuide, setActiveGuide }: Props) {
             </div>
 
             {/* 2. Distribuição */}
-            <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 w-full">
+            <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8 w-full">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h3 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Distribuição do Ciclo de Vendas</h3>
-                        <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-1">Duração dos negócios encerrados (WON/LOST)</p>
+                        <h3 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Distribuição do Ciclo de Vendas</h3>
+                        <p className="text-sm text-[#6B7280] dark:text-[#8A8A8A] mt-1">Duração dos negócios encerrados (WON/LOST)</p>
                     </div>
                 </div>
 
@@ -121,13 +121,13 @@ export default function TimingModule({ activeGuide, setActiveGuide }: Props) {
 
 function KPICard({ title, value, variation, subtitle, inverseVariation }: any) {
     return (
-        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#9CA3AF] tracking-widest">{title}</span>
+        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] shadow-sm">
+            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#8A8A8A] tracking-widest">{title}</span>
             <div className="flex items-baseline gap-3 my-1">
-                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#F9FAFB]">{value}</span>
+                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#EAEAEA]">{value}</span>
                 <VariationBadge value={variation} inverse={inverseVariation} />
             </div>
-            <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF] font-medium">{subtitle}</span>
+            <span className="text-xs text-[#6B7280] dark:text-[#8A8A8A] font-medium">{subtitle}</span>
         </div>
     );
 }
@@ -140,15 +140,15 @@ function TimingBar({ label, count, percent, colorClass, icon, subLabel }: any) {
                     {icon}
                 </div>
                 <div>
-                    <h4 className="text-sm font-semibold text-[#111827] dark:text-[#F9FAFB] leading-tight">{label}</h4>
-                    <p className="text-[10px] text-[#6B7280] dark:text-[#9CA3AF] uppercase font-bold tracking-wider">{subLabel}</p>
+                    <h4 className="text-sm font-semibold text-[#111827] dark:text-[#EAEAEA] leading-tight">{label}</h4>
+                    <p className="text-[10px] text-[#6B7280] dark:text-[#8A8A8A] uppercase font-bold tracking-wider">{subLabel}</p>
                 </div>
             </div>
 
             <div>
                 <div className="flex items-end justify-between mb-2">
-                    <span className="text-2xl font-bold tracking-tight text-[#111827] dark:text-[#F9FAFB] leading-none">{count}</span>
-                    <span className="text-xs font-bold text-[#6B7280] dark:text-[#9CA3AF]">{percent === 0 ? '—' : percent.toFixed(1) + '%'}</span>
+                    <span className="text-2xl font-bold tracking-tight text-[#111827] dark:text-[#EAEAEA] leading-none">{count}</span>
+                    <span className="text-xs font-bold text-[#6B7280] dark:text-[#8A8A8A]">{percent === 0 ? '—' : percent.toFixed(1) + '%'}</span>
                 </div>
                 <div className="h-2 w-full bg-[#E5E7EB] dark:bg-[#1F2937] rounded-full overflow-hidden">
                     <div

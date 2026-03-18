@@ -170,7 +170,7 @@ export default function EmailTab({ deal, onSave }: EmailTabProps) {
                                     <button
                                         key={template.id}
                                         onClick={() => applyTemplate(template)}
-                                        className="w-full p-4 rounded-xl border border-border bg-white dark:bg-slate-900/50 hover:border-primary hover:bg-primary/5 text-left transition-all group flex items-center justify-between"
+                                        className="w-full p-4 rounded-xl border border-border bg-white dark:bg-card/50 hover:border-primary hover:bg-primary/5 text-left transition-all group flex items-center justify-between"
                                     >
                                         <div>
                                             <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">{template.name}</h4>

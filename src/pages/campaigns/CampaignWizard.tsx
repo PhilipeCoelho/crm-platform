@@ -225,7 +225,7 @@ export default function CampaignWizard() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#F9FAFB] dark:bg-slate-950/20">
+        <div className="flex flex-col h-full bg-[#F9FAFB] dark:bg-background/20">
             {/* Header */}
             <header className="bg-white dark:bg-card border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
                 <div className="flex items-center gap-4">
@@ -285,13 +285,13 @@ export default function CampaignWizard() {
                                     <div className="absolute top-3 right-3 z-10">
                                         <span className="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-sm">{template.category}</span>
                                     </div>
-                                    <div className="flex-1 relative overflow-hidden flex items-center justify-center border-b border-border bg-slate-900">
+                                    <div className="flex-1 relative overflow-hidden flex items-center justify-center border-b border-border bg-[#141414]">
                                         <img 
                                             src={template.thumbnail} 
                                             alt={template.name} 
                                             className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" 
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                        <div className="absolute inset-0    " />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
                                             <button className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-bold text-sm hover:scale-105 transition-transform shadow-xl">
                                                 Usar modelo
@@ -345,7 +345,7 @@ export default function CampaignWizard() {
 
                 {/* STEP 2: CONTENT */}
                 {currentStep === 'content' && (
-                    <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-6 animate-in slide-in-from-right-8 duration-300">
+                    <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-6 animate-in slide-in- duration-300">
                         <div className="bg-white dark:bg-card border border-border rounded-xl p-8 shadow-sm space-y-8">
                             <div>
                                 <h2 className="text-xl font-bold text-foreground">2. Configurar Conteúdo</h2>
@@ -394,7 +394,7 @@ export default function CampaignWizard() {
                                         2. Assunto do E-mail
                                         <button 
                                             onClick={generateAIAssunto}
-                                            className="flex items-center gap-1.5 text-xs text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 px-3 py-1 rounded-md transition-colors"
+                                            className="flex items-center gap-1.5 text-xs text-primary bg-sky-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-primary px-3 py-1 rounded-md transition-colors"
                                         >
                                             <Sparkles size={14} /> Gerar com IA
                                         </button>
@@ -468,7 +468,7 @@ export default function CampaignWizard() {
 
                 {/* STEP 3: AUDIENCE */}
                 {currentStep === 'audience' && (
-                    <div className="p-6 md:p-10 max-w-3xl mx-auto space-y-6 animate-in slide-in-from-right-8 duration-300">
+                    <div className="p-6 md:p-10 max-w-3xl mx-auto space-y-6 animate-in slide-in- duration-300">
                         <div className="bg-white dark:bg-card border border-border rounded-xl p-8 shadow-sm space-y-6">
                             <div>
                                 <h2 className="text-xl font-bold text-foreground">3. Selecionar Destinatários</h2>
@@ -599,7 +599,7 @@ export default function CampaignWizard() {
 
                 {/* STEP 4: REVIEW */}
                 {currentStep === 'review' && (
-                    <div className="max-w-5xl mx-auto p-6 md:p-10 flex flex-col md:flex-row gap-8 animate-in slide-in-from-right-8 duration-300">
+                    <div className="max-w-5xl mx-auto p-6 md:p-10 flex flex-col md:flex-row gap-8 animate-in slide-in- duration-300">
                         {/* Summary Block */}
                         <div className="md:w-[350px] shrink-0 space-y-6">
                             <div className="bg-white dark:bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
@@ -643,7 +643,7 @@ export default function CampaignWizard() {
                                 </button>
                                 <button
                                     onClick={() => handleFinish('scheduled')}
-                                    className="w-full flex justify-center items-center gap-2 py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-lg font-bold text-sm hover:bg-indigo-100 transition-all cursor-pointer"
+                                    className="w-full flex justify-center items-center gap-2 py-3 bg-sky-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-primary border border-indigo-200 dark:border-indigo-800 rounded-lg font-bold text-sm hover:bg-indigo-100 transition-all cursor-pointer"
                                 >
                                     <Clock size={18} /> Agendar Envio
                                 </button>

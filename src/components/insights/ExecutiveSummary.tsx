@@ -26,7 +26,7 @@ export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props)
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                    <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Status do Período</h2>
+                    <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Status do Período</h2>
                     <QuickGuide
                         moduleName="insights_resumo"
                         activeGuide={activeGuide}
@@ -67,13 +67,13 @@ export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props)
 
 function KPICard({ title, value, variation, subtitle }: any) {
     return (
-        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#9CA3AF] tracking-widest">{title}</span>
+        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] shadow-sm">
+            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#8A8A8A] tracking-widest">{title}</span>
             <div className="flex items-baseline gap-3 my-1">
-                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#F9FAFB]">{value}</span>
+                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#EAEAEA]">{value}</span>
                 <VariationBadge value={variation} />
             </div>
-            <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF] font-medium">{subtitle}</span>
+            <span className="text-xs text-[#6B7280] dark:text-[#8A8A8A] font-medium">{subtitle}</span>
         </div>
     );
 }

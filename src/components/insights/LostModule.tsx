@@ -28,7 +28,7 @@ export default function LostModule({ activeGuide, setActiveGuide }: Props) {
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
             <div className="flex items-center">
-                <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Análise de Perdas</h2>
+                <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Análise de Perdas</h2>
                 <QuickGuide
                     moduleName="insights_perdas"
                     activeGuide={activeGuide}
@@ -70,21 +70,21 @@ export default function LostModule({ activeGuide, setActiveGuide }: Props) {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
                 {/* Center: Perdas por Etapa */}
-                <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8">
+                <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8">
                     <div className="flex items-center gap-3 mb-8">
                         <Link2 size={24} className="text-primary" />
-                        <h3 className="text-lg font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Perdas por Etapa</h3>
+                        <h3 className="text-lg font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Perdas por Etapa</h3>
                     </div>
 
                     {lost.etapas.length === 0 ? (
-                        <div className="py-8 text-center text-sm text-[#6B7280] dark:text-[#9CA3AF]">Sem dados de perdas no período.</div>
+                        <div className="py-8 text-center text-sm text-[#6B7280] dark:text-[#8A8A8A]">Sem dados de perdas no período.</div>
                     ) : (
                         <div className="space-y-6">
                             {lost.etapas.map((etapa, idx) => (
                                 <div key={idx} className="space-y-2">
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="font-semibold text-[#111827] dark:text-[#F9FAFB]">{etapa.etapa_onde_perdeu}</span>
-                                        <span className="font-bold text-[#6B7280] dark:text-[#9CA3AF]">{etapa.quantidade} <span className="text-xs font-normal">({etapa.percentual === 0 ? '—' : etapa.percentual.toFixed(1) + '%'})</span></span>
+                                        <span className="font-semibold text-[#111827] dark:text-[#EAEAEA]">{etapa.etapa_onde_perdeu}</span>
+                                        <span className="font-bold text-[#6B7280] dark:text-[#8A8A8A]">{etapa.quantidade} <span className="text-xs font-normal">({etapa.percentual === 0 ? '—' : etapa.percentual.toFixed(1) + '%'})</span></span>
                                     </div>
                                     <div className="h-2 w-full bg-[#E5E7EB] dark:bg-[#1F2937] rounded-full overflow-hidden">
                                         <div
@@ -99,21 +99,21 @@ export default function LostModule({ activeGuide, setActiveGuide }: Props) {
                 </div>
 
                 {/* Bottom: Motivos de Perda */}
-                <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8">
+                <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8">
                     <div className="flex items-center gap-3 mb-8">
                         <AlertCircle size={24} className="text-rose-500" />
-                        <h3 className="text-lg font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Motivos de Perda</h3>
+                        <h3 className="text-lg font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Motivos de Perda</h3>
                     </div>
 
                     {lost.motivos.length === 0 ? (
-                        <div className="py-8 text-center text-sm text-[#6B7280] dark:text-[#9CA3AF]">Sem dados de perdas no período.</div>
+                        <div className="py-8 text-center text-sm text-[#6B7280] dark:text-[#8A8A8A]">Sem dados de perdas no período.</div>
                     ) : (
                         <div className="space-y-6">
                             {lost.motivos.map((motivo, idx) => (
                                 <div key={idx} className="space-y-2">
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="font-semibold text-[#111827] dark:text-[#F9FAFB]">{motivo.motivo_perda}</span>
-                                        <span className="font-bold text-[#6B7280] dark:text-[#9CA3AF]">{motivo.quantidade} <span className="text-xs font-normal">({motivo.percentual === 0 ? '—' : motivo.percentual.toFixed(1) + '%'})</span></span>
+                                        <span className="font-semibold text-[#111827] dark:text-[#EAEAEA]">{motivo.motivo_perda}</span>
+                                        <span className="font-bold text-[#6B7280] dark:text-[#8A8A8A]">{motivo.quantidade} <span className="text-xs font-normal">({motivo.percentual === 0 ? '—' : motivo.percentual.toFixed(1) + '%'})</span></span>
                                     </div>
                                     <div className="h-2 w-full bg-[#E5E7EB] dark:bg-[#1F2937] rounded-full overflow-hidden">
                                         <div
@@ -133,13 +133,13 @@ export default function LostModule({ activeGuide, setActiveGuide }: Props) {
 
 function KPICard({ title, value, variation, subtitle, inverseVariation }: any) {
     return (
-        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#9CA3AF] tracking-widest">{title}</span>
+        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] shadow-sm">
+            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#8A8A8A] tracking-widest">{title}</span>
             <div className="flex items-baseline gap-3 my-1">
-                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#F9FAFB]">{value}</span>
+                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#EAEAEA]">{value}</span>
                 <VariationBadge value={variation} inverse={inverseVariation} />
             </div>
-            <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF] font-medium">{subtitle}</span>
+            <span className="text-xs text-[#6B7280] dark:text-[#8A8A8A] font-medium">{subtitle}</span>
         </div>
     );
 }

@@ -139,7 +139,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     <aside
                         onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
                         onMouseLeave={() => !isMobile && setIsSidebarHovered(false)}
-                        className={`group flex flex-col z-[70] bg-white dark:bg-background text-foreground h-full border-r border-border
+                        className={`group flex flex-col z-[70] bg-[#0D0D0D] text-foreground h-full
                         ${isMobile
                                 ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                                 }`
@@ -163,7 +163,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                             {/* Logo Section */}
                             <div className={`flex items-center mb-8 h-9 w-full transition-all duration-300 ${isExpanded || isMobile ? 'px-4 justify-start' : 'justify-center'}`}>
                                 <div className="w-9 h-9 flex items-center justify-center shrink-0">
-                                    <Zap size={18} className="text-primary" strokeWidth={1.8} />
+                                    <Zap size={18} className="text-[var(--primary)]" strokeWidth={1.8} />
                                 </div>
                                 {(isExpanded || isMobile) && (
                                     <span className="font-semibold text-foreground ml-2 text-lg whitespace-nowrap overflow-hidden animate-in fade-in duration-300">
@@ -179,14 +179,14 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                         <NavLink
                                             to={item.path}
                                             className={({ isActive }: { isActive: boolean }) => `
-                                            flex items-center transition-all duration-200
+                                            flex items-center transition-all duration-200 rounded-lg
                                             ${isActive
-                                                    ? 'text-primary'
-                                                    : 'text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-gray-100'
+                                                    ? 'bg-[var(--primary)]/15 text-white'
+                                                    : 'text-slate-500 hover:text-[#141414] dark:text-meta dark:hover:text-white dark:hover:bg-muted'
                                                 }
                                             ${(isExpanded || isMobile)
-                                                    ? 'px-3 mx-2 gap-3 min-h-[40px] justify-start w-auto rounded-xl'
-                                                    : 'w-9 h-9 flex items-center justify-center mx-auto'
+                                                    ? 'px-3 mx-2 gap-3 min-h-[40px] justify-start w-auto'
+                                                    : 'w-9 h-9 flex items-center justify-center mx-auto rounded-lg'
                                                 }
                                         `}
                                             onClick={() => isMobile && setIsMobileMenuOpen(false)}

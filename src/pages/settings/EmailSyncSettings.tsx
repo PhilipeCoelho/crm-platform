@@ -298,7 +298,7 @@ export default function EmailSyncSettings() {
                                             onClick={() => { setStep(2); }}
                                             className="flex items-center p-4 border border-border rounded-lg hover:border-primary hover:bg-muted/50 transition-all text-left gap-4 group"
                                         >
-                                            <div className="w-10 h-10 flex items-center justify-center bg-muted rounded-full group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
+                                            <div className="w-10 h-10 flex items-center justify-center bg-muted rounded-full group-hover:bg-white dark:group-hover:bg-[#1A1A1A] transition-colors">
                                                 {provider.icon ? (
                                                     <img src={provider.icon} alt={provider.name} className="w-5 h-5 opacity-80 group-hover:opacity-100" />
                                                 ) : (

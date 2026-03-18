@@ -90,7 +90,7 @@ export default function CustomizeColumnsModal({ isOpen, onClose, visibleColumns,
                 {/* Header */}
                 <div className="p-6 border-b border-border flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
                     <div>
-                        <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Personalizar colunas</h2>
+                        <h2 className="text-xl font-black text-[#141414] dark:text-white tracking-tight">Personalizar colunas</h2>
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Configure o que deseja ver na tabela</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full text-slate-400">

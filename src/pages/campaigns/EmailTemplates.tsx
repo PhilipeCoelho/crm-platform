@@ -69,7 +69,7 @@ export default function EmailTemplates() {
 
     if (isEditing && selectedTemplate) {
         return (
-            <div className="flex flex-col h-full bg-[#F9FAFB] dark:bg-slate-950/20 overflow-hidden">
+            <div className="flex flex-col h-full bg-[#F9FAFB] dark:bg-background/20 overflow-hidden">
                 <div className="bg-white dark:bg-card border-b border-border p-4 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
                         <button 
@@ -163,7 +163,7 @@ export default function EmailTemplates() {
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-[#F1F5F9] dark:bg-slate-900/50 p-8 flex flex-col items-center overflow-y-auto">
+                    <div className="flex-1 bg-[#F1F5F9] dark:bg-card/50 p-8 flex flex-col items-center overflow-y-auto">
                         <div className="w-full max-w-[650px] space-y-4">
                             <div className="bg-white dark:bg-card border border-border rounded-xl p-4 shadow-sm flex items-center justify-between">
                                 <span className="text-sm font-semibold text-muted-foreground flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" /> Preview em Tempo Real</span>
@@ -190,7 +190,7 @@ export default function EmailTemplates() {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-slate-950/20 p-8 space-y-12">
+            <div className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-background/20 p-8 space-y-12">
                 <div className="space-y-4">
                     <h2 className="text-lg font-bold flex items-center gap-2">
                         Meus Modelos Salvos
@@ -250,13 +250,13 @@ export default function EmailTemplates() {
                                 <div className="absolute top-3 right-3 z-10">
                                     <span className="px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-sm">{template.category}</span>
                                 </div>
-                                <div className="flex-1 relative overflow-hidden flex items-center justify-center border-b border-border bg-slate-900">
+                                <div className="flex-1 relative overflow-hidden flex items-center justify-center border-b border-border bg-[#141414]">
                                     <img 
                                         src={template.thumbnail} 
                                         alt={template.name} 
                                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" 
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                    <div className="absolute inset-0    " />
                                     
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
                                         <button 

@@ -22,7 +22,7 @@ export default function GoalCard({ goal, currentValue, onClick }: GoalCardProps)
 
     const getProgressTextColor = () => {
         if (progress.percentage >= 100) return 'text-green-600';
-        if (progress.percentage >= 75) return 'text-blue-600';
+        if (progress.percentage >= 75) return 'text-primary';
         if (progress.percentage >= 50) return 'text-yellow-600';
         return 'text-orange-600';
     };

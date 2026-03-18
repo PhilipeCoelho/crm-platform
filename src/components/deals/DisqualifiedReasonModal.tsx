@@ -94,7 +94,7 @@ export default function DisqualifiedReasonModal({ isOpen, onClose, onConfirm }: 
                         <button
                             onClick={handleConfirm}
                             disabled={!selectedReason && !customReason.trim()}
-                            className="h-12 sm:h-auto w-full sm:flex-1 px-4 py-2 text-sm font-bold bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:opacity-90 disabled:opacity-50 rounded-xl sm:rounded-lg shadow-lg transition-all order-1 sm:order-2 active:scale-95"
+                            className="h-12 sm:h-auto w-full sm:flex-1 px-4 py-2 text-sm font-bold bg-[#141414] dark:bg-slate-100 text-white dark:text-[#141414] hover:opacity-90 disabled:opacity-50 rounded-xl sm:rounded-lg shadow-lg transition-all order-1 sm:order-2 active:scale-95"
                         >
                             Confirmar
                         </button>

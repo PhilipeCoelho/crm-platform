@@ -29,7 +29,7 @@ export default function ChannelModule({ activeGuide, setActiveGuide }: Props) {
                 <div className="flex items-center gap-3">
                     <TrendingUp size={28} className="text-primary" />
                     <div className="flex items-center">
-                        <h2 className="text-2xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Eficácia por Canal</h2>
+                        <h2 className="text-2xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Eficácia por Canal</h2>
                         <QuickGuide
                             moduleName="insights_canais"
                             activeGuide={activeGuide}
@@ -40,10 +40,10 @@ export default function ChannelModule({ activeGuide, setActiveGuide }: Props) {
             </div>
 
             {/* 2. Distribuição de Uso */}
-            <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 w-full">
+            <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8 w-full">
                 <div className="mb-8">
-                    <h3 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Distribuição de Canais Dominantes</h3>
-                    <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-1">Canal mais utilizado por negócio</p>
+                    <h3 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Distribuição de Canais Dominantes</h3>
+                    <p className="text-sm text-[#6B7280] dark:text-[#8A8A8A] mt-1">Canal mais utilizado por negócio</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -71,14 +71,14 @@ export default function ChannelModule({ activeGuide, setActiveGuide }: Props) {
             {/* 3. Taxas de Avanço */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                 {/* 3.1 Avanço para Reunião */}
-                <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 space-y-8">
+                <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8 space-y-8">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-blue-500/10 rounded-xl">
                             <CalendarCheck2 size={24} className="text-blue-500" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Taxa de Agendamento</h3>
-                            <p className="text-[10px] text-[#6B7280] dark:text-[#9CA3AF] uppercase font-bold tracking-wider">Deals que chegam a reunião</p>
+                            <h3 className="text-lg font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Taxa de Agendamento</h3>
+                            <p className="text-[10px] text-[#6B7280] dark:text-[#8A8A8A] uppercase font-bold tracking-wider">Deals que chegam a reunião</p>
                         </div>
                     </div>
 
@@ -105,14 +105,14 @@ export default function ChannelModule({ activeGuide, setActiveGuide }: Props) {
                 </div>
 
                 {/* 3.2 Avanço para Fechamento */}
-                <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 space-y-8">
+                <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8 space-y-8">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-emerald-500/10 rounded-xl">
                             <CheckCircle2 size={24} className="text-emerald-500" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Taxa de Fechamento</h3>
-                            <p className="text-[10px] text-[#6B7280] dark:text-[#9CA3AF] uppercase font-bold tracking-wider">Deals que convertem em vendas</p>
+                            <h3 className="text-lg font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Taxa de Fechamento</h3>
+                            <p className="text-[10px] text-[#6B7280] dark:text-[#8A8A8A] uppercase font-bold tracking-wider">Deals que convertem em vendas</p>
                         </div>
                     </div>
 
@@ -144,14 +144,14 @@ export default function ChannelModule({ activeGuide, setActiveGuide }: Props) {
 
 function ChannelDistributionItem({ label, percent, icon, colorClass }: any) {
     return (
-        <div className="flex items-center gap-4 py-4 border-b border-[#E5E7EB] dark:border-[#1F2937] border-dashed last:border-0">
+        <div className="flex items-center gap-4 py-4 border-b border-[#E5E7EB] dark:border-[#262626] border-dashed last:border-0">
             <div className="p-3 bg-[#F7F9FC] dark:bg-[#1F2937] rounded-full border border-[#E5E7EB] dark:border-[#374151]">
                 {icon}
             </div>
             <div className="flex-1">
                 <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-sm font-semibold tracking-tight text-[#111827] dark:text-[#F9FAFB]">{label}</span>
-                    <span className="text-2xl font-bold tracking-tight text-[#111827] dark:text-[#F9FAFB]">{percent === 0 ? '—' : percent.toFixed(1) + '%'}</span>
+                    <span className="text-sm font-semibold tracking-tight text-[#111827] dark:text-[#EAEAEA]">{label}</span>
+                    <span className="text-2xl font-bold tracking-tight text-[#111827] dark:text-[#EAEAEA]">{percent === 0 ? '—' : percent.toFixed(1) + '%'}</span>
                 </div>
                 <div className="h-2 w-full bg-[#E5E7EB] dark:bg-[#1F2937] rounded-full overflow-hidden">
                     <div
@@ -169,8 +169,8 @@ function ChannelRateItem({ label, rate, variation, colorClass }: any) {
         <div className="flex items-center justify-between group">
             <div className="flex-1 mr-6">
                 <div className="flex justify-between text-sm mb-2">
-                    <span className="font-semibold text-[#6B7280] dark:text-[#9CA3AF]">{label}</span>
-                    <span className="font-bold text-[#111827] dark:text-[#F9FAFB]">{rate === 0 ? '—' : rate.toFixed(1) + '%'}</span>
+                    <span className="font-semibold text-[#6B7280] dark:text-[#8A8A8A]">{label}</span>
+                    <span className="font-bold text-[#111827] dark:text-[#EAEAEA]">{rate === 0 ? '—' : rate.toFixed(1) + '%'}</span>
                 </div>
                 <div className="h-2 w-full bg-[#E5E7EB] dark:bg-[#1F2937] rounded-full overflow-hidden">
                     <div

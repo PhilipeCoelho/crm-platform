@@ -26,29 +26,29 @@ export default function Insights() {
 
     return (
         <InsightsProvider>
-            <div className="flex h-full w-full bg-[#F7F9FC] dark:bg-[#0B1220]">
+            <div className="flex h-full w-full bg-[#F7F9FC] dark:bg-[#0D0D0D]">
                 {/* Main Content Area */}
                 <main className="flex-1 flex flex-col overflow-hidden w-full">
                     <InsightsFilter />
 
                     {/* Horizontal Navigation (Replaces old Sidebar) */}
-                    <div className="bg-[#FFFFFF] dark:bg-[#111827] border-b border-[#E5E7EB] dark:border-[#1F2937] px-6">
+                    <div className="bg-[#FFFFFF] dark:bg-transparent border-b border-[#E5E7EB] dark:border-[#1F1F1F] px-6">
                         <div className="max-w-[1200px] mx-auto flex gap-8">
                             <button
                                 onClick={() => setActiveView('dashboards')}
-                                className={`flex items-center gap-2 py-3 text-sm font-semibold transition-colors border-b-2 ${activeView === 'dashboards' ? 'border-primary text-primary' : 'border-transparent text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-[#F9FAFB]'}`}
+                                className={`flex items-center gap-2 py-3 text-sm font-semibold transition-colors border-b-2 ${activeView === 'dashboards' ? 'border-primary text-primary' : 'border-transparent text-[#6B7280] dark:text-[#8A8A8A] hover:text-[#111827] dark:hover:text-[#EAEAEA]'}`}
                             >
                                 <BarChart3 size={16} /> Painéis
                             </button>
                             <button
                                 onClick={() => setActiveView('reports')}
-                                className={`flex items-center gap-2 py-3 text-sm font-semibold transition-colors border-b-2 ${activeView === 'reports' ? 'border-primary text-primary' : 'border-transparent text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-[#F9FAFB]'}`}
+                                className={`flex items-center gap-2 py-3 text-sm font-semibold transition-colors border-b-2 ${activeView === 'reports' ? 'border-primary text-primary' : 'border-transparent text-[#6B7280] dark:text-[#8A8A8A] hover:text-[#111827] dark:hover:text-[#EAEAEA]'}`}
                             >
                                 <FileText size={16} /> Relatórios
                             </button>
                             <button
                                 onClick={() => setActiveView('goals')}
-                                className={`flex items-center gap-2 py-3 text-sm font-semibold transition-colors border-b-2 ${activeView === 'goals' ? 'border-primary text-primary' : 'border-transparent text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-[#F9FAFB]'}`}
+                                className={`flex items-center gap-2 py-3 text-sm font-semibold transition-colors border-b-2 ${activeView === 'goals' ? 'border-primary text-primary' : 'border-transparent text-[#6B7280] dark:text-[#8A8A8A] hover:text-[#111827] dark:hover:text-[#EAEAEA]'}`}
                             >
                                 <Target size={16} /> Metas
                             </button>

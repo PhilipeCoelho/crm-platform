@@ -93,7 +93,7 @@ export default function CampaignSettings() {
             </div>
 
             {/* Tab Content */}
-            <div className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-slate-950/20 p-8">
+            <div className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-background/20 p-8">
                 {activeTab === 'senders' ? (
                     <div className="max-w-4xl mx-auto">
                         <div className="flex justify-end mb-6 gap-3">
@@ -131,7 +131,7 @@ export default function CampaignSettings() {
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <div className="relative">
                                             <Send size={80} className="text-blue-500 transform -rotate-12 translate-y-4" />
-                                            <div className="absolute -top-4 -right-4 w-12 h-12 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-emerald-500 border border-border">
+                                            <div className="absolute -top-4 -right-4 w-12 h-12 bg-white dark:bg-card rounded-xl shadow-xl flex items-center justify-center text-emerald-500 border border-border">
                                                 <ShieldCheck size={24} />
                                             </div>
                                         </div>
@@ -156,7 +156,7 @@ export default function CampaignSettings() {
                                 {campaignSenders.map(sender => (
                                     <div key={sender.id} className="p-6 flex items-center justify-between hover:bg-muted/30 transition-colors">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1A1A1A] flex items-center justify-center text-slate-500">
                                                 <Mail size={20} />
                                             </div>
                                             <div>

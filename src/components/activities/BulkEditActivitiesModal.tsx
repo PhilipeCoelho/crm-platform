@@ -86,7 +86,7 @@ export default function BulkEditActivitiesModal({ isOpen, onClose, selectedIds, 
                             <ActivityIcon size={20} className="stroke-[2.5]" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">Editar em Massa</h2>
+                            <h2 className="text-xl font-semibold text-[#141414] dark:text-white tracking-tight">Editar em Massa</h2>
                             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
                                 {selectedIds.length} Atividades Selecionadas
                             </p>

@@ -71,7 +71,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity }: Pro
                                     i === 0 ? (
                                         <p key={i} className="mb-2 font-medium">{part.trim()}</p>
                                     ) : (
-                                        <div key={i} className="mt-2 p-3 bg-white dark:bg-slate-900/50 rounded-lg border border-primary/10 shadow-sm italic text-primary dark:text-primary/90 font-medium">
+                                        <div key={i} className="mt-2 p-3 bg-white dark:bg-card/50 rounded-lg border border-primary/10 shadow-sm italic text-primary dark:text-primary/90 font-medium">
                                             <span className="not-italic text-[10px] font-bold block mb-1 text-primary/60 uppercase">Dica:</span>
                                             "{part.trim()}"
                                         </div>

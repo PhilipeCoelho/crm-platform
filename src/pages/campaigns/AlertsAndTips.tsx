@@ -16,7 +16,7 @@ export default function AlertsAndTips() {
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 overflow-auto p-8 bg-[#F9FAFB] dark:bg-slate-950/20">
+            <div className="flex-1 overflow-auto p-8 bg-[#F9FAFB] dark:bg-background/20">
                 <div className="max-w-4xl mx-auto space-y-4">
                     {/* Alert Card 1 */}
                     <div className="group bg-white dark:bg-card border border-border rounded-xl p-6 shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-pointer">
@@ -40,7 +40,7 @@ export default function AlertsAndTips() {
                                 </div>
                                 <div className="flex items-center justify-between py-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">CONTA DO CAMPAIGNS</span>
+                                        <span className="bg-slate-100 dark:bg-[#1A1A1A] text-slate-500 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">CONTA DO CAMPAIGNS</span>
                                     </div>
                                     <ChevronRight size={20} className="text-muted-foreground group-hover:translate-x-1 group-hover:text-primary transition-all" />
                                 </div>
@@ -69,7 +69,7 @@ export default function AlertsAndTips() {
                                 </div>
                                 <div className="flex items-center justify-between py-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">CONTA DO CAMPAIGNS</span>
+                                        <span className="bg-slate-100 dark:bg-[#1A1A1A] text-slate-500 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">CONTA DO CAMPAIGNS</span>
                                     </div>
                                     <ChevronRight size={20} className="text-muted-foreground group-hover:translate-x-1 group-hover:text-primary transition-all" />
                                 </div>

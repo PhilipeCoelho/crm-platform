@@ -29,12 +29,12 @@ export default function InsightsFilter() {
     };
 
     return (
-        <div className="bg-[#FFFFFF] dark:bg-[#111827] border-b border-[#E5E7EB] dark:border-[#1F2937] p-4 sticky top-0 z-30">
+        <div className="bg-[#FFFFFF] dark:bg-transparent border-b border-[#E5E7EB] dark:border-[#1F1F1F] p-4 sticky top-0 z-30">
             <div className="max-w-[1200px] mx-auto flex flex-wrap items-center justify-between gap-4">
                 {/* 1. Title */}
                 <div>
-                    <h1 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Insights</h1>
-                    <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Panorama Comercial</p>
+                    <h1 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Insights</h1>
+                    <p className="text-xs text-[#6B7280] dark:text-[#8A8A8A]">Panorama Comercial</p>
                 </div>
 
                 {/* 2. Controls */}

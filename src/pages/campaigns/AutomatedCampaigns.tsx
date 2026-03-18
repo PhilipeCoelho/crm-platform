@@ -11,7 +11,7 @@ export default function AutomatedCampaigns() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 border border-border px-4 py-2 rounded font-bold text-sm bg-white dark:bg-slate-900 hover:bg-muted/50 transition-colors">
+                    <button className="flex items-center gap-2 border border-border px-4 py-2 rounded font-bold text-sm bg-white dark:bg-card hover:bg-muted/50 transition-colors">
                         <Bot size={18} className="text-primary" />
                         Usar modelo de automação
                     </button>
@@ -23,14 +23,14 @@ export default function AutomatedCampaigns() {
             </div>
 
             {/* Empty State */}
-            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-[#F9FAFB] dark:bg-slate-950/20 overflow-y-auto">
-                <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-[#F9FAFB] dark:bg-background/20 overflow-y-auto">
+                <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in- duration-500">
                     <div className="relative mx-auto w-64 h-64 bg-blue-50 dark:bg-blue-900/10 rounded-full flex items-center justify-center border-2 border-dashed border-blue-200 dark:border-blue-800">
                         <div className="absolute inset-0 flex items-center justify-center animate-bounce-slow">
                             <Bot size={120} className="text-blue-500 opacity-20" />
                         </div>
                         <div className="relative flex flex-col items-center">
-                            <div className="w-20 h-20 rounded-2xl bg-white dark:bg-slate-900 shadow-xl flex items-center justify-center text-blue-500 mb-4 border border-border">
+                            <div className="w-20 h-20 rounded-2xl bg-white dark:bg-card shadow-xl flex items-center justify-center text-blue-500 mb-4 border border-border">
                                 <Mail size={40} />
                             </div>
                             <div className="flex gap-2">

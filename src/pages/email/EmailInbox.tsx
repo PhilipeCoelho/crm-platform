@@ -152,7 +152,7 @@ export default function EmailInbox() {
     // STATE 1: Not Configured
     if (accounts.length === 0 && !showSettings) {
         return (
-            <div className="h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-6 text-center">
+            <div className="h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-background p-6 text-center">
                 <div className="max-w-2xl w-full bg-white dark:bg-card border border-border rounded-3xl p-12 shadow-xl shadow-slate-200/50 dark:shadow-none">
                     <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 animate-bounce-subtle">
                         <Mail className="w-10 h-10 text-primary" strokeWidth={1.5} />
@@ -224,10 +224,10 @@ export default function EmailInbox() {
 
     // STATE 2: Configured (Dashboard)
     return (
-        <div className="h-full flex bg-[#F8F9FA] dark:bg-slate-950 overflow-hidden">
+        <div className="h-full flex bg-[#F8F9FA] dark:bg-background overflow-hidden">
 
             {/* Folder Sidebar (A) */}
-            <aside className="w-64 border-r border-border bg-white dark:bg-slate-900 flex flex-col shrink-0">
+            <aside className="w-64 border-r border-border bg-white dark:bg-card flex flex-col shrink-0">
                 <div className="p-4">
                     <button className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/20 transition-all">
                         <Plus className="w-5 h-5" />
@@ -274,7 +274,7 @@ export default function EmailInbox() {
                 </nav>
 
                 <div className="p-4 mt-auto border-t border-border">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                    <div className="bg-slate-50 dark:bg-[#1A1A1A]/50 rounded-xl p-4">
                         <div className="text-xs font-bold text-muted-foreground uppercase mb-2">Caixa de Equipe</div>
                         <p className="text-[11px] text-muted-foreground mb-3 leading-tight">
                             Colabore com sua equipe em conversas compartilhadas.
@@ -290,13 +290,13 @@ export default function EmailInbox() {
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
                 {/* Header (B) */}
-                <header className="h-16 border-b border-border bg-white dark:bg-slate-900 px-6 flex items-center justify-between gap-4">
+                <header className="h-16 border-b border-border bg-white dark:bg-card px-6 flex items-center justify-between gap-4">
                     <div className="flex-1 max-w-2xl relative group">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
                             placeholder="Buscar por assunto, remetente ou conteúdo..."
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 ring-primary/20 transition-all"
+                            className="w-full bg-slate-50 dark:bg-[#1A1A1A] border-none rounded-xl pl-10 pr-4 py-2 text-sm outline-none focus:ring-2 ring-primary/20 transition-all"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -331,7 +331,7 @@ export default function EmailInbox() {
 
                 {/* Bulk Actions (Conditional) */}
                 {selectedThreads.length > 0 && (
-                    <div className="bg-primary/5 border-b border-primary/10 px-6 py-2 flex items-center gap-4 animate-in slide-in-from-top duration-200">
+                    <div className="bg-primary/5 border-b border-primary/10 px-6 py-2 flex items-center gap-4 animate-in slide-in- duration-200">
                         <span className="text-sm font-bold text-primary">
                             {selectedThreads.length} selecionados
                         </span>
@@ -349,7 +349,7 @@ export default function EmailInbox() {
                 )}
 
                 {/* Email List (C) */}
-                <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 border-l border-border m-4 rounded-3xl shadow-sm border relative">
+                <div className="flex-1 overflow-auto bg-white dark:bg-card border-l border-border m-4 rounded-3xl shadow-sm border relative">
                     {threads.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center p-12">
                             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
@@ -426,7 +426,7 @@ function EmailRow({ thread, isSelected, onSelect }: {
     onSelect: (v: boolean) => void
 }) {
     return (
-        <div className={`group flex items-center gap-4 px-6 py-4 border-b border-border hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${thread.is_unread ? 'bg-primary/5 dark:bg-primary/5' : ''}`}>
+        <div className={`group flex items-center gap-4 px-6 py-4 border-b border-border hover:bg-slate-50 dark:hover:bg-muted/50 transition-colors cursor-pointer ${thread.is_unread ? 'bg-primary/5 dark:bg-primary/5' : ''}`}>
             {/* Selection */}
             <div
                 className="shrink-0"
@@ -442,7 +442,7 @@ function EmailRow({ thread, isSelected, onSelect }: {
             </div>
 
             {/* Avatar / Icon */}
-            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden border border-border group-hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1A1A1A] flex items-center justify-center shrink-0 overflow-hidden border border-border group-hover:shadow-md transition-shadow">
                 {thread.sender_avatar ? (
                     <img src={thread.sender_avatar} alt="" />
                 ) : (
@@ -472,7 +472,7 @@ function EmailRow({ thread, isSelected, onSelect }: {
             </div>
 
             {/* Hover Actions */}
-            <div className="hidden group-hover:flex items-center gap-1 pl-4 animate-in fade-in slide-in-from-right-2 duration-150">
+            <div className="hidden group-hover:flex items-center gap-1 pl-4 animate-in fade-in slide-in- duration-150">
                 <button className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors text-muted-foreground" title="Arquivar">
                     <Archive className="w-4 h-4" />
                 </button>

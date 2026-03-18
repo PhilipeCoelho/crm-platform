@@ -162,7 +162,7 @@ export default function CampaignsLayout({ children }: CampaignsLayoutProps) {
                             <input
                                 type="text"
                                 placeholder="Pesquisar no Pipedrive"
-                                className="pl-10 pr-4 py-1.5 bg-muted/40 border border-transparent focus:border-primary focus:bg-white dark:focus:bg-slate-900 rounded-md text-sm outline-none transition-all w-64"
+                                className="pl-10 pr-4 py-1.5 bg-muted/40 border border-transparent focus:border-primary focus:bg-white dark:focus:bg-[#141414] rounded-md text-sm outline-none transition-all w-64"
                             />
                         </div>
                     </div>
@@ -191,7 +191,7 @@ export default function CampaignsLayout({ children }: CampaignsLayoutProps) {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-slate-950/20">
+                <main className="flex-1 overflow-auto bg-[#F9FAFB] dark:bg-background/20">
                     {children}
                 </main>
             </div>

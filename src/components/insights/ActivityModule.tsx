@@ -25,7 +25,7 @@ export default function ActivityModule({ activeGuide, setActiveGuide }: Props) {
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
             <div className="flex items-center">
-                <h2 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Métricas de Execução</h2>
+                <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Métricas de Execução</h2>
                 <QuickGuide
                     moduleName="insights_execucao"
                     activeGuide={activeGuide}
@@ -62,8 +62,8 @@ export default function ActivityModule({ activeGuide, setActiveGuide }: Props) {
             </div>
 
             {/* 2. Distribuição */}
-            <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 w-full">
-                <h3 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight mb-8">Distribuição de Atividades</h3>
+            <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8 w-full">
+                <h3 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight mb-8">Distribuição de Atividades</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <DistributionItem
@@ -90,7 +90,7 @@ export default function ActivityModule({ activeGuide, setActiveGuide }: Props) {
                 </div>
 
                 {/* Visual Bar */}
-                <div className="mt-8 flex h-4 rounded-full overflow-hidden border border-[#E5E7EB] dark:border-[#1F2937] bg-[#F7F9FC] dark:bg-[#1F2937]">
+                <div className="mt-8 flex h-4 rounded-full overflow-hidden border border-[#E5E7EB] dark:border-[#262626] bg-[#F7F9FC] dark:bg-[#1F2937]">
                     <div style={{ width: `${activity.percentMensagens}%` }} className="bg-emerald-500 transition-all duration-1000" title="Mensagens" />
                     <div style={{ width: `${activity.percentEmails}%` }} className="bg-blue-500 transition-all duration-1000" title="E-mails" />
                     <div style={{ width: `${activity.percentLigacoes}%` }} className="bg-rose-500 transition-all duration-1000" title="Ligações" />
@@ -102,31 +102,31 @@ export default function ActivityModule({ activeGuide, setActiveGuide }: Props) {
 
 function KPICard({ title, value, variation, subtitle }: any) {
     return (
-        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#9CA3AF] tracking-widest">{title}</span>
+        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] shadow-sm">
+            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#8A8A8A] tracking-widest">{title}</span>
             <div className="flex items-baseline gap-3 my-1">
-                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#F9FAFB]">{value}</span>
+                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#EAEAEA]">{value}</span>
                 <VariationBadge value={variation} />
             </div>
-            <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF] font-medium">{subtitle}</span>
+            <span className="text-xs text-[#6B7280] dark:text-[#8A8A8A] font-medium">{subtitle}</span>
         </div>
     );
 }
 
 function DistributionItem({ icon, label, count, percent }: any) {
     return (
-        <div className="flex items-center gap-4 py-4 border-b border-[#E5E7EB] dark:border-[#1F2937] border-dashed last:border-0">
+        <div className="flex items-center gap-4 py-4 border-b border-[#E5E7EB] dark:border-[#262626] border-dashed last:border-0">
             <div className="p-3 bg-[#F7F9FC] dark:bg-[#1F2937] rounded-full border border-[#E5E7EB] dark:border-[#374151]">
                 {icon}
             </div>
             <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
-                    <span className="font-semibold tracking-tight text-[#111827] dark:text-[#F9FAFB] text-sm">{label}</span>
-                    <span className="font-bold text-[#6B7280] dark:text-[#9CA3AF] text-xs">{percent === 0 ? '—' : percent.toFixed(1) + '%'}</span>
+                    <span className="font-semibold tracking-tight text-[#111827] dark:text-[#EAEAEA] text-sm">{label}</span>
+                    <span className="font-bold text-[#6B7280] dark:text-[#8A8A8A] text-xs">{percent === 0 ? '—' : percent.toFixed(1) + '%'}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB]">{count}</span>
-                    <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#9CA3AF]">realizadas</span>
+                    <span className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA]">{count}</span>
+                    <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#8A8A8A]">realizadas</span>
                 </div>
             </div>
         </div>

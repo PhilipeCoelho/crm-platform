@@ -102,7 +102,7 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                     {currentStep === 'type' && (
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                                <Info size={20} className="text-primary shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">Tipos de metas fixos</p>
                                     <p>Escolha um dos tipos predefinidos. Cada meta está sempre ligada a uma métrica específica do CRM.</p>
@@ -144,7 +144,7 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                     {currentStep === 'owner' && (
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                                <Info size={20} className="text-primary shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">Defina o responsável</p>
                                     <p>A meta pode ser atribuída a um usuário individual ou a uma equipe.</p>
@@ -212,7 +212,7 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                     {currentStep === 'period' && (
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                                <Info size={20} className="text-primary shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">Período da meta</p>
                                     <p>Escolha se a meta é mensal, trimestral ou anual. O período atual será usado automaticamente.</p>
@@ -241,7 +241,7 @@ export default function GoalBuilder({ onSave, onCancel }: GoalBuilderProps) {
                     {currentStep === 'target' && (
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                                <Info size={20} className="text-blue-600 shrink-0 mt-0.5" />
+                                <Info size={20} className="text-primary shrink-0 mt-0.5" />
                                 <div className="text-sm text-blue-800">
                                     <p className="font-semibold mb-1">Defina o valor da meta</p>
                                     <p>Insira o valor que deseja atingir no período selecionado.</p>

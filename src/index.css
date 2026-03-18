@@ -72,15 +72,18 @@
   }
 
   .dark {
-    /* Premium High-End Dark Theme */
-    --bg-main: 220 49% 8%;
-    --surface: 217 41% 10%;
-    --card: 217 41% 10%;
-    --border: 220 20% 15%;
+    /* Premium High-End Dark Theme - Neutral Deep Black */
+    --bg-main: 0 0% 5%;       /* #0D0D0D */
+    --surface: 0 0% 8%;       /* #141414 */
+    --card: 0 0% 8%;          /* #141414 */
+    --muted: 0 0% 10%;        /* #1A1A1A - Hover/Terciário */
+    --border: 0 0% 15%;       /* #262626 */
+    --divider: 0 0% 12%;      /* #1F1F1F */
 
-    --text-primary: 213 47% 94%;
-    --text-secondary: 213 13% 65%;
-    --text-disabled: 220 9% 46%;
+    --text-primary: 0 0% 92%;   /* #EAEAEA */
+    --text-secondary: 0 0% 63%; /* #A1A1A1 */
+    --text-disabled: 0 0% 42%;  /* #6B6B6B */
+    --text-meta: 0 0% 54%;      /* #8A8A8A */
 
     --background: var(--bg-main);
     --foreground: var(--text-primary);
@@ -88,27 +91,27 @@
     --popover: var(--card);
     --popover-foreground: var(--text-primary);
 
-    --primary: 215 100% 59%;
+    --primary: 217 91% 60%;      /* #3B82F6 - Premium Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 26% 11%;
+    --secondary: 0 0% 10%;       /* #1A1A1A */
     --secondary-foreground: var(--text-primary);
 
-    --muted: 220 26% 11%;
+    --muted: 0 0% 10%;           /* #1A1A1A */
     --muted-foreground: var(--text-secondary);
 
-    --accent: 220 26% 11%;
-    --accent-foreground: var(--primary);
+    --accent: 217 91% 60% / 0.12;
+    --accent-foreground: 217 91% 60%;
 
-    --destructive: 351 95% 71%;
+    --destructive: 0 84% 60%;    /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
 
-    --input: 220 49% 8%;
-    --ring: var(--primary);
+    --input: 0 0% 8%;            /* #141414 */
+    --ring: 217 91% 60%;
 
-    --success: 158 64% 52%;
-    --warning: 43 96% 56%;
-    --info: 213 97% 68%;
+    --success: 142 71% 45%;     /* #22C55E */
+    --warning: 38 92% 50%;      /* #F59E0B */
+    --info: 217 91% 60%;        /* #3B82F6 */
   }
 }
 
@@ -139,6 +142,20 @@
     @apply text-foreground;
   }
 
+  /* Premium Focus Ring and Input Styles */
+  input, textarea, select {
+    @apply bg-input border-border text-foreground transition-all duration-200;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none border-primary;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  }
+
+  ::placeholder {
+    color: hsl(var(--text-disabled));
+  }
+
   /* Professional Data Alignment */
   .tabular-nums,
   table,
@@ -148,11 +165,15 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Utility for meta/secondary info */
+  /* Meta text helper */
   .text-meta {
-    font-size: 12px;
-    font-weight: 500;
     @apply text-muted-foreground;
+    color: hsl(var(--text-meta));
+  }
+
+  /* Global Transition */
+  * {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   }
 }
 
@@ -162,11 +183,11 @@
 }
 
 .premium-shadow {
-  box-shadow: 0 0 50px -12px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
 }
 
 .dark .premium-shadow {
-  box-shadow: 0 0 80px -20px rgba(0, 0, 0, 0.8), 0 0 40px -10px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
 }
 
 /* Custom Scrollbar */

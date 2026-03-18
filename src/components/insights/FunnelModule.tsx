@@ -25,19 +25,19 @@ export default function FunnelModule({ activeGuide, setActiveGuide }: Props) {
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
             {/* 2. Visualização do Funil */}
-            <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 w-full">
+            <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8 w-full">
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-2">
                         <div>
                             <div className="flex items-center">
-                                <h3 className="text-xl font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Conversão do Funil</h3>
+                                <h3 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Conversão do Funil</h3>
                                 <QuickGuide
                                     moduleName="insights_funil"
                                     activeGuide={activeGuide}
                                     setActiveGuide={setActiveGuide}
                                 />
                             </div>
-                            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-1">Visão do fluxo de negócios por etapa principal</p>
+                            <p className="text-sm text-[#6B7280] dark:text-[#8A8A8A] mt-1">Visão do fluxo de negócios por etapa principal</p>
                         </div>
                     </div>
                     <div className="p-2 rounded-xl bg-primary/10">
@@ -86,10 +86,10 @@ export default function FunnelModule({ activeGuide, setActiveGuide }: Props) {
             </div>
 
             {/* 3. Metas vs Realizado */}
-            <div className="bg-[#FFFFFF] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#1F2937] p-8 w-full">
+            <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-8 w-full">
                 <div className="flex items-center gap-3 mb-8">
                     <Target size={24} className="text-primary" />
-                    <h3 className="text-lg font-bold text-[#111827] dark:text-[#F9FAFB] tracking-tight">Metas vs Realizado</h3>
+                    <h3 className="text-lg font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Metas vs Realizado</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -104,9 +104,9 @@ export default function FunnelModule({ activeGuide, setActiveGuide }: Props) {
                 </div>
             </div>
 
-            <div className="bg-[#F7F9FC] dark:bg-[#1F2937]/50 rounded-xl p-6 border border-[#E5E7EB] dark:border-[#1F2937] w-full">
-                <h4 className="text-xs font-bold text-[#111827] dark:text-[#F9FAFB] uppercase tracking-widest mb-2">Dica Estratégica</h4>
-                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] leading-relaxed">
+            <div className="bg-[#F7F9FC] dark:bg-[#1F2937]/50 rounded-xl p-6 border border-[#E5E7EB] dark:border-[#262626] w-full">
+                <h4 className="text-xs font-bold text-[#111827] dark:text-[#EAEAEA] uppercase tracking-widest mb-2">Dica Estratégica</h4>
+                <p className="text-sm text-[#6B7280] dark:text-[#8A8A8A] leading-relaxed">
                     {current.funnel.leadEngajadoToReuniao < 20
                         ? "Sua taxa de conversão de Lead Engajado para Reunião está abaixo da média. Foque em melhorar o pitch inicial ou a velocidade de agendamento."
                         : "Excelente conversão em reuniões! Continue mantendo esse padrão de qualificação."}
@@ -122,8 +122,8 @@ function FunnelStep({ label, count, percent, isLast }: any) {
     return (
         <div className="relative">
             <div className="flex items-center justify-between mb-2 text-sm">
-                <span className="font-semibold text-[#6B7280] dark:text-[#9CA3AF] uppercase tracking-wider">{label}</span>
-                <span className="font-bold text-[#111827] dark:text-[#F9FAFB]">{count} Negócios</span>
+                <span className="font-semibold text-[#6B7280] dark:text-[#8A8A8A] uppercase tracking-wider">{label}</span>
+                <span className="font-bold text-[#111827] dark:text-[#EAEAEA]">{count} Negócios</span>
             </div>
             <div className="h-4 w-full bg-[#E5E7EB] dark:bg-[#1F2937] rounded-full overflow-hidden">
                 <div
@@ -138,7 +138,7 @@ function FunnelStep({ label, count, percent, isLast }: any) {
 function FunnelDivider({ percent }: any) {
     return (
         <div className="flex justify-center -my-3 relative z-10">
-            <div className="flex flex-col items-center justify-center bg-[#FFFFFF] dark:bg-[#111827] px-4 py-1 border border-[#E5E7EB] dark:border-[#1F2937] rounded-full">
+            <div className="flex flex-col items-center justify-center bg-[#FFFFFF] dark:bg-[#141414] px-4 py-1 border border-[#E5E7EB] dark:border-[#262626] rounded-full">
                 <span className="text-xs font-bold text-primary">{percent === 0 ? '—' : percent.toFixed(1) + '%'}</span>
             </div>
         </div>

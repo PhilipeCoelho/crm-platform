@@ -247,7 +247,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                             )}
                             <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase border shadow-sm ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
                                 deal.status === 'lost' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
-                                    deal.status === 'desqualificado' ? 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-900/30 dark:text-slate-400 dark:border-slate-800' :
+                                    deal.status === 'desqualificado' ? 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-card/30 dark:text-slate-400 dark:border-border' :
                                         'bg-primary/10 text-primary border-primary dark:bg-primary/30 dark:text-primary dark:border-primary'
                                 }`}>
                                 {deal.status === 'open' ? 'Aberto' : deal.status === 'won' ? 'Ganho' : deal.status === 'lost' ? 'Perdido' : 'Desqualificado'}
@@ -313,7 +313,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                 </button>
                                 <button
                                     onClick={handleDisqualified}
-                                    className="h-8 px-3 bg-slate-700 hover:bg-slate-800 text-white rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 border border-slate-600 shadow-slate-900/20"
+                                    className="h-8 px-3 bg-slate-700 hover:bg-[#1A1A1A] text-white rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 border border-slate-600 shadow-[#141414]/20"
                                 >
                                     <Ban size={14} />
                                     Desqualificado
@@ -568,7 +568,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-slate-800 rounded-xl text-[10px] text-primary font-bold hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-[0.98] uppercase tracking-wider">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-border rounded-xl text-[10px] text-primary font-bold hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-[0.98] uppercase tracking-wider">
                                     + Vincular Contato
                                 </button>
                             )}
@@ -685,7 +685,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-slate-800 rounded-xl text-[10px] text-primary font-bold hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-[0.98] uppercase tracking-wider">
+                                <button onClick={() => openNewDealModal(undefined, deal)} className="w-full py-3 border border-dashed border-border dark:border-border rounded-xl text-[10px] text-primary font-bold hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-[0.98] uppercase tracking-wider">
                                     + Vincular Empresa
                                 </button>
                             )}

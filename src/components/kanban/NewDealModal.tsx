@@ -254,7 +254,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                             {contactId && <Check className="absolute right-3 top-2.5 text-emerald-500" size={14} />}
                         </div>
                         {contactSearch && !contactId && contactSuggestions.length > 0 && (
-                            <div className="absolute top-full left-0 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded mt-1 z-50">
+                            <div className="absolute top-full left-0 w-full bg-white dark:bg-card border border-slate-200 dark:border-border shadow-xl rounded mt-1 z-50">
                                 {contactSuggestions.map(c => (
                                     <button key={c.id} type="button" className="w-full text-left px-3 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-[10px] border-b last:border-0 border-zinc-100 dark:border-zinc-800" onClick={() => { setContactSearch(c.name); setContactId(c.id); setPhone(c.phone || ''); setEmail(c.email || ''); }}>{c.name}</button>
                                 ))}

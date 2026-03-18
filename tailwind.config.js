@@ -13,6 +13,7 @@ export default {
                 main: "hsl(var(--bg-main))",
                 surface: "hsl(var(--surface))",
                 card: "hsl(var(--card))",
+                divider: "hsl(var(--divider))",
                 "card-foreground": "hsl(var(--card-foreground))",
                 popover: "hsl(var(--popover))",
                 "popover-foreground": "hsl(var(--popover-foreground))",
@@ -33,8 +34,7 @@ export default {
                 warning: "hsl(var(--warning))",
                 info: "hsl(var(--info))",
                 disabled: "hsl(var(--text-disabled))",
-                main: "hsl(var(--bg-main))",
-                surface: "hsl(var(--surface))",
+                meta: "hsl(var(--text-meta))",
             }
         },
     },
