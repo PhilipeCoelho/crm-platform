@@ -97,8 +97,9 @@ export const ENGAGED_LEAD_SEQUENCE_TEMPLATES: StageSequence[] = [
         stageName: 'LEAD ENGAJADO',
         dayOffset: 0,
         activityType: 'message',
-        defaultTitle: 'Resposta + Pergunta Estratégica',
-        defaultDescription: 'Responder o lead e fazer UMA pergunta estratégica. Ex: "Perfeito. Hoje vocês já investem em anúncios ou dependem mais de indicação?"',
+        defaultTitle: 'Resposta + Qualificação',
+        defaultDescription: 'Entender o nível de maturidade do lead.',
+        tooltipScript: 'Perfeito.\n\nHoje vocês já investem em anúncios ou dependem mais de indicação?',
         orderIndex: 1,
         isActive: true
     },
@@ -108,7 +109,8 @@ export const ENGAGED_LEAD_SEQUENCE_TEMPLATES: StageSequence[] = [
         dayOffset: 1,
         activityType: 'message',
         defaultTitle: 'Apontar o Problema',
-        defaultDescription: 'Mensagem curta ativando a dor principal. Ex: "Normalmente clínicas que dependem só de indicação acabam tendo meses mais fracos. Isso acontece aí também?"',
+        defaultDescription: 'Fazer o lead reconhecer o problema.',
+        tooltipScript: 'A maioria das clínicas que dependem só de indicação acaba tendo meses mais fracos.\n\nIsso acontece aí também?',
         orderIndex: 2,
         isActive: true
     },
@@ -118,7 +120,8 @@ export const ENGAGED_LEAD_SEQUENCE_TEMPLATES: StageSequence[] = [
         dayOffset: 3,
         activityType: 'message',
         defaultTitle: 'Ampliar o Impacto',
-        defaultDescription: 'Mostrar a consequência do problema. Ex: "Quando a agenda oscila, isso impacta direto no faturamento e na previsibilidade. Já calcularam quanto deixam de faturar nos meses mais fracos?"',
+        defaultDescription: 'Gerar desconforto e senso de urgência real.',
+        tooltipScript: 'Quando a agenda oscila, isso impacta direto no faturamento e na previsibilidade.\n\nVocês já pararam pra calcular quanto deixam de faturar nos meses mais fracos?',
         orderIndex: 3,
         isActive: true
     },
@@ -127,8 +130,9 @@ export const ENGAGED_LEAD_SEQUENCE_TEMPLATES: StageSequence[] = [
         stageName: 'LEAD ENGAJADO',
         dayOffset: 5,
         activityType: 'message',
-        defaultTitle: 'Mostrar Valor da Solução',
-        defaultDescription: 'Criar desejo pela solução. Ex: "Se vocês tivessem previsibilidade de 10 a 20 novos pacientes por mês, mudaria o cenário atual?"',
+        defaultTitle: 'Mostrar Valor',
+        defaultDescription: 'Fazer o lead visualizar o ganho.',
+        tooltipScript: 'Se vocês tivessem previsibilidade de 10 a 20 novos pacientes por mês, mudaria o cenário atual?',
         orderIndex: 4,
         isActive: true
     },
@@ -137,9 +141,21 @@ export const ENGAGED_LEAD_SEQUENCE_TEMPLATES: StageSequence[] = [
         stageName: 'LEAD ENGAJADO',
         dayOffset: 7,
         activityType: 'message',
-        defaultTitle: 'Convite Direto',
-        defaultDescription: 'Chamada objetiva para reunião. Ex: "Posso te mostrar onde está o gargalo e como resolver em 20 minutos. Qual dia funciona melhor para você?"',
+        defaultTitle: 'Convite para Reunião',
+        defaultDescription: 'Agendar reunião.',
+        tooltipScript: 'Posso te mostrar onde está o gargalo e como resolver em 20 minutos.\n\nQual dia funciona melhor para você?',
         orderIndex: 5,
+        isActive: true
+    },
+    {
+        id: 'engaged_reactivation',
+        stageName: 'LEAD ENGAJADO',
+        dayOffset: 10,
+        activityType: 'message',
+        defaultTitle: 'Reativação de Lead Parado',
+        defaultDescription: 'Recuperar contato de leads que pararam de responder.',
+        tooltipScript: 'Acho que perdi o timing contigo.\n\nAinda faz sentido falar sobre isso ou já resolveu por outro lado?',
+        orderIndex: 6,
         isActive: true
     }
 ];

@@ -55,6 +55,11 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF (NEW.is_automatic = true AND NEW.status = 'completed' AND (OLD.status IS NULL OR OLD.status != 'completed')) THEN
         
+        -- Se o lead respondeu, não gerar próximas atividades da cadência
+        IF (NEW.houve_resposta = true) THEN
+            RETURN NEW;
+        END IF;
+
         -- --- LEAD PROGRESSION ---
         IF (NEW.origin_stage = 'LEAD') THEN
             CASE NEW.sequence_step
@@ -83,9 +88,11 @@ BEGIN
                 WHEN 2 THEN INSERT INTO public.activities (user_id, deal_id, type, title, date, status, is_automatic, origin_stage, sequence_step)
                             VALUES (NEW.user_id, NEW.deal_id, 'message', 'Ampliar o Impacto', NOW() + interval '2 days', 'pending', true, 'ENGAJADO', 3);
                 WHEN 3 THEN INSERT INTO public.activities (user_id, deal_id, type, title, date, status, is_automatic, origin_stage, sequence_step)
-                            VALUES (NEW.user_id, NEW.deal_id, 'message', 'Mostrar Valor da Solução', NOW() + interval '2 days', 'pending', true, 'ENGAJADO', 4);
+                            VALUES (NEW.user_id, NEW.deal_id, 'message', 'Mostrar Valor', NOW() + interval '2 days', 'pending', true, 'ENGAJADO', 4);
                 WHEN 4 THEN INSERT INTO public.activities (user_id, deal_id, type, title, date, status, is_automatic, origin_stage, sequence_step)
-                            VALUES (NEW.user_id, NEW.deal_id, 'message', 'Convite Direto', NOW() + interval '2 days', 'pending', true, 'ENGAJADO', 5);
+                            VALUES (NEW.user_id, NEW.deal_id, 'message', 'Convite para Reunião', NOW() + interval '2 days', 'pending', true, 'ENGAJADO', 5);
+                WHEN 5 THEN INSERT INTO public.activities (user_id, deal_id, type, title, date, status, is_automatic, origin_stage, sequence_step)
+                            VALUES (NEW.user_id, NEW.deal_id, 'message', 'Reativação de Lead Parado', NOW() + interval '3 days', 'pending', true, 'ENGAJADO', 6);
                 ELSE NULL;
             END CASE;
 
