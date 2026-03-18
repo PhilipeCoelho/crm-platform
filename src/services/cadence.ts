@@ -319,11 +319,18 @@ export const formatScript = (
 };
 
 export const getScriptByTitle = (title: string): string | undefined => {
-    const template = LEAD_SEQUENCE_TEMPLATES.find(t => t.defaultTitle === title);
+    const allTemplates = [
+        ...LEAD_SEQUENCE_TEMPLATES,
+        ...ENGAGED_LEAD_SEQUENCE_TEMPLATES,
+        ...RD_SEQUENCE_TEMPLATES,
+        ...FE_SEQUENCE_TEMPLATES
+    ];
+
+    const template = allTemplates.find(t => t.defaultTitle === title);
     if (template) return template.tooltipScript;
 
     // Support matching without the prefix if titles were saved differently
     const cleanTitle = title.split(': ').pop();
-    const fallbackTemplate = LEAD_SEQUENCE_TEMPLATES.find(t => t.defaultTitle.includes(cleanTitle || ''));
+    const fallbackTemplate = allTemplates.find(t => t.defaultTitle.includes(cleanTitle || ''));
     return fallbackTemplate?.tooltipScript;
 };
