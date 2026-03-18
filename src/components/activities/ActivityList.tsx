@@ -182,62 +182,64 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                                 </div>
                             </div>
 
-                            {activity.notes && (
-                                <div className="mt-2 space-y-1">
-                                    <div className="flex items-center gap-1.5 opacity-80">
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-primary bg-primary/5 px-1 rounded">Objetivo</span>
-                                        <p className="text-[11px] leading-snug text-foreground/80 font-medium">
-                                            {activity.notes}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {(activity.tooltipScript || getScriptByTitle(activity.title)) && !isCompleted && !isCanceled && (
-                                (() => {
-                                    const rawScript = activity.tooltipScript || getScriptByTitle(activity.title);
-                                    const contact = contacts.find(c => c.id === activity.contactId);
-                                    const company = companies.find(c => c.id === activity.companyId);
-                                    const deal = deals.find(d => d.id === activity.dealId);
-
-                                    const formattedScript = rawScript ? formatScript(rawScript, {
-                                        contactName: contact?.name,
-                                        companyName: company?.name,
-                                        dealTitle: deal?.title
-                                    }) : undefined;
-
-                                    if (!formattedScript) return null;
-
-                                    return (
-                                        <div className="mt-3 p-2 rounded-lg bg-primary/[0.03] border border-primary/10 relative group/script">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="text-[8px] font-bold uppercase tracking-tighter text-primary/60">Ação Esperada: Enviar Mensagem</span>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        navigator.clipboard.writeText(formattedScript);
-                                                        const btn = e.currentTarget;
-                                                        const originalText = btn.innerHTML;
-                                                        btn.innerHTML = 'Copiado!';
-                                                        btn.classList.add('bg-emerald-500', 'text-white');
-                                                        setTimeout(() => {
-                                                            btn.innerHTML = originalText;
-                                                            btn.classList.remove('bg-emerald-500', 'text-white');
-                                                        }, 2000);
-                                                    }}
-                                                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-bold uppercase transition-all hover:bg-primary hover:text-white active:scale-95"
-                                                >
-                                                    <Copy size={9} />
-                                                    Copiar Mensagem
-                                                </button>
-                                            </div>
-                                            <p className="text-[11px] text-foreground italic leading-relaxed whitespace-pre-wrap">
-                                                {formattedScript}
+                            <div className="max-h-0 opacity-0 group-hover/item:max-h-[500px] group-hover/item:opacity-100 group-hover/item:mt-3 transition-all duration-300 overflow-hidden">
+                                {activity.notes && (
+                                    <div className="space-y-1 mb-3">
+                                        <div className="flex items-center gap-1.5 opacity-80">
+                                            <span className="text-[8px] font-bold uppercase tracking-wider text-primary bg-primary/5 px-1 rounded">Objetivo</span>
+                                            <p className="text-[11px] leading-snug text-foreground/80 font-medium">
+                                                {activity.notes}
                                             </p>
                                         </div>
-                                    );
-                                })()
-                            )}
+                                    </div>
+                                )}
+
+                                {(activity.tooltipScript || getScriptByTitle(activity.title)) && !isCompleted && !isCanceled && (
+                                    (() => {
+                                        const rawScript = activity.tooltipScript || getScriptByTitle(activity.title);
+                                        const contact = contacts.find(c => c.id === activity.contactId);
+                                        const company = companies.find(c => c.id === activity.companyId);
+                                        const deal = deals.find(d => d.id === activity.dealId);
+
+                                        const formattedScript = rawScript ? formatScript(rawScript, {
+                                            contactName: contact?.name,
+                                            companyName: company?.name,
+                                            dealTitle: deal?.title
+                                        }) : undefined;
+
+                                        if (!formattedScript) return null;
+
+                                        return (
+                                            <div className="p-2 rounded-lg bg-primary/[0.03] border border-primary/10 relative group/script">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-[8px] font-bold uppercase tracking-tighter text-primary/60">Ação Esperada: Enviar Mensagem</span>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigator.clipboard.writeText(formattedScript);
+                                                            const btn = e.currentTarget;
+                                                            const originalText = btn.innerHTML;
+                                                            btn.innerHTML = 'Copiado!';
+                                                            btn.classList.add('bg-emerald-500', 'text-white');
+                                                            setTimeout(() => {
+                                                                btn.innerHTML = originalText;
+                                                                btn.classList.remove('bg-emerald-500', 'text-white');
+                                                            }, 2000);
+                                                        }}
+                                                        className="flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-bold uppercase transition-all hover:bg-primary hover:text-white active:scale-95"
+                                                    >
+                                                        <Copy size={9} />
+                                                        Copiar Mensagem
+                                                    </button>
+                                                </div>
+                                                <p className="text-[11px] text-foreground italic leading-relaxed whitespace-pre-wrap">
+                                                    {formattedScript}
+                                                </p>
+                                            </div>
+                                        );
+                                    })()
+                                )}
+                            </div>
 
                             <div className="flex items-center gap-3 sm:gap-2 mt-2">
                                 <span className="inline-flex items-center gap-1 sm:gap-0.5 text-[8px] uppercase font-bold tracking-wider text-muted-foreground/60 bg-muted/40 px-1.5 py-0.5 rounded">
