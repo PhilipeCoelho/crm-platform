@@ -139,7 +139,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     <aside
                         onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
                         onMouseLeave={() => !isMobile && setIsSidebarHovered(false)}
-                        className={`group flex flex-col z-[70] bg-card border-r border-border text-foreground h-full
+                        className={`group flex flex-col z-[70] bg-secondary/30 border-r border-border text-foreground h-full
                         ${isMobile
                                 ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                                 }`
@@ -181,7 +181,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                             className={({ isActive }: { isActive: boolean }) => `
                                             flex items-center transition-all duration-300 rounded-xl
                                             ${isActive
-                                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02] font-semibold'
+                                                    ? 'bg-primary text-white shadow-lg shadow-primary/25 scale-[1.02] font-semibold'
                                                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                                 }
                                             ${(isExpanded || isMobile)
