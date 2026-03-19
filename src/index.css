@@ -31,15 +31,17 @@
   }
 
   :root {
-    /* Premium SaaS Tokens (Light Mode) */
-    --bg-main: 0 0% 100%;
-    --surface: 216 33% 98%;
-    --card: 216 33% 98%;
-    --border: 215 46% 94%;
+    /* Premium SaaS Tokens (Light Mode - Refined) */
+    --bg-main: 210 20% 98%;    /* #F8FAFC - Subtle slate background */
+    --surface: 210 20% 98%;
+    --card: 0 0% 100%;         /* Pure white cards */
+    --border: 214 32% 91%;     /* #E2E8F0 - Soft borders */
+    --divider: 214 32% 91%;
 
-    --text-primary: 207 66% 13%;
-    --text-secondary: 207 12% 48%;
-    --text-disabled: 208 14% 65%;
+    --text-primary: 222 47% 11%;   /* #0F172A - Deep navy/slate for readability */
+    --text-secondary: 215 16% 47%; /* #64748B - Muted slate */
+    --text-disabled: 215 20% 65%;  /* #94A3B8 */
+    --text-meta: 215 16% 55%;
 
     --background: var(--bg-main);
     --foreground: var(--text-primary);
@@ -47,27 +49,28 @@
     --popover: var(--card);
     --popover-foreground: var(--text-primary);
 
-    --primary: 218 93% 54%;
+    --primary: 221 83% 53%;      /* #2563EB - Modern Blue */
+    --primary-rgb: 37, 99, 235;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 32% 96%;
+    --secondary: 210 40% 96%;    /* #F1F5F9 */
     --secondary-foreground: var(--text-primary);
 
-    --muted: 214 32% 96%;
+    --muted: 210 40% 96%;
     --muted-foreground: var(--text-secondary);
 
-    --accent: 214 32% 96%;
+    --accent: 210 40% 96%;
     --accent-foreground: var(--primary);
 
-    --destructive: 349 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --input: 0 0% 100%;
     --ring: var(--primary);
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --success: 142 76% 36%;
-    --warning: 45 93% 50%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
     --info: 199 89% 48%;
   }
 
@@ -92,6 +95,7 @@
     --popover-foreground: var(--text-primary);
 
     --primary: 217 91% 60%;      /* #3B82F6 - Premium Blue */
+    --primary-rgb: 59, 130, 246; /* #3B82F6 */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 10%;       /* #1A1A1A */
@@ -183,11 +187,11 @@
 }
 
 .premium-shadow {
-  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.02);
 }
 
 .dark .premium-shadow {
-  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 
 /* Custom Scrollbar */

@@ -155,8 +155,8 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
 
     return (
-        <div className="h-full overflow-y-auto bg-background transition-colors duration-300">
-            <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+        <div className="h-full overflow-y-auto bg-background transition-colors duration-500 custom-scrollbar">
+            <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 space-y-10">
 
                 {/* HEADER SECTION */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border/50 pb-6">

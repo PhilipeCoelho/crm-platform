@@ -96,27 +96,27 @@ export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview
     return (
         <div
             ref={setNodeRef}
-            className={`group/column flex flex-col h-full min-w-[280px] w-[280px] shrink-0
-                ${isOver ? 'bg-primary/[0.02] ring-1 ring-primary/20 ring-inset rounded-lg' : 'bg-transparent'}
-                border-r border-border/30
+            className={`group/column flex flex-col h-full min-w-[300px] w-[300px] shrink-0
+                ${isOver ? 'bg-primary/[0.04] ring-2 ring-primary/20' : 'bg-secondary/30 dark:bg-transparent'}
+                rounded-2xl transition-all duration-300
                 `}
         >
-            {/* Header - Clean Pipedrive Style */}
-            <div className="pt-3 px-2 pb-3 flex flex-col gap-2 shrink-0">
+            {/* Header - Modern SaaS Style */}
+            <div className="pt-5 px-4 pb-4 flex flex-col gap-2 shrink-0">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer group/title" onClick={onEditStage}>
-                        <span className="text-sm font-semibold tracking-tight text-foreground truncate group-hover/title:text-primary transition-colors" title={column.title}>
+                        <span className="text-sm font-bold tracking-tight text-foreground truncate group-hover/title:text-primary transition-colors uppercase" title={column.title}>
                             {column.title}
                         </span>
-                        <Settings2 size={12} className="text-muted-foreground/40 opacity-0 group-hover/column:opacity-100 group-hover/title:text-primary transition-all" />
+                        <Settings2 size={13} className="text-muted-foreground/30 opacity-0 group-hover/column:opacity-100 group-hover/title:text-primary transition-all" />
                     </div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground/60">
+                    <span className="text-xs font-bold text-muted-foreground/80">
                         {formatDynamicCurrency(totalValue)}
                     </span>
-                    <span className="text-[11px] font-medium text-muted-foreground/60">
+                    <span className="text-[11px] font-bold text-muted-foreground/80 bg-muted px-1.5 py-0.5 rounded">
                         {tasks.length}
                     </span>
                 </div>
@@ -126,7 +126,7 @@ export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview
             </div>
 
             {/* Cards Area */}
-            <div className="flex-grow flex flex-col gap-3 px-2 overflow-x-hidden overflow-y-auto scrollbar-thin scrollbar-thumb-border">
+            <div className="flex-grow flex flex-col gap-4 px-3 overflow-x-hidden overflow-y-auto custom-scrollbar">
                 <SortableContext items={tasksIds}>
                     {sortedTasks.map((task) => (
                         <KanbanCard

@@ -111,7 +111,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
 
     return (
         <TooltipProvider delayDuration={0}>
-            <div className={`flex h-full w-full text-foreground overflow-hidden ${isDealFocusOpen ? 'bg-black/5' : ''}`}>
+            <div className={`flex h-full w-full bg-background text-foreground overflow-hidden ${isDealFocusOpen ? 'bg-black/5' : ''}`}>
                 {/* Mobile Header - Hidden in focus mode */}
                 {isMobile && !isDealFocusOpen && (
                     <div className="fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-40 flex items-center px-4">
@@ -139,7 +139,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     <aside
                         onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
                         onMouseLeave={() => !isMobile && setIsSidebarHovered(false)}
-                        className={`group flex flex-col z-[70] bg-[#0D0D0D] text-foreground h-full
+                        className={`group flex flex-col z-[70] bg-card border-r border-border text-foreground h-full
                         ${isMobile
                                 ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                                 }`
@@ -179,14 +179,14 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                         <NavLink
                                             to={item.path}
                                             className={({ isActive }: { isActive: boolean }) => `
-                                            flex items-center transition-all duration-200 rounded-lg
+                                            flex items-center transition-all duration-300 rounded-xl
                                             ${isActive
-                                                    ? 'bg-[var(--primary)]/15 text-white'
-                                                    : 'text-slate-500 hover:text-[#141414] dark:text-meta dark:hover:text-white dark:hover:bg-muted'
+                                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02] font-semibold'
+                                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                                 }
                                             ${(isExpanded || isMobile)
-                                                    ? 'px-3 mx-2 gap-3 min-h-[40px] justify-start w-auto'
-                                                    : 'w-9 h-9 flex items-center justify-center mx-auto rounded-lg'
+                                                    ? 'px-4 mx-3 gap-3 min-h-[44px] justify-start w-auto'
+                                                    : 'w-10 h-10 flex items-center justify-center mx-auto'
                                                 }
                                         `}
                                             onClick={() => isMobile && setIsMobileMenuOpen(false)}
