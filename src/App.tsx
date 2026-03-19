@@ -139,7 +139,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     <aside
                         onMouseEnter={() => !isMobile && setIsSidebarHovered(true)}
                         onMouseLeave={() => !isMobile && setIsSidebarHovered(false)}
-                        className={`group flex flex-col z-[70] bg-secondary/30 border-r border-border text-foreground h-full
+                        className={`group flex flex-col z-[70] bg-card border-r border-border text-foreground h-full overflow-hidden
                         ${isMobile
                                 ? `fixed top-0 left-0 bottom-0 w-64 px-3 items-start shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                                 }`
@@ -179,23 +179,30 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                         <NavLink
                                             to={item.path}
                                             className={({ isActive }: { isActive: boolean }) => `
-                                            flex items-center transition-all duration-300 rounded-xl
+                                            flex items-center transition-all duration-300 rounded-xl relative group/nav
                                             ${isActive
-                                                    ? 'bg-primary text-white shadow-lg shadow-primary/25 scale-[1.02] font-semibold'
-                                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                                    ? 'bg-primary/10 text-primary font-bold'
+                                                    : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/50'
                                                 }
                                             ${(isExpanded || isMobile)
                                                     ? 'px-4 mx-3 gap-3 min-h-[44px] justify-start w-auto'
-                                                    : 'w-10 h-10 flex items-center justify-center mx-auto'
+                                                    : 'w-11 h-11 flex items-center justify-center mx-auto'
                                                 }
                                         `}
                                             onClick={() => isMobile && setIsMobileMenuOpen(false)}
                                         >
-                                            <Icon size={18} className="shrink-0" strokeWidth={1.8} />
-                                            {(isExpanded || isMobile) && (
-                                                <span className="text-sm font-medium whitespace-nowrap overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
-                                                    {item.label}
-                                                </span>
+                                            {({ isActive }) => (
+                                                <>
+                                                    {/* Active Vertical Indicator */}
+                                                    <div className={`absolute left-0 w-1 bg-primary rounded-r-full transition-all duration-300 ${isActive ? 'h-5 opacity-100' : 'h-0 opacity-0 group-hover/nav:h-3 group-hover/nav:opacity-50'}`} />
+
+                                                    <Icon size={20} className="shrink-0" strokeWidth={2.2} />
+                                                    {(isExpanded || isMobile) && (
+                                                        <span className="text-sm font-medium whitespace-nowrap overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
+                                                            {item.label}
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                         </NavLink>
                                     );
