@@ -153,7 +153,7 @@ export default function EmailSyncSettings() {
             <header className="bg-white dark:bg-card border-b border-border px-8 py-6 flex items-center justify-between shrink-0">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Sincronização de E-mail</h1>
-                    <p className="text-muted-foreground mt-1">Conecte sua conta de e-mail para enviar e receber mensagens dentro do Rastro Pipeline.</p>
+                    <p className="text-muted-foreground mt-1">Conecte sua conta de e-mail para enviar e receber mensagens dentro do Vamus Pipeline.</p>
                 </div>
                 <button
                     onClick={() => setIsAdding(true)}
@@ -177,7 +177,7 @@ export default function EmailSyncSettings() {
                             <h3 className="font-semibold text-blue-900 dark:text-blue-100">Privacidade e Segurança</h3>
                             <p className="text-sm text-blue-700 dark:text-blue-300 mt-1 leading-relaxed">
                                 A sincronização de e-mail é segura e privada. Mensagens sincronizadas são visíveis apenas para você, a menos que compartilhe.
-                                O Rastro Pipeline não altera seus e-mails no servidor original.
+                                O Vamus Pipeline não altera seus e-mails no servidor original.
                             </p>
                         </div>
                     </div>
@@ -257,7 +257,7 @@ export default function EmailSyncSettings() {
                             <div className="flex-1">
                                 <h3 className="font-semibold text-foreground mb-1">Smart Bcc</h3>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Copie este endereço para o campo CCO (Bcc) de qualquer e-mail enviado externamente para anexá-lo automaticamente ao Rastro Pipeline.
+                                    Copie este endereço para o campo CCO (Bcc) de qualquer e-mail enviado externamente para anexá-lo automaticamente ao Vamus Pipeline.
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <code className="bg-muted px-3 py-2 rounded-lg text-sm font-mono text-foreground border border-border select-all">
@@ -417,19 +417,19 @@ export default function EmailSyncSettings() {
                                     <div className="space-y-4 pt-4 border-t border-border">
                                         <ToggleOption
                                             label="Sincronizar e-mails enviados"
-                                            desc="Importar e-mails que você enviou fora do Rastro Pipeline"
+                                            desc="Importar e-mails que você enviou fora do Vamus Pipeline"
                                             checked={syncOptions.syncSent}
                                             onChange={(v) => setSyncOptions({ ...syncOptions, syncSent: v })}
                                         />
                                         <ToggleOption
                                             label="Vincular automaticamente a negócios e contatos"
-                                            desc="O Rastro Pipeline tentará encontrar a pessoa ou negócio correspondente"
+                                            desc="O Vamus Pipeline tentará encontrar a pessoa ou negócio correspondente"
                                             checked={syncOptions.autoLink}
                                             onChange={(v) => setSyncOptions({ ...syncOptions, autoLink: v })}
                                         />
                                         <ToggleOption
                                             label="Rastreamento de abertura e cliques"
-                                            desc="Adicionar pixel de rastreamento aos e-mails enviados pelo Rastro Pipeline"
+                                            desc="Adicionar pixel de rastreamento aos e-mails enviados pelo Vamus Pipeline"
                                             checked={syncOptions.trackingOpen}
                                             onChange={(v) => setSyncOptions({ ...syncOptions, trackingOpen: v })}
                                         />

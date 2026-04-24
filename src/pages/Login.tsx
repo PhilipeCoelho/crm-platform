@@ -32,7 +32,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
                         Gestão Inteligente de Leads
                     </h2>
                     <p className="text-lg text-muted-foreground leading-relaxed">
-                        Transforme sua maneira de vender com o Rastro Pipeline — simplicidade e performance. Organize, acompanhe e feche mais negócios.
+                        Transforme sua maneira de vender com o Vamus Pipeline — simplicidade e performance. Organize, acompanhe e feche mais negócios.
                     </p>
 
                     {/* Floating Cards Effect */}
@@ -110,7 +110,7 @@ export default function Login({ onLogin }: Props) {
             <div className="space-y-2 mb-8">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-4">
                     <Sparkles size={12} />
-                    <span>Rastro Pipeline v1.3</span>
+                    <span>Vamus Pipeline v1.3</span>
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight text-foreground">
                     {isLogin ? 'Bem-vindo de volta' : 'Comece agora grátis'}
