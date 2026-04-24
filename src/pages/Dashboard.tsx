@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
-import { Plus, AlertTriangle, CalendarDays, ArrowRight, Target, CheckCircle2, Settings, LayoutDashboard, Clock } from 'lucide-react';
+import { Plus, AlertTriangle, CalendarDays, ArrowRight, Target, CheckCircle2, Settings, LayoutDashboard } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import { Currency } from '@/data/currencies';
 import { getInsightsData, InsightsData } from '@/services/insights';
