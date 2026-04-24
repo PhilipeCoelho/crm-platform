@@ -50,7 +50,7 @@ export const DEFAULT_TEMPLATES: TemplateStructure[] = [
             logoUrl: 'https://via.placeholder.com/150x50?text=LOGO',
             title: 'Está perdendo vendas por falta de acompanhamento?',
             problemDescription: 'Sabemos que 70% dos leads esfriam quando não são contatados nos primeiros 5 minutos.',
-            insight: 'Implementar um CRM ágil reduz esse problema em 50%.',
+            insight: 'Implementar o Rastro Pipeline reduz esse problema em 50%.',
             benefits: [
                 'Visibilidade total do funil',
                 'Automação de tarefas manuais',

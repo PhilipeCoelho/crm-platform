@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
-import { Plus, AlertTriangle, CalendarDays, ArrowRight, Target, CheckCircle2, Settings, LayoutDashboard } from 'lucide-react';
+import { Plus, AlertTriangle, CalendarDays, ArrowRight, Target, CheckCircle2, Settings, LayoutDashboard, Clock } from 'lucide-react';
 import ActivityList from '@/components/activities/ActivityList';
 import { Currency } from '@/data/currencies';
 import { getInsightsData, InsightsData } from '@/services/insights';
@@ -13,6 +13,17 @@ import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
 import WidgetManagerModal from '@/components/dashboard/WidgetManagerModal';
 import { WIDGET_DEFINITIONS } from '@/data/widgetDefinitions';
 let globalDashboardInsightsCache: InsightsData | null = null;
+let globalDashboardPeriodCache: number | null = null;
+
+const PERIOD_OPTIONS = [
+    { value: 7, label: '7 dias' },
+    { value: 30, label: '30 dias' },
+    { value: 60, label: '60 dias' },
+    { value: 90, label: '90 dias' },
+    { value: 0, label: 'Todo período' },
+] as const;
+
+type PeriodValue = typeof PERIOD_OPTIONS[number]['value'];
 
 export default function Dashboard({ currency }: { currency: Currency }) {
     const { user } = useSupabaseAuth();
@@ -33,6 +44,28 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     const { widgets: customWidgets, saveWidgets } = useDashboardWidgets();
     const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
 
+    const [selectedPeriod, setSelectedPeriod] = useState<PeriodValue>(() => {
+        const saved = localStorage.getItem('dashboard_period');
+        if (saved !== null) {
+            const parsed = Number(saved);
+            if (PERIOD_OPTIONS.some(p => p.value === parsed)) return parsed as PeriodValue;
+        }
+        return 7;
+    });
+
+    const periodLabel = useMemo(() => {
+        const opt = PERIOD_OPTIONS.find(p => p.value === selectedPeriod);
+        return selectedPeriod === 0 ? 'Todo período' : `Últimos ${opt?.label}`;
+    }, [selectedPeriod]);
+
+    const handlePeriodChange = (period: PeriodValue) => {
+        setSelectedPeriod(period);
+        localStorage.setItem('dashboard_period', String(period));
+        // Invalidate cache so it refetches
+        globalDashboardInsightsCache = null;
+        globalDashboardPeriodCache = null;
+    };
+
     // Prioridade (Engine de Recomendação)
     const priorityRecommendation = useMemo(() => {
         if (!insightsData) return null;
@@ -40,17 +73,21 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         return recs.length > 0 ? recs[0] : null; // Pega apenas a maior prioridade
     }, [insightsData]);
 
-    // Background auto-refresh data when deals/activities change with a debounce
+    // Background auto-refresh data when deals/activities/period change with a debounce
     useEffect(() => {
         const fetchInsights = async () => {
-            if (!globalDashboardInsightsCache) setIsLoading(true);
+            // Only show full loader if cache is empty or period changed
+            if (!globalDashboardInsightsCache || globalDashboardPeriodCache !== selectedPeriod) setIsLoading(true);
             try {
                 const now = new Date();
-                const start = subDays(now, 7).toISOString();
+                const start = selectedPeriod === 0
+                    ? new Date('2000-01-01').toISOString() // "all time"
+                    : subDays(now, selectedPeriod).toISOString();
                 const end = now.toISOString();
 
                 const data = await getInsightsData(start, end);
                 globalDashboardInsightsCache = data;
+                globalDashboardPeriodCache = selectedPeriod;
                 setInsightsData(data);
             } catch (error) {
                 console.error("Error fetching insights for dashboard:", error);
@@ -65,7 +102,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         }, 1500);
 
         return () => clearTimeout(timer);
-    }, [deals, activities]);
+    }, [deals, activities, selectedPeriod]);
 
     // Greeting
     const greeting = useMemo(() => {
@@ -139,7 +176,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                         </div>
                         {showPeriodBadge && (
                             <div className="bg-muted text-muted-foreground text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded shrink-0">
-                                Últimos 7 dias
+                                {periodLabel}
                             </div>
                         )}
                     </div>
@@ -169,7 +206,24 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        {/* Period Selector */}
+                        <div className="flex items-center bg-muted/50 rounded-lg border border-border/60 p-0.5">
+                            {PERIOD_OPTIONS.map((opt) => (
+                                <button
+                                    key={opt.value}
+                                    onClick={() => handlePeriodChange(opt.value)}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
+                                        selectedPeriod === opt.value
+                                            ? 'bg-primary text-primary-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                                    }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* New Deal */}
                         <button
                             onClick={() => openNewDealModal(defaultStageId)}

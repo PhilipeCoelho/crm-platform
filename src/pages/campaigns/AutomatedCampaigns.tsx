@@ -44,7 +44,7 @@ export default function AutomatedCampaigns() {
                     <div className="space-y-3">
                         <h2 className="text-2xl font-bold text-foreground">Configure campanhas de e-mail automatizadas e economize tempo</h2>
                         <p className="text-muted-foreground leading-relaxed">
-                            Crie fluxos de trabalho que enviam e-mails marketing automaticamente com base em ações do CRM.
+                            Crie fluxos de trabalho que enviam e-mails marketing automaticamente com base em ações do Rastro Pipeline.
                             Comece criando sua primeira <span className="text-primary hover:underline cursor-pointer font-semibold underline-offset-4 decoration-2">campanha</span> compatível com automações.
                         </p>
                     </div>

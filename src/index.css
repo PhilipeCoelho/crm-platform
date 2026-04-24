@@ -174,11 +174,6 @@
     @apply text-muted-foreground;
     color: hsl(var(--text-meta));
   }
-
-  /* Global Transition */
-  * {
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-  }
 }
 
 /* Glass Effect Utilities */

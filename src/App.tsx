@@ -122,7 +122,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                         >
                             <Menu size={20} className="text-foreground" />
                         </button>
-                        <span className="ml-3 font-semibold text-foreground">CRM Pro</span>
+                        <span className="ml-3 font-semibold text-foreground">Rastro Pipeline</span>
                     </div>
                 )}
 
@@ -167,7 +167,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                 </div>
                                 {(isExpanded || isMobile) && (
                                     <span className="font-semibold text-foreground ml-2 text-lg whitespace-nowrap overflow-hidden animate-in fade-in duration-300">
-                                        CRM Pipeline
+                                        Rastro Pipeline
                                     </span>
                                 )}
                             </div>
