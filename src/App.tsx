@@ -23,6 +23,7 @@ import { useCRM } from '@/contexts/CRMContext';
 import PipelineSettingsModal from '@/components/kanban/PipelineSettingsModal';
 import NewDealModal from '@/components/kanban/NewDealModal';
 import Activities from './pages/Activities';
+import ActivitiesV2 from './pages/ActivitiesV2';
 import Insights from './pages/Insights';
 import { PrivacyBanner } from '@/components/ui/PrivacyBanner';
 import CampaignsLayout from './pages/campaigns/CampaignsLayout';
@@ -504,6 +505,7 @@ function App() {
                         } />
                         <Route path="/contacts" element={<Contacts />} />
                         <Route path="/activities" element={<Activities currency={selectedCurrency} />} />
+                        <Route path="/activities-v2" element={<ActivitiesV2 />} />
                         <Route path="/campaigns/wizard" element={<CampaignWizard />} />
                         <Route path="/email" element={<EmailInbox />} />
                         <Route path="/insights" element={<Insights />} />
