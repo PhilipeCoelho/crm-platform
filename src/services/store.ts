@@ -4,6 +4,7 @@ import {
     Campaign, EmailTemplate, CampaignSender, CadenceTemplate
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
+import { perfMonitor } from '@/utils/perfMonitor';
 
 
 // --- Types ---
@@ -659,6 +660,7 @@ export function useCRMStore(): CRMStore {
     }
 
     async function updateActivity(id: string, updates: Partial<Activity>) {
+        perfMonitor.start('updateActivity');
         const synchronizedUpdates = { ...updates };
         if (updates.completed !== undefined) {
             if (updates.status === undefined) {
@@ -670,6 +672,7 @@ export function useCRMStore(): CRMStore {
         }
 
         setActivities(prev => prev.map(a => a.id === id ? { ...a, ...synchronizedUpdates } : a));
+        requestAnimationFrame(() => perfMonitor.end('updateActivity'));
 
         const dbUpdates: Record<string, unknown> = {};
         if (synchronizedUpdates.title !== undefined) dbUpdates.title = synchronizedUpdates.title;
@@ -933,6 +936,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const moveDeal = async (id: string, stageId: string, position?: number, pipelineId?: string) => {
+        perfMonitor.start('moveDeal');
         // Optimistic
         setDeals(prev => prev.map(d => {
             if (d.id === id) {
@@ -946,6 +950,8 @@ export function useCRMStore(): CRMStore {
             }
             return d;
         }));
+        // Measure time until React commits the optimistic update
+        requestAnimationFrame(() => perfMonitor.end('moveDeal'));
 
         // DB Update
         const updates: any = { stage_id: stageId };
