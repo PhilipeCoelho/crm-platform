@@ -59,7 +59,7 @@
 }
 
 /* --- Dark mode --- */
-[data-theme="dark"] .av2 {
+.dark .av2 {
   --vp-bg: #0f1219;
   --vp-surface: #181d2a;
   --vp-border: #262d3d;
