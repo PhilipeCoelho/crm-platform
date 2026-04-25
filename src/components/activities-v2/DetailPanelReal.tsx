@@ -126,8 +126,8 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
               </button>
               <span className={`av2-deal-value ${blur}`}>{fmtMoney(deal.value, currency)}</span>
             </div>
-            {contact && <div className={`av2-deal-contact ${blur}`}>{contact.name}</div>}
-            {company && <div className={`av2-deal-contact ${blur}`} style={{ marginTop: 0 }}>{company.name}</div>}
+            {contact && contact.name !== deal.title && <div className={`av2-deal-contact ${blur}`}>{contact.name}</div>}
+            {company && company.name !== deal.title && company.name !== contact?.name && <div className={`av2-deal-contact ${blur}`} style={{ marginTop: 0 }}>{company.name}</div>}
 
             {pipelineStages.length > 0 && (
               <>
@@ -209,7 +209,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
                     <Icons.clock size={12} />
                   </div>
                   <div className="av2-history-content">
-                    <div className="av2-history-text">{log.content}</div>
+                    <div className="av2-history-text" style={{ whiteSpace: 'pre-wrap' }}>{log.content}</div>
                     <div className="av2-history-date">{format(parseISO(log.createdAt), "dd MMM yyyy", { locale: ptBR })}</div>
                   </div>
                 </div>

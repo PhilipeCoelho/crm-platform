@@ -663,17 +663,18 @@
 }
 
 .av2-history-log {
-  padding: 10px 14px;
+  padding: 12px 14px;
   background: var(--vp-ink-25);
   border: 1px solid var(--vp-border);
   border-radius: 8px;
   border-top-left-radius: 2px;
-  font-size: 12.5px;
-  color: var(--vp-ink-700);
-  line-height: 1.5;
-  font-style: italic;
+  font-size: 13px;
+  color: var(--vp-ink-800);
+  line-height: 1.6;
   position: relative;
   margin-bottom: 8px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .av2-history-log::before {
