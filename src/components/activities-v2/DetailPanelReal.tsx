@@ -76,7 +76,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
     const dealLogs = logs
       .filter(l => l.dealId === deal.id)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .slice(0, 8);
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return dealLogs;
   }, [deal, logs]);
 
@@ -170,22 +170,43 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
           {pastActivities.map(pa => {
             const ptc = TYPE_CONFIG[pa.type] || TYPE_CONFIG.task;
             const PIcon = Icons[ptc.icon] || Icons.check;
+            const activityLogs = dealHistory.filter(l => l.activityId === pa.id);
+
             return (
-              <div key={pa.id} className="av2-history-item">
-                <div className="av2-history-icon" style={{ background: ptc.bg, color: ptc.color }}>
-                  <PIcon size={12} />
-                </div>
-                <div>
-                  <div className="av2-history-text">{pa.title}{pa.result ? ` — ${pa.result}` : ''}</div>
-                  <div className="av2-history-date">
-                    {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM yyyy", { locale: ptBR }) : ''}
+              <div key={pa.id} className="av2-history-item-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+                <div className="av2-history-item" style={{ marginBottom: 0 }}>
+                  <div className="av2-history-icon" style={{ background: ptc.bg, color: ptc.color }}>
+                    <PIcon size={12} />
+                  </div>
+                  <div>
+                    <div className="av2-history-text">{pa.title}{pa.result ? ` — ${pa.result}` : ''}</div>
+                    <div className="av2-history-date">
+                      {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM yyyy", { locale: ptBR }) : ''}
+                    </div>
                   </div>
                 </div>
+
+                {activityLogs.length > 0 && (
+                  <div style={{ marginLeft: '14px', paddingLeft: '16px', borderLeft: '1px solid var(--vp-border)' }}>
+                    {activityLogs.map(log => (
+                      <div key={log.id} className="av2-history-item" style={{ marginTop: '8px', marginBottom: 0 }}>
+                        <div className="av2-history-icon" style={{ background: 'var(--vp-ink-50)', color: 'var(--vp-ink-500)', width: 20, height: 20, minWidth: 20 }}>
+                          <Icons.clock size={10} />
+                        </div>
+                        <div>
+                          <div className="av2-history-text" style={{ fontSize: 12.5, fontStyle: 'italic', color: 'var(--vp-text-soft)' }}>
+                            {log.content === "Atividade concluída sem observações." ? "Concluída sem observações" : log.content}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
 
-          {dealHistory.slice(0, 3).map(log => (
+          {dealHistory.filter(l => !l.activityId).slice(0, 3).map(log => (
             <div key={log.id} className="av2-history-item">
               <div className="av2-history-icon" style={{ background: 'var(--vp-ink-50)', color: 'var(--vp-ink-500)' }}>
                 <Icons.clock size={12} />
