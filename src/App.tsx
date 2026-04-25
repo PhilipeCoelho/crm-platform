@@ -25,6 +25,7 @@ import NewDealModal from '@/components/kanban/NewDealModal';
 import ActivitiesV2 from './pages/ActivitiesV2';
 import Insights from './pages/Insights';
 import { PrivacyBanner } from '@/components/ui/PrivacyBanner';
+import { VamusLogo } from '@/components/ui/VamusLogo';
 import CampaignsLayout from './pages/campaigns/CampaignsLayout';
 import CampaignsDashboard from './pages/campaigns/CampaignsDashboard';
 import AutomatedCampaigns from './pages/campaigns/AutomatedCampaigns';
@@ -163,7 +164,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                             {/* Logo Section */}
                             <div className={`flex items-center mb-8 h-9 w-full transition-all duration-300 ${isExpanded || isMobile ? 'px-4 justify-start' : 'justify-center'}`}>
                                 <div className="w-9 h-9 flex items-center justify-center shrink-0">
-                                    <Zap size={18} className="text-[var(--primary)]" strokeWidth={1.8} />
+                                    <VamusLogo size={22} className="text-[var(--primary)]" />
                                 </div>
                                 {(isExpanded || isMobile) && (
                                     <span className="font-semibold text-foreground ml-2 text-lg whitespace-nowrap overflow-hidden animate-in fade-in duration-300">

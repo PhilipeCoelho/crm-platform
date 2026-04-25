@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { CheckCircle, Loader2, AlertCircle, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle, Loader2, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { VamusLogo } from '@/components/ui/VamusLogo';
 
 interface Props {
     onLogin: () => void;
@@ -26,7 +27,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
                 <div className="absolute inset-0 bg-primary/5" />
                 <div className="relative z-10 max-w-lg text-center p-12">
                     <div className="w-20 h-20 bg-primary rounded-2xl mx-auto mb-8 flex items-center justify-center text-white rotate-12 transform hover:rotate-0 transition-all duration-500">
-                        <Sparkles size={40} className="text-white" />
+                        <VamusLogo size={40} color="currentColor" />
                     </div>
                     <h2 className="text-4xl font-bold mb-4 text-primary">
                         Gestão Inteligente de Leads
@@ -109,7 +110,7 @@ export default function Login({ onLogin }: Props) {
         <Layout>
             <div className="space-y-2 mb-8">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-4">
-                    <Sparkles size={12} />
+                    <VamusLogo size={14} color="currentColor" />
                     <span>Vamus Pipeline v1.3</span>
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight text-foreground">
