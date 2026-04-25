@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import './activities-v2.css';
 import { useCRM } from '@/contexts/CRMContext';
 import { Activity, Deal, Stage } from '@/types/schema';
+import { Currency } from '@/data/currencies';
 import { filterRealActivities } from '@/utils/activityHelpers';
 import { Icons } from '@/components/activities-v2/Icons';
 import { differenceInDays, parseISO, isToday as isTodayFn } from 'date-fns';
@@ -42,10 +43,12 @@ function bucketOf(due: number) {
   return 'later';
 }
 
-function fmtMoney(v: number): string {
-  if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000)     return `R$ ${Math.round(v / 1_000)}k`;
-  return `R$ ${v}`;
+function fmtMoney(v: number, currency: Currency): string {
+  return new Intl.NumberFormat(currency.locale, {
+    style: 'currency', currency: currency.code,
+    maximumFractionDigits: v >= 1000 ? 0 : 2,
+    notation: v >= 100_000 ? 'compact' : 'standard',
+  }).format(v);
 }
 
 function fmtDue(due: number, dueDate?: string): string {
@@ -72,7 +75,7 @@ function fmtCompletedTime(dateStr?: string): string {
 
 const GOAL = 12;
 
-export default function ActivitiesV2() {
+export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const {
     deals, activities, contacts, pipelines,
     updateActivity, openFocusDeal, isPrivacyMode
@@ -238,7 +241,7 @@ export default function ActivitiesV2() {
           </div>
         </div>
 
-        {deal && <span className={`av2-card-value ${blur}`}>{fmtMoney(deal.value)}</span>}
+        {deal && <span className={`av2-card-value ${blur}`}>{fmtMoney(deal.value, currency)}</span>}
 
         {isDone ? (
           <span className="av2-due av2-due--done">{fmtCompletedTime(a.completedAt || a.updatedAt)}</span>
@@ -367,6 +370,7 @@ export default function ActivitiesV2() {
       {selectedActivity && !selectedActivity.completed && (
         <DetailPanelReal
           activity={selectedActivity}
+          currency={currency}
           onClose={() => setSelectedId(null)}
           onComplete={onComplete}
         />

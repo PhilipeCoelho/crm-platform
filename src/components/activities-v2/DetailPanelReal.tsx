@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Activity } from '@/types/schema';
+import { Currency } from '@/data/currencies';
 import { useCRM } from '@/contexts/CRMContext';
 import { Icons } from './Icons';
 import { differenceInDays, parseISO, format } from 'date-fns';
@@ -16,19 +17,22 @@ const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; 
   audit:     { label: 'Auditoria', icon: 'video',    color: 'var(--vp-blue-600)', bg: 'var(--vp-blue-50)' },
 };
 
-function fmtMoney(v: number): string {
-  if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000)     return `R$ ${Math.round(v / 1_000)}k`;
-  return `R$ ${v}`;
+function fmtMoney(v: number, currency: Currency): string {
+  return new Intl.NumberFormat(currency.locale, {
+    style: 'currency', currency: currency.code,
+    maximumFractionDigits: v >= 1000 ? 0 : 2,
+    notation: v >= 100_000 ? 'compact' : 'standard',
+  }).format(v);
 }
 
 interface Props {
   activity: Activity;
+  currency: Currency;
   onClose: () => void;
   onComplete: (id: string) => void;
 }
 
-const DetailPanelReal = React.memo(function DetailPanelReal({ activity, onClose, onComplete }: Props) {
+const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete }: Props) {
   const { deals, contacts, companies, pipelines, logs, activities, isPrivacyMode } = useCRM();
   const blur = isPrivacyMode ? 'av2-blur' : '';
 
@@ -113,7 +117,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, onClose,
           <div className="av2-deal-card">
             <div className="av2-deal-row">
               <span className={`av2-deal-name ${blur}`}>{deal.title}</span>
-              <span className={`av2-deal-value ${blur}`}>{fmtMoney(deal.value)}</span>
+              <span className={`av2-deal-value ${blur}`}>{fmtMoney(deal.value, currency)}</span>
             </div>
             {contact && <div className={`av2-deal-contact ${blur}`}>{contact.name}</div>}
             {company && <div className={`av2-deal-contact ${blur}`} style={{ marginTop: 0 }}>{company.name}</div>}
