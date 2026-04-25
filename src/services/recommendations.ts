@@ -172,6 +172,47 @@ export function generateStrategicRecommendations(data: InsightsData): StrategicR
             });
         }
     }
+    // --- ABORDAGENS ---
+    const abordagem = current.abordagem;
+
+    // REGRA A1: Baixa taxa de resposta (<20%)
+    if (abordagem.total > 0 && abordagem.taxaResposta < 20) {
+        recs.push({
+            tipo: 'alerta',
+            area: 'Abordagem',
+            impacto: 'alto',
+            prioridade: 0,
+            titulo: 'Baixa Taxa de Resposta',
+            mensagem: `Apenas ${abordagem.taxaResposta.toFixed(1)}% dos negócios abordados responderam (${abordagem.respondidos} de ${abordagem.total}).`,
+            recomendacao: 'Revisar mensagem inicial, proposta de valor e público-alvo. Testar abordagens diferentes.'
+        });
+    }
+
+    // REGRA A2: Boa abordagem, zero resposta
+    if (abordagem.total > 10 && abordagem.respondidos === 0) {
+        recs.push({
+            tipo: 'alerta',
+            area: 'Abordagem',
+            impacto: 'alto',
+            prioridade: 0,
+            titulo: 'Abordagem sem Retorno',
+            mensagem: `${abordagem.total} negócios foram abordados mas nenhum respondeu.`,
+            recomendacao: 'Rever completamente a abordagem e proposta inicial. Considerar mudar canal ou segmentação.'
+        });
+    }
+
+    // REGRA A3: Baixa atividade de abordagem (<30% dos deals)
+    if (current.totalDeals > 0 && abordagem.total < current.totalDeals * 0.3) {
+        recs.push({
+            tipo: 'ajuste',
+            area: 'Abordagem',
+            impacto: 'medio',
+            prioridade: 0,
+            titulo: 'Baixa Atividade de Abordagem',
+            mensagem: `Apenas ${abordagem.total} de ${current.totalDeals} negócios foram abordados (${((abordagem.total / current.totalDeals) * 100).toFixed(0)}%).`,
+            recomendacao: 'Aumentar volume de abordagens para cobrir mais negócios no funil.'
+        });
+    }
 
     // --- DIAGNÓSTICOS EDUCACIONAIS (ETAPAS) ---
     if (current.funnel.leadEngajadoCount > 0) {

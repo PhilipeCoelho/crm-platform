@@ -107,6 +107,12 @@ export interface LostData {
     motivos: { motivo_perda: string; quantidade: number; percentual: number }[];
 }
 
+export interface AbordagemData {
+    total: number;
+    respondidos: number;
+    taxaResposta: number;
+}
+
 export interface GoalStats {
     metric: string;
     target: number;
@@ -115,8 +121,8 @@ export interface GoalStats {
 }
 
 export interface InsightsData {
-    current: InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData };
-    previous?: InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData };
+    current: InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData, abordagem: AbordagemData };
+    previous?: InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData, abordagem: AbordagemData };
     variation: Record<string, number>;
     goals: GoalStats[];
 }
@@ -128,7 +134,7 @@ export async function getInsightsData(
     compareEndDate?: string
 ): Promise<InsightsData> {
 
-    const fetchStats = async (start: string, end: string): Promise<InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData }> => {
+    const fetchStats = async (start: string, end: string): Promise<InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData, abordagem: AbordagemData }> => {
         // Garantir que a data final cubra o final do dia
         const endOfDay = end.includes('T') ? end : `${end}T23:59:59.999Z`;
         const startOfDay = start.includes('T') ? start : `${start}T00:00:00.000Z`;
@@ -176,7 +182,7 @@ export async function getInsightsData(
 
         if (error) {
             console.error('Error fetching insights data:', error);
-            return { ...emptyStats(), funnel: emptyFunnel(), activity: emptyActivity(), intensity: emptyIntensity(), timing: emptyTiming(), channel: emptyChannel(), lost: emptyLost() };
+            return { ...emptyStats(), funnel: emptyFunnel(), activity: emptyActivity(), intensity: emptyIntensity(), timing: emptyTiming(), channel: emptyChannel(), lost: emptyLost(), abordagem: emptyAbordagem() };
         }
 
         const validData = (data || []).filter(d => {
@@ -332,6 +338,27 @@ export async function getInsightsData(
         );
         const negociosSemAtividade = openDealsIds.size > 0 ? Math.max(0, openDealsIds.size - dealsComAtividadeNoPeriodo.size) : 0;
 
+        // Fase 9: Abordagens
+        const ABORDAGEM_TYPES = ['call', 'email', 'message', 'instagram'];
+        const dealsAbordados = new Set(
+            periodCompletedActivities
+                .filter(a => ABORDAGEM_TYPES.includes(a.type) && a.deal_id)
+                .map(a => String(a.deal_id).toLowerCase())
+        );
+        const abordadosTotal = dealsAbordados.size;
+
+        // Respondido = deal abordado que atingiu stage "Lead Engajado" ou posterior
+        const dealsAbordadosRespondidos = dealsActive.filter(d => {
+            const dealId = String(d.deal_id).toLowerCase();
+            if (!dealsAbordados.has(dealId)) return false;
+            const stage = (d.stage_atual || '').toLowerCase();
+            const etapaPerda = (d.etapa_onde_perdeu || '').toLowerCase();
+            return stage.includes('engajado') || stage.includes('reun') || stage.includes('proposta') || d.status_final === 'won'
+                || etapaPerda.includes('engajado') || etapaPerda.includes('reun') || etapaPerda.includes('proposta');
+        });
+        const abordadosRespondidos = dealsAbordadosRespondidos.length;
+        const taxaRespostaAbordagem = abordadosTotal > 0 ? (abordadosRespondidos / abordadosTotal) * 100 : 0;
+
         return {
             totalDeals,
             totalWon,
@@ -425,12 +452,17 @@ export async function getInsightsData(
                 mediaContatosAtePerda,
                 etapas: etapasList,
                 motivos: motivosList
+            },
+            abordagem: {
+                total: abordadosTotal,
+                respondidos: abordadosRespondidos,
+                taxaResposta: taxaRespostaAbordagem
             }
         };
     };
 
     const current = await fetchStats(startDate, endDate);
-    let previous: (InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData }) | undefined;
+    let previous: (InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData, abordagem: AbordagemData }) | undefined;
     const variation: Record<string, number> = {};
 
     if (compareStartDate && compareEndDate) {
@@ -489,6 +521,12 @@ export async function getInsightsData(
         Object.keys(current.dashboardFlow).forEach(key => {
             // @ts-ignore
             variation[key] = calculateVariation(current.dashboardFlow[key], previous.dashboardFlow[key]);
+        });
+
+        // Variação para Abordagem
+        Object.keys(current.abordagem).forEach(key => {
+            // @ts-ignore
+            variation[`abordagem_${key}`] = calculateVariation(current.abordagem[key], previous.abordagem[key]);
         });
     }
 
@@ -624,5 +662,13 @@ function emptyLost(): LostData {
         mediaContatosAtePerda: 0,
         etapas: [],
         motivos: []
+    };
+}
+
+function emptyAbordagem(): AbordagemData {
+    return {
+        total: 0,
+        respondidos: 0,
+        taxaResposta: 0
     };
 }

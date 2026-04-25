@@ -1,5 +1,5 @@
 import { InsightsData } from '@/services/insights';
-import { Percent, Users, Clock, CalendarHeart, Zap, BarChart, DollarSign, Target, BarChart3, CheckCircle2, XCircle, TrendingUp, CheckSquare, PlusSquare, ArrowUpRight, AlertCircle, Activity } from 'lucide-react';
+import { Percent, Users, Clock, CalendarHeart, Zap, BarChart, DollarSign, Target, BarChart3, CheckCircle2, XCircle, TrendingUp, CheckSquare, PlusSquare, ArrowUpRight, AlertCircle, Activity, MessageSquare } from 'lucide-react';
 import { Currency } from '@/data/currencies';
 
 export type WidgetKey =
@@ -24,9 +24,11 @@ export type WidgetKey =
     | 'taxa_comparecimento'
     | 'reuniao_para_proposta'
     | 'proposta_para_ganho'
-    | 'media_followups';
+    | 'media_followups'
+    | 'abordagens'
+    | 'taxa_resposta';
 
-export type WidgetCategory = 'revenue' | 'conversion' | 'intensity' | 'velocity' | 'loss' | 'channel' | 'execution';
+export type WidgetCategory = 'revenue' | 'conversion' | 'intensity' | 'velocity' | 'loss' | 'channel' | 'execution' | 'outreach';
 
 export interface WidgetDefinition {
     key: WidgetKey;
@@ -367,6 +369,41 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         getValue: (data) => ({
             value: data?.current?.activity?.mediaFollowUpsAteFechamento?.toFixed(1) || 0,
             microDescription: 'Toques pós-reunião'
+        })
+    },
+    {
+        key: 'abordagens',
+        title: 'Abordagens',
+        description: 'Quantidade de negócios únicos que receberam pelo menos 1 contato (ligação, e-mail, mensagem ou Instagram) no período.',
+        icon: MessageSquare,
+        color: 'bg-cyan-500/10 text-cyan-500',
+        redirectLink: '/insights?tab=intensidade',
+        widget_available: true,
+        metric_category: 'outreach',
+        getValue: (data) => {
+            if (!data) return { value: '—', microDescription: 'Negócios abordados', variation: null };
+            const total = data.current.abordagem.total;
+            const resp = data.current.abordagem.respondidos;
+            return {
+                value: total,
+                microDescription: `${resp} responderam (${total > 0 ? ((resp / total) * 100).toFixed(0) : 0}%)`,
+                variation: data.variation?.abordagem_total
+            };
+        }
+    },
+    {
+        key: 'taxa_resposta',
+        title: 'Taxa de Resposta',
+        description: 'Percentual de negócios abordados que avançaram para Lead Engajado ou além, indicando resposta real do lead.',
+        icon: TrendingUp,
+        color: 'bg-cyan-500/10 text-cyan-500',
+        redirectLink: '/insights?tab=intensidade',
+        widget_available: true,
+        metric_category: 'outreach',
+        getValue: (data) => ({
+            value: data ? `${data.current.abordagem.taxaResposta.toFixed(1)}%` : '—',
+            microDescription: 'Leads que responderam à abordagem',
+            variation: data?.variation?.abordagem_taxaResposta
         })
     }
 ];
