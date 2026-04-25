@@ -6,7 +6,7 @@ export const LEAD_SEQUENCE_TEMPLATES: StageSequence[] = [
         stageName: 'new',
         dayOffset: 0,
         activityType: 'message',
-        defaultTitle: 'WhatsApp: Mensagem inicial',
+        defaultTitle: 'Mensagem inicial',
         defaultDescription: 'Objetivo: Abertura de 70%+ / Resposta de 30%+',
         tooltipScript: `[HOOK DIRETO - Sem "Olá, tudo bem?"]\n"Dra. [Nome], vi que a [Nome da Clínica] está sem presença digital estruturada. Não estou a enviar proposta. Só uma pergunta: quantas consultas deixou de marcar esta semana porque o paciente não a encontrou no Google antes de ligar para a concorrência?"\n\n[PAUSA - Aguardar resposta]\n\n"Trabalho exclusivamente com clínicas dentárias em Portugal. Ajudei a [Nome de Clínica Referência/Genérico] a aumentar o Payer Mix em 40% em 6 meses. Não vendo 'posts bonitos'. Vendo previsibilidade de faturamento."\n\n[CTA LEVE]\n"Valia a pena uma conversa de 15 minutos para eu mostrar onde está a fuga de dinheiro na sua captação? Sem compromisso. Se não fizer sentido, diz-me e não volto a incomodar."`,
         orderIndex: 1,

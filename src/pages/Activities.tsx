@@ -61,7 +61,7 @@ const QUICK_TYPE_FILTERS: { id: QuickTypeFilter; label: string }[] = [
     { id: 'Todos', label: 'Todos' },
     { id: 'call', label: 'Ligações' },
     { id: 'email', label: 'Emails' },
-    { id: 'message', label: 'WhatsApp' },
+    { id: 'message', label: 'Mensagem' },
     { id: 'meeting', label: 'Reuniões' },
     { id: 'task', label: 'Tarefas' },
 ];
@@ -999,7 +999,7 @@ function QuickEditModal({ activity, onClose, onSave }: QuickEditModalProps) {
     const TYPE_OPTS = [
         { value: 'call', label: 'Ligação', Icon: Phone },
         { value: 'email', label: 'Email', Icon: Mail },
-        { value: 'message', label: 'WhatsApp', Icon: MessageCircle },
+        { value: 'message', label: 'Mensagem', Icon: MessageCircle },
         { value: 'meeting', label: 'Reunião', Icon: Users },
         { value: 'task', label: 'Tarefa', Icon: CheckCircle2 },
         { value: 'audit', label: 'Visita', Icon: Video },

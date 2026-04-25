@@ -175,7 +175,7 @@ export default function CadenceSettings() {
                                                                     className="w-full text-sm bg-muted/30 border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                                                     value={editingTemplate.title}
                                                                     onChange={e => setEditingTemplate({ ...editingTemplate, title: e.target.value })}
-                                                                    placeholder="Ex: WhatsApp: Mensagem inicial"
+                                                                    placeholder="Ex: Mensagem inicial"
                                                                 />
                                                             </div>
                                                             <div>

@@ -1000,7 +1000,7 @@ export function useCRMStore(): CRMStore {
             if (stageName.includes('LEAD') && !stageName.includes('ENGAJADO')) {
                 // First step for LEAD typically is at offset 0, but we must run weekend check
                 targetDate = adjustDateForWeekend(targetDate);
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'WhatsApp: Mensagem inicial', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'LEAD', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
+                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'Mensagem inicial', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'LEAD', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
             } else if (stageName.includes('ENGAJADO')) {
                 targetDate = adjustDateForWeekend(targetDate);
                 // FIXED: Match title with Master Cadence Fix

@@ -16,7 +16,7 @@ type TabId = 'all' | 'call' | 'email' | 'message' | 'meeting' | 'task' | 'done';
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   call:      { label: 'Ligação',   icon: 'phone',    color: 'var(--vp-blue-500)', bg: 'var(--vp-blue-50)' },
   email:     { label: 'E-mail',    icon: 'mail',     color: 'var(--vp-purple)',   bg: 'var(--vp-purple-bg)' },
-  message:   { label: 'WhatsApp',  icon: 'whatsapp', color: 'var(--vp-success)',  bg: 'var(--vp-success-bg)' },
+  message:   { label: 'Mensagem',  icon: 'whatsapp', color: 'var(--vp-success)',  bg: 'var(--vp-success-bg)' },
   instagram: { label: 'Instagram', icon: 'whatsapp', color: 'var(--vp-pink)',     bg: 'var(--vp-pink-bg)' },
   meeting:   { label: 'Reunião',   icon: 'video',    color: 'var(--vp-pink)',     bg: 'var(--vp-pink-bg)' },
   task:      { label: 'Tarefa',    icon: 'check',    color: 'var(--vp-ink-600)',  bg: 'var(--vp-ink-50)' },
