@@ -7,9 +7,10 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     activity: Activity | null;
+    onCompleted?: () => void;
 }
 
-export default function CompleteActivityModal({ isOpen, onClose, activity }: Props) {
+export default function CompleteActivityModal({ isOpen, onClose, activity, onCompleted }: Props) {
     const { completeActivityWithLog } = useCRM();
     const [notes, setNotes] = useState('');
     const [houveResposta, setHouveResposta] = useState(false);
@@ -24,6 +25,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity }: Pro
             await completeActivityWithLog(activity.id, notes, houveResposta);
             setNotes('');
             onClose();
+            if (onCompleted) onCompleted();
         } catch (error) {
             console.error('Error completing activity:', error);
         } finally {

@@ -7,6 +7,8 @@ import { filterRealActivities } from '@/utils/activityHelpers';
 import { Icons } from '@/components/activities-v2/Icons';
 import { differenceInDays, parseISO, isToday as isTodayFn } from 'date-fns';
 import DetailPanelReal from '@/components/activities-v2/DetailPanelReal';
+import CompleteActivityModal from '@/components/activities/CompleteActivityModal';
+import NewActivityModal from '@/components/activities/NewActivityModal';
 
 // --- Type config ---
 type TabId = 'all' | 'call' | 'email' | 'message' | 'meeting' | 'task' | 'done';
@@ -83,6 +85,8 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>('all');
+  const [activityToComplete, setActivityToComplete] = useState<Activity | null>(null);
+  const [dealIdForNewActivity, setDealIdForNewActivity] = useState<string | null>(null);
 
   // --- All pipeline stages flat ---
   const allStages = useMemo(() => {
@@ -162,10 +166,9 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   [selectedId, activities]);
 
   // --- Actions ---
-  const onComplete = useCallback((id: string) => {
-    updateActivity(id, { completed: true });
-    if (selectedId === id) setSelectedId(null);
-  }, [selectedId, updateActivity]);
+  const onCompleteClick = useCallback((activity: Activity) => {
+    setActivityToComplete(activity);
+  }, []);
 
   const onUndo = useCallback((id: string) => {
     updateActivity(id, { completed: false });
@@ -212,7 +215,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
         ) : (
           <button
             className="av2-checkbox"
-            onClick={e => { e.stopPropagation(); onComplete(a.id); }}
+            onClick={e => { e.stopPropagation(); onCompleteClick(a); }}
             aria-label="Concluir atividade"
           />
         )}
@@ -372,9 +375,29 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
           activity={selectedActivity}
           currency={currency}
           onClose={() => setSelectedId(null)}
-          onComplete={onComplete}
+          onComplete={onCompleteClick}
         />
       )}
+
+      {/* Modals */}
+      <CompleteActivityModal
+        isOpen={!!activityToComplete}
+        onClose={() => setActivityToComplete(null)}
+        activity={activityToComplete}
+        onCompleted={() => {
+          if (activityToComplete?.dealId) {
+            setDealIdForNewActivity(activityToComplete.dealId);
+          }
+          setActivityToComplete(null);
+          setSelectedId(null);
+        }}
+      />
+
+      <NewActivityModal
+        isOpen={!!dealIdForNewActivity}
+        onClose={() => setDealIdForNewActivity(null)}
+        preselectedDealId={dealIdForNewActivity || undefined}
+      />
     </div>
   );
 }

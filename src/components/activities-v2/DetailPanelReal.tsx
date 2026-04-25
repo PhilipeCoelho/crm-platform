@@ -29,11 +29,11 @@ interface Props {
   activity: Activity;
   currency: Currency;
   onClose: () => void;
-  onComplete: (id: string) => void;
+  onComplete: (activity: Activity) => void;
 }
 
 const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete }: Props) {
-  const { deals, contacts, companies, pipelines, logs, activities, isPrivacyMode } = useCRM();
+  const { deals, contacts, companies, pipelines, logs, activities, isPrivacyMode, openFocusDeal } = useCRM();
   const blur = isPrivacyMode ? 'av2-blur' : '';
 
   const tc = TYPE_CONFIG[activity.type] || TYPE_CONFIG.task;
@@ -116,7 +116,12 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
         {deal && (
           <div className="av2-deal-card">
             <div className="av2-deal-row">
-              <span className={`av2-deal-name ${blur}`}>{deal.title}</span>
+              <button 
+                className={`av2-deal-name ${blur} hover:text-[var(--vp-blue-600)] hover:underline cursor-pointer text-left focus:outline-none transition-colors`}
+                onClick={() => openFocusDeal(deal.id)}
+              >
+                {deal.title}
+              </button>
               <span className={`av2-deal-value ${blur}`}>{fmtMoney(deal.value, currency)}</span>
             </div>
             {contact && <div className={`av2-deal-contact ${blur}`}>{contact.name}</div>}
@@ -196,7 +201,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
 
       {/* Footer */}
       <div className="av2-detail-footer">
-        <button className="av2-btn av2-btn--success" onClick={() => onComplete(activity.id)}>
+        <button className="av2-btn av2-btn--success" onClick={() => onComplete(activity)}>
           <Icons.check size={14} />
           Concluir
         </button>

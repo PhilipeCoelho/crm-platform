@@ -60,19 +60,33 @@
 
 /* --- Dark mode --- */
 .dark .av2 {
-  --vp-bg: #0f1219;
-  --vp-surface: #181d2a;
-  --vp-border: #262d3d;
-  --vp-border-strong: #333b4f;
-  --vp-ink-25: #141824;
-  --vp-ink-50: #1a2030;
-  --vp-ink-100: #232a3c;
-  --vp-blue-50: #172040;
-  --vp-danger-bg: #2d1520;
-  --vp-warn-bg: #2a1f10;
-  --vp-success-bg: #0f2a1f;
-  --vp-purple-bg: #1e1535;
-  --vp-pink-bg: #2d1525;
+  --vp-bg: hsl(var(--background));
+  --vp-surface: hsl(var(--card));
+  --vp-border: hsl(var(--border));
+  --vp-border-strong: hsl(var(--border) / 0.5);
+  
+  --vp-text: hsl(var(--foreground));
+  --vp-text-muted: hsl(var(--muted-foreground));
+  --vp-text-soft: hsl(var(--muted-foreground) / 0.8);
+
+  --vp-ink-900: hsl(var(--foreground));
+  --vp-ink-800: hsl(var(--foreground));
+  --vp-ink-700: hsl(var(--foreground));
+  --vp-ink-600: hsl(var(--muted-foreground));
+  --vp-ink-500: hsl(var(--muted-foreground));
+  --vp-ink-400: hsl(var(--muted-foreground));
+  --vp-ink-300: hsl(var(--border));
+  --vp-ink-200: hsl(var(--border));
+  --vp-ink-100: hsl(var(--muted));
+  --vp-ink-50: hsl(var(--muted));
+  --vp-ink-25: hsl(var(--card));
+
+  --vp-blue-50: hsl(var(--primary) / 0.1);
+  --vp-danger-bg: hsl(var(--destructive) / 0.1);
+  --vp-warn-bg: rgba(217, 119, 6, 0.15);
+  --vp-success-bg: rgba(21, 163, 110, 0.15);
+  --vp-purple-bg: rgba(124, 92, 255, 0.15);
+  --vp-pink-bg: rgba(210, 58, 130, 0.15);
 }
 
 /* --- Base --- */
