@@ -18,11 +18,13 @@ const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; 
 };
 
 function fmtMoney(v: number, currency: Currency): string {
-  return new Intl.NumberFormat(currency.locale, {
+  const formatted = new Intl.NumberFormat(currency.locale, {
     style: 'currency', currency: currency.code,
-    maximumFractionDigits: v >= 1000 ? 0 : 2,
+    minimumFractionDigits: v % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: v % 1 === 0 ? 0 : 2,
     notation: v >= 100_000 ? 'compact' : 'standard',
   }).format(v);
+  return formatted.replace(/\s+/g, '');
 }
 
 interface Props {
