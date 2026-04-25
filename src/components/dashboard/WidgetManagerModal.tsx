@@ -17,7 +17,8 @@ const CATEGORY_LABELS: Record<WidgetCategory, string> = {
     velocity: 'Velocidade',
     loss: 'Perdas',
     channel: 'Canais',
-    execution: 'Execução Comercial'
+    execution: 'Execução Comercial',
+    outreach: 'Abordagem'
 };
 
 export default function WidgetManagerModal({ isOpen, onClose, currentWidgets, onSave }: WidgetManagerModalProps) {
