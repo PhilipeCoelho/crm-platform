@@ -14,6 +14,7 @@ export function useDashboardWidgets() {
     const { user } = useSupabaseAuth();
     const [widgets, setWidgets] = useState<UserDashboardWidget[]>([]);
     const [isLoadingWidgets, setIsLoadingWidgets] = useState(true);
+    const [showPriority, setShowPriority] = useState(true);
 
     const fetchWidgets = useCallback(async () => {
         if (!user) {
@@ -66,7 +67,19 @@ export function useDashboardWidgets() {
     // Initial load
     useEffect(() => {
         fetchWidgets();
-    }, [fetchWidgets]);
+        if (user) {
+            const saved = localStorage.getItem(`crm_show_priority_${user.id}`);
+            if (saved !== null) {
+                setShowPriority(saved === 'true');
+            }
+        }
+    }, [fetchWidgets, user]);
+
+    const togglePriority = useCallback((val: boolean) => {
+        if (!user) return;
+        setShowPriority(val);
+        localStorage.setItem(`crm_show_priority_${user.id}`, String(val));
+    }, [user]);
 
     const saveWidgets = async (newWidgets: UserDashboardWidget[]) => {
         if (!user) return;
@@ -134,6 +147,8 @@ export function useDashboardWidgets() {
         widgets,
         isLoadingWidgets,
         saveWidgets,
-        fetchWidgets
+        fetchWidgets,
+        showPriority,
+        togglePriority
     };
 }

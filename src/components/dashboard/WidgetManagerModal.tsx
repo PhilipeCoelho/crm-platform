@@ -8,6 +8,8 @@ interface WidgetManagerModalProps {
     onClose: () => void;
     currentWidgets: UserDashboardWidget[];
     onSave: (widgets: UserDashboardWidget[]) => void;
+    showPriority: boolean;
+    onTogglePriority: (val: boolean) => void;
 }
 
 const CATEGORY_LABELS: Record<WidgetCategory, string> = {
@@ -21,7 +23,7 @@ const CATEGORY_LABELS: Record<WidgetCategory, string> = {
     outreach: 'Abordagem'
 };
 
-export default function WidgetManagerModal({ isOpen, onClose, currentWidgets, onSave }: WidgetManagerModalProps) {
+export default function WidgetManagerModal({ isOpen, onClose, currentWidgets, onSave, showPriority, onTogglePriority }: WidgetManagerModalProps) {
     const [selectedKeys, setSelectedKeys] = useState<WidgetKey[]>([]);
     const [hoveredKey, setHoveredKey] = useState<WidgetKey | null>(null);
 
@@ -105,6 +107,21 @@ export default function WidgetManagerModal({ isOpen, onClose, currentWidgets, on
                         className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     >
                         <X size={20} />
+                    </button>
+                </div>
+
+                <div className="p-5 border-b border-border/50 bg-muted/10 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-semibold text-foreground">Exibir Tema Prioritário</h3>
+                        <p className="text-[10px] text-muted-foreground">Mostra o diagnóstico estratégico no topo do dashboard.</p>
+                    </div>
+                    <button
+                        onClick={() => onTogglePriority(!showPriority)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showPriority ? 'bg-primary' : 'bg-muted'}`}
+                    >
+                        <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showPriority ? 'translate-x-6' : 'translate-x-1'}`}
+                        />
                     </button>
                 </div>
 

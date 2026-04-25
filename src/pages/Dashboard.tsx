@@ -42,7 +42,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const { widgets: customWidgets, saveWidgets } = useDashboardWidgets();
+    const { widgets: customWidgets, saveWidgets, showPriority, togglePriority } = useDashboardWidgets();
     const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
 
     const [selectedPeriod, setSelectedPeriod] = useState<PeriodValue>(() => {
@@ -259,15 +259,17 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                     <div className="space-y-10 pt-2">
 
                         {/* BLOCO 0 - TEMA PRIORITÁRIO */}
-                        <section>
-                            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
-                                Tema Prioritário
-                            </h2>
-                            <PriorityCard
-                                recommendation={priorityRecommendation}
-                                onNavigate={handleNavigate}
-                            />
-                        </section>
+                        {showPriority && (
+                            <section>
+                                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                                    Tema Prioritário
+                                </h2>
+                                <PriorityCard
+                                    recommendation={priorityRecommendation}
+                                    onNavigate={handleNavigate}
+                                />
+                            </section>
+                        )}
 
                         {/* BLOCO CUSTOMIZÁVEL - WIDGETS ESTRATÉGICOS */}
                         <section className="pt-2">
@@ -316,6 +318,8 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                 onClose={() => setIsWidgetModalOpen(false)}
                 currentWidgets={customWidgets}
                 onSave={saveWidgets}
+                showPriority={showPriority}
+                onTogglePriority={togglePriority}
             />
         </div>
     );
