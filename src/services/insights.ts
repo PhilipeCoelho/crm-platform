@@ -135,13 +135,27 @@ export async function getInsightsData(
 
         const IGNORE_TEST_DATA_BEFORE = '2026-02-22T00:00:00.000Z'; // Ajustado para hoje para "esquecer o passado" de testes recente
 
-        // 1. Buscar Estágios válidos para evitar "negócios fantasma" (que não aparem no board)
-        const { data: validStages } = await supabase.from('stages').select('id');
+        // Parallel fetch: all 4 queries are independent — run them simultaneously
+        const [
+            { data: validStages },
+            { data: realOpenDeals },
+            { data: flowActivitiesRaw },
+            { data, error }
+        ] = await Promise.all([
+            supabase.from('stages').select('id'),
+            supabase.from('deals').select('id, stage_id, value').eq('status', 'open'),
+            supabase
+                .from('activities')
+                .select('id, status, created_at, completed_at, deal_id, type')
+                .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(completed_at.gte.${startOfDay},completed_at.lte.${endOfDay})`),
+            supabase
+                .from('deal_analytics')
+                .select('*')
+                .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(closed_at.gte.${startOfDay},closed_at.lte.${endOfDay}),and(updated_at.gte.${startOfDay},updated_at.lte.${endOfDay})`)
+        ]);
+
         const validStageIds = new Set(validStages?.map(s => s.id) || []);
 
-        // 2. Buscar os IDs Reais dos negócios abertos no Pipeline (Sanity Check)
-        // Só incluímos negócios que estão em estágios VÁLIDOS e ATIVOS
-        const { data: realOpenDeals } = await supabase.from('deals').select('id, stage_id, value').eq('status', 'open');
         let globalOpenValue = 0;
         const openDealsIds = new Set(
             realOpenDeals
@@ -153,24 +167,12 @@ export async function getInsightsData(
                 .map(d => d.id.toLowerCase()) || []
         );
 
-        // 3. Fetch activities within this specific timeframe
-        const { data: flowActivitiesRaw } = await supabase
-            .from('activities')
-            .select('id, status, created_at, completed_at, deal_id, type')
-            .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(completed_at.gte.${startOfDay},completed_at.lte.${endOfDay})`);
-
         const flowActivities = flowActivitiesRaw?.filter(a => {
             const REAL_TYPES = ['call', 'meeting', 'task', 'email', 'message', 'instagram', 'analysis', 'audit'];
             if (!REAL_TYPES.includes(a.type)) return false;
             if (a.created_at < IGNORE_TEST_DATA_BEFORE) return false;
             return true;
         }) || [];
-
-        // 3. Buscar dados de analytics
-        const { data, error } = await supabase
-            .from('deal_analytics')
-            .select('*')
-            .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(closed_at.gte.${startOfDay},closed_at.lte.${endOfDay}),and(updated_at.gte.${startOfDay},updated_at.lte.${endOfDay})`);
 
         if (error) {
             console.error('Error fetching insights data:', error);
