@@ -723,7 +723,7 @@ function ActivityCompactRow({
 
     return (
         <div 
-            className={`relative group flex items-start sm:items-center gap-4 py-4 px-5 mb-3 rounded-2xl border bg-white dark:bg-card shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-border
+            className={`relative group flex items-start sm:items-center gap-4 py-4 px-5 mb-3 rounded-2xl border bg-white dark:bg-card shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] transition-[shadow,transform] hover:-translate-y-0.5 hover:shadow-lg dark:border-border
                 ${activity.completed ? 'opacity-60 grayscale' : ''} 
                 ${isSelected ? 'bg-sky-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-primary/30' : 'border-slate-200/50'}`}
         >
@@ -733,7 +733,7 @@ function ActivityCompactRow({
             {/* Checkbox */}
             <button 
                 onClick={(e) => { e.stopPropagation(); onToggleComplete(); }}
-                className={`w-5 h-5 rounded-[4px] border flex items-center justify-center shrink-0 transition-all cursor-pointer
+                className={`w-5 h-5 rounded-[4px] border flex items-center justify-center shrink-0 transition-colors cursor-pointer
                     ${activity.completed 
                         ? 'bg-slate-200 border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-700 dark:text-slate-400' 
                         : 'bg-transparent border-slate-300 dark:border-slate-600 text-transparent hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-primary'}`}

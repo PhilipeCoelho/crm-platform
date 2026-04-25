@@ -90,7 +90,7 @@ export default function WidgetManagerModal({ isOpen, onClose, currentWidgets, on
     }, {} as Record<WidgetCategory, typeof allAvailableDefs>);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 animate-in fade-in duration-200">
             <div className="bg-card w-full max-w-2xl rounded-2xl shadow-xl border border-border/50 flex flex-col max-h-[90vh]">
                 <div className="flex items-center justify-between p-5 border-b border-border/50">
                     <div>

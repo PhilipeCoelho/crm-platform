@@ -215,7 +215,7 @@ export default function CampaignSettings() {
             </div>
             {/* Add Sender Modal Overlay */}
             {isAddingSender && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-white dark:bg-card w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-border">
                             <h3 className="text-xl font-bold text-foreground">Adicionar novo remetente</h3>

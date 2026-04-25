@@ -60,7 +60,7 @@ export default function CadenceSettings() {
     return (
         <div className="flex flex-col h-full bg-background overflow-hidden animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex items-center justify-between px-8 py-6 border-b border-border bg-card/30 backdrop-blur-md sticky top-0 z-20">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-border bg-card/80 sticky top-0 z-20">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}

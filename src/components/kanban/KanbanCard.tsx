@@ -175,7 +175,7 @@ export const DealCardBase = React.memo(function DealCardBase({ deal, currency, o
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className="group relative p-3 rounded-xl border transition-all duration-200 cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-card dark:bg-card dark:hover:bg-muted border-border premium-shadow shadow-sm hover:shadow-md"
+            className="group relative p-3 rounded-xl border transition-[shadow,transform] duration-200 cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-card dark:bg-card dark:hover:bg-muted border-border premium-shadow shadow-sm hover:shadow-md"
         >
             {/* Status Icon - Bottom Right Corner */}
             {status.icon === AlertTriangle ? (
@@ -225,7 +225,7 @@ export const DealCardBase = React.memo(function DealCardBase({ deal, currency, o
                 )}
 
                 {/* Action Buttons (Hover only) */}
-                <div className="absolute top-[-2px] right-[-6px] flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all z-10">
+                <div className="absolute top-[-2px] right-[-6px] flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
                         onClick={handleMovePipeline}
                         className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded"

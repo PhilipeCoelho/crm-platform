@@ -142,7 +142,7 @@ export default function EmailTab({ deal, onSave }: EmailTabProps) {
 
             {/* Template Selector Modal */}
             {isTemplateModalOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-white dark:bg-card w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
                             <h3 className="font-bold text-foreground flex items-center gap-2">

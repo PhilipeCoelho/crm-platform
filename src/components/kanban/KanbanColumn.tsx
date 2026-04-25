@@ -1,3 +1,4 @@
+import React from 'react';
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Stage, Id, Deal } from "@/types/schema";
@@ -19,7 +20,7 @@ interface Props {
     searchTerm?: string;
 }
 
-export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview, onEditStage, searchTerm }: Props) {
+const KanbanColumn = React.memo(function KanbanColumn({ column, tasks, onAdd, currency, onPreview, onEditStage, searchTerm }: Props) {
     const { activities } = useCRM();
 
     // Pre-calculate activity data for all tasks in this column (Optimized)
@@ -160,5 +161,6 @@ export default function KanbanColumn({ column, tasks, onAdd, currency, onPreview
             </div>
         </div>
     );
-}
+});
 
+export default KanbanColumn;

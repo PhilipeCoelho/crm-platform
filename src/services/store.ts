@@ -599,12 +599,13 @@ export function useCRMStore(): CRMStore {
     }
 
     async function deleteLog(id: string) {
+        const removedLog = logs.find(l => l.id === id);
         setLogs(prev => prev.filter(l => l.id !== id));
         const { error } = await supabase.from('deal_logs').delete().eq('id', id);
         if (error) {
             console.error('Error deleting log:', error);
             alert(`Erro ao excluir nota: ${error.message}`);
-            fetchAll();
+            if (removedLog) setLogs(prev => [...prev, removedLog]);
         }
     }
 
@@ -957,7 +958,16 @@ export function useCRMStore(): CRMStore {
         if (error) {
             console.error('❌ Error moving deal:', error);
             alert(`Erro ao salvar movimento: ${error.message}`);
-            fetchAll(); // Revert from DB
+            // Revert optimistic move — re-fetch just this deal
+            const { data: freshDeal } = await supabase.from('deals').select('*').eq('id', id).single();
+            if (freshDeal) {
+                setDeals(prev => prev.map(d => d.id === id ? {
+                    ...d,
+                    stageId: freshDeal.stage_id,
+                    position: freshDeal.position,
+                    pipelineId: freshDeal.pipeline_id
+                } : d));
+            }
         } else {
             // 1. OPTIMISTIC CLEANUP (Remove ALL pending automatic activities to prevent duplicates/ghosts)
             console.log('🧹 Optimistic Cleanup: Removing old automatic activities for deal', id);
@@ -1006,8 +1016,7 @@ export function useCRMStore(): CRMStore {
                 });
             }
 
-            // 3. SINGLE BACKGROUND REFRESH (after backend trigger finishes)
-            setTimeout(fetchAll, 3000);
+            // Realtime handler will pick up new activities created by backend triggers
         }
     };
 
@@ -1035,7 +1044,8 @@ export function useCRMStore(): CRMStore {
         if (error) {
             console.error('Error deleting deal:', error);
             alert(`Erro ao excluir negócio: ${error.message}`);
-            fetchAll();
+            // Revert: re-add the deal (realtime will also sync)
+            setDeals(prev => [...prev, { ...prev.find(d => d.id === id) || {} as Deal }]);
         }
     };
 
@@ -1115,14 +1125,15 @@ export function useCRMStore(): CRMStore {
 
         if (deleteDealsError) {
             console.error('Error deleting deals:', deleteDealsError);
-            fetchAll();
+            // Partial failure — reload only contacts
+            const { data: freshContacts } = await supabase.from('contacts').select('*');
+            if (freshContacts) setContacts(freshContacts.map((c: any) => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, role: c.role, userId: c.user_id, companyId: c.company_id, createdAt: c.created_at, marketingStatus: c.marketing_status, status: c.status || 'active' } as Contact)));
             return;
         }
 
         const { error } = await supabase.from('contacts').delete().eq('id', id);
         if (error) {
             console.error('Error deleting contact:', error);
-            fetchAll();
         }
     };
 
@@ -1222,11 +1233,24 @@ export function useCRMStore(): CRMStore {
                 }));
             } else {
                 console.error("Error adding stage:", error);
-                fetchAll();
+                // Revert optimistic stage addition
+                setPipelines(prev => ({
+                    ...prev,
+                    [pipelineId]: {
+                        ...prev[pipelineId],
+                        stages: prev[pipelineId].stages.filter(s => s.id !== tempId)
+                    }
+                }));
             }
         } catch (e) {
             console.error('Failed to add stage', e);
-            fetchAll(); // Revert
+            setPipelines(prev => ({
+                ...prev,
+                [pipelineId]: {
+                    ...prev[pipelineId],
+                    stages: prev[pipelineId].stages.filter(s => s.id !== tempId)
+                }
+            }));
         }
     };
 
@@ -1272,11 +1296,21 @@ export function useCRMStore(): CRMStore {
             }
         }));
 
+        const deletedStage = pipelines[pipelineId]?.stages.find(s => s.id === stageId);
         try {
             await supabase.from('stages').delete().eq('id', stageId);
         } catch (e) {
             console.error('Failed to delete stage', e);
-            fetchAll();
+            // Revert: re-add deleted stage
+            if (deletedStage) {
+                setPipelines(prev => ({
+                    ...prev,
+                    [pipelineId]: {
+                        ...prev[pipelineId],
+                        stages: [...prev[pipelineId].stages, deletedStage]
+                    }
+                }));
+            }
         }
     };
 
@@ -1420,8 +1454,12 @@ export function useCRMStore(): CRMStore {
                     if (response.ok) {
                         const result = await response.json();
                         console.log('✅ [Store] Campaign API Success:', result);
-                        // Refresh to get latest statuses from DB
-                        fetchAll();
+                        // Update campaign status locally from API result
+                        if (result.status) {
+                            setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: result.status } : c));
+                        } else {
+                            setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: 'sent' } : c));
+                        }
                     } else {
                         const errorMsg = await response.text();
                         console.error('🔥 [Store] Campaign API Error:', errorMsg);
@@ -1587,7 +1625,6 @@ export function useCRMStore(): CRMStore {
         if (error) {
             console.error('Error updating cadence template:', error);
             alert(`Erro ao salvar template: ${error.message}`);
-            fetchAll();
         }
     };
 

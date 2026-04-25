@@ -236,7 +236,7 @@ export default function CampaignsDashboard() {
 
             {/* Modal de Relatório (Simplificado) */}
             {selectedCampaign && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-card w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-6 border-b border-border flex items-center justify-between">
                             <div className="flex items-center gap-4">

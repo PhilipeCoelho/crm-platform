@@ -38,7 +38,7 @@ export default function MobileKanbanView({
                             className="w-[85vw] shrink-0 snap-start flex flex-col h-full border-r border-border/40 last:border-r-0"
                         >
                             {/* Column Header */}
-                            <div className="px-4 py-3 bg-card/30 backdrop-blur-sm border-b border-border/50 sticky top-0 z-10 flex items-center justify-between">
+                            <div className="px-4 py-3 bg-card/80 border-b border-border/50 sticky top-0 z-10 flex items-center justify-between">
                                 <div>
                                     <h2 className="text-sm font-bold text-foreground">
                                         {column.title}
