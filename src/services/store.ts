@@ -428,36 +428,105 @@ export function useCRMStore(): CRMStore {
             }
         });
 
-        // Listen for DB Changes (Realtime Sync)
+        // Listen for DB Changes (Realtime Sync) — Performance Optimized
+        let realtimeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+        const debouncedFetchAll = () => {
+            if (realtimeDebounceTimer) clearTimeout(realtimeDebounceTimer);
+            realtimeDebounceTimer = setTimeout(fetchAll, 2000);
+        };
+
         const channel = supabase.channel('schema-db-changes')
             .on('postgres_changes', { event: '*', schema: 'public' }, (payload: any) => {
-                console.log('🔔 Realtime change detected:', payload.table, payload.eventType);
-
-                if (payload.table === 'activities' && payload.eventType === 'INSERT') {
-                    const newAct = payload.new;
-                    const mapped: Activity = {
-                        ...newAct,
-                        dealId: newAct.deal_id,
-                        userId: newAct.user_id,
-                        createdAt: newAct.created_at,
-                        dueDate: newAct.date,
-                        completed: newAct.completed,
-                        status: newAct.status || 'pending',
-                        originStage: newAct.origin_stage,
-                        isAutomatic: newAct.is_automatic,
-                        sequenceStep: newAct.sequence_step
-                    };
-                    setActivities(prev => {
-                        if (prev.some(a => a.id === mapped.id)) return prev;
-                        // Remove matching optimistic placeholder
-                        const filtered = prev.filter(a => !((a as any).isOptimistic && a.dealId === mapped.dealId && a.title === mapped.title));
-                        return [...filtered, mapped];
-                    });
-                } else if (payload.table === 'activities' && payload.eventType === 'DELETE') {
-                    setActivities(prev => prev.filter(a => a.id !== payload.old.id));
-                } else {
-                    fetchAll();
+                // Handle activities granularly (most frequent changes)
+                if (payload.table === 'activities') {
+                    if (payload.eventType === 'INSERT') {
+                        const newAct = payload.new;
+                        const mapped: Activity = {
+                            ...newAct,
+                            dealId: newAct.deal_id,
+                            userId: newAct.user_id,
+                            createdAt: newAct.created_at,
+                            dueDate: newAct.date,
+                            completed: newAct.completed,
+                            status: newAct.status || 'pending',
+                            completedAt: newAct.completed_at,
+                            houveResposta: newAct.houve_resposta,
+                            originStage: newAct.origin_stage,
+                            isAutomatic: newAct.is_automatic,
+                            sequenceStep: newAct.sequence_step
+                        };
+                        setActivities(prev => {
+                            if (prev.some(a => a.id === mapped.id)) return prev;
+                            const filtered = prev.filter(a => !((a as any).isOptimistic && a.dealId === mapped.dealId && a.title === mapped.title));
+                            return [...filtered, mapped];
+                        });
+                    } else if (payload.eventType === 'DELETE') {
+                        setActivities(prev => prev.filter(a => a.id !== payload.old.id));
+                    } else if (payload.eventType === 'UPDATE') {
+                        const updated = payload.new;
+                        setActivities(prev => prev.map(a => a.id === updated.id ? {
+                            ...a,
+                            completed: updated.completed,
+                            status: updated.status || a.status,
+                            completedAt: updated.completed_at,
+                            houveResposta: updated.houve_resposta,
+                            dueDate: updated.date || a.dueDate,
+                            title: updated.title || a.title,
+                            notes: updated.notes !== undefined ? updated.notes : a.notes,
+                        } : a));
+                    }
+                    return;
                 }
+
+                // Handle deals granularly
+                if (payload.table === 'deals') {
+                    if (payload.eventType === 'UPDATE') {
+                        const updated = payload.new;
+                        setDeals(prev => prev.map(d => d.id === updated.id ? {
+                            ...d,
+                            title: updated.title || d.title,
+                            value: updated.value !== undefined ? updated.value : d.value,
+                            stageId: updated.stage_id || d.stageId,
+                            status: updated.status || d.status,
+                            position: updated.position !== undefined ? updated.position : d.position,
+                            pipelineId: updated.pipeline_id || d.pipelineId,
+                            tags: updated.tags || d.tags,
+                        } : d));
+                        return;
+                    }
+                    if (payload.eventType === 'DELETE') {
+                        setDeals(prev => prev.filter(d => d.id !== payload.old.id));
+                        return;
+                    }
+                    if (payload.eventType === 'INSERT') {
+                        // New deal from another source — debounce full refresh
+                        debouncedFetchAll();
+                        return;
+                    }
+                }
+
+                // Handle deal_logs granularly
+                if (payload.table === 'deal_logs') {
+                    if (payload.eventType === 'INSERT') {
+                        const l = payload.new;
+                        setLogs(prev => {
+                            if (prev.some(log => log.id === l.id)) return prev;
+                            return [...prev, {
+                                id: l.id, dealId: l.deal_id, activityId: l.activity_id,
+                                content: l.content, logType: l.log_type,
+                                createdBy: l.created_by, createdAt: l.created_at
+                            }];
+                        });
+                        return;
+                    }
+                    if (payload.eventType === 'DELETE') {
+                        setLogs(prev => prev.filter(l => l.id !== payload.old.id));
+                        return;
+                    }
+                }
+
+                // For all other tables (campaigns, templates, etc.) — debounced refresh
+                debouncedFetchAll();
             })
             .subscribe((status) => {
                 console.log('📡 Realtime status:', status);
@@ -629,8 +698,6 @@ export function useCRMStore(): CRMStore {
         if (error) {
             console.error('Update activity error', error);
             alert(`Erro ao salvar atividade: ${error.message}.`);
-        } else if (synchronizedUpdates.completed === true) {
-            setTimeout(fetchAll, 300);
         }
     }
 
@@ -939,9 +1006,8 @@ export function useCRMStore(): CRMStore {
                 });
             }
 
-            // 3. BACKGROUND REFRESH
-            setTimeout(fetchAll, 1000);
-            setTimeout(fetchAll, 4000);
+            // 3. SINGLE BACKGROUND REFRESH (after backend trigger finishes)
+            setTimeout(fetchAll, 3000);
         }
     };
 

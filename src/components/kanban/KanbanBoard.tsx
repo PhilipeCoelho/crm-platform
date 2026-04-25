@@ -51,9 +51,20 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
 
     // --- Filters State ---
+    const [searchInput, setSearchInput] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [showFilters, setShowFilters] = useState(false);
     const filterRef = useRef<HTMLDivElement>(null);
+
+    // Debounce search input
+    const handleSearchChange = useCallback((value: string) => {
+        setSearchInput(value);
+        if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = setTimeout(() => {
+            setSearchTerm(value);
+        }, 300);
+    }, []);
 
     // Handle click outside filters
     useEffect(() => {
@@ -230,8 +241,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         <input
                             type="text"
                             placeholder="Buscar..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            value={searchInput}
+                            onChange={(e) => handleSearchChange(e.target.value)}
                             className="pl-8 pr-2 py-1.5 text-sm border border-border/60 rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-full"
                         />
                     </div>
@@ -340,6 +351,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                 onClick={() => {
                                     setStatusFilter('open');
                                     setViewMode('all');
+                                    setSearchInput('');
                                     setSearchTerm('');
                                 }}
                                 className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
@@ -393,8 +405,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                             <input
                                 type="text"
                                 placeholder="Buscar negócios..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                value={searchInput}
+                                onChange={(e) => handleSearchChange(e.target.value)}
                                 className="pl-8 pr-3 py-1.5 text-sm border border-border/60 rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-48 transition-all"
                             />
                         </div>
@@ -504,7 +516,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                         onClick={() => {
                                             setStatusFilter('open');
                                             setViewMode('all');
-                                            setSearchTerm('');
+                                            setSearchInput('');
+                                     setSearchTerm('');
                                         }}
                                         className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
                                     >

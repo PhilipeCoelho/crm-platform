@@ -56,7 +56,7 @@ export default function SuggestionModal({ isOpen, onClose, deal, newStageTitle }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-100">
                 <div className="p-6 bg-gradient-to-br from-primary/5 to-transparent">
                     <h3 className="text-lg font-bold text-[#191919] flex items-center gap-2">

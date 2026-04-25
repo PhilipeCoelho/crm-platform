@@ -72,7 +72,7 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="bg-background w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-border">
                 <div className="p-4 border-b border-border flex justify-between items-center bg-muted/30">
                     <div>

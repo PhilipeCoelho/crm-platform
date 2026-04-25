@@ -32,7 +32,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity }: Pro
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
             <div className="bg-background w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-border animate-in fade-in zoom-in duration-200">
                 {/* Header */}
                 <div className="p-4 border-b border-border flex justify-between items-center bg-muted/30">

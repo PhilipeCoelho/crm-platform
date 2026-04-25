@@ -84,7 +84,7 @@ export default function CustomizeColumnsModal({ isOpen, onClose, visibleColumns,
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[110] flex justify-end bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[110] flex justify-end bg-black/40 animate-in fade-in duration-300">
             <div className={`w-full max-w-md bg-white dark:bg-[#11141D] h-full shadow-2xl flex flex-col border-l border-border animate-in slide-in-from-right duration-500`}>
 
                 {/* Header */}

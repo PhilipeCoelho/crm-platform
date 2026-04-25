@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Deal } from "@/types/schema";
@@ -30,7 +31,7 @@ export interface DealCardBaseProps extends Props {
     style?: React.CSSProperties; // Allow overriding style
 }
 
-export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, style: propStyle, nextActivityData }: DealCardBaseProps) {
+export const DealCardBase = React.memo(function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, style: propStyle, nextActivityData }: DealCardBaseProps) {
     const { contacts, companies, deleteDeal, moveDeal, pipelines } = useCRM();
     const navigate = useNavigate();
 
@@ -105,21 +106,21 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
     const contact = deal.contactId ? contacts.find(c => c.id === deal.contactId) : undefined;
     const company = deal.companyId ? companies.find(c => c.id === deal.companyId) : undefined;
 
-    // Search Logic
-    const normalizeText = (text: string) =>
-        text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+    const { searchNorm, isSearching, searchDigits } = useMemo(() => {
+        const norm = searchTerm ? searchTerm.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") : "";
+        return {
+            searchNorm: norm,
+            isSearching: !!searchTerm && searchTerm.length > 0,
+            searchDigits: (searchTerm || "").replace(/\D/g, "")
+        };
+    }, [searchTerm]);
 
-    const normalizeDigits = (text: string) => text.replace(/\D/g, "");
-
-    const searchNorm = searchTerm ? normalizeText(searchTerm) : "";
-    const isSearching = !!searchTerm && searchTerm.length > 0;
-    const searchDigits = normalizeDigits(searchTerm || "");
-
+    const normalizeText = (text: string) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     const matchesTitle = isSearching && normalizeText(deal.title).includes(searchNorm);
     const matchesPerson = isSearching && contact && (
         normalizeText(contact.name).includes(searchNorm) ||
         (contact.email && contact.email.toLowerCase().includes(searchNorm)) ||
-        (searchDigits.length >= 7 && normalizeDigits(contact.phone || "").includes(searchDigits))
+        (searchDigits.length >= 7 && contact.phone?.replace(/\D/g, "").includes(searchDigits))
     );
     const matchesCompany = isSearching && company && normalizeText(company.name).includes(searchNorm);
 
@@ -261,9 +262,9 @@ export function DealCardBase({ deal, currency, onPreview, searchTerm, dndProps, 
             </div>
         </div>
     );
-}
+});
 
-function DealCard(props: Props) {
+const DealCard = React.memo(function DealCard(props: Props) {
     const {
         setNodeRef,
         attributes,
@@ -292,6 +293,6 @@ function DealCard(props: Props) {
             }}
         />
     );
-}
+});
 
 export default DealCard;

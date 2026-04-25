@@ -23,7 +23,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-[2px] p-0 sm:p-2 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-2 animate-in fade-in duration-200">
             <div
                 className={`
                     bg-card shadow-2xl w-full ${maxWidth} border border-border flex flex-col 

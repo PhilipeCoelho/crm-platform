@@ -178,7 +178,7 @@
 
 /* Glass Effect Utilities */
 .glass-morphism {
-  @apply bg-background/70 backdrop-blur-md border border-white/5;
+  @apply bg-background/70 border border-white/5;
 }
 
 .premium-shadow {

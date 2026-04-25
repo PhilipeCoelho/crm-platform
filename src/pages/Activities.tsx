@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Currency } from '@/data/currencies';
 import { useSearchParams } from 'react-router-dom';
@@ -106,7 +106,17 @@ export default function Activities({ currency: _currency }: { currency: Currency
     const [searchParams] = useSearchParams();
 
     // ── Filter State ──────────────────────────────────────────────────────────
+    const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleSearchChange = useCallback((value: string) => {
+        setSearchInput(value);
+        if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = setTimeout(() => {
+            setSearchQuery(value);
+        }, 300);
+    }, []);
     const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('Todos');
     const [selectedTypes, setSelectedTypes] = useState<ActivityType[]>([]);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('pendente'); // Default to pending for execution focus
@@ -334,6 +344,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
     };
 
     const clearAllFilters = () => {
+        setSearchInput('');
         setSearchQuery('');
         setPeriodFilter('Todos');
         setSelectedTypes([]);
@@ -452,8 +463,8 @@ export default function Activities({ currency: _currency }: { currency: Currency
                                 type="text"
                                 placeholder="Pesquisar..."
                                 className="w-64 pl-9 pr-4 py-1.5 bg-transparent border-b border-slate-200 dark:border-slate-700 text-sm focus:border-indigo-500 outline-none transition-all placeholder:text-slate-400 font-medium text-[#141414] dark:text-white"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
+                                value={searchInput}
+                                onChange={e => handleSearchChange(e.target.value)}
                             />
                         </div>
 
@@ -866,7 +877,7 @@ function ExecutionMode({ activities, deals, contacts, completedCount, onClose, o
     };
 
     return (
-        <div className="fixed inset-0 z-[200] bg-[#0D0D0D]/98 backdrop-blur-xl flex flex-col animate-in fade-in duration-500">
+        <div className="fixed inset-0 z-[200] bg-[#0D0D0D]/98 flex flex-col animate-in fade-in duration-300">
             <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
                 <div className="w-full max-w-2xl bg-white dark:bg-card border-none shadow-[0_0_80px_rgba(79,70,229,0.15)] rounded-[48px] overflow-hidden p-12 flex flex-col animate-in zoom-in-95 duration-700">
                     
@@ -995,7 +1006,7 @@ function QuickEditModal({ activity, onClose, onSave }: QuickEditModalProps) {
     ];
 
     return (
-        <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center bg-[#141414]/80 backdrop-blur-md p-0 sm:p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center bg-[#141414]/80 p-0 sm:p-4" onClick={onClose}>
             <div
                 className="bg-white dark:bg-card w-full max-w-lg sm:rounded-[48px] rounded-t-[48px] border-none shadow-2xl flex flex-col max-h-[95vh] overflow-hidden animate-in slide-in-from-bottom-12 duration-500"
                 onClick={e => e.stopPropagation()}

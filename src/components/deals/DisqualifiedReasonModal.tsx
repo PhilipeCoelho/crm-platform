@@ -34,7 +34,7 @@ export default function DisqualifiedReasonModal({ isOpen, onClose, onConfirm }: 
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
             <div className="bg-background w-full max-w-md rounded-t-[24px] sm:rounded-2xl shadow-2xl border-t sm:border border-border flex flex-col max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300">
                 <div className="p-6 space-y-6">
                     <div className="flex items-center justify-between">

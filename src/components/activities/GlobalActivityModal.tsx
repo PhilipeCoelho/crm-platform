@@ -119,7 +119,7 @@ export default function GlobalActivityModal({ isOpen, onClose }: Props) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-[#090B11]/80 backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-[#090B11]/80 p-0 sm:p-4 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-[#11141D] w-full max-w-xl sm:rounded-3xl shadow-2xl border border-border dark:border-white/10 flex flex-col h-[90vh] sm:h-auto max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-500">
 
                 <div className="flex items-center justify-between p-6 border-b border-border dark:border-white/5 bg-[#FBFCFD] dark:bg-white/[0.02]">
@@ -206,7 +206,7 @@ export default function GlobalActivityModal({ isOpen, onClose }: Props) {
                             </div>
 
                             {showContactResults && filteredContacts.length > 0 && (
-                                <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white dark:bg-[#1A1D26] border border-border dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 backdrop-blur-md">
+                                <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white dark:bg-[#1A1D26] border border-border dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                     {filteredContacts.map(c => (
                                         <button
                                             key={c.id}
@@ -258,7 +258,7 @@ export default function GlobalActivityModal({ isOpen, onClose }: Props) {
                             </div>
 
                             {showDealResults && filteredDeals.length > 0 && (
-                                <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white dark:bg-[#1A1D26] border border-border dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 backdrop-blur-md">
+                                <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white dark:bg-[#1A1D26] border border-border dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                     {filteredDeals.map(d => (
                                         <button
                                             key={d.id}

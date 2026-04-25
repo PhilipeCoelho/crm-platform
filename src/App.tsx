@@ -415,7 +415,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     activeFocusDealId && !location.pathname.includes('/deals/') && (
                         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
                             <div
-                                className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300"
+                                className="absolute inset-0 bg-black/40 animate-in fade-in duration-200"
                                 onClick={() => closeFocusDeal()}
                             />
                             <div className="relative w-full h-full sm:h-[95vh] sm:max-w-5xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
