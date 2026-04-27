@@ -848,7 +848,10 @@ export function useCRMStore(): CRMStore {
             console.error('Error adding deal:', error);
             alert(`Erro ao salvar negócio: ${error.message}`);
             // Revert
-            setDeals((prev: any[]) => prev.filter((d: any) => d.id !== tempId));
+            setDeals((prev: any[]) => prev.filter((status_d: any) => status_d.id !== tempId));
+        } else {
+            // Trigger Cadence for the initial stage
+            triggerStageCadence(tempId, data.stageId);
         }
     };
 
@@ -1028,66 +1031,103 @@ export function useCRMStore(): CRMStore {
                 } : d));
             }
         } else {
-            // 1. OPTIMISTIC CLEANUP (Remove ALL pending automatic activities to prevent duplicates/ghosts)
-            console.log('🧹 Optimistic Cleanup: Removing old automatic activities for deal', id);
-            setActivities((prev: any[]) => prev.filter((a: any) => {
-                const isDealActivity = a.dealId === id;
-                const isAutomatic = a.isAutomatic === true || (a as any).is_automatic === true;
-                const isPending = a.status === 'pending' || !a.status || !a.completed;
-                // Only keep manual tasks or completed tasks
-                return !(isDealActivity && isAutomatic && isPending);
-            }));
+            // Success: Trigger Cadence for the NEW stage
+            triggerStageCadence(id, stageId);
+        }
+    };
 
-            // Cadence V2: AUTOMATICALLY create the FIRST step of the cadence for this stage
-            const stages = Object.values(pipelines).flatMap((p: any) => p.stages || []);
-            const currentStage = stages.find((s: any) => s.id === stageId);
-            const stageTitle = currentStage?.title?.toUpperCase() || '';
-            
-            // Find matched cadence stage tag
-            let matchedStage = cadenceStages.find((cs: any) => 
+    /**
+     * Helper to cleanup old automatic activities and create the first step of the cadence
+     * for a given stage matched by tag.
+     */
+    const triggerStageCadence = async (dealId: string, stageId: string) => {
+        // 1. OPTIMISTIC CLEANUP (Remove ALL pending automatic activities to prevent duplicates/ghosts)
+        console.log('🧹 Cleanup: Removing old automatic activities for deal', dealId);
+        
+        // Local state cleanup
+        setActivities((prev: any[]) => prev.filter((a: any) => {
+            const isDealActivity = a.dealId === dealId;
+            const isAutomatic = a.isAutomatic === true || (a as any).is_automatic === true;
+            const isPending = a.status === 'pending' || !a.status || !a.completed;
+            return !(isDealActivity && isAutomatic && isPending);
+        }));
+
+        // Database cleanup (Fire and forget, but logged)
+        supabase.from('activities')
+            .delete()
+            .eq('deal_id', dealId)
+            .eq('completed', false)
+            .eq('is_automatic', true)
+            .then(({ error }) => {
+                if (error) console.error('❌ Error cleaning up activities in DB:', error);
+            });
+
+        // 2. Cadence V2: AUTOMATICALLY create the FIRST step of the cadence for this stage
+        const stages = Object.values(pipelines).flatMap((p: any) => p.stages || []);
+        const currentStage = stages.find((s: any) => s.id === stageId);
+        const stageTitle = currentStage?.title?.toUpperCase() || '';
+        
+        console.log('🎯 Triggering cadence for stage:', stageTitle);
+
+        // Improved Tag Matching Logic
+        let tag: string | null = null;
+        
+        // Priority 1: Specific keywords (Order matters! More specific first)
+        if (stageTitle.includes('ENGAJADO')) {
+            tag = 'ENGAJADO';
+        } else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) {
+            tag = 'DIAGNOSTICO';
+        } else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) {
+            tag = 'FECHAMENTO';
+        } else if (stageTitle.includes('LEAD')) {
+            tag = 'LEAD';
+        }
+        
+        // Priority 2: Generic match with cadenceStages names if no specific keyword matched
+        if (!tag) {
+            const matched = cadenceStages.find((cs: any) => 
                 stageTitle.includes(cs.name.toUpperCase()) || 
                 cs.name.toUpperCase().includes(stageTitle) ||
                 stageTitle.includes(cs.id.toUpperCase())
             );
-
-            // Fallbacks for standard tags
-            if (!matchedStage) {
-                if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'ENGAJADO');
-                else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'DIAGNOSTICO');
-                else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'FECHAMENTO');
-                else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'LEAD');
-            }
-
-            const tag = matchedStage?.id || (stageId === 'new' ? 'LEAD' : null);
-
-            if (tag) {
-                // Find Step 1 for this tag
-                const firstStep = cadenceTemplates.find((t: any) => t.tag === tag && t.step === 1 && t.isActive);
-                if (firstStep) {
-                    const dueDate = new Date();
-                    dueDate.setDate(dueDate.getDate() + firstStep.days);
-
-                    addActivity({
-                        dealId: id,
-                        type: firstStep.type as ActivityType,
-                        title: firstStep.title,
-                        description: firstStep.description,
-                        tooltipScript: firstStep.script,
-                        status: 'pending',
-                        completed: false,
-                        dueDate: dueDate.toISOString(),
-                        sequenceStep: firstStep.step,
-                        suggestedDelay: firstStep.days,
-                        originStage: firstStep.tag,
-                        isAutomatic: true
-                    });
-                }
-            }
-            
-            console.log('📦 Cadence V2: Automatic first step created on move.');
-
-            // Realtime handler will pick up new activities created by backend triggers
+            tag = matched?.id || null;
         }
+
+        // Priority 3: Default for 'new' deals or Prospecting stages
+        if (!tag && (stageId === 'new' || stageTitle.includes('PROSPECT') || stageTitle.includes('NOVO'))) {
+            tag = 'LEAD';
+        }
+
+        console.log('🔖 Matched Tag for Cadence:', tag);
+
+        if (tag) {
+            // Find Step 1 for this tag
+            const firstStep = cadenceTemplates.find((t: any) => t.tag === tag && t.step === 1 && t.isActive);
+            if (firstStep) {
+                console.log('✨ Creating first step for cadence:', firstStep.title);
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + firstStep.days);
+
+                addActivity({
+                    dealId: dealId,
+                    type: firstStep.type as ActivityType,
+                    title: firstStep.title,
+                    description: firstStep.description,
+                    tooltipScript: firstStep.script,
+                    status: 'pending',
+                    completed: false,
+                    dueDate: dueDate.toISOString(),
+                    sequenceStep: firstStep.step,
+                    suggestedDelay: firstStep.days,
+                    originStage: firstStep.tag,
+                    isAutomatic: true
+                });
+            } else {
+                console.log('⚠️ No Step 1 found for tag:', tag);
+            }
+        }
+        
+        console.log('📦 Cadence V2: Automatic first step logic executed.');
     };
 
     const deleteDeal = async (id: string) => {
