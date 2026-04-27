@@ -63,6 +63,38 @@ export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props)
                 />
             </div>
 
+            {/* Nova Seção: Eficiência de Conversão */}
+            <div className="pt-8">
+                <h3 className="text-sm font-bold text-[#111827] dark:text-[#EAEAEA] uppercase tracking-wider mb-6 flex items-center gap-2">
+                    <AlertCircle size={16} className="text-primary" />
+                    Eficiência de Prospecção
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <KPICard
+                        title="Abordagens Únicas"
+                        value={current.abordagem.total === 0 ? '—' : current.abordagem.total}
+                        variation={variation.abordagem_total}
+                        subtitle="Negócios contatados"
+                    />
+                    <KPICard
+                        title="Total de Atividades"
+                        value={current.totalAtividades === 0 ? '—' : current.totalAtividades}
+                        variation={variation.totalAtividades}
+                        subtitle="Ações totais realizadas"
+                    />
+                    <KPICard
+                        title="Conversão p/ Abordagem"
+                        value={current.abordagem.total === 0 ? '—' : ((current.totalWon / current.abordagem.total) * 100).toFixed(1) + '%'}
+                        subtitle="Ganhos / Abordados"
+                    />
+                    <KPICard
+                        title="Esforço p/ Venda"
+                        value={current.activity.mediaContatosAteFechamento === 0 ? '—' : current.activity.mediaContatosAteFechamento.toFixed(1)}
+                        subtitle="Atividades p/ fechar 1 cliente"
+                    />
+                </div>
+            </div>
+
             {/* Principais Motivos de Perda */}
             {current.lost.motivos.length > 0 && (
                 <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-6 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
