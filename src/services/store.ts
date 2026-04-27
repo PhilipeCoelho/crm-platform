@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
     Campaign, EmailTemplate, CampaignSender, CadenceTemplate, CadenceStage, ActivityType
@@ -171,7 +172,7 @@ export function useCRMStore(): CRMStore {
     });
 
     const togglePrivacyMode = () => {
-        setIsPrivacyMode(prev => {
+        setIsPrivacyMode((prev: any) => {
             const next = !prev;
             localStorage.setItem('privacy_mode', String(next));
             return next;
@@ -240,7 +241,7 @@ export function useCRMStore(): CRMStore {
 
             // 1. Map & Set Deals
             if (dealsData) {
-                const mappedDeals: Deal[] = dealsData.map(d => ({
+                const mappedDeals: Deal[] = dealsData.map((d: any) => ({
                     ...d,
                     columnId: d.stage_id,
                     stageId: d.stage_id,
@@ -270,7 +271,7 @@ export function useCRMStore(): CRMStore {
 
             // 2. Map & Set Contacts
             if (contactsData) {
-                setContacts(contactsData.map(c => ({
+                setContacts(contactsData.map((c: any) => ({
                     ...c,
                     userId: c.user_id,
                     companyId: c.company_id,
@@ -281,7 +282,7 @@ export function useCRMStore(): CRMStore {
 
             // 3. Map & Set Activities (Merging Optimistic)
             if (activitiesData) {
-                const fetched: Activity[] = activitiesData.map(a => ({
+                const fetched: Activity[] = activitiesData.map((a: any) => ({
                     ...a,
                     dealId: a.deal_id,
                     userId: a.user_id,
@@ -298,11 +299,11 @@ export function useCRMStore(): CRMStore {
                     suggestedDelay: a.suggested_delay
                 }));
 
-                setActivities(prev => {
+                setActivities((prev: any[]) => {
                     // Keep optimistic ones that aren't in the fetched list yet
-                    const optimisticOnes = prev.filter(a => (a as any).isOptimistic);
-                    const filteredOptimistic = optimisticOnes.filter(opt =>
-                        !fetched.some(real =>
+                    const optimisticOnes = prev.filter((a: any) => (a as any).isOptimistic);
+                    const filteredOptimistic = optimisticOnes.filter((opt: any) =>
+                        !fetched.some((real: any) =>
                             real.dealId === opt.dealId &&
                             real.title === opt.title &&
                             real.status === opt.status
@@ -314,7 +315,7 @@ export function useCRMStore(): CRMStore {
 
             // 4. Map & Set Logs
             if (logsData) {
-                setLogs(logsData.map(l => ({
+                setLogs(logsData.map((l: any) => ({
                     id: l.id,
                     dealId: l.deal_id,
                     activityId: l.activity_id,
@@ -327,7 +328,7 @@ export function useCRMStore(): CRMStore {
 
             // 5. Map & Set Companies
             if (companiesData) {
-                setCompanies(companiesData.map(c => ({
+                setCompanies(companiesData.map((c: any) => ({
                     id: c.id,
                     name: c.name,
                     website: c.website,
@@ -340,7 +341,7 @@ export function useCRMStore(): CRMStore {
             // 6. Map & Set Pipelines/Stages
             if (stagesData) {
                 const stagesByPipeline: Record<string, Stage[]> = {};
-                stagesData.forEach(s => {
+                stagesData.forEach((s: any) => {
                     const pid = s.pipeline_id || 'sales';
                     if (!stagesByPipeline[pid]) stagesByPipeline[pid] = [];
                     stagesByPipeline[pid].push({
@@ -352,9 +353,9 @@ export function useCRMStore(): CRMStore {
                     });
                 });
 
-                setPipelines(prev => {
+                setPipelines((prev: any) => {
                     const nextPipelines = { ...prev };
-                    Object.keys(stagesByPipeline).forEach(pid => {
+                    Object.keys(stagesByPipeline).forEach((pid: any) => {
                         if (nextPipelines[pid]) {
                             nextPipelines[pid].stages = stagesByPipeline[pid];
                         } else {
@@ -489,16 +490,16 @@ export function useCRMStore(): CRMStore {
                             isAutomatic: newAct.is_automatic,
                             sequenceStep: newAct.sequence_step
                         };
-                        setActivities(prev => {
-                            if (prev.some(a => a.id === mapped.id)) return prev;
-                            const filtered = prev.filter(a => !((a as any).isOptimistic && a.dealId === mapped.dealId && a.title === mapped.title));
+                        setActivities((prev: any[]) => {
+                            if (prev.some((a: any) => a.id === mapped.id)) return prev;
+                            const filtered = prev.filter((a: any) => !((a as any).isOptimistic && a.dealId === mapped.dealId && a.title === mapped.title));
                             return [...filtered, mapped];
                         });
                     } else if (payload.eventType === 'DELETE') {
-                        setActivities(prev => prev.filter(a => a.id !== payload.old.id));
+                        setActivities((prev: any[]) => prev.filter((a: any) => a.id !== payload.old.id));
                     } else if (payload.eventType === 'UPDATE') {
                         const updated = payload.new;
-                        setActivities(prev => prev.map(a => a.id === updated.id ? {
+                        setActivities((prev: any[]) => prev.map((a: any) => a.id === updated.id ? {
                             ...a,
                             completed: updated.completed,
                             status: updated.status || a.status,
@@ -516,7 +517,7 @@ export function useCRMStore(): CRMStore {
                 if (payload.table === 'deals') {
                     if (payload.eventType === 'UPDATE') {
                         const updated = payload.new;
-                        setDeals(prev => prev.map(d => d.id === updated.id ? {
+                        setDeals((prev: any[]) => prev.map((d: any) => d.id === updated.id ? {
                             ...d,
                             title: updated.title || d.title,
                             value: updated.value !== undefined ? updated.value : d.value,
@@ -529,7 +530,7 @@ export function useCRMStore(): CRMStore {
                         return;
                     }
                     if (payload.eventType === 'DELETE') {
-                        setDeals(prev => prev.filter(d => d.id !== payload.old.id));
+                        setDeals((prev: any[]) => prev.filter((d: any) => d.id !== payload.old.id));
                         return;
                     }
                     if (payload.eventType === 'INSERT') {
@@ -543,8 +544,8 @@ export function useCRMStore(): CRMStore {
                 if (payload.table === 'deal_logs') {
                     if (payload.eventType === 'INSERT') {
                         const l = payload.new;
-                        setLogs(prev => {
-                            if (prev.some(log => log.id === l.id)) return prev;
+                        setLogs((prev: any[]) => {
+                            if (prev.some((log: any) => log.id === l.id)) return prev;
                             return [...prev, {
                                 id: l.id, dealId: l.deal_id, activityId: l.activity_id,
                                 content: l.content, logType: l.log_type,
@@ -554,7 +555,7 @@ export function useCRMStore(): CRMStore {
                         return;
                     }
                     if (payload.eventType === 'DELETE') {
-                        setLogs(prev => prev.filter(l => l.id !== payload.old.id));
+                        setLogs((prev: any[]) => prev.filter((l: any) => l.id !== payload.old.id));
                         return;
                     }
                 }
@@ -581,15 +582,15 @@ export function useCRMStore(): CRMStore {
     // --- Helpers for Status Logic (Disabled) ---
     /* const recalculateContactStatus = async (contactId: string, currentDeals: Deal[]) => {
         // Filter deals for this contact
-        const contactDeals = currentDeals.filter(d => d.contactId === contactId);
+        const contactDeals = currentDeals.filter((d: any) => d.contactId === contactId);
     
         // 1. If at least 1 WON deal -> ACTIVE
-        if (contactDeals.some(d => d.status === 'won')) return 'active';
+        if (contactDeals.some((d: any) => d.status === 'won')) return 'active';
     
         // 2. If ALL deals are LOST (and has > 0 deals) -> INACTIVE
-        if (contactDeals.some(d => d.status === 'open')) return 'lead';
+        if (contactDeals.some((d: any) => d.status === 'open')) return 'lead';
     
-        if (contactDeals.length > 0 && contactDeals.every(d => d.status === 'lost')) return 'inactive';
+        if (contactDeals.length > 0 && contactDeals.every((d: any) => d.status === 'lost')) return 'inactive';
     
         // 3. If no deals? Keep current or default to Lead? 
         return 'lead';
@@ -622,24 +623,24 @@ export function useCRMStore(): CRMStore {
             createdAt: new Date().toISOString()
         };
 
-        setLogs(prev => [...prev, optimisticLog]);
+        setLogs((prev: any[]) => [...prev, optimisticLog]);
 
         const { error } = await supabase.from('deal_logs').insert(newLogDto);
         if (error) {
             console.error('Error creating log:', error);
             alert(`Erro ao gerar histórico (Log): ${error.message}. Verifique se a tabela deal_logs existe.`);
-            setLogs(prev => prev.filter(l => l.id !== tempId));
+            setLogs((prev: any[]) => prev.filter((l: any) => l.id !== tempId));
         }
     }
 
     async function deleteLog(id: string) {
-        const removedLog = logs.find(l => l.id === id);
-        setLogs(prev => prev.filter(l => l.id !== id));
+        const removedLog = logs.find((l: any) => l.id === id);
+        setLogs((prev: any[]) => prev.filter((l: any) => l.id !== id));
         const { error } = await supabase.from('deal_logs').delete().eq('id', id);
         if (error) {
             console.error('Error deleting log:', error);
             alert(`Erro ao excluir nota: ${error.message}`);
-            if (removedLog) setLogs(prev => [...prev, removedLog]);
+            if (removedLog) setLogs((prev: any[]) => [...prev, removedLog]);
         }
     }
 
@@ -699,13 +700,13 @@ export function useCRMStore(): CRMStore {
             isOptimistic: true
         };
 
-        setActivities(prev => [...prev, optimisticActivity]);
+        setActivities((prev: any[]) => [...prev, optimisticActivity]);
 
         const { error } = await supabase.from('activities').insert(newActivity);
         if (error) {
             console.error('Error creating activity:', error);
             alert(`Erro ao criar atividade: ${error.message} (Detalhe: ${error.details || ''})`);
-            setActivities(prev => prev.filter(a => a.id !== tempId));
+            setActivities((prev: any[]) => prev.filter((a: any) => a.id !== tempId));
         }
     }
 
@@ -721,7 +722,7 @@ export function useCRMStore(): CRMStore {
             }
         }
 
-        setActivities(prev => prev.map(a => a.id === id ? { ...a, ...synchronizedUpdates } : a));
+        setActivities((prev: any[]) => prev.map((a: any) => a.id === id ? { ...a, ...synchronizedUpdates } : a));
         requestAnimationFrame(() => perfMonitor.end('updateActivity'));
 
         const dbUpdates: Record<string, unknown> = {};
@@ -757,16 +758,16 @@ export function useCRMStore(): CRMStore {
     }
 
     async function deleteActivity(id: string) {
-        setActivities(prev => prev.filter(a => a.id !== id));
+        setActivities((prev: any[]) => prev.filter((a: any) => a.id !== id));
         await supabase.from('activities').delete().eq('id', id);
     }
 
     async function completeActivityWithLog(activityId: string, content?: string, houveResposta?: boolean) {
-        let activity = activities.find(a => a.id === activityId);
+        let activity = activities.find((a: any) => a.id === activityId);
         if (!activity) return;
 
         if (activityId.startsWith('opt-')) {
-            const realActivity = activities.find(a =>
+            const realActivity = activities.find((a: any) =>
                 !a.id.startsWith('opt-') &&
                 a.dealId === activity?.dealId &&
                 a.title === activity?.title &&
@@ -806,8 +807,8 @@ export function useCRMStore(): CRMStore {
         const tempId = generateId();
 
         // Calculate Position (End of Column)
-        const stageDeals = deals.filter(d => d.stageId === data.stageId);
-        const maxPos = stageDeals.length > 0 ? Math.max(...stageDeals.map(d => d.position || 0)) : 0;
+        const stageDeals = deals.filter((d: any) => d.stageId === data.stageId);
+        const maxPos = stageDeals.length > 0 ? Math.max(...stageDeals.map((d: any) => d.position || 0)) : 0;
         const newPos = maxPos + 1;
 
         const newDeal = {
@@ -847,13 +848,13 @@ export function useCRMStore(): CRMStore {
             console.error('Error adding deal:', error);
             alert(`Erro ao salvar negócio: ${error.message}`);
             // Revert
-            setDeals(prev => prev.filter(d => d.id !== tempId));
+            setDeals((prev: any[]) => prev.filter((d: any) => d.id !== tempId));
         }
     };
 
     const updateDeal = async (id: string, updates: Partial<Deal>) => {
         // Capture Original for Rollback
-        const originalDeal = deals.find(d => d.id === id);
+        const originalDeal = deals.find((d: any) => d.id === id);
         if (!originalDeal) return;
 
         // Auto-handle timestamps for status change if not provided
@@ -881,7 +882,7 @@ export function useCRMStore(): CRMStore {
         }
 
         // Optimistic
-        const nextDeals = deals.map(d => d.id === id ? { ...d, ...finalUpdates } : d);
+        const nextDeals = deals.map((d: any) => d.id === id ? { ...d, ...finalUpdates } : d);
         setDeals(nextDeals);
 
         // DB Map
@@ -919,7 +920,7 @@ export function useCRMStore(): CRMStore {
                 console.error('❌ Error updating deal:', error || 'No rows affected (RLS/Permission)');
                 if (error) alert(`Erro ao salvar alteração: ${error.message}`);
                 // Revert Optimistic Update
-                setDeals(prev => prev.map(d => d.id === id ? originalDeal : d));
+                setDeals((prev: any[]) => prev.map((d: any) => d.id === id ? originalDeal : d));
             } else {
                 console.log('✅ Update successful for:', id);
 
@@ -947,18 +948,18 @@ export function useCRMStore(): CRMStore {
 
                     // 1. Identificar atividades pendentes deste negócio no estado local
                     const pendingActivityIds = activities
-                        .filter(a =>
+                        .filter((a: any) =>
                             a.dealId === id &&
                             !a.completed &&
                             (PENDING_STATUSES.includes(a.status) || !a.status || a.status === 'pending')
                         )
-                        .map(a => a.id);
+                        .map((a: any) => a.id);
 
                     console.log(`🧹 [Deal Closed] Removing ${pendingActivityIds.length} pending activity(ies) for deal ${id}`);
 
                     if (pendingActivityIds.length > 0) {
                         // 2. Remoção otimista do estado local
-                        setActivities(prev => prev.filter(a => !pendingActivityIds.includes(a.id)));
+                        setActivities((prev: any[]) => prev.filter((a: any) => !pendingActivityIds.includes(a.id)));
 
                         // 3. Deleção no Supabase — remove todas as atividades não concluídas
                         const { error: delErr } = await supabase
@@ -990,7 +991,7 @@ export function useCRMStore(): CRMStore {
     const moveDeal = async (id: string, stageId: string, position?: number, pipelineId?: string) => {
         perfMonitor.start('moveDeal');
         // Optimistic
-        setDeals(prev => prev.map(d => {
+        setDeals((prev: any[]) => prev.map((d: any) => {
             if (d.id === id) {
                 return {
                     ...d,
@@ -1019,7 +1020,7 @@ export function useCRMStore(): CRMStore {
             // Revert optimistic move — re-fetch just this deal
             const { data: freshDeal } = await supabase.from('deals').select('*').eq('id', id).single();
             if (freshDeal) {
-                setDeals(prev => prev.map(d => d.id === id ? {
+                setDeals((prev: any[]) => prev.map((d: any) => d.id === id ? {
                     ...d,
                     stageId: freshDeal.stage_id,
                     position: freshDeal.position,
@@ -1029,7 +1030,7 @@ export function useCRMStore(): CRMStore {
         } else {
             // 1. OPTIMISTIC CLEANUP (Remove ALL pending automatic activities to prevent duplicates/ghosts)
             console.log('🧹 Optimistic Cleanup: Removing old automatic activities for deal', id);
-            setActivities(prev => prev.filter(a => {
+            setActivities((prev: any[]) => prev.filter((a: any) => {
                 const isDealActivity = a.dealId === id;
                 const isAutomatic = a.isAutomatic === true || (a as any).is_automatic === true;
                 const isPending = a.status === 'pending' || !a.status || !a.completed;
@@ -1038,12 +1039,12 @@ export function useCRMStore(): CRMStore {
             }));
 
             // Cadence V2: AUTOMATICALLY create the FIRST step of the cadence for this stage
-            const stages = Object.values(pipelines).flatMap(p => p.stages || []);
+            const stages = Object.values(pipelines).flatMap((p: any) => p.stages || []);
             const currentStage = stages.find((s: any) => s.id === stageId);
             const stageTitle = currentStage?.title?.toUpperCase() || '';
             
             // Find matched cadence stage tag
-            let matchedStage = cadenceStages.find(cs => 
+            let matchedStage = cadenceStages.find((cs: any) => 
                 stageTitle.includes(cs.name.toUpperCase()) || 
                 cs.name.toUpperCase().includes(stageTitle) ||
                 stageTitle.includes(cs.id.toUpperCase())
@@ -1051,17 +1052,17 @@ export function useCRMStore(): CRMStore {
 
             // Fallbacks for standard tags
             if (!matchedStage) {
-                if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find(cs => cs.id === 'ENGAJADO');
-                else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find(cs => cs.id === 'DIAGNOSTICO');
-                else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find(cs => cs.id === 'FECHAMENTO');
-                else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find(cs => cs.id === 'LEAD');
+                if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'ENGAJADO');
+                else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'DIAGNOSTICO');
+                else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'FECHAMENTO');
+                else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'LEAD');
             }
 
             const tag = matchedStage?.id || (stageId === 'new' ? 'LEAD' : null);
 
             if (tag) {
                 // Find Step 1 for this tag
-                const firstStep = cadenceTemplates.find(t => t.tag === tag && t.step === 1 && t.isActive);
+                const firstStep = cadenceTemplates.find((t: any) => t.tag === tag && t.step === 1 && t.isActive);
                 if (firstStep) {
                     const dueDate = new Date();
                     dueDate.setDate(dueDate.getDate() + firstStep.days);
@@ -1093,14 +1094,14 @@ export function useCRMStore(): CRMStore {
         // const dealToDelete = deals.find(d => d.id === id);
 
         // Optimistic Update
-        const nextDeals = deals.filter(d => d.id !== id);
+        const nextDeals = deals.filter((d: any) => d.id !== id);
         setDeals(nextDeals);
-        setActivities(prev => prev.filter(a => a.dealId !== id));
+        setActivities((prev: any[]) => prev.filter((a: any) => a.dealId !== id));
 
         // Recalculate Contact Status (Disabled)
         /* if (dealToDelete && dealToDelete.contactId) {
             const newStatus = await recalculateContactStatus(dealToDelete.contactId, nextDeals);
-            setContacts(prev => prev.map(c => c.id === dealToDelete.contactId ? { ...c, status: newStatus } : c));
+            setContacts((prev: any[]) => prev.map((c: any) => c.id === dealToDelete.contactId ? { ...c, status: newStatus } : c));
             supabase.from('contacts').update({ status: newStatus }).eq('id', dealToDelete.contactId);
         } */
 
@@ -1114,7 +1115,7 @@ export function useCRMStore(): CRMStore {
             console.error('Error deleting deal:', error);
             alert(`Erro ao excluir negócio: ${error.message}`);
             // Revert: re-add the deal (realtime will also sync)
-            setDeals(prev => [...prev, { ...prev.find(d => d.id === id) || {} as Deal }]);
+            setDeals((prev: any[]) => [...prev, { ...prev.find((d: any) => d.id === id) || {} as Deal }]);
         }
     };
 
@@ -1138,12 +1139,12 @@ export function useCRMStore(): CRMStore {
         // Optimistic
         console.log('👤 addContact: Generated ID:', tempId);
         const optimisticContact = { ...data, id: tempId, userId: user.id, createdAt: new Date().toISOString() } as Contact;
-        setContacts(prev => [...prev, optimisticContact]);
+        setContacts((prev: any[]) => [...prev, optimisticContact]);
 
         const { data: inserted, error } = await supabase.from('contacts').insert(newContact).select().single();
         if (error) {
             console.error('❌ addContact DB Error:', error);
-            setContacts(prev => prev.filter(c => c.id !== tempId));
+            setContacts((prev: any[]) => prev.filter((c: any) => c.id !== tempId));
             throw error;
         }
         console.log('✅ addContact Success. DB ID matches:', inserted.id === tempId);
@@ -1151,7 +1152,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const updateContact = async (id: string, updates: Partial<Contact>) => {
-        setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+        setContacts((prev: any[]) => prev.map((c: any) => c.id === id ? { ...c, ...updates } : c));
 
         const dbUpdates: any = {};
         if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -1170,15 +1171,15 @@ export function useCRMStore(): CRMStore {
     const deleteContact = async (id: string) => {
         // Optimistic update
         // 1. Delete Contact locally
-        setContacts(prev => prev.filter(c => c.id !== id));
+        setContacts((prev: any[]) => prev.filter((c: any) => c.id !== id));
 
         // 2. Delete Deals locally
-        setDeals(prev => prev.filter(d => d.contactId !== id));
+        setDeals((prev: any[]) => prev.filter((d: any) => d.contactId !== id));
 
         // 3. Delete Activities linked to Contact OR deleted Deals
-        const dealIdsToDelete = deals.filter(d => d.contactId === id).map(d => d.id);
+        const dealIdsToDelete = deals.filter((d: any) => d.contactId === id).map((d: any) => d.id);
 
-        setActivities(prev => prev.filter(a => {
+        setActivities((prev: any[]) => prev.filter((a: any) => {
             if (a.contactId === id) return false;
             if (a.dealId && dealIdsToDelete.includes(a.dealId)) return false;
             return true;
@@ -1226,31 +1227,31 @@ export function useCRMStore(): CRMStore {
         };
 
         const optimisticCompany = { ...data, id: tempId, createdAt: new Date().toISOString() } as Company;
-        setCompanies(prev => [...prev, optimisticCompany]);
+        setCompanies((prev: any[]) => [...prev, optimisticCompany]);
 
         const { data: inserted, error } = await supabase.from('companies').insert(newCompany).select().single();
         if (error) {
             console.error('Error adding company:', error);
-            setCompanies(prev => prev.filter(c => c.id !== tempId));
+            setCompanies((prev: any[]) => prev.filter((c: any) => c.id !== tempId));
             throw error;
         }
         return { ...optimisticCompany, id: inserted.id };
     };
 
     const updateCompany = async (id: string, updates: Partial<Company>) => {
-        setCompanies(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+        setCompanies((prev: any[]) => prev.map((c: any) => c.id === id ? { ...c, ...updates } : c));
         await supabase.from('companies').update(updates).eq('id', id);
     };
 
     const deleteCompany = async (id: string) => {
         // Optimistic
-        setCompanies(prev => prev.filter(c => c.id !== id));
+        setCompanies((prev: any[]) => prev.filter((c: any) => c.id !== id));
 
         // Update related (Optional/Stub): 
         // In a real app we might unset companyId from contacts/deals or delete them.
         // For now, we just delete the company.
-        setContacts(prev => prev.map(c => c.companyId === id ? { ...c, companyId: undefined } : c));
-        setDeals(prev => prev.map(d => d.companyId === id ? { ...d, companyId: undefined } : d));
+        setContacts((prev: any[]) => prev.map((c: any) => c.companyId === id ? { ...c, companyId: undefined } : c));
+        setDeals((prev: any[]) => prev.map((d: any) => d.companyId === id ? { ...d, companyId: undefined } : d));
 
         await supabase.from('companies').delete().eq('id', id);
     };
@@ -1274,7 +1275,7 @@ export function useCRMStore(): CRMStore {
             title
         };
 
-        setPipelines(prev => ({
+        setPipelines((prev: any) => ({
             ...prev,
             [pipelineId]: {
                 ...prev[pipelineId],
@@ -1293,7 +1294,7 @@ export function useCRMStore(): CRMStore {
 
             if (data && !error) {
                 // Confirm ID
-                setPipelines(prev => ({
+                setPipelines((prev: any) => ({
                     ...prev,
                     [pipelineId]: {
                         ...prev[pipelineId],
@@ -1303,21 +1304,21 @@ export function useCRMStore(): CRMStore {
             } else {
                 console.error("Error adding stage:", error);
                 // Revert optimistic stage addition
-                setPipelines(prev => ({
+                setPipelines((prev: any) => ({
                     ...prev,
                     [pipelineId]: {
                         ...prev[pipelineId],
-                        stages: prev[pipelineId].stages.filter(s => s.id !== tempId)
+                        stages: prev[pipelineId].stages.filter((s: any) => s.id !== tempId)
                     }
                 }));
             }
         } catch (e) {
             console.error('Failed to add stage', e);
-            setPipelines(prev => ({
+            setPipelines((prev: any) => ({
                 ...prev,
                 [pipelineId]: {
                     ...prev[pipelineId],
-                    stages: prev[pipelineId].stages.filter(s => s.id !== tempId)
+                    stages: prev[pipelineId].stages.filter((s: any) => s.id !== tempId)
                 }
             }));
         }
@@ -1325,12 +1326,12 @@ export function useCRMStore(): CRMStore {
 
     const updateStage = async (stageId: string, updates: Partial<Stage>) => {
         // Find pipeline for this stage (inefficient but safe)
-        const pipelineId = Object.keys(pipelines).find(pId =>
+        const pipelineId = Object.keys(pipelines).find((pId: any) =>
             pipelines[pId].stages.some((s: any) => s.id === stageId)
         );
         if (!pipelineId) return;
 
-        setPipelines(prev => ({
+        setPipelines((prev: any) => ({
             ...prev,
             [pipelineId]: {
                 ...prev[pipelineId],
@@ -1352,12 +1353,12 @@ export function useCRMStore(): CRMStore {
     };
 
     const deleteStage = async (stageId: string) => {
-        const pipelineId = Object.keys(pipelines).find(pId =>
+        const pipelineId = Object.keys(pipelines).find((pId: any) =>
             pipelines[pId].stages.some((s: any) => s.id === stageId)
         );
         if (!pipelineId) return;
 
-        setPipelines(prev => ({
+        setPipelines((prev: any) => ({
             ...prev,
             [pipelineId]: {
                 ...prev[pipelineId],
@@ -1372,7 +1373,7 @@ export function useCRMStore(): CRMStore {
             console.error('Failed to delete stage', e);
             // Revert: re-add deleted stage
             if (deletedStage) {
-                setPipelines(prev => ({
+                setPipelines((prev: any) => ({
                     ...prev,
                     [pipelineId]: {
                         ...prev[pipelineId],
@@ -1390,13 +1391,13 @@ export function useCRMStore(): CRMStore {
 
     const reorderStages = async (pipelineId: string, newOrder: string[]) => {
         // Optimistic Update
-        setPipelines(prev => {
+        setPipelines((prev: any) => {
             const pipeline = prev[pipelineId];
             if (!pipeline) return prev;
 
             const currentStagesMap = new Map(pipeline.stages.map((s: any) => [s.id, s]));
             const reorderedStages = newOrder
-                .map(id => currentStagesMap.get(id))
+                .map((id: any) => currentStagesMap.get(id))
                 .filter((s): s is Stage => !!s);
 
             // Append any missing stages (just in case)
@@ -1459,13 +1460,13 @@ export function useCRMStore(): CRMStore {
             created_by: user.id
         };
 
-        setCampaigns(prev => [...prev, optimisticCampaign]);
+        setCampaigns((prev: any[]) => [...prev, optimisticCampaign]);
 
         // 1. Insert Campaign
         const { error } = await supabase.from('campaigns').insert(newCampaign);
         if (error) {
             console.error('Error adding campaign:', error);
-            setCampaigns(prev => prev.filter(c => c.id !== tempId));
+            setCampaigns((prev: any[]) => prev.filter((c: any) => c.id !== tempId));
             return;
         }
 
@@ -1473,12 +1474,12 @@ export function useCRMStore(): CRMStore {
         if (data.recipients && data.recipients.length > 0) {
             // --- Store-level safety filter ---
             // Exclude recipients with invalid email or whose deal is lost/disqualified
-            const eligibleRecipients = data.recipients.filter(r => {
+            const eligibleRecipients = data.recipients.filter((r: any) => {
                 // Email must exist and be non-empty
                 if (!r.email || r.email.trim() === '' || !r.email.includes('@')) return false;
                 // If linked to a deal, that deal must not be excluded
                 if (r.dealId) {
-                    const linkedDeal = deals.find(d => d.id === r.dealId);
+                    const linkedDeal = deals.find((d: any) => d.id === r.dealId);
                     if (linkedDeal && (EXCLUDED_DEAL_STATUSES_FOR_CAMPAIGNS as readonly string[]).includes(linkedDeal.status)) {
                         console.warn(`🚫 [Campaign] Skipping recipient ${r.email} — deal ${r.dealId} is ${linkedDeal.status}`);
                         return false;
@@ -1492,7 +1493,7 @@ export function useCRMStore(): CRMStore {
                 console.log(`🛡️ [Campaign] Filtered out ${skippedCount} ineligible recipient(s) (lost/disqualified deals or invalid emails).`);
             }
 
-            const recipientsToInsert = eligibleRecipients.map(r => ({
+            const recipientsToInsert = eligibleRecipients.map((r: any) => ({
                 campaign_id: tempId,
                 email: r.email,
                 person_id: r.personId,
@@ -1525,19 +1526,19 @@ export function useCRMStore(): CRMStore {
                         console.log('✅ [Store] Campaign API Success:', result);
                         // Update campaign status locally from API result
                         if (result.status) {
-                            setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: result.status } : c));
+                            setCampaigns((prev: any[]) => prev.map((c: any) => c.id === tempId ? { ...c, status: result.status } : c));
                         } else {
-                            setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: 'sent' } : c));
+                            setCampaigns((prev: any[]) => prev.map((c: any) => c.id === tempId ? { ...c, status: 'sent' } : c));
                         }
                     } else {
                         const errorMsg = await response.text();
                         console.error('🔥 [Store] Campaign API Error:', errorMsg);
-                        setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: 'failed' } : c));
+                        setCampaigns((prev: any[]) => prev.map((c: any) => c.id === tempId ? { ...c, status: 'failed' } : c));
                         await supabase.from('campaigns').update({ status: 'failed' }).eq('id', tempId);
                     }
                 } catch (e) {
                     console.error('🔥 [Store] Critical Fetch Error:', e);
-                    setCampaigns(prev => prev.map(c => c.id === tempId ? { ...c, status: 'failed' } : c));
+                    setCampaigns((prev: any[]) => prev.map((c: any) => c.id === tempId ? { ...c, status: 'failed' } : c));
                     await supabase.from('campaigns').update({ status: 'failed' }).eq('id', tempId);
                     alert('Erro ao enviar campanha. O servidor (backend) pode estar desligado. Inicie o "npm run dev".');
                 }
@@ -1546,7 +1547,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const updateCampaign = async (id: string, updates: Partial<Campaign>) => {
-        setCampaigns(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+        setCampaigns((prev: any[]) => prev.map((c: any) => c.id === id ? { ...c, ...updates } : c));
 
         const dbUpdates: any = {};
         if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -1562,7 +1563,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const deleteCampaign = async (id: string) => {
-        setCampaigns(prev => prev.filter(c => c.id !== id));
+        setCampaigns((prev: any[]) => prev.filter((c: any) => c.id !== id));
         await supabase.from('campaigns').delete().eq('id', id);
     };
 
@@ -1606,17 +1607,17 @@ export function useCRMStore(): CRMStore {
             createdAt: new Date().toISOString()
         };
 
-        setEmailTemplates(prev => [...prev, optimisticTemplate]);
+        setEmailTemplates((prev: any[]) => [...prev, optimisticTemplate]);
 
         const { error } = await supabase.from('email_templates').insert(newTemplate);
         if (error) {
             console.error('Error adding template:', error);
-            setEmailTemplates(prev => prev.filter(t => t.id !== tempId));
+            setEmailTemplates((prev: any[]) => prev.filter((t: any) => t.id !== tempId));
         }
     };
 
     const updateEmailTemplate = async (id: string, updates: Partial<EmailTemplate>) => {
-        setEmailTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+        setEmailTemplates((prev: any[]) => prev.map((t: any) => t.id === id ? { ...t, ...updates } : t));
 
         const dbUpdates: any = {};
         if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -1630,7 +1631,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const deleteEmailTemplate = async (id: string) => {
-        setEmailTemplates(prev => prev.filter(t => t.id !== id));
+        setEmailTemplates((prev: any[]) => prev.filter((t: any) => t.id !== id));
         await supabase.from('email_templates').delete().eq('id', id);
     };
 
@@ -1654,12 +1655,12 @@ export function useCRMStore(): CRMStore {
             createdAt: new Date().toISOString()
         };
 
-        setCampaignSenders(prev => [...prev, optimisticSender]);
+        setCampaignSenders((prev: any[]) => [...prev, optimisticSender]);
 
         const { error } = await supabase.from('senders').insert(newSender);
         if (error) {
             console.error('Error adding sender:', error);
-            setCampaignSenders(prev => prev.filter(s => s.id !== tempId));
+            setCampaignSenders((prev: any[]) => prev.filter((s: any) => s.id !== tempId));
         }
     };
 
@@ -1674,7 +1675,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const deleteCampaignSender = async (id: string) => {
-        setCampaignSenders(prev => prev.filter(s => s.id !== id));
+        setCampaignSenders((prev: any[]) => prev.filter((s: any) => s.id !== id));
         await supabase.from('senders').delete().eq('id', id);
     };
 
@@ -1684,7 +1685,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const updateCadenceTemplate = async (id: string, updates: Partial<CadenceTemplate>) => {
-        setCadenceTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+        setCadenceTemplates((prev: any[]) => prev.map((t: any) => t.id === id ? { ...t, ...updates } : t));
 
         const dbUpdates: any = { ...updates };
         delete dbUpdates.id;
@@ -1709,7 +1710,7 @@ export function useCRMStore(): CRMStore {
         const tempId = generateId();
         const newTemplate = { ...template, id: tempId, isActive: template.isActive ?? true } as CadenceTemplate;
         
-        setCadenceTemplates(prev => [...prev, newTemplate]);
+        setCadenceTemplates((prev: any[]) => [...prev, newTemplate]);
 
         const dbTemplate = {
             id: tempId,
@@ -1727,13 +1728,13 @@ export function useCRMStore(): CRMStore {
         if (error) {
             console.error('Error adding cadence template:', error);
             alert(`Erro ao criar template: ${error.message}`);
-            setCadenceTemplates(prev => prev.filter(t => t.id !== tempId));
+            setCadenceTemplates((prev: any[]) => prev.filter((t: any) => t.id !== tempId));
         }
         return newTemplate;
     };
 
     const deleteCadenceTemplate = async (id: string) => {
-        setCadenceTemplates(prev => prev.filter(t => t.id !== id));
+        setCadenceTemplates((prev: any[]) => prev.filter((t: any) => t.id !== id));
         const { error } = await supabase.from('cadence_templates').delete().eq('id', id);
         if (error) {
             console.error('Error deleting cadence template:', error);
@@ -1755,7 +1756,7 @@ export function useCRMStore(): CRMStore {
         if (!user) return;
         const tempId = generateId();
         const newStage = { ...stage, id: tempId, userId: user.id };
-        setCadenceStages(prev => [...prev, newStage]);
+        setCadenceStages((prev: any[]) => [...prev, newStage]);
         const { error } = await supabase.from('cadence_stages').insert({
             id: tempId,
             name: stage.name,
@@ -1766,7 +1767,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const deleteCadenceStage = async (id: string) => {
-        setCadenceStages(prev => prev.filter(s => s.id !== id));
+        setCadenceStages((prev: any[]) => prev.filter((s: any) => s.id !== id));
         const { error } = await supabase.from('cadence_stages').delete().eq('id', id);
         if (error) console.error('Error deleting cadence stage:', error);
     };

@@ -189,7 +189,6 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
     // --- Stable callbacks ---
     const handleToggleActivity = useCallback((id: string) => {
-        const currentStageIndex = pipeline.stages.findIndex((s: any) => s.id === deal.stageId);
         const activity = activities.find(a => a.id === id);
         if (activity) updateActivity(id, { completed: !activity.completed });
     }, [activities, updateActivity]);
