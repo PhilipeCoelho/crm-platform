@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Deal, Activity } from '@/types/schema';
-import { CheckSquare, FileText, Mail, File, Phone, Users as UsersIcon } from 'lucide-react';
+import { CheckSquare, FileText, Mail, File } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
 import Timeline from '../activities/Timeline';
 import ActivityList from '../activities/ActivityList';
@@ -11,8 +11,6 @@ import CompleteActivityModal from '../activities/CompleteActivityModal';
 import ActivityTab from './tabs/ActivityTab';
 import NoteTab from './tabs/NoteTab';
 import EmailTab from './tabs/EmailTab';
-import CallTab from './tabs/CallTab';
-import MeetingTab from './tabs/MeetingTab';
 import FilesTab from './tabs/FilesTab';
 
 interface ActivityPanelProps {
@@ -20,7 +18,7 @@ interface ActivityPanelProps {
     readOnly?: boolean;
 }
 
-type TabType = 'activity' | 'note' | 'email' | 'call' | 'meeting' | 'files';
+type TabType = 'activity' | 'note' | 'email' | 'files';
 
 export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     const { activities, logs, updateActivity, deleteActivity, deleteLog } = useCRM();
@@ -41,12 +39,10 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
         .sort((a, b) => new Date(b.dueDate || b.createdAt).getTime() - new Date(a.dueDate || a.createdAt).getTime());
 
     const tabs = [
-        { id: 'activity', label: 'Atividade', icon: CheckSquare },
-        { id: 'call', label: 'Ligação', icon: Phone },
-        { id: 'meeting', label: 'Reunião', icon: UsersIcon },
+        { id: 'activity', label: 'Atividades', icon: CheckSquare },
         { id: 'note', label: 'Anotações', icon: FileText },
+        { id: 'files', label: 'Anexos', icon: File },
         { id: 'email', label: 'E-mail', icon: Mail },
-        { id: 'files', label: 'Arquivos', icon: File },
     ];
 
     const handleActivityToggle = (id: string) => {
@@ -97,8 +93,6 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
             case 'activity': return <ActivityTab deal={deal} />;
             case 'note': return <NoteTab deal={deal} />;
             case 'email': return <EmailTab deal={deal} />;
-            case 'call': return <CallTab deal={deal} />;
-            case 'meeting': return <MeetingTab deal={deal} />;
             case 'files': return <FilesTab deal={deal} />;
             default: return null;
         }

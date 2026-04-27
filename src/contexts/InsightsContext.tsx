@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { subDays, format } from 'date-fns';
 import { getInsightsData, InsightsData } from '@/services/insights';
 
-export type PeriodType = '7d' | '30d' | '90d' | 'all' | 'custom';
+export type PeriodType = 'today' | '7d' | '30d' | '90d' | 'all' | 'custom';
 
 interface InsightsContextType {
     period: PeriodType;
@@ -41,7 +41,7 @@ export function InsightsProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+        const days = period === 'today' ? 0 : period === '7d' ? 7 : period === '30d' ? 30 : 90;
         const start = format(subDays(new Date(), days), 'yyyy-MM-dd');
         const end = format(new Date(), 'yyyy-MM-dd');
 

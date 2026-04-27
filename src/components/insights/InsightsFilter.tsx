@@ -15,6 +15,7 @@ export default function InsightsFilter() {
     } = useInsights();
 
     const periods: { id: PeriodType; label: string }[] = [
+        { id: 'today', label: 'Hoje' },
         { id: '7d', label: 'Últimos 7 dias' },
         { id: '30d', label: 'Últimos 30 dias' },
         { id: '90d', label: 'Últimos 90 dias' },

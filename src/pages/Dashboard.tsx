@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 
 const PERIOD_OPTIONS = [
+    { value: '0', label: 'Hoje' },
     { value: '7', label: 'Últimos 7 dias' },
     { value: '30', label: 'Últimos 30 dias' },
     { value: '90', label: 'Últimos 90 dias' },
@@ -119,10 +120,14 @@ export default function Dashboard({ currency }: { currency: Currency }) {
             return `${format(parseISO(customRange.start), "dd 'de' MMM", { locale: ptBR })} - ${format(parseISO(customRange.end), "dd 'de' MMM, yyyy", { locale: ptBR })}`;
         }
         const now = new Date();
-        const days = period === 'all' ? 0 : Number(period);
-        const start = days === 0 ? new Date('2000-01-01') : subDays(now, days);
+        if (period === 'all') {
+            const start = new Date('2000-01-01');
+            return `${format(start, "dd 'de' MMM", { locale: ptBR })} - ${format(now, "dd 'de' MMM, yyyy", { locale: ptBR })}`;
+        }
+        const days = Number(period);
+        const start = subDays(now, days);
         return `${format(start, "dd 'de' MMM", { locale: ptBR })} - ${format(now, "dd 'de' MMM, yyyy", { locale: ptBR })}`;
-    }, [customRange]);
+    }, [customRange, ptBR]);
 
     // --- Priority Recommendation (memoized) ---
     const priorityRecommendation = useMemo(() => {
@@ -153,6 +158,8 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                 } else if (selectedPeriod === 'custom') {
                     start = new Date(customRange.start).toISOString();
                     end = new Date(customRange.end + 'T23:59:59.999Z').toISOString();
+                } else if (selectedPeriod === '0') {
+                    start = format(now, 'yyyy-MM-dd');
                 } else {
                     start = subDays(now, Number(selectedPeriod)).toISOString();
                 }
@@ -199,6 +206,8 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                 } else if (selectedPeriod === 'custom') {
                     start = new Date(customRange.start).toISOString();
                     end = new Date(customRange.end + 'T23:59:59.999Z').toISOString();
+                } else if (selectedPeriod === '0') {
+                    start = format(now, 'yyyy-MM-dd');
                 } else {
                     start = subDays(now, Number(selectedPeriod)).toISOString();
                 }
