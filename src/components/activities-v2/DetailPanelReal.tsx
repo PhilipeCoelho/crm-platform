@@ -41,9 +41,9 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
   const tc = TYPE_CONFIG[activity.type] || TYPE_CONFIG.task;
   const TypeIcon = Icons[tc.icon] || Icons.check;
 
-  const deal = useMemo(() => deals.find(d => d.id === activity.dealId), [deals, activity.dealId]);
-  const contact = useMemo(() => contacts.find(c => c.id === (activity.contactId || deal?.contactId)), [contacts, activity.contactId, deal]);
-  const company = useMemo(() => companies.find(c => c.id === (deal?.companyId || activity.companyId)), [companies, deal, activity.companyId]);
+  const deal = useMemo(() => deals.find((d: any) => d.id === activity.dealId), [deals, activity.dealId]);
+  const contact = useMemo(() => contacts.find((c: any) => c.id === (activity.contactId || deal?.contactId)), [contacts, activity.contactId, deal]);
+  const company = useMemo(() => companies.find((c: any) => c.id === (deal?.companyId || activity.companyId)), [companies, deal, activity.companyId]);
 
   // Pipeline stages for this deal
   const pipelineStages = useMemo(() => {
@@ -53,7 +53,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
 
   const currentStageIndex = useMemo(() => {
     if (!deal) return -1;
-    return pipelineStages.findIndex(s => s.id === deal.stageId);
+    return pipelineStages.findIndex((s: any) => s.id === deal.stageId);
   }, [deal, pipelineStages]);
 
   const currentStage = currentStageIndex >= 0 ? pipelineStages[currentStageIndex] : null;
@@ -76,9 +76,9 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
   const dealHistory = useMemo(() => {
     if (!deal) return [];
     const dealLogs = logs
-      .filter(l => l.dealId === deal.id)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      .filter((l: any) => l.dealId === deal.id)
+      .sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt))
+      .sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt));
     return dealLogs;
   }, [deal, logs]);
 
@@ -86,8 +86,8 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
   const pastActivities = useMemo(() => {
     if (!deal) return [];
     return activities
-      .filter(a => a.dealId === deal.id && a.completed && a.id !== activity.id)
-      .sort((a, b) => (b.completedAt || b.createdAt).localeCompare(a.completedAt || a.createdAt))
+      .filter((a: any) => a.dealId === deal.id && a.completed && a.id !== activity.id)
+      .sort((a: any, b: any) => (b.completedAt || b.createdAt).localeCompare(a.completedAt || a.createdAt))
       .slice(0, 5);
   }, [deal, activities, activity.id]);
 
@@ -132,7 +132,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
             {pipelineStages.length > 0 && (
               <>
                 <div className="av2-stage-bar">
-                  {pipelineStages.map((s, i) => (
+                  {pipelineStages.map((s: any, i: number) => (
                     <div
                       key={s.id}
                       className={`av2-stage-seg ${i <= currentStageIndex ? 'av2-stage-seg--filled' : ''}`}

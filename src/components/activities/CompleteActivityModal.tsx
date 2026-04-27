@@ -49,21 +49,21 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
         if (!deal || cadenceStages.length === 0) return [];
 
         // 1. Find Stage Tag
-        const stages = Object.values(pipelines).flatMap(p => p.stages || []);
-        const currentStage = stages.find(s => s.id === deal.stageId);
+        const stages = Object.values(pipelines).flatMap((p: any) => p.stages || []);
+        const currentStage = stages.find((s: any) => s.id === deal.stageId);
         const stageTitle = currentStage?.title?.toUpperCase() || '';
         
-        let matchedStage = cadenceStages.find(cs => 
+        let matchedStage = cadenceStages.find((cs: any) => 
             stageTitle.includes(cs.name.toUpperCase()) || 
             cs.name.toUpperCase().includes(stageTitle) ||
             stageTitle.includes(cs.id.toUpperCase())
         );
 
         if (!matchedStage) {
-            if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find(cs => cs.id === 'ENGAJADO');
-            else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find(cs => cs.id === 'DIAGNOSTICO');
-            else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find(cs => cs.id === 'FECHAMENTO');
-            else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find(cs => cs.id === 'LEAD');
+            if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'ENGAJADO');
+            else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'DIAGNOSTICO');
+            else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'FECHAMENTO');
+            else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'LEAD');
         }
 
         const tag = matchedStage?.id || 'LEAD';
@@ -71,15 +71,15 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
         // 2. Identify already executed steps for this deal and stage
         const executedSteps = new Set(
             activities
-                .filter(a => a.dealId === deal.id && a.originStage === tag)
-                .map(a => a.sequenceStep)
-                .filter(step => step !== undefined && step !== null)
+                .filter((a: any) => a.dealId === deal.id && a.originStage === tag)
+                .map((a: any) => a.sequenceStep)
+                .filter((step: any) => step !== undefined && step !== null)
         );
 
         // 3. Get Templates and filter out executed ones AND strictly check for isActive
         return cadenceTemplates
-            .filter(t => t.tag === tag && t.isActive === true && !executedSteps.has(t.step))
-            .sort((a, b) => a.step - b.step);
+            .filter((t: any) => t.tag === tag && t.isActive === true && !executedSteps.has(t.step))
+            .sort((a: any, b: any) => a.step - b.step);
     }, [deal, cadenceTemplates, cadenceStages, pipelines, activities]);
 
     if (!isOpen || !activity) return null;
@@ -93,7 +93,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
 
             // 2. Schedule Next Activity if selected
             if (selectedTemplateId && deal) {
-                const template = suggestions.find(t => t.id === selectedTemplateId);
+                const template = suggestions.find((t: any) => t.id === selectedTemplateId);
                 if (template) {
                     const dueDate = new Date();
                     dueDate.setDate(dueDate.getDate() + template.days);

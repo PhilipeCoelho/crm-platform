@@ -142,7 +142,7 @@ export default function EmailTemplates() {
                                                 <label className="text-xs font-semibold text-foreground mb-1 block capitalize">{key} (Itens separados por vírgula)</label>
                                                 <textarea 
                                                     value={(editData[key] || []).join(', ')}
-                                                    onChange={e => setEditData({...editData, [key]: e.target.value.split(',').map(s => s.trim())})}
+                                                    onChange={e => setEditData({...editData, [key]: e.target.value.split(',').map((s: any) => s.trim())})}
                                                     className="w-full p-2.5 bg-muted/40 border border-border rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px]"
                                                 />
                                             </div>

@@ -40,7 +40,7 @@ export default function PipelineSettingsModal({ isOpen, onClose, pipelineId }: P
         // Swap
         [newStages[index], newStages[targetIndex]] = [newStages[targetIndex], newStages[index]];
 
-        const newOrderIds = newStages.map(s => s.id);
+        const newOrderIds = newStages.map((s: any) => s.id);
         reorderStages(pipelineId, newOrderIds);
     };
 
@@ -57,7 +57,7 @@ export default function PipelineSettingsModal({ isOpen, onClose, pipelineId }: P
                 <div className="flex flex-col gap-4 py-2">
                     {/* List Stages */}
                     <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
-                        {stages.map((stage, index) => (
+                        {stages.map((stage: any, index: number) => (
                             <div key={stage.id} className="flex items-center gap-2 p-2 rounded-md border border-border bg-card/40 hover:bg-card transition-colors">
                                 <span className="text-muted-foreground/50 cursor-default">
                                     <GripVertical size={16} />

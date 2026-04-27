@@ -572,7 +572,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                             ) : (
                                 <>
                                     {/* Static Columns Render */}
-                                    {columns.map((col) => (
+                                    {columns.map((col: any) => (
                                         <KanbanColumn
                                             key={col.id}
                                             column={col}

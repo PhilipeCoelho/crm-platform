@@ -359,7 +359,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
     const findStageTitle = (deal?: Deal) => {
         if (!deal) return null;
         const pipeline = pipelines[deal.pipelineId || 'sales'];
-        const stage = pipeline?.stages.find(s => s.id === deal.stageId);
+        const stage = pipeline?.stages.find((s: any) => s.id === deal.stageId);
         return stage?.title || 'Lead';
     };
 

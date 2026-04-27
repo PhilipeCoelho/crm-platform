@@ -160,7 +160,7 @@ export async function getInsightsData(
                 .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(closed_at.gte.${startOfDay},closed_at.lte.${endOfDay}),and(updated_at.gte.${startOfDay},updated_at.lte.${endOfDay})`)
         ]);
 
-        const validStageIds = new Set(validStages?.map(s => s.id) || []);
+        const validStageIds = new Set(validStages?.map((s: any) => s.id) || []);
 
         let globalOpenValue = 0;
         const openDealsIds = new Set(

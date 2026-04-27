@@ -161,7 +161,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   // --- Lookups ---
   const getDeal = useCallback((id?: string): Deal | undefined => deals.find(d => d.id === id), [deals]);
   const getContactName = useCallback((id?: string) => contacts.find(c => c.id === id)?.name || '', [contacts]);
-  const getStage = useCallback((stageId?: string) => allStages.find(s => s.id === stageId), [allStages]);
+  const getStage = useCallback((stageId?: string) => allStages.find((s: any) => s.id === stageId), [allStages]);
 
   const selectedActivity = useMemo(() =>
     activities.find(a => a.id === selectedId) || null,
@@ -298,7 +298,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
           </div>
 
           <div className="av2-tabs">
-            {(['all', 'call', 'email', 'message', 'meeting', 'task'] as TabId[]).map(t => (
+            {(['all', 'call', 'email', 'message', 'meeting', 'task'] as TabId[]).map((t: any) => (
               <button key={t} className={`av2-tab ${tab === t ? 'av2-tab--active' : ''}`} onClick={() => setTab(t)}>
                 {t === 'all' ? 'Todos' : TYPE_CONFIG[t]?.label || t}
                 <span className="av2-tab-count">{tabCounts[t] || 0}</span>

@@ -42,7 +42,7 @@ export default function CampaignWizard() {
     const [searchContactTerm, setSearchContactTerm] = useState('');
     const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
 
-    const selectedSender = campaignSenders.find(s => s.id === campaignData.senderId);
+    const selectedSender = campaignSenders.find((s: any) => s.id === campaignData.senderId);
 
     // AI Assunto Generator
     const generateAIAssunto = () => {
@@ -87,13 +87,13 @@ export default function CampaignWizard() {
     // Filter computation
     const filteredDeals = useMemo(() => {
         if (audienceMode !== 'pipeline') return [];
-        return deals.filter(deal => {
+        return deals.filter((deal: any) => {
             if ((EXCLUDED_DEAL_STATUSES as readonly string[]).includes(deal.status)) return false;
             if (audienceFilters.onlyOpenDeals && deal.status !== 'open') return false;
             if (audienceFilters.pipelineId !== 'all' && deal.pipelineId !== audienceFilters.pipelineId) return false;
             if (audienceFilters.stageId !== 'all' && deal.stageId !== audienceFilters.stageId) return false;
 
-            const contact = contacts.find(c => c.id === deal.contactId);
+            const contact = contacts.find((c: any) => c.id === deal.contactId);
             if (!contact || !contact.email || contact.email.trim() === '' || !contact.email.includes('@')) return false;
 
             return true;
@@ -103,14 +103,14 @@ export default function CampaignWizard() {
     const recipients = useMemo(() => {
         if (audienceMode === 'specific') {
             if (!selectedContactId) return [];
-            const specificContact = contacts.find(c => c.id === selectedContactId);
+            const specificContact = contacts.find((c: any) => c.id === selectedContactId);
             if (!specificContact || !specificContact.email || specificContact.email.trim() === '' || !specificContact.email.includes('@')) return [];
 
             const activeDeal = deals.find(
-                d => d.contactId === specificContact.id &&
+                (d: any) => d.contactId === specificContact.id &&
                     !(EXCLUDED_DEAL_STATUSES as readonly string[]).includes(d.status)
             );
-            const anyDeal = deals.find(d => d.contactId === specificContact.id);
+            const anyDeal = deals.find((d: any) => d.contactId === specificContact.id);
             const dealToUse = activeDeal || (!anyDeal ? { id: null } : null);
 
             if (anyDeal && !activeDeal) return [];
@@ -120,7 +120,7 @@ export default function CampaignWizard() {
 
         const uniqueContactsMap = new Map();
         filteredDeals.forEach(deal => {
-            const contact = contacts.find(c => c.id === deal.contactId);
+            const contact = contacts.find((c: any) => c.id === deal.contactId);
             if (contact && contact.email && contact.email.trim() !== '' && !uniqueContactsMap.has(contact.id)) {
                 uniqueContactsMap.set(contact.id, { contact, deal });
             }
@@ -201,11 +201,11 @@ export default function CampaignWizard() {
             { key: 'review', label: 'Revisão e envio' }
         ];
 
-        const currentIndex = steps.findIndex(s => s.key === currentStep);
+        const currentIndex = steps.findIndex((s: any) => s.key === currentStep);
 
         return (
             <div className="hidden md:flex items-center gap-2">
-                {steps.map((step, index) => {
+                {steps.map((step: any, index: number) => {
                     const isActive = step.key === currentStep;
                     const isPast = currentIndex > index;
                     return (
@@ -366,7 +366,7 @@ export default function CampaignWizard() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                            {campaignSenders.map(sender => (
+                                            {campaignSenders.map((sender: any) => (
                                                 <div
                                                     key={sender.id}
                                                     onClick={() => setCampaignData({ ...campaignData, senderId: sender.id })}
@@ -427,7 +427,7 @@ export default function CampaignWizard() {
                                         </div>
                                     ) : (
                                         <div className="bg-muted/20 p-6 border border-border rounded-xl space-y-6 shadow-inner">
-                                            {Object.keys(editData).map(key => {
+                                            {Object.keys(editData).map((key: string) => {
                                                 const humanName = key.replace(/([A-Z])/g, ' $1').trim();
                                                 const isArray = Array.isArray(editData[key]);
                                                 
@@ -515,7 +515,7 @@ export default function CampaignWizard() {
                                                     className="w-full p-3 bg-white dark:bg-card border border-border rounded-lg text-sm outline-none focus:border-primary"
                                                 >
                                                     <option value="all">Todos os Pipelines</option>
-                                                    {Object.values(pipelines).map(p => (
+                                                    {Object.values(pipelines).map((p: any) => (
                                                         <option key={p.id} value={p.id}>{p.name}</option>
                                                     ))}
                                                 </select>
@@ -529,7 +529,7 @@ export default function CampaignWizard() {
                                                     className="w-full p-3 bg-white dark:bg-card border border-border rounded-lg text-sm outline-none focus:border-primary disabled:opacity-50"
                                                 >
                                                     <option value="all">Todas as Etapas</option>
-                                                    {audienceFilters.pipelineId !== 'all' && pipelines[audienceFilters.pipelineId]?.stages.map(s => (
+                                                    {audienceFilters.pipelineId !== 'all' && pipelines[audienceFilters.pipelineId]?.stages.map((s: any) => (
                                                         <option key={s.id} value={s.id}>{s.title}</option>
                                                     ))}
                                                 </select>

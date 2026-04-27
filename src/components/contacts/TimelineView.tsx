@@ -550,7 +550,7 @@ export default function TimelineView() {
                                     <div className="w-64 px-4 py-3 border-r border-border bg-background shrink-0 sticky left-0 z-10 group-hover:bg-muted/30">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                                                {contact.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                                {contact.name.split(' ').map((n: any) => n[0]).join('').toUpperCase().slice(0, 2)}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-sm font-medium text-foreground truncate">

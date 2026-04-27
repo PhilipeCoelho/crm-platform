@@ -64,15 +64,15 @@ export default function ActivitySuggestionModal() {
         // 2. Identify executed steps
         const executedSteps = new Set(
             activities
-                .filter(a => a.dealId === deal.id && a.originStage === tag)
-                .map(a => a.sequenceStep)
+                .filter((a: any) => a.dealId === deal.id && a.originStage === tag)
+                .map((a: any) => a.sequenceStep)
                 .filter(Boolean)
         );
 
         // 3. Get Templates and filter out executed ones + MUST BE ACTIVE
         return cadenceTemplates
-            .filter(t => t.tag === tag && t.isActive === true && !executedSteps.has(t.step))
-            .sort((a, b) => a.step - b.step);
+            .filter((t: any) => t.tag === tag && t.isActive === true && !executedSteps.has(t.step))
+            .sort((a: any, b: any) => a.step - b.step);
     }, [deal, cadenceTemplates, cadenceStages, pipelines, activities]);
 
     if (!suggestionModalDealId || !deal) return null;

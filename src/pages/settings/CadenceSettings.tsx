@@ -496,11 +496,10 @@ export default function CadenceSettings() {
                                             strategy={verticalListSortingStrategy}
                                         >
                                             <div className="space-y-2">
-                                                {filteredTemplates.map((template, index) => (
+                                                {filteredTemplates.map((template) => (
                                                     <SortableActivityItem 
                                                         key={template.id}
                                                         template={template}
-                                                        index={index}
                                                         isEditing={false}
                                                         isExpanded={expandedId === template.id}
                                                         onEdit={setEditingTemplate}

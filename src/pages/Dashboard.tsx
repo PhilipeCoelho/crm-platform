@@ -152,7 +152,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     // --- Default Stage ---
     const defaultStageId = useMemo(() => {
         const stages = pipelines['sales']?.stages || [];
-        const prospect = stages.find(s => s.title.toLowerCase().includes('prospect'));
+        const prospect = stages.find((s: any) => s.title.toLowerCase().includes('prospect'));
         if (prospect) return prospect.id;
         if (stages.length > 1 && stages[0].id === 'new') return stages[1].id;
         return 'new';
@@ -189,6 +189,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
     // --- Stable callbacks ---
     const handleToggleActivity = useCallback((id: string) => {
+        const currentStageIndex = pipeline.stages.findIndex((s: any) => s.id === deal.stageId);
         const activity = activities.find(a => a.id === id);
         if (activity) updateActivity(id, { completed: !activity.completed });
     }, [activities, updateActivity]);

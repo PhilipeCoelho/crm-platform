@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
 import {
+    User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
     Campaign, EmailTemplate, CampaignSender, CadenceTemplate, CadenceStage, ActivityType
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
@@ -1039,7 +1039,7 @@ export function useCRMStore(): CRMStore {
 
             // Cadence V2: AUTOMATICALLY create the FIRST step of the cadence for this stage
             const stages = Object.values(pipelines).flatMap(p => p.stages || []);
-            const currentStage = stages.find(s => s.id === stageId);
+            const currentStage = stages.find((s: any) => s.id === stageId);
             const stageTitle = currentStage?.title?.toUpperCase() || '';
             
             // Find matched cadence stage tag
@@ -1297,7 +1297,7 @@ export function useCRMStore(): CRMStore {
                     ...prev,
                     [pipelineId]: {
                         ...prev[pipelineId],
-                        stages: prev[pipelineId].stages.map(s => s.id === tempId ? { ...s, id: data.id } : s)
+                        stages: prev[pipelineId].stages.map((s: any) => s.id === tempId ? { ...s, id: data.id } : s)
                     }
                 }));
             } else {
@@ -1326,7 +1326,7 @@ export function useCRMStore(): CRMStore {
     const updateStage = async (stageId: string, updates: Partial<Stage>) => {
         // Find pipeline for this stage (inefficient but safe)
         const pipelineId = Object.keys(pipelines).find(pId =>
-            pipelines[pId].stages.some(s => s.id === stageId)
+            pipelines[pId].stages.some((s: any) => s.id === stageId)
         );
         if (!pipelineId) return;
 
@@ -1334,7 +1334,7 @@ export function useCRMStore(): CRMStore {
             ...prev,
             [pipelineId]: {
                 ...prev[pipelineId],
-                stages: prev[pipelineId].stages.map(s => s.id === stageId ? { ...s, ...updates } : s)
+                stages: prev[pipelineId].stages.map((s: any) => s.id === stageId ? { ...s, ...updates } : s)
             }
         }));
 
@@ -1353,7 +1353,7 @@ export function useCRMStore(): CRMStore {
 
     const deleteStage = async (stageId: string) => {
         const pipelineId = Object.keys(pipelines).find(pId =>
-            pipelines[pId].stages.some(s => s.id === stageId)
+            pipelines[pId].stages.some((s: any) => s.id === stageId)
         );
         if (!pipelineId) return;
 
@@ -1361,11 +1361,11 @@ export function useCRMStore(): CRMStore {
             ...prev,
             [pipelineId]: {
                 ...prev[pipelineId],
-                stages: prev[pipelineId].stages.filter(s => s.id !== stageId)
+                stages: prev[pipelineId].stages.filter((s: any) => s.id !== stageId)
             }
         }));
 
-        const deletedStage = pipelines[pipelineId]?.stages.find(s => s.id === stageId);
+        const deletedStage = pipelines[pipelineId]?.stages.find((s: any) => s.id === stageId);
         try {
             await supabase.from('stages').delete().eq('id', stageId);
         } catch (e) {
@@ -1394,13 +1394,13 @@ export function useCRMStore(): CRMStore {
             const pipeline = prev[pipelineId];
             if (!pipeline) return prev;
 
-            const currentStagesMap = new Map(pipeline.stages.map(s => [s.id, s]));
+            const currentStagesMap = new Map(pipeline.stages.map((s: any) => [s.id, s]));
             const reorderedStages = newOrder
                 .map(id => currentStagesMap.get(id))
                 .filter((s): s is Stage => !!s);
 
             // Append any missing stages (just in case)
-            const remaining = pipeline.stages.filter(s => !newOrder.includes(s.id));
+            const remaining = pipeline.stages.filter((s: any) => !newOrder.includes(s.id));
 
             return {
                 ...prev,
@@ -1664,7 +1664,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const updateCampaignSender = async (id: string, updates: Partial<CampaignSender>) => {
-        setCampaignSenders(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+        setCampaignSenders(prev => prev.map((s: any) => s.id === id ? { ...s, ...updates } : s));
 
         const dbUpdates: any = {};
         if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -1679,7 +1679,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const verifySender = async (id: string) => {
-        setCampaignSenders(prev => prev.map(s => s.id === id ? { ...s, isVerified: true } : s));
+        setCampaignSenders(prev => prev.map((s: any) => s.id === id ? { ...s, isVerified: true } : s));
         await supabase.from('senders').update({ is_verified: true }).eq('id', id);
     };
 
@@ -1742,7 +1742,7 @@ export function useCRMStore(): CRMStore {
     };
 
     const updateCadenceStage = async (id: string, updates: Partial<CadenceStage>) => {
-        setCadenceStages(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+        setCadenceStages(prev => prev.map((s: any) => s.id === id ? { ...s, ...updates } : s));
         const dbUpdates: any = { ...updates };
         delete dbUpdates.id;
         delete dbUpdates.userId;

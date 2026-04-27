@@ -169,7 +169,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                             </div>
 
                             <nav className="flex-1 flex flex-col w-full space-y-2">
-                                {navItems.map((item) => {
+                                {navItems.map((item: any) => {
                                     const Icon = item.icon;
                                     const NavItemContent = (
                                         <NavLink
@@ -349,7 +349,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                             </button>
                                             <div className={`absolute left-full bottom-0 top-auto -ml-1 pl-4 w-48 z-[100] origin-bottom-left transition-all duration-200 ease-in-out ${activeSubmenu === 'currency' ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'}`}>
                                                 <div className="bg-card border border-border rounded-lg shadow-xl p-1 overflow-hidden max-h-64 overflow-y-auto custom-scrollbar">
-                                                    {Object.values(CURRENCIES).map(c => (
+                                                    {Object.values(CURRENCIES).map((c: any) => (
                                                         <button key={c.code} onClick={() => { setCurrency(c); setIsSettingsOpen(false); }} className="w-full text-left px-3 py-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-md text-xs flex items-center justify-between text-muted-foreground hover:text-foreground">
                                                             <span>{c.name} ({c.symbol})</span>
                                                             {currency.code === c.code && <Check size={12} className="text-primary" />}
@@ -469,7 +469,7 @@ function App() {
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                const found = currencies.find(c => c.code === parsed.code);
+                const found = currencies.find((c: any) => c.code === parsed.code);
                 return found || currencies[0];
             } catch {
                 return currencies[0];

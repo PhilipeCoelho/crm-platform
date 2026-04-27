@@ -29,7 +29,7 @@ export default function DealPreviewPopover({ dealId, onClose, position }: DealPr
 
     // Get stage from pipeline
     const pipeline = deal?.pipelineId ? pipelines[deal.pipelineId] : null;
-    const stage = pipeline?.stages.find(s => s.id === deal?.stageId);
+    const stage = pipeline?.stages.find((s: any) => s.id === deal?.stageId);
 
     // Recent History (Last 3 activities)
     const recentActivities = activities
@@ -221,7 +221,7 @@ export default function DealPreviewPopover({ dealId, onClose, position }: DealPr
                         {/* Tags */}
                         {deal.tags && deal.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 pt-2">
-                                {deal.tags.map(tagId => {
+                                {deal.tags.map((tagId: any) => {
                                     const labelMap: any = { '1': 'Quente', '2': 'Morno', '3': 'Frio' };
                                     const colorMap: any = {
                                         '1': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',

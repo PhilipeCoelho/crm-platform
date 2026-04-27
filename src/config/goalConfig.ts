@@ -91,12 +91,15 @@ export const GOAL_PERIODS = [
 
 // Função para obter informações do tipo de meta
 export function getGoalTypeInfo(type: GoalType) {
-    return GOAL_TYPES.find(t => t.id === type);
+    return GOAL_TYPES.find((t: any) => t.id === type);
 }
 
 // Função para obter informações do período
+export const getGoalType = (type: string) => GOAL_TYPES.find((t: any) => t.id === type);
+export const getGoalPeriod = (period: string) => GOAL_PERIODS.find((p: any) => p.id === period);
+
 export function getGoalPeriodInfo(period: GoalPeriod) {
-    return GOAL_PERIODS.find(p => p.id === period);
+    return GOAL_PERIODS.find((p: any) => p.id === period);
 }
 
 // Função para calcular datas de início e fim baseado no período

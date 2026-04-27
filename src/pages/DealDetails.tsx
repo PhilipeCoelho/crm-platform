@@ -89,7 +89,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
         );
     }
 
-    const currentStageIndex = pipeline.stages.findIndex(s => s.id === deal.stageId);
+    const currentStageIndex = pipeline.stages.findIndex((s: any) => s.id === deal.stageId);
     const isClosed = deal.status !== 'open';
 
     const handleStageChange = (stageId: string) => {
@@ -198,7 +198,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
     const toggleTag = (tagId: string) => {
         const currentTags = deal.tags || [];
         const newTags = currentTags.includes(tagId)
-            ? currentTags.filter(t => t !== tagId)
+            ? currentTags.filter((t: any) => t !== tagId)
             : [...currentTags, tagId];
         updateDeal(deal.id, { tags: newTags });
     };
@@ -361,7 +361,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
             {/* PIPELINE BAR - LINHA FINA REFORMULADA */}
             <div className="bg-background border-b border-border dark:border-border px-6 py-4 shrink-0 overflow-x-auto no-scrollbar touch-pan-x">
                 <div className="flex items-center gap-1.5 min-w-[600px] sm:min-w-full h-1 bg-muted/20 dark:bg-muted/5 rounded-full overflow-hidden">
-                    {pipeline.stages.map((stage, index) => {
+                    {pipeline.stages.map((stage: any, index: number) => {
                         const isActive = index === currentStageIndex;
                         const isPast = index < currentStageIndex;
                         const isWon = deal.status === 'won';
@@ -399,7 +399,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     autoFocus
                                     style={{ fontSize: '16px' }}
                                 >
-                                    {pipeline.stages.map(s => (
+                                    {pipeline.stages.map((s: any) => (
                                         <option key={s.id} value={s.id}>{s.title}</option>
                                     ))}
                                 </select>

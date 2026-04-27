@@ -297,15 +297,15 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                         <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                             <span>Funil & Etapa</span>
                             <select className="bg-transparent border-0 text-primary font-bold outline-none p-0 h-auto cursor-pointer hover:opacity-80 transition-opacity" value={selectedPipelineId} onChange={(e) => setSelectedPipelineId(e.target.value)}>
-                                {Object.values(pipelines).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                {Object.values(pipelines).map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
                         <div className="flex gap-1.5 h-1.5">
-                            {stages.map((stage, idx) => (
-                                <div key={stage.id} onClick={() => setSelectedStageId(stage.id)} className={`flex-1 rounded-full cursor-pointer transition-all duration-300 ${stage.id === selectedStageId ? 'bg-primary ring-4 ring-primary/10' : stages.findIndex(s => s.id === selectedStageId) > idx ? 'bg-primary/30' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
+                            {stages.map((stage: any, idx: number) => (
+                                <div key={stage.id} onClick={() => setSelectedStageId(stage.id)} className={`flex-1 rounded-full cursor-pointer transition-all duration-300 ${stage.id === selectedStageId ? 'bg-primary ring-4 ring-primary/10' : stages.findIndex((s: any) => s.id === selectedStageId) > idx ? 'bg-primary/30' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
                             ))}
                         </div>
-                        <div className="text-[10px] text-right font-black text-primary/80 uppercase tracking-tighter">{stages.find(s => s.id === selectedStageId)?.title}</div>
+                        <div className="text-[10px] text-right font-black text-primary/80 uppercase tracking-tighter">{stages.find((s: any) => s.id === selectedStageId)?.title}</div>
                     </div>
 
                     {/* Linha 6: Origem */}
@@ -313,7 +313,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Canal de Origem</label>
                         <select className="w-full px-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary cursor-pointer" value={source} onChange={(e) => setSource(e.target.value)}>
                             <option value="">Selecione...</option>
-                            {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                            {SOURCES.map((s: any) => <option key={s} value={s}>{s}</option>)}
                         </select>
                     </div>
 
