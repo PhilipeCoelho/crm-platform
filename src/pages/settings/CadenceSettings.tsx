@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
-import { CadenceTemplate, CadenceStage } from '@/types/schema';
+import { CadenceTemplate } from '@/types/schema';
 import {
-    Zap, Save, ArrowLeft, MessageSquare, Mail, Phone,
-    Video, BarChart3, CheckCircle2, ChevronRight,
-    Clock, AlertCircle, Info, Instagram, Plus, Trash2,
-    Pencil, GripVertical, Settings2, MoreHorizontal,
-    PlusCircle, Check
+    ArrowLeft, MessageSquare, Mail, Phone,
+    Video, BarChart3, CheckCircle2,
+    Clock, AlertCircle, Instagram, Plus, Trash2,
+    Pencil, GripVertical, Settings2,
+    PlusCircle, Check, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -41,7 +41,6 @@ const ICON_MAP: Record<string, any> = {
 
 function SortableActivityItem({ 
     template, 
-    index, 
     isEditing, 
     isExpanded, 
     onEdit, 
@@ -50,7 +49,6 @@ function SortableActivityItem({
     onExpand 
 }: { 
     template: CadenceTemplate; 
-    index: number;
     isEditing: boolean;
     isExpanded: boolean;
     onEdit: (t: CadenceTemplate) => void;

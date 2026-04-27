@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { 
     CheckCircle2, X, MessageSquare, Phone, Mail, 
-    Clock, Instagram, BarChart3, Video, Calendar,
-    ArrowRight, AlertCircle, Sparkles, Check
+    Clock, BarChart3, Video, Calendar,
+    Sparkles, Check
 } from 'lucide-react';
-import { Activity, CadenceTemplate, ActivityType } from '@/types/schema';
+import { Activity, ActivityType } from '@/types/schema';
 import { useCRM } from '@/contexts/CRMContext';
 import { cn } from '@/lib/utils';
 

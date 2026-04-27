@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-    User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
-    Campaign, EmailTemplate, CampaignSender, CadenceTemplate
+    Campaign, EmailTemplate, CampaignSender, CadenceTemplate, CadenceStage, ActivityType
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
 import { perfMonitor } from '@/utils/perfMonitor';
@@ -1557,10 +1556,6 @@ export function useCRMStore(): CRMStore {
         if (updates.status !== undefined) dbUpdates.status = updates.status;
         if (updates.scheduledAt !== undefined) dbUpdates.scheduled_at = updates.scheduledAt;
         if (updates.sentAt !== undefined) dbUpdates.sent_at = updates.sentAt;
-        if (updates.isAutomatic !== undefined) dbUpdates.is_automatic = updates.isAutomatic;
-        if (updates.sequenceStep !== undefined) dbUpdates.sequence_step = updates.sequenceStep;
-        if (updates.suggestedDelay !== undefined) dbUpdates.suggested_delay = updates.suggestedDelay;
-        if (updates.tooltipScript !== undefined) dbUpdates.tooltip_script = updates.tooltipScript;
         if (updates.deliveredCount !== undefined) dbUpdates.delivered_count = updates.deliveredCount;
 
         await supabase.from('campaigns').update(dbUpdates).eq('id', id);
@@ -1782,17 +1777,33 @@ export function useCRMStore(): CRMStore {
         contacts,
         deals,
         activities,
+        logs,
         pipelines,
+        campaigns,
+        emailTemplates,
+        campaignSenders,
+        cadenceTemplates,
         isLoading,
         isPipelineSettingsOpen,
         setPipelineSettingsOpen,
         addDeal, updateDeal, moveDeal, deleteDeal,
-        addContact, updateContact, deleteContact,
-        addActivity, updateActivity, deleteActivity,
-        completeActivityWithLog, addLog,
         addCompany, updateCompany, deleteCompany,
-        logs,
-        deleteLog,
+        addContact, updateContact, deleteContact,
+        addActivity, updateActivity, deleteActivity, completeActivityWithLog,
+        addLog, deleteLog,
+        getPipelineStages: (pid: string) => pipelines[pid]?.stages || [],
+        refresh: fetchAll,
+        isNewDealModalOpen,
+        openNewDealModal,
+        closeNewDealModal,
+        newDealStageId,
+        dealToEdit,
+        suggestionModalDealId,
+        setSuggestionModalDealId,
+        cadenceStages,
+        updateCadenceStage,
+        addCadenceStage,
+        deleteCadenceStage,
         addStage,
         updateStage,
         deleteStage,
@@ -1800,22 +1811,8 @@ export function useCRMStore(): CRMStore {
         activeFocusDealId,
         openFocusDeal,
         closeFocusDeal,
-        getPipelineStages: (pid: string) => pipelines[pid]?.stages || [],
-        refresh: fetchAll,
-
-        // Modal Actions
-        isNewDealModalOpen,
-        openNewDealModal,
-        closeNewDealModal,
-        newDealStageId,
-        dealToEdit,
-
         isPrivacyMode,
         togglePrivacyMode,
-
-        campaigns,
-        emailTemplates,
-        campaignSenders,
         addCampaign,
         updateCampaign,
         deleteCampaign,
@@ -1827,16 +1824,10 @@ export function useCRMStore(): CRMStore {
         updateCampaignSender,
         deleteCampaignSender,
         verifySender,
-        cadenceTemplates,
         updateCadenceTemplate,
         addCadenceTemplate,
         deleteCadenceTemplate,
-        cadenceStages,
-        updateCadenceStage,
-        addCadenceStage,
-        deleteCadenceStage,
-        suggestionModalDealId,
-        setSuggestionModalDealId
+        setPipelines
     };
 }
 

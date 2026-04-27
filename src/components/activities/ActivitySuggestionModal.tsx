@@ -2,7 +2,7 @@ import { useCRM } from '@/contexts/CRMContext';
 import { 
     X, Sparkles, Calendar, MessageSquare, 
     Phone, Mail, BarChart3, Video, Clock, 
-    ArrowRight, AlertCircle, Info, Check
+    AlertCircle, Info, Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ActivityType, CadenceTemplate } from '@/types/schema';

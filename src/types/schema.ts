@@ -105,6 +105,7 @@ export interface Activity {
     updatedAt?: string;
     completedAt?: string;
     houveResposta?: boolean;
+    isOptimistic?: boolean;
 }
 
 export interface DealAnalytics {
