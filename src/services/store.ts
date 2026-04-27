@@ -1093,8 +1093,8 @@ export function useCRMStore(): CRMStore {
             tag = matched?.id || null;
         }
 
-        // Priority 3: Default for 'new' deals or Prospecting stages
-        if (!tag && (stageId === 'new' || stageTitle.includes('PROSPECT') || stageTitle.includes('NOVO'))) {
+        // Priority 3: Default for explicitly 'new' deals only
+        if (!tag && stageId === 'new') {
             tag = 'LEAD';
         }
 
