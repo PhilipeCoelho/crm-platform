@@ -98,7 +98,9 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
     const periodLabel = useMemo(() => {
         const opt = PERIOD_OPTIONS.find(p => p.value === selectedPeriod);
-        return selectedPeriod === 0 ? 'Todo período' : `Últimos ${opt?.label}`;
+        if (selectedPeriod === 'all') return 'Todo o Período';
+        if (selectedPeriod === 'custom') return 'Período Personalizado';
+        return opt?.label || 'Período';
     }, [selectedPeriod]);
 
     const handlePeriodChange = useCallback((period: PeriodValue) => {
