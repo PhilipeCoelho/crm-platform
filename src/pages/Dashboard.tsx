@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
-import { Plus, Settings, Calendar, ChevronDown, Check } from 'lucide-react';
+import { Plus, Settings, Calendar, ChevronDown, Check, Users, Activity, TrendingUp, Zap } from 'lucide-react';
 import { Currency } from '@/data/currencies';
 import { getInsightsData, InsightsData } from '@/services/insights';
 import { generateStrategicRecommendations } from '@/services/recommendations';
@@ -11,7 +11,7 @@ import { filterRealActivities } from '@/utils/activityHelpers';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
 import WidgetManagerModal from '@/components/dashboard/WidgetManagerModal';
-import { PriorityCard, WidgetsRow, AlertColumns } from '@/components/dashboard/DashboardWidgets';
+import { PriorityCard, WidgetsRow, AlertColumns, WidgetCard } from '@/components/dashboard/DashboardWidgets';
 import {
     Popover,
     PopoverContent,
@@ -443,6 +443,57 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 onNavigate={handleNavigate}
                                 onOpenManager={handleOpenWidgetModal}
                             />
+                        </section>
+
+                        {/* NOVO BLOCO - EFICIÊNCIA DE CONVERSÃO */}
+                        <section>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                                Eficiência de Prospecção
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <WidgetCard
+                                    title="Abordagens Únicas"
+                                    value={insightsData?.current?.abordagem?.total || 0}
+                                    icon={Users}
+                                    color="bg-cyan-500/10 text-cyan-500"
+                                    periodLabel={periodLabel}
+                                    onNavigate={handleNavigate}
+                                    redirectLink="/insights"
+                                    variation={insightsData?.variation?.abordagem_total}
+                                    description="Negócios contatados"
+                                />
+                                <WidgetCard
+                                    title="Total de Atividades"
+                                    value={insightsData?.current?.totalAtividades || 0}
+                                    icon={Activity}
+                                    color="bg-blue-500/10 text-blue-500"
+                                    periodLabel={periodLabel}
+                                    onNavigate={handleNavigate}
+                                    redirectLink="/insights"
+                                    variation={insightsData?.variation?.totalAtividades}
+                                    description="Ações totais concluídas"
+                                />
+                                <WidgetCard
+                                    title="Conv. Abordagem"
+                                    value={insightsData?.current?.abordagem?.total ? ((insightsData.current.totalWon / insightsData.current.abordagem.total) * 100).toFixed(1) + '%' : '—'}
+                                    icon={TrendingUp}
+                                    color="bg-emerald-500/10 text-emerald-500"
+                                    periodLabel={periodLabel}
+                                    onNavigate={handleNavigate}
+                                    redirectLink="/insights"
+                                    description="Ganhos / Abordados"
+                                />
+                                <WidgetCard
+                                    title="Esforço p/ Venda"
+                                    value={insightsData?.current?.activity?.mediaContatosAteFechamento?.toFixed(1) || '—'}
+                                    icon={Zap}
+                                    color="bg-indigo-500/10 text-indigo-500"
+                                    periodLabel={periodLabel}
+                                    onNavigate={handleNavigate}
+                                    redirectLink="/insights"
+                                    description="Atividades p/ fechar 1"
+                                />
+                            </div>
                         </section>
 
                         {/* BLOCO 2 - ATENÇÃO IMEDIATA */}

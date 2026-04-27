@@ -26,6 +26,8 @@ export type WidgetKey =
     | 'media_followups'
     | 'abordagens'
     | 'taxa_resposta'
+    | 'conversao_abordagem'
+    | 'esforco_venda'
     | 'motivo_perda';
 
 export type WidgetCategory = 'revenue' | 'conversion' | 'intensity' | 'velocity' | 'loss' | 'channel' | 'execution' | 'outreach';
@@ -404,6 +406,38 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
             value: data ? `${data.current.abordagem.taxaResposta.toFixed(1)}%` : '—',
             microDescription: 'Leads que responderam à abordagem',
             variation: data?.variation?.abordagem_taxaResposta
+        })
+    },
+    {
+        key: 'conversao_abordagem',
+        title: 'Conv. Abordagem',
+        description: 'Percentual de ganhos (won) em relação ao total de negócios abordados no período.',
+        icon: TrendingUp,
+        color: 'bg-emerald-500/10 text-emerald-500',
+        redirectLink: '/insights',
+        widget_available: true,
+        metric_category: 'outreach',
+        getValue: (data) => {
+            if (!data || data.current.abordagem.total === 0) return { value: '—', microDescription: 'Ganhos / Abordados' };
+            const pct = (data.current.totalWon / data.current.abordagem.total) * 100;
+            return {
+                value: `${pct.toFixed(1)}%`,
+                microDescription: 'Eficiência de prospecção'
+            };
+        }
+    },
+    {
+        key: 'esforco_venda',
+        title: 'Esforço p/ Venda',
+        description: 'Quantidade média de atividades realizadas nos negócios ganhos até o fechamento.',
+        icon: Activity,
+        color: 'bg-indigo-500/10 text-indigo-500',
+        redirectLink: '/insights?tab=intensidade',
+        widget_available: true,
+        metric_category: 'intensity',
+        getValue: (data) => ({
+            value: data?.current?.activity?.mediaContatosAteFechamento?.toFixed(1) || '—',
+            microDescription: 'Atividades para fechar 1 negócio'
         })
     },
     {
