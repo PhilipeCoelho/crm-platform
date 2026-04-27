@@ -35,12 +35,7 @@ import CampaignWizard from '@/pages/campaigns/CampaignWizard';
 import AlertsAndTips from './pages/campaigns/AlertsAndTips';
 import EmailInbox from './pages/email/EmailInbox';
 import CadenceSettings from '@/pages/settings/CadenceSettings';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
+import ActivitySuggestionModal from '@/components/activities/ActivitySuggestionModal';
 
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
@@ -450,11 +445,20 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                     </div>
                 </main>
 
+
+                <ActivitySuggestionModal />
                 <PrivacyBanner />
             </div >
         </TooltipProvider >
     );
 }
+
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 function App() {
     const { user, loading } = useSupabaseAuth();

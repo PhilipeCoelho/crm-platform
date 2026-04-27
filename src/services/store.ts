@@ -57,7 +57,14 @@ export interface CRMStore {
     closeNewDealModal: () => void;
     newDealStageId: string | null;
     dealToEdit: Deal | null;
+    
+    suggestionModalDealId: string | null;
+    setSuggestionModalDealId: (id: string | null) => void;
 
+    cadenceStages: CadenceStage[];
+    updateCadenceStage: (id: string, updates: Partial<CadenceStage>) => Promise<void>;
+    addCadenceStage: (stage: Omit<CadenceStage, 'id' | 'userId'>) => Promise<void>;
+    deleteCadenceStage: (id: string) => Promise<void>;
 
     // Stage Actions
 
@@ -90,10 +97,12 @@ export interface CRMStore {
     deleteCampaignSender: (id: string) => Promise<void>;
     verifySender: (id: string) => Promise<void>;
 
-    // Cadence Templates
+    // Cadence
     updateCadenceTemplate: (id: string, updates: Partial<CadenceTemplate>) => Promise<void>;
+    addCadenceTemplate: (template: Omit<CadenceTemplate, "id">) => Promise<CadenceTemplate>;
+    deleteCadenceTemplate: (id: string) => Promise<void>;
 
-    // Merge Helpers (Optional, or just use atomic actions)
+    setPipelines: React.Dispatch<React.SetStateAction<Record<string, Pipeline>>>;
 }
 
 // Deal statuses automatically excluded from all campaign mailing lists
@@ -152,6 +161,8 @@ export function useCRMStore(): CRMStore {
     const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
     const [newDealStageId, setNewDealStageId] = useState<string | null>(null);
     const [dealToEdit, setDealToEdit] = useState<Deal | null>(null);
+    const [suggestionModalDealId, setSuggestionModalDealId] = useState<string | null>(null);
+    const [cadenceStages, setCadenceStages] = useState<CadenceStage[]>([]);
     const [activeFocusDealId, setActiveFocusDealId] = useState<string | null>(null);
 
     // Privacy Mode State
@@ -207,7 +218,8 @@ export function useCRMStore(): CRMStore {
                 { data: campaignsData },
                 { data: templatesData },
                 { data: sendersData },
-                { data: cadenceData }
+                { data: cadenceData },
+                { data: cadenceStagesData }
             ] = await Promise.all([
                 supabase.from('deals').select('*'),
                 supabase.from('contacts').select('*'),
@@ -218,7 +230,8 @@ export function useCRMStore(): CRMStore {
                 supabase.from('campaigns').select('*'),
                 supabase.from('email_templates').select('*'),
                 supabase.from('senders').select('*'),
-                supabase.from('cadence_templates').select('*').order('tag', { ascending: true }).order('step', { ascending: true })
+                supabase.from('cadence_templates').select('*').order('tag', { ascending: true }).order('step', { ascending: true }),
+                supabase.from('cadence_stages').select('*').order('order', { ascending: true })
             ]);
 
             // Check for critical errors
@@ -282,7 +295,8 @@ export function useCRMStore(): CRMStore {
                     originStage: a.origin_stage,
                     sequenceId: a.sequence_id,
                     isAutomatic: a.is_automatic,
-                    sequenceStep: a.sequence_step
+                    sequenceStep: a.sequence_step,
+                    suggestedDelay: a.suggested_delay
                 }));
 
                 setActivities(prev => {
@@ -405,8 +419,28 @@ export function useCRMStore(): CRMStore {
                     ...t,
                     script: t.script,
                     days: t.days,
-                    description: t.description || ''
+                    description: t.description || '',
+                    isActive: t.is_active !== undefined ? t.is_active : true
                 })));
+            }
+
+            // 11. Set Cadence Stages
+            if (cadenceStagesData && cadenceStagesData.length > 0) {
+                setCadenceStages(cadenceStagesData.map((s: any) => ({
+                    id: s.id,
+                    name: s.name,
+                    order: s.order,
+                    userId: s.user_id
+                })));
+            } else {
+                // Default Stages if none in DB
+                const defaults = [
+                    { id: 'LEAD', name: 'Lead Novo', order: 0, userId: 'system' },
+                    { id: 'ENGAJADO', name: 'Lead Engajado', order: 1, userId: 'system' },
+                    { id: 'DIAGNOSTICO', name: 'Reunião de Diagnóstico', order: 2, userId: 'system' },
+                    { id: 'FECHAMENTO', name: 'Fechamento', order: 3, userId: 'system' }
+                ];
+                setCadenceStages(defaults);
             }
 
         } catch (err) {
@@ -610,9 +644,23 @@ export function useCRMStore(): CRMStore {
         }
     }
 
+    // Global lock for activity creation to prevent race conditions
+    const lastCreatedActivityLock = new Map<string, number>();
+
     async function addActivity(data: any) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+
+        // Anti-duplication check (Memory Lock)
+        const lockKey = `${data.dealId}-${data.title}`;
+        const nowTime = Date.now();
+        const lastTime = lastCreatedActivityLock.get(lockKey) || 0;
+        
+        if (nowTime - lastTime < 2000) {
+            console.warn('⚠️ Memory Lock: Prevented duplicate activity creation:', data.title);
+            return;
+        }
+        lastCreatedActivityLock.set(lockKey, nowTime);
 
         const tempId = generateId();
 
@@ -637,6 +685,8 @@ export function useCRMStore(): CRMStore {
             origin_stage: data.originStage,
             sequence_id: data.sequenceId,
             sequence_step: data.sequenceStep,
+            is_automatic: data.isAutomatic || false,
+            suggested_delay: data.suggestedDelay,
             tooltip_script: data.tooltipScript
         };
 
@@ -646,7 +696,8 @@ export function useCRMStore(): CRMStore {
             dueDate: optimisticDate,
             id: tempId,
             userId: user.id,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            isOptimistic: true
         };
 
         setActivities(prev => [...prev, optimisticActivity]);
@@ -694,6 +745,7 @@ export function useCRMStore(): CRMStore {
         if (synchronizedUpdates.originStage !== undefined) dbUpdates.origin_stage = synchronizedUpdates.originStage;
         if (synchronizedUpdates.sequenceId !== undefined) dbUpdates.sequence_id = synchronizedUpdates.sequenceId;
         if (synchronizedUpdates.sequenceStep !== undefined) dbUpdates.sequence_step = synchronizedUpdates.sequenceStep;
+        if (synchronizedUpdates.suggestedDelay !== undefined) dbUpdates.suggested_delay = synchronizedUpdates.suggestedDelay;
         if (synchronizedUpdates.tooltipScript !== undefined) dbUpdates.tooltip_script = synchronizedUpdates.tooltipScript;
 
         dbUpdates.updated_at = new Date().toISOString();
@@ -742,6 +794,7 @@ export function useCRMStore(): CRMStore {
             content: content?.trim() || "Atividade concluída sem observações.",
             logType: content?.trim() ? 'activity_note' : 'system'
         });
+
     }
 
     const addDeal = async (data: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
@@ -985,42 +1038,53 @@ export function useCRMStore(): CRMStore {
                 return !(isDealActivity && isAutomatic && isPending);
             }));
 
-            // 2. OPTIMISTIC ACTIVITY CREATION (Instant visual feedback)
-            // This MUST match the backend templates in public.cadence_templates
+            // Cadence V2: AUTOMATICALLY create the FIRST step of the cadence for this stage
             const stages = Object.values(pipelines).flatMap(p => p.stages || []);
-            const targetStage = stages.find(s => s.id === stageId);
-            const stageName = targetStage?.title?.toUpperCase() || '';
+            const currentStage = stages.find(s => s.id === stageId);
+            const stageTitle = currentStage?.title?.toUpperCase() || '';
+            
+            // Find matched cadence stage tag
+            let matchedStage = cadenceStages.find(cs => 
+                stageTitle.includes(cs.name.toUpperCase()) || 
+                cs.name.toUpperCase().includes(stageTitle) ||
+                stageTitle.includes(cs.id.toUpperCase())
+            );
 
-            let optimisticActivity: any = null;
-            let targetDate = new Date().toISOString();
-            const deal = deals.find(d => d.id === id);
-
-            console.log('🔍 Cadence Detection:', { stageName, id });
-
-            if (stageName.includes('LEAD') && !stageName.includes('ENGAJADO')) {
-                // First step for LEAD typically is at offset 0, but we must run weekend check
-                targetDate = adjustDateForWeekend(targetDate);
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'Mensagem inicial', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'LEAD', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
-            } else if (stageName.includes('ENGAJADO')) {
-                targetDate = adjustDateForWeekend(targetDate);
-                // FIXED: Match title with Master Cadence Fix
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'Resposta + Pergunta Estratégica', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'ENGAJADO', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
-            } else if (stageName.includes('DIAGN') || stageName.includes('REUNI') || stageName.includes('AGENDA')) {
-                targetDate = adjustDateForWeekend(targetDate);
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'RD – Confirmação oficial', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'DIAGNOSTICO', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
-            } else if (stageName.includes('FECHAMENTO') || stageName.includes('PROPOSTA')) {
-                targetDate = adjustDateForWeekend(targetDate);
-                optimisticActivity = { id: 'opt-' + generateId(), dealId: id, type: 'message', title: 'FE – Resumo pós-reunião', dueDate: targetDate, status: 'pending', isAutomatic: true, originStage: 'FECHAMENTO', sequenceStep: 1, userId: deal?.userId, createdAt: targetDate, isOptimistic: true };
+            // Fallbacks for standard tags
+            if (!matchedStage) {
+                if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find(cs => cs.id === 'ENGAJADO');
+                else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find(cs => cs.id === 'DIAGNOSTICO');
+                else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find(cs => cs.id === 'FECHAMENTO');
+                else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find(cs => cs.id === 'LEAD');
             }
 
-            if (optimisticActivity) {
-                setActivities(prev => {
-                    // Avoid duplicating if real activity arrived quickly via refresh/realtime
-                    const exists = prev.some(a => a.dealId === id && a.title === optimisticActivity.title && (a.status === 'pending' || !a.completed));
-                    if (exists) return prev;
-                    return [...prev, optimisticActivity];
-                });
+            const tag = matchedStage?.id || (stageId === 'new' ? 'LEAD' : null);
+
+            if (tag) {
+                // Find Step 1 for this tag
+                const firstStep = cadenceTemplates.find(t => t.tag === tag && t.step === 1 && t.isActive);
+                if (firstStep) {
+                    const dueDate = new Date();
+                    dueDate.setDate(dueDate.getDate() + firstStep.days);
+
+                    addActivity({
+                        dealId: id,
+                        type: firstStep.type as ActivityType,
+                        title: firstStep.title,
+                        description: firstStep.description,
+                        tooltipScript: firstStep.script,
+                        status: 'pending',
+                        completed: false,
+                        dueDate: dueDate.toISOString(),
+                        sequenceStep: firstStep.step,
+                        suggestedDelay: firstStep.days,
+                        originStage: firstStep.tag,
+                        isAutomatic: true
+                    });
+                }
             }
+            
+            console.log('📦 Cadence V2: Automatic first step created on move.');
 
             // Realtime handler will pick up new activities created by backend triggers
         }
@@ -1493,6 +1557,10 @@ export function useCRMStore(): CRMStore {
         if (updates.status !== undefined) dbUpdates.status = updates.status;
         if (updates.scheduledAt !== undefined) dbUpdates.scheduled_at = updates.scheduledAt;
         if (updates.sentAt !== undefined) dbUpdates.sent_at = updates.sentAt;
+        if (updates.isAutomatic !== undefined) dbUpdates.is_automatic = updates.isAutomatic;
+        if (updates.sequenceStep !== undefined) dbUpdates.sequence_step = updates.sequenceStep;
+        if (updates.suggestedDelay !== undefined) dbUpdates.suggested_delay = updates.suggestedDelay;
+        if (updates.tooltipScript !== undefined) dbUpdates.tooltip_script = updates.tooltipScript;
         if (updates.deliveredCount !== undefined) dbUpdates.delivered_count = updates.deliveredCount;
 
         await supabase.from('campaigns').update(dbUpdates).eq('id', id);
@@ -1625,13 +1693,87 @@ export function useCRMStore(): CRMStore {
 
         const dbUpdates: any = { ...updates };
         delete dbUpdates.id;
-        dbUpdates.updated_at = new Date().toISOString();
+        
+        // Handle snake_case conversion for known fields
+        // Use is_active now that it's confirmed to exist
+        if (updates.isActive !== undefined) {
+            dbUpdates.is_active = updates.isActive;
+            delete dbUpdates.isActive;
+        }
+        
+
 
         const { error } = await supabase.from('cadence_templates').update(dbUpdates).eq('id', id);
         if (error) {
             console.error('Error updating cadence template:', error);
             alert(`Erro ao salvar template: ${error.message}`);
         }
+    };
+
+    const addCadenceTemplate = async (template: Omit<CadenceTemplate, 'id'>) => {
+        const tempId = generateId();
+        const newTemplate = { ...template, id: tempId, isActive: template.isActive ?? true } as CadenceTemplate;
+        
+        setCadenceTemplates(prev => [...prev, newTemplate]);
+
+        const dbTemplate = {
+            id: tempId,
+            tag: template.tag,
+            step: template.step,
+            type: template.type,
+            title: template.title,
+            description: template.description,
+            script: template.script,
+            days: template.days,
+            is_active: template.isActive ?? true
+        };
+
+        const { error } = await supabase.from('cadence_templates').insert(dbTemplate);
+        if (error) {
+            console.error('Error adding cadence template:', error);
+            alert(`Erro ao criar template: ${error.message}`);
+            setCadenceTemplates(prev => prev.filter(t => t.id !== tempId));
+        }
+        return newTemplate;
+    };
+
+    const deleteCadenceTemplate = async (id: string) => {
+        setCadenceTemplates(prev => prev.filter(t => t.id !== id));
+        const { error } = await supabase.from('cadence_templates').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting cadence template:', error);
+            alert(`Erro ao excluir template: ${error.message}`);
+        }
+    };
+
+    const updateCadenceStage = async (id: string, updates: Partial<CadenceStage>) => {
+        setCadenceStages(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+        const dbUpdates: any = { ...updates };
+        delete dbUpdates.id;
+        delete dbUpdates.userId;
+        const { error } = await supabase.from('cadence_stages').update(dbUpdates).eq('id', id);
+        if (error) console.error('Error updating cadence stage:', error);
+    };
+
+    const addCadenceStage = async (stage: Omit<CadenceStage, 'id' | 'userId'>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const tempId = generateId();
+        const newStage = { ...stage, id: tempId, userId: user.id };
+        setCadenceStages(prev => [...prev, newStage]);
+        const { error } = await supabase.from('cadence_stages').insert({
+            id: tempId,
+            name: stage.name,
+            order: stage.order,
+            user_id: user.id
+        });
+        if (error) console.error('Error adding cadence stage:', error);
+    };
+
+    const deleteCadenceStage = async (id: string) => {
+        setCadenceStages(prev => prev.filter(s => s.id !== id));
+        const { error } = await supabase.from('cadence_stages').delete().eq('id', id);
+        if (error) console.error('Error deleting cadence stage:', error);
     };
 
     return {
@@ -1686,7 +1828,15 @@ export function useCRMStore(): CRMStore {
         deleteCampaignSender,
         verifySender,
         cadenceTemplates,
-        updateCadenceTemplate
+        updateCadenceTemplate,
+        addCadenceTemplate,
+        deleteCadenceTemplate,
+        cadenceStages,
+        updateCadenceStage,
+        addCadenceStage,
+        deleteCadenceStage,
+        suggestionModalDealId,
+        setSuggestionModalDealId
     };
 }
 

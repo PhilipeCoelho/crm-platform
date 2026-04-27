@@ -100,6 +100,7 @@ export interface Activity {
     isAutomatic?: boolean;
     tooltipScript?: string;
     sequenceStep?: number;
+    suggestedDelay?: number;
     createdAt: string;
     updatedAt?: string;
     completedAt?: string;
@@ -145,6 +146,13 @@ export interface StageSequence {
     tooltipScript?: string;
 }
 
+export interface CadenceStage {
+    id: string;
+    name: string;
+    order: number;
+    userId: string;
+}
+
 export interface CadenceTemplate {
     id: Id;
     tag: string;
@@ -154,6 +162,7 @@ export interface CadenceTemplate {
     description: string;
     script: string;
     days: number;
+    isActive: boolean;
 }
 
 export interface Stage {

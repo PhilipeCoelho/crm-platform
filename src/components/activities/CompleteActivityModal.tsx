@@ -1,7 +1,23 @@
-import { useState } from 'react';
-import { CheckCircle2, X, MessageSquare } from 'lucide-react';
-import { Activity } from '@/types/schema';
+import { useState, useMemo } from 'react';
+import { 
+    CheckCircle2, X, MessageSquare, Phone, Mail, 
+    Clock, Instagram, BarChart3, Video, Calendar,
+    ArrowRight, AlertCircle, Sparkles, Check
+} from 'lucide-react';
+import { Activity, CadenceTemplate, ActivityType } from '@/types/schema';
 import { useCRM } from '@/contexts/CRMContext';
+import { cn } from '@/lib/utils';
+
+const ICON_MAP: Record<string, any> = {
+    call: Phone,
+    email: Mail,
+    meeting: Clock,
+    message: MessageSquare,
+    instagram: MessageSquare,
+    analysis: BarChart3,
+    audit: Video,
+    task: Calendar,
+};
 
 interface Props {
     isOpen: boolean;
@@ -11,10 +27,60 @@ interface Props {
 }
 
 export default function CompleteActivityModal({ isOpen, onClose, activity, onCompleted }: Props) {
-    const { completeActivityWithLog } = useCRM();
+    const { 
+        completeActivityWithLog, 
+        cadenceTemplates, 
+        cadenceStages, 
+        deals, 
+        pipelines,
+        addActivity,
+        activities
+    } = useCRM();
+
     const [notes, setNotes] = useState('');
-    const [houveResposta, setHouveResposta] = useState(false);
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const deal = useMemo(() => 
+        activity?.dealId ? deals.find(d => d.id === activity.dealId) : null, 
+    [deals, activity]);
+
+    const suggestions = useMemo(() => {
+        if (!deal || cadenceStages.length === 0) return [];
+
+        // 1. Find Stage Tag
+        const stages = Object.values(pipelines).flatMap(p => p.stages || []);
+        const currentStage = stages.find(s => s.id === deal.stageId);
+        const stageTitle = currentStage?.title?.toUpperCase() || '';
+        
+        let matchedStage = cadenceStages.find(cs => 
+            stageTitle.includes(cs.name.toUpperCase()) || 
+            cs.name.toUpperCase().includes(stageTitle) ||
+            stageTitle.includes(cs.id.toUpperCase())
+        );
+
+        if (!matchedStage) {
+            if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find(cs => cs.id === 'ENGAJADO');
+            else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find(cs => cs.id === 'DIAGNOSTICO');
+            else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find(cs => cs.id === 'FECHAMENTO');
+            else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find(cs => cs.id === 'LEAD');
+        }
+
+        const tag = matchedStage?.id || 'LEAD';
+
+        // 2. Identify already executed steps for this deal and stage
+        const executedSteps = new Set(
+            activities
+                .filter(a => a.dealId === deal.id && a.originStage === tag)
+                .map(a => a.sequenceStep)
+                .filter(step => step !== undefined && step !== null)
+        );
+
+        // 3. Get Templates and filter out executed ones AND strictly check for isActive
+        return cadenceTemplates
+            .filter(t => t.tag === tag && t.isActive === true && !executedSteps.has(t.step))
+            .sort((a, b) => a.step - b.step);
+    }, [deal, cadenceTemplates, cadenceStages, pipelines, activities]);
 
     if (!isOpen || !activity) return null;
 
@@ -22,113 +88,152 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            await completeActivityWithLog(activity.id, notes, houveResposta);
+            // 1. Complete Current Activity
+            await completeActivityWithLog(activity.id, notes, false);
+
+            // 2. Schedule Next Activity if selected
+            if (selectedTemplateId && deal) {
+                const template = suggestions.find(t => t.id === selectedTemplateId);
+                if (template) {
+                    const dueDate = new Date();
+                    dueDate.setDate(dueDate.getDate() + template.days);
+
+                    await addActivity({
+                        dealId: deal.id,
+                        type: template.type as ActivityType,
+                        title: template.title,
+                        description: template.description,
+                        tooltipScript: template.script,
+                        status: 'pending',
+                        completed: false,
+                        dueDate: dueDate.toISOString(),
+                        sequenceStep: template.step,
+                        suggestedDelay: template.days,
+                        originStage: template.tag,
+                        isAutomatic: true
+                    });
+                }
+            }
+
             setNotes('');
+            setSelectedTemplateId(null);
             onClose();
             if (onCompleted) onCompleted();
         } catch (error) {
-            console.error('Error completing activity:', error);
+            console.error('Error in completion flow:', error);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
-            <div className="bg-background w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-border animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+            <div className="bg-card w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden border border-border animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="p-4 border-b border-border flex justify-between items-center bg-muted/30">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-emerald-500/10 p-1.5 rounded-lg">
+                <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-emerald-500/10 p-2 rounded-xl">
                             <CheckCircle2 size={20} className="text-emerald-500" />
                         </div>
-                        <h3 className="font-bold text-foreground">Concluir Atividade</h3>
+                        <div>
+                            <h3 className="font-bold text-foreground">Concluir Atividade</h3>
+                            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{activity.title}</p>
+                        </div>
                     </div>
                     <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* Activity Title (Read-only) */}
-                    <div>
-                        <label className="block text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-widest">Atividade</label>
-                        <div className="p-4 bg-muted/30 border border-border/50 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            {activity.title}
-                        </div>
-                    </div>
-
-                    {/* Sugestão de Cadência */}
-                    {activity.notes && (
-                        <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <MessageSquare size={40} className="text-primary" />
-                            </div>
-                            <label className="block text-[10px] uppercase font-bold text-primary mb-2 tracking-widest flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                Sugestão da Cadência
-                            </label>
-                            <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                                {activity.notes.split('Ex:').map((part, i) => (
-                                    i === 0 ? (
-                                        <p key={i} className="mb-2 font-medium">{part.trim()}</p>
-                                    ) : (
-                                        <div key={i} className="mt-2 p-3 bg-white dark:bg-card/50 rounded-lg border border-primary/10 shadow-sm italic text-primary dark:text-primary/90 font-medium">
-                                            <span className="not-italic text-[10px] font-bold block mb-1 text-primary/60 uppercase">Dica:</span>
-                                            "{part.trim()}"
-                                        </div>
-                                    )
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
+                <form onSubmit={handleSubmit} className="p-8 space-y-8 max-h-[85vh] overflow-y-auto custom-scrollbar">
                     {/* Completion Notes */}
-                    <div>
-                        <label className="block text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-widest">Resumo do que foi feito</label>
+                    <div className="space-y-3">
+                        <label className="block text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Resumo do que foi feito</label>
                         <textarea
-                            className="w-full text-sm border border-input bg-background text-foreground rounded-xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-h-[140px] resize-none placeholder:text-muted-foreground/50 shadow-sm transition-all"
+                            className="w-full text-sm border border-input bg-muted/20 text-foreground rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-h-[120px] resize-none placeholder:text-muted-foreground/30 shadow-sm transition-all"
                             placeholder="Ex: Enviei mensagem via Instagram perguntando como estão captando pacientes atualmente."
                             value={notes}
                             onChange={e => setNotes(e.target.value)}
                             autoFocus
                         />
-                        <p className="text-[10px] text-muted-foreground mt-2 italic">* Opcional: Deixe em branco para um registro automático.</p>
                     </div>
 
-                    {/* Houve Resposta? */}
-                    <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                        <input
-                            type="checkbox"
-                            id="houve_resposta"
-                            checked={houveResposta}
-                            onChange={(e) => setHouveResposta(e.target.checked)}
-                            className="w-5 h-5 rounded border-primary/20 text-primary focus:ring-primary cursor-pointer"
-                        />
-                        <label htmlFor="houve_resposta" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                            O contato respondeu durante esta atividade?
-                        </label>
+                    {/* Next Steps (Cadence) */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={16} className="text-primary" />
+                            <label className="block text-[10px] uppercase font-bold text-primary tracking-widest">O que faremos agora?</label>
+                        </div>
+
+                        <div className="grid gap-3">
+                            {suggestions.length === 0 ? (
+                                <p className="text-xs text-muted-foreground italic bg-muted/20 p-4 rounded-xl border border-dashed border-border">
+                                    Nenhuma sugestão configurada para esta etapa.
+                                </p>
+                            ) : (
+                                suggestions.map((template) => {
+                                    const Icon = ICON_MAP[template.type] || Clock;
+                                    const isSelected = selectedTemplateId === template.id;
+
+                                    return (
+                                        <button
+                                            key={template.id}
+                                            type="button"
+                                            onClick={() => setSelectedTemplateId(isSelected ? null : template.id)}
+                                            className={cn(
+                                                "flex items-center gap-4 p-4 rounded-2xl border text-left transition-all",
+                                                isSelected 
+                                                    ? "bg-primary/5 border-primary shadow-md ring-1 ring-primary/10" 
+                                                    : "bg-muted/10 border-transparent hover:border-border hover:bg-muted/30"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                                                isSelected ? "bg-primary text-white" : "bg-card text-muted-foreground border border-border"
+                                            )}>
+                                                <Icon size={18} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="text-xs font-bold text-foreground truncate">{template.title}</h4>
+                                                    <span className="text-[9px] font-bold text-muted-foreground">+{template.days}d</span>
+                                                </div>
+                                                <p className="text-[10px] text-muted-foreground truncate">{template.description}</p>
+                                            </div>
+                                            {isSelected && (
+                                                <div className="bg-primary/10 p-1 rounded-full text-primary">
+                                                    <Check size={14} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })
+                            )}
+                        </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex gap-4 pt-4 border-t border-border">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isSubmitting}
-                            className="flex-1 px-4 py-3 text-sm font-bold uppercase tracking-wider text-muted-foreground hover:bg-muted rounded-xl transition-all disabled:opacity-50"
+                            className="flex-1 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:bg-muted rounded-2xl transition-all"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 px-4 py-3 text-sm font-bold uppercase tracking-wider text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-[2] px-6 py-4 text-[11px] font-black uppercase tracking-widest text-white bg-emerald-500 hover:bg-emerald-600 rounded-2xl shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? (
                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
-                                "Concluir"
+                                <>
+                                    <Check size={16} />
+                                    Concluir {selectedTemplateId ? "& Agendar Próxima" : ""}
+                                </>
                             )}
                         </button>
                     </div>
