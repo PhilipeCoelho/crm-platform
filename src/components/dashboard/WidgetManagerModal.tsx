@@ -20,7 +20,7 @@ const CATEGORY_LABELS: Record<WidgetCategory, string> = {
     loss: 'Perdas',
     channel: 'Canais',
     execution: 'Execução Comercial',
-    outreach: 'Abordagem'
+    outreach: 'Eficiência de Prospecção'
 };
 
 export default function WidgetManagerModal({ isOpen, onClose, currentWidgets, onSave, showPriority, onTogglePriority }: WidgetManagerModalProps) {

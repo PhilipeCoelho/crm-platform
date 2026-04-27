@@ -434,7 +434,7 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
         color: 'bg-indigo-500/10 text-indigo-500',
         redirectLink: '/insights?tab=intensidade',
         widget_available: true,
-        metric_category: 'intensity',
+        metric_category: 'outreach',
         getValue: (data) => ({
             value: data?.current?.activity?.mediaContatosAteFechamento?.toFixed(1) || '—',
             microDescription: 'Atividades para fechar 1 negócio'
