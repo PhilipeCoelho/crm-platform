@@ -6,6 +6,7 @@ import ActivityList from '@/components/activities/ActivityList';
 import { StrategicRecommendation } from '@/services/recommendations';
 import { WIDGET_DEFINITIONS } from '@/data/widgetDefinitions';
 import { InsightsData } from '@/services/insights';
+import VariationBadge from '../insights/VariationBadge';
 
 // --- Widget Card (memoized) ---
 interface WidgetProps {
@@ -18,10 +19,11 @@ interface WidgetProps {
     showPeriodBadge?: boolean;
     periodLabel: string;
     onNavigate: (link: string) => void;
+    variation?: number | null;
 }
 
 export const WidgetCard = React.memo(function WidgetCard({
-    title, value, description, icon: Icon, color, redirectLink, showPeriodBadge = true, periodLabel, onNavigate
+    title, value, description, icon: Icon, color, redirectLink, showPeriodBadge = true, periodLabel, onNavigate, variation
 }: WidgetProps) {
     return (
         <div
@@ -42,6 +44,11 @@ export const WidgetCard = React.memo(function WidgetCard({
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate" title={title}>{title}</p>
                 <div className="flex items-center gap-1 mt-0.5">
                     <h3 className="text-xl font-black text-foreground truncate" title={`${value}`}>{value}</h3>
+                    {variation !== undefined && variation !== null && (
+                        <div className="ml-auto scale-90 origin-right">
+                            <VariationBadge value={variation} inverse={title.toLowerCase().includes('perda') || title.toLowerCase().includes('perdido')} />
+                        </div>
+                    )}
                 </div>
             </div>
             {description && <p className="text-[9px] text-muted-foreground mt-2 font-medium border-t border-border/50 pt-1.5 truncate" title={description}>{description}</p>}
@@ -156,7 +163,7 @@ export const WidgetsRow = React.memo(function WidgetsRow({ customWidgets, insigh
             {customWidgets.map(widget => {
                 const def = WIDGET_DEFINITIONS.find(d => d.key === widget.widget_key);
                 if (!def) return null;
-                const { value, microDescription } = def.getValue(insightsData, currency);
+                const { value, microDescription, variation } = def.getValue(insightsData, currency);
 
                 return (
                     <WidgetCard
@@ -170,6 +177,7 @@ export const WidgetsRow = React.memo(function WidgetsRow({ customWidgets, insigh
                         showPeriodBadge={def.key !== 'pipeline'}
                         periodLabel={periodLabel}
                         onNavigate={onNavigate}
+                        variation={variation}
                     />
                 );
             })}

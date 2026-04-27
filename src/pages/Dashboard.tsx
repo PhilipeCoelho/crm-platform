@@ -74,6 +74,28 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         return '7';
     });
 
+    const [isComparing, setIsComparing] = useState(false);
+
+    const comparisonDates = useMemo(() => {
+        if (!isComparing) return null;
+
+        const now = new Date();
+        const currentEnd = selectedPeriod === 'custom' ? new Date(customRange.end + 'T23:59:59.999Z') : now;
+        const currentStart = selectedPeriod === 'all'
+            ? new Date('2000-01-01')
+            : (selectedPeriod === 'custom' ? new Date(customRange.start) : subDays(now, Number(selectedPeriod)));
+
+        const durationInMs = currentEnd.getTime() - currentStart.getTime();
+
+        const compareEnd = new Date(currentStart.getTime() - 1);
+        const compareStart = new Date(compareEnd.getTime() - durationInMs);
+
+        return {
+            startDate: compareStart.toISOString(),
+            endDate: compareEnd.toISOString()
+        };
+    }, [isComparing, selectedPeriod, customRange]);
+
     const periodLabel = useMemo(() => {
         const opt = PERIOD_OPTIONS.find(p => p.value === selectedPeriod);
         return selectedPeriod === 0 ? 'Todo período' : `Últimos ${opt?.label}`;
@@ -133,7 +155,12 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                     start = subDays(now, Number(selectedPeriod)).toISOString();
                 }
 
-                const data = await getInsightsData(start, end);
+                const data = await getInsightsData(
+                    start, 
+                    end, 
+                    comparisonDates?.startDate, 
+                    comparisonDates?.endDate
+                );
                 
                 // Save to cache
                 insightsCacheRef.current.set(selectedPeriod, { data, timestamp: Date.now() });
@@ -148,7 +175,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         // Short debounce to batch rapid period switches
         const timer = setTimeout(fetchInsights, 150);
         return () => clearTimeout(timer);
-    }, [selectedPeriod, customRange]);
+    }, [selectedPeriod, customRange, comparisonDates]);
 
     // --- Background refresh when data changes (debounced, non-blocking) ---
     const dataVersionRef = useRef(0);
@@ -174,7 +201,12 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                     start = subDays(now, Number(selectedPeriod)).toISOString();
                 }
 
-                const data = await getInsightsData(start, end);
+                const data = await getInsightsData(
+                    start, 
+                    end, 
+                    comparisonDates?.startDate, 
+                    comparisonDates?.endDate
+                );
                 
                 // Update cache & state silently (no loading spinner)
                 insightsCacheRef.current.set(selectedPeriod, { data, timestamp: Date.now() });
@@ -187,7 +219,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         }, 5000); // 5s debounce for background refresh — non-blocking
 
         return () => clearTimeout(timer);
-    }, [deals.length, activities.length, selectedPeriod, customRange]);
+    }, [deals.length, activities.length, selectedPeriod, customRange, isComparing]);
 
     // --- Greeting ---
     const greeting = useMemo(() => {
@@ -326,6 +358,24 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 )}
                             </PopoverContent>
                         </Popover>
+
+                        <div className="flex items-center gap-3 ml-2 border-l border-border/60 pl-5">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only"
+                                        checked={isComparing}
+                                        onChange={(e) => setIsComparing(e.target.checked)}
+                                    />
+                                    <div className={`block w-10 h-6 rounded-full transition-colors ${isComparing ? 'bg-primary' : 'bg-muted border border-border'}`}></div>
+                                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ${isComparing ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                                </div>
+                                <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                                    Comparar
+                                </span>
+                            </label>
+                        </div>
 
                         {/* New Deal */}
                         <button
