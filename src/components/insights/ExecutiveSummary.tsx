@@ -1,6 +1,7 @@
 import { useInsights } from '@/contexts/InsightsContext';
 import VariationBadge from './VariationBadge';
 import QuickGuide from '../ui/QuickGuide';
+import { AlertCircle } from 'lucide-react';
 
 interface Props {
     activeGuide: string | null;
@@ -61,6 +62,36 @@ export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props)
                     subtitle="Conversão global de vendas"
                 />
             </div>
+
+            {/* Principais Motivos de Perda */}
+            {current.lost.motivos.length > 0 && (
+                <div className="bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] p-6 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
+                    <h3 className="text-sm font-bold text-[#111827] dark:text-[#EAEAEA] uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <AlertCircle size={16} className="text-rose-500" />
+                        Principais Motivos de Perda
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {current.lost.motivos.slice(0, 3).map((motivo: any, idx: number) => (
+                            <div key={idx} className="space-y-2">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="font-semibold text-[#111827] dark:text-[#EAEAEA] truncate max-w-[200px]" title={motivo.motivo_perda}>
+                                        {motivo.motivo_perda}
+                                    </span>
+                                    <span className="font-bold text-[#6B7280] dark:text-[#8A8A8A] shrink-0">
+                                        {motivo.quantidade} <span className="text-[10px] font-normal">({motivo.percentual.toFixed(1)}%)</span>
+                                    </span>
+                                </div>
+                                <div className="h-2 w-full bg-[#E5E7EB] dark:bg-[#1F2937] rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-rose-500 transition-all duration-1000"
+                                        style={{ width: `${motivo.percentual}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

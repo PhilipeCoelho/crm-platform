@@ -14,7 +14,6 @@ export type WidgetKey =
     | 'tempo_medio_ciclo'
     | 'taxa_reuniao'
     | 'percentual_7_contatos'
-    | 'percentual_7_contatos'
     | 'canal_mais_ganho'
     | 'atividades_concluidas'
     | 'atividades_criadas'
@@ -26,7 +25,8 @@ export type WidgetKey =
     | 'proposta_para_ganho'
     | 'media_followups'
     | 'abordagens'
-    | 'taxa_resposta';
+    | 'taxa_resposta'
+    | 'motivo_perda';
 
 export type WidgetCategory = 'revenue' | 'conversion' | 'intensity' | 'velocity' | 'loss' | 'channel' | 'execution' | 'outreach';
 
@@ -405,5 +405,23 @@ export const WIDGET_DEFINITIONS: WidgetDefinition[] = [
             microDescription: 'Leads que responderam à abordagem',
             variation: data?.variation?.abordagem_taxaResposta
         })
+    },
+    {
+        key: 'motivo_perda',
+        title: 'Principal Perda',
+        description: 'Identifica o motivo mais frequente para a perda de negócios no período.',
+        icon: AlertCircle,
+        color: 'bg-orange-500/10 text-orange-500',
+        redirectLink: '/insights?tab=perdas',
+        widget_available: true,
+        metric_category: 'loss',
+        getValue: (data) => {
+            if (!data || data.current.lost.motivos.length === 0) return { value: '—', microDescription: 'Sem motivos registrados' };
+            const top = data.current.lost.motivos[0];
+            return {
+                value: top.motivo_perda,
+                microDescription: `${top.quantidade} perdas (${top.percentual.toFixed(1)}%)`
+            };
+        }
     }
 ];
