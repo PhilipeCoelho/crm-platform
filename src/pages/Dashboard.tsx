@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/popover";
 
 const PERIOD_OPTIONS = [
-    { value: 7, label: 'Últimos 7 dias' },
-    { value: 30, label: 'Últimos 30 dias' },
-    { value: 60, label: 'Últimos 60 dias' },
-    { value: 90, label: 'Últimos 90 dias' },
-    { value: 0, label: 'Todo o Período' },
+    { value: '7', label: 'Últimos 7 dias' },
+    { value: '30', label: 'Últimos 30 dias' },
+    { value: '90', label: 'Últimos 90 dias' },
+    { value: 'all', label: 'Todo o Período' },
+    { value: 'custom', label: 'Personalizado' },
 ] as const;
 
 type PeriodValue = typeof PERIOD_OPTIONS[number]['value'];
@@ -42,11 +42,26 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     const navigate = useNavigate();
 
     // --- Cache by period ---
-    const insightsCacheRef = useRef<Map<number, { data: InsightsData; timestamp: number }>>(new Map());
+    const insightsCacheRef = useRef<Map<string, { data: InsightsData; timestamp: number }>>(new Map());
     const CACHE_TTL = 60_000; // 60s cache validity
 
     const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [customRange, setCustomRange] = useState<{ start: string; end: string }>(() => {
+        const saved = localStorage.getItem('dashboard_custom_range');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                console.error('Failed to parse custom range', e);
+            }
+        }
+        return {
+            start: subDays(new Date(), 7).toISOString().split('T')[0],
+            end: new Date().toISOString().split('T')[0]
+        };
+    });
 
     const { widgets: customWidgets, saveWidgets, showPriority, togglePriority } = useDashboardWidgets();
     const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
@@ -54,10 +69,9 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     const [selectedPeriod, setSelectedPeriod] = useState<PeriodValue>(() => {
         const saved = localStorage.getItem('dashboard_period');
         if (saved !== null) {
-            const parsed = Number(saved);
-            if (PERIOD_OPTIONS.some(p => p.value === parsed)) return parsed as PeriodValue;
+            if (PERIOD_OPTIONS.some(p => p.value === saved)) return saved as PeriodValue;
         }
-        return 7;
+        return '7';
     });
 
     const periodLabel = useMemo(() => {
@@ -67,14 +81,24 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
     const handlePeriodChange = useCallback((period: PeriodValue) => {
         setSelectedPeriod(period);
-        localStorage.setItem('dashboard_period', String(period));
+        localStorage.setItem('dashboard_period', period);
     }, []);
 
-    const formatDateRange = useCallback((days: number) => {
+    const handleCustomRangeChange = useCallback((start: string, end: string) => {
+        const newRange = { start, end };
+        setCustomRange(newRange);
+        localStorage.setItem('dashboard_custom_range', JSON.stringify(newRange));
+    }, []);
+
+    const formatDateRange = useCallback((period: PeriodValue) => {
+        if (period === 'custom') {
+            return `${format(parseISO(customRange.start), "dd 'de' MMM", { locale: ptBR })} - ${format(parseISO(customRange.end), "dd 'de' MMM, yyyy", { locale: ptBR })}`;
+        }
         const now = new Date();
+        const days = period === 'all' ? 0 : Number(period);
         const start = days === 0 ? new Date('2000-01-01') : subDays(now, days);
         return `${format(start, "dd 'de' MMM", { locale: ptBR })} - ${format(now, "dd 'de' MMM, yyyy", { locale: ptBR })}`;
-    }, []);
+    }, [customRange]);
 
     // --- Priority Recommendation (memoized) ---
     const priorityRecommendation = useMemo(() => {
@@ -97,10 +121,17 @@ export default function Dashboard({ currency }: { currency: Currency }) {
             setIsLoading(true);
             try {
                 const now = new Date();
-                const start = selectedPeriod === 0
-                    ? new Date('2000-01-01').toISOString()
-                    : subDays(now, selectedPeriod).toISOString();
-                const end = now.toISOString();
+                let start: string;
+                let end: string = now.toISOString();
+
+                if (selectedPeriod === 'all') {
+                    start = new Date('2000-01-01').toISOString();
+                } else if (selectedPeriod === 'custom') {
+                    start = new Date(customRange.start).toISOString();
+                    end = new Date(customRange.end + 'T23:59:59.999Z').toISOString();
+                } else {
+                    start = subDays(now, Number(selectedPeriod)).toISOString();
+                }
 
                 const data = await getInsightsData(start, end);
                 
@@ -117,7 +148,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         // Short debounce to batch rapid period switches
         const timer = setTimeout(fetchInsights, 150);
         return () => clearTimeout(timer);
-    }, [selectedPeriod]);
+    }, [selectedPeriod, customRange]);
 
     // --- Background refresh when data changes (debounced, non-blocking) ---
     const dataVersionRef = useRef(0);
@@ -131,10 +162,17 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
             try {
                 const now = new Date();
-                const start = selectedPeriod === 0
-                    ? new Date('2000-01-01').toISOString()
-                    : subDays(now, selectedPeriod).toISOString();
-                const end = now.toISOString();
+                let start: string;
+                let end: string = now.toISOString();
+
+                if (selectedPeriod === 'all') {
+                    start = new Date('2000-01-01').toISOString();
+                } else if (selectedPeriod === 'custom') {
+                    start = new Date(customRange.start).toISOString();
+                    end = new Date(customRange.end + 'T23:59:59.999Z').toISOString();
+                } else {
+                    start = subDays(now, Number(selectedPeriod)).toISOString();
+                }
 
                 const data = await getInsightsData(start, end);
                 
@@ -149,7 +187,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         }, 5000); // 5s debounce for background refresh — non-blocking
 
         return () => clearTimeout(timer);
-    }, [deals.length, activities.length, selectedPeriod]);
+    }, [deals.length, activities.length, selectedPeriod, customRange]);
 
     // --- Greeting ---
     const greeting = useMemo(() => {
@@ -261,6 +299,31 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                         </button>
                                     ))}
                                 </div>
+
+                                {selectedPeriod === 'custom' && (
+                                    <div className="mt-3 pt-3 border-t border-border space-y-3 p-1">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Início</label>
+                                                <input
+                                                    type="date"
+                                                    value={customRange.start}
+                                                    onChange={(e) => handleCustomRangeChange(e.target.value, customRange.end)}
+                                                    className="w-full bg-muted/50 border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary/30"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Fim</label>
+                                                <input
+                                                    type="date"
+                                                    value={customRange.end}
+                                                    onChange={(e) => handleCustomRangeChange(customRange.start, e.target.value)}
+                                                    className="w-full bg-muted/50 border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary/30"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </PopoverContent>
                         </Popover>
 
