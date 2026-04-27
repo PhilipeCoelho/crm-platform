@@ -1,23 +1,29 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
-import { Plus, Settings } from 'lucide-react';
+import { Plus, Settings, Calendar, ChevronDown, Check } from 'lucide-react';
 import { Currency } from '@/data/currencies';
 import { getInsightsData, InsightsData } from '@/services/insights';
 import { generateStrategicRecommendations } from '@/services/recommendations';
-import { parseISO, isBefore, isToday, subDays } from 'date-fns';
+import { parseISO, isBefore, isToday, subDays, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { filterRealActivities } from '@/utils/activityHelpers';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
 import WidgetManagerModal from '@/components/dashboard/WidgetManagerModal';
 import { PriorityCard, WidgetsRow, AlertColumns } from '@/components/dashboard/DashboardWidgets';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 const PERIOD_OPTIONS = [
-    { value: 7, label: '7 dias' },
-    { value: 30, label: '30 dias' },
-    { value: 60, label: '60 dias' },
-    { value: 90, label: '90 dias' },
-    { value: 0, label: 'Todo período' },
+    { value: 7, label: 'Últimos 7 dias' },
+    { value: 30, label: 'Últimos 30 dias' },
+    { value: 60, label: 'Últimos 60 dias' },
+    { value: 90, label: 'Últimos 90 dias' },
+    { value: 0, label: 'Todo o Período' },
 ] as const;
 
 type PeriodValue = typeof PERIOD_OPTIONS[number]['value'];
@@ -62,6 +68,12 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     const handlePeriodChange = useCallback((period: PeriodValue) => {
         setSelectedPeriod(period);
         localStorage.setItem('dashboard_period', String(period));
+    }, []);
+
+    const formatDateRange = useCallback((days: number) => {
+        const now = new Date();
+        const start = days === 0 ? new Date('2000-01-01') : subDays(now, days);
+        return `${format(start, "dd 'de' MMM", { locale: ptBR })} - ${format(now, "dd 'de' MMM, yyyy", { locale: ptBR })}`;
     }, []);
 
     // --- Priority Recommendation (memoized) ---
@@ -221,22 +233,36 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {/* Period Selector */}
-                        <div className="flex items-center bg-muted/50 rounded-lg border border-border/60 p-0.5">
-                            {PERIOD_OPTIONS.map((opt) => (
-                                <button
-                                    key={opt.value}
-                                    onClick={() => handlePeriodChange(opt.value)}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
-                                        selectedPeriod === opt.value
-                                            ? 'bg-primary text-primary-foreground shadow-sm'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                                    }`}
-                                >
-                                    {opt.label}
+                        {/* Improved Period Selector (Insights Style) */}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <button className="flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted transition-all rounded-xl border border-border/50 text-sm font-medium shadow-sm active:scale-95">
+                                    <Calendar size={16} className="text-primary" />
+                                    <span>{PERIOD_OPTIONS.find(p => p.value === selectedPeriod)?.label}</span>
+                                    <span className="text-[10px] text-muted-foreground ml-1 hidden sm:inline">
+                                        ({formatDateRange(selectedPeriod)})
+                                    </span>
+                                    <ChevronDown size={14} className="text-muted-foreground ml-1" />
                                 </button>
-                            ))}
-                        </div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-2" align="end">
+                                <div className="space-y-1">
+                                    {PERIOD_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => handlePeriodChange(opt.value)}
+                                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${selectedPeriod === opt.value
+                                                ? 'bg-primary/10 text-primary font-semibold'
+                                                : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                                                }`}
+                                        >
+                                            <span>{opt.label}</span>
+                                            {selectedPeriod === opt.value && <Check size={14} />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
 
                         {/* New Deal */}
                         <button
