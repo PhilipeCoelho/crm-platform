@@ -3,28 +3,22 @@ import { Activity } from '@/types/schema';
 import { Currency } from '@/data/currencies';
 import { useCRM } from '@/contexts/CRMContext';
 import { Icons } from './Icons';
-import { differenceInDays, parseISO, format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
-  call:      { label: 'Ligação',   icon: 'phone',    color: 'var(--vp-blue-500)', bg: 'var(--vp-blue-50)' },
-  email:     { label: 'E-mail',    icon: 'mail',     color: 'var(--vp-purple)',   bg: 'var(--vp-purple-bg)' },
-  message:   { label: 'Mensagem',  icon: 'whatsapp', color: 'var(--vp-success)',  bg: 'var(--vp-success-bg)' },
-  instagram: { label: 'Instagram', icon: 'whatsapp', color: 'var(--vp-pink)',     bg: 'var(--vp-pink-bg)' },
-  meeting:   { label: 'Reunião',   icon: 'video',    color: 'var(--vp-pink)',     bg: 'var(--vp-pink-bg)' },
-  task:      { label: 'Tarefa',    icon: 'check',    color: 'var(--vp-ink-600)',  bg: 'var(--vp-ink-50)' },
-  analysis:  { label: 'Análise',   icon: 'search',   color: 'var(--vp-purple)',   bg: 'var(--vp-purple-bg)' },
-  audit:     { label: 'Auditoria', icon: 'video',    color: 'var(--vp-blue-600)', bg: 'var(--vp-blue-50)' },
+  call:      { label: 'Ligar',   icon: 'phone',    color: 'var(--ax-blue)',   bg: 'var(--ax-blue-bg)' },
+  email:     { label: 'E-mail',  icon: 'mail',     color: '#7c5cff',          bg: '#efebff' },
+  message:   { label: 'Mensagem', icon: 'whatsapp', color: 'var(--ax-success)', bg: '#defaee' },
+  meeting:   { label: 'Reunião', icon: 'video',    color: '#d23a82',          bg: '#fde7f1' },
+  task:      { label: 'Tarefa',  icon: 'check',    color: 'var(--ax-neutral)', bg: 'var(--ax-neutral-bg)' },
 };
 
 function fmtMoney(v: number, currency: Currency): string {
-  const formatted = new Intl.NumberFormat(currency.locale, {
+  return new Intl.NumberFormat(currency.locale, {
     style: 'currency', currency: currency.code,
-    minimumFractionDigits: v % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: v % 1 === 0 ? 0 : 2,
-    notation: v >= 100_000 ? 'compact' : 'standard',
-  }).format(v);
-  return formatted.replace(/\s+/g, '');
+    minimumFractionDigits: 0,
+  }).format(v).replace(/\s+/g, '');
 }
 
 interface Props {
@@ -35,199 +29,124 @@ interface Props {
 }
 
 const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete }: Props) {
-  const { deals, contacts, companies, pipelines, logs, activities, isPrivacyMode, openFocusDeal } = useCRM();
-  const blur = isPrivacyMode ? 'av2-blur' : '';
+  const { deals, contacts, pipelines, activities, isPrivacyMode, openFocusDeal } = useCRM();
+  const blur = isPrivacyMode ? 'ax-blur' : '';
 
-  const tc = TYPE_CONFIG[activity.type] || TYPE_CONFIG.task;
-  const TypeIcon = Icons[tc.icon] || Icons.check;
+  const deal = useMemo(() => deals.find(d => d.id === activity.dealId), [deals, activity.dealId]);
+  const contact = useMemo(() => contacts.find(c => c.id === (activity.contactId || deal?.contactId)), [contacts, activity.contactId, deal]);
+  const pipelineStages = useMemo(() => deal ? (pipelines[deal.pipelineId]?.stages || []) : [], [deal, pipelines]);
+  const currentStage = useMemo(() => deal ? pipelineStages.find(s => s.id === deal.stageId) : null, [deal, pipelineStages]);
 
-  const deal = useMemo(() => deals.find((d: any) => d.id === activity.dealId), [deals, activity.dealId]);
-  const contact = useMemo(() => contacts.find((c: any) => c.id === (activity.contactId || deal?.contactId)), [contacts, activity.contactId, deal]);
-  const company = useMemo(() => companies.find((c: any) => c.id === (deal?.companyId || activity.companyId)), [companies, deal, activity.companyId]);
-
-  // Pipeline stages for this deal
-  const pipelineStages = useMemo(() => {
-    if (!deal) return [];
-    return pipelines[deal.pipelineId]?.stages || [];
-  }, [deal, pipelines]);
-
-  const currentStageIndex = useMemo(() => {
-    if (!deal) return -1;
-    return pipelineStages.findIndex((s: any) => s.id === deal.stageId);
-  }, [deal, pipelineStages]);
-
-  const currentStage = currentStageIndex >= 0 ? pipelineStages[currentStageIndex] : null;
-  const stagePct = currentStage?.probability || 0;
-
-  // Due text
-  const dueText = useMemo(() => {
-    if (!activity.dueDate) return 'Sem prazo';
-    const due = differenceInDays(parseISO(activity.dueDate), new Date());
-    if (due === 0) {
-      try { const d = parseISO(activity.dueDate); const h = d.getHours(); const m = d.getMinutes(); if (h > 0 || m > 0) return `hoje ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; } catch {}
-      return 'hoje';
-    }
-    if (due < 0) return `${Math.abs(due)} dias atrasada`;
-    if (due === 1) return 'amanhã';
-    return `em ${due} dias`;
-  }, [activity.dueDate]);
-
-  // History from real logs for this deal
-  const dealHistory = useMemo(() => {
-    if (!deal) return [];
-    const dealLogs = logs
-      .filter((l: any) => l.dealId === deal.id)
-      .sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt))
-      .sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt));
-    return dealLogs;
-  }, [deal, logs]);
-
-  // Past activities on this deal (for richer history)
-  const pastActivities = useMemo(() => {
-    if (!deal) return [];
-    return activities
-      .filter((a: any) => a.dealId === deal.id && a.completed && a.id !== activity.id)
-      .sort((a: any, b: any) => (b.completedAt || b.createdAt).localeCompare(a.completedAt || a.createdAt))
-      .slice(0, 5);
-  }, [deal, activities, activity.id]);
-
-  // Suggestion from activity notes
   const suggestion = activity.notes || activity.tooltipScript;
 
   return (
-    <div className="av2-detail">
-      {/* Hero */}
-      <div className="av2-detail-hero">
-        <div className="av2-detail-type" style={{ background: tc.bg, color: tc.color }}>
-          <TypeIcon size={12} />
-          {tc.label}
-        </div>
-        <h2 className="av2-detail-title">{activity.title}</h2>
-        <div className="av2-detail-due">
-          <Icons.clock size={13} />
-          <span>{dueText}</span>
-        </div>
-        <button className="av2-detail-close" onClick={onClose} aria-label="Fechar">
-          <Icons.close size={15} />
+    <aside className="ax-sidebar">
+      {/* HEADER */}
+      <div style={{ padding: '24px 20px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="ax-label" style={{ margin: 0 }}>Guia de Execução</span>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--vp-text-soft)' }}>
+          <Icons.close size={20} />
         </button>
       </div>
 
-      {/* Body */}
-      <div className="av2-detail-body">
-        {/* Deal card */}
-        {deal && (
-          <div className="av2-deal-card">
-            <div className="av2-deal-row">
-              <button 
-                className={`av2-deal-name ${blur} hover:text-[var(--vp-blue-600)] hover:underline cursor-pointer text-left focus:outline-none transition-colors`}
-                onClick={() => openFocusDeal(deal.id)}
-              >
-                {deal.title}
-              </button>
-              <span className={`av2-deal-value ${blur}`}>{fmtMoney(deal.value, currency)}</span>
-            </div>
-            {contact && contact.name !== deal.title && <div className={`av2-deal-contact ${blur}`}>{contact.name}</div>}
-            {company && company.name !== deal.title && company.name !== contact?.name && <div className={`av2-deal-contact ${blur}`} style={{ marginTop: 0 }}>{company.name}</div>}
-
-            {pipelineStages.length > 0 && (
-              <>
-                <div className="av2-stage-bar">
-                  {pipelineStages.map((s: any, i: number) => (
-                    <div
-                      key={s.id}
-                      className={`av2-stage-seg ${i <= currentStageIndex ? 'av2-stage-seg--filled' : ''}`}
-                    />
-                  ))}
-                </div>
-                {currentStage && (
-                  <div className="av2-stage-label">
-                    <span className="av2-stage-name">
-                      <span className="av2-stage-dot" style={{ background: currentStage.color || 'var(--vp-blue-500)' }} />
-                      {currentStage.title}
-                    </span>
-                    <span className="av2-stage-pct">{stagePct}%</span>
-                  </div>
-                )}
-              </>
-            )}
+      {/* STEP 6: PRATIC SUGGESTION (PINK BOX) */}
+      {suggestion && (
+        <div className="ax-sidebar-suggestion">
+          <div className="ax-sidebar-suggestion-lbl">
+            <Icons.zap size={10} />
+            O que falar agora
           </div>
-        )}
+          <div className="ax-sidebar-suggestion-txt">"{suggestion}"</div>
+        </div>
+      )}
 
-        {/* Suggestion */}
-        {suggestion && (
-          <div className="av2-suggest">
-            <div className="av2-suggest-head">✦ Sugestão</div>
-            <div className="av2-suggest-text">{suggestion}</div>
-          </div>
-        )}
+      {/* STEP 6: DIRECT CONTEXT */}
+      <div className="ax-sidebar-ctx">
+        <span className="ax-label">Contexto do Negócio</span>
+        
+        <div className="ax-sidebar-ctx-row">
+          <span className="ax-sidebar-ctx-lbl">Negócio</span>
+          <span className={`ax-sidebar-ctx-val ax-exec-deal ${blur}`} onClick={() => deal && openFocusDeal(deal.id)}>
+            {deal?.title || '—'}
+          </span>
+        </div>
 
-        {/* History — from real logs + past activities */}
-        <div className="av2-history">
-          <div className="av2-history-head">Histórico</div>
+        <div className="ax-sidebar-ctx-row">
+          <span className="ax-sidebar-ctx-lbl">Contato</span>
+          <span className={`ax-sidebar-ctx-val ${blur}`}>{contact?.name || '—'}</span>
+        </div>
 
-          {pastActivities.length === 0 && dealHistory.length === 0 && (
-            <p style={{ fontSize: 12.5, color: 'var(--vp-text-soft)' }}>Nenhum histórico registrado.</p>
-          )}
+        <div className="ax-sidebar-ctx-row">
+          <span className="ax-sidebar-ctx-lbl">Estágio</span>
+          <span className="ax-sidebar-ctx-val" style={{ color: currentStage?.color }}>
+            {currentStage?.title || '—'}
+          </span>
+        </div>
 
-          <div className="av2-history-list">
-            {pastActivities.map(pa => {
+        <div className="ax-sidebar-ctx-row">
+          <span className="ax-sidebar-ctx-lbl">Valor</span>
+          <span className={`ax-sidebar-ctx-val ${blur}`}>{deal ? fmtMoney(deal.value, currency) : '—'}</span>
+        </div>
+
+        {/* FULL HISTORY */}
+        <span className="ax-label" style={{ marginTop: 16 }}>Histórico de Interações</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+          {activities
+            .filter(a => a.dealId === deal?.id && a.completed)
+            .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
+            .slice(0, 5) // Last 5 activities
+            .map(pa => {
               const ptc = TYPE_CONFIG[pa.type] || TYPE_CONFIG.task;
               const PIcon = Icons[ptc.icon] || Icons.check;
-              const activityLogs = dealHistory.filter(l => l.activityId === pa.id);
+              const interactionText = pa.notes || pa.result || pa.description;
 
               return (
-                <div key={pa.id} className="av2-history-item-group">
-                  <div className="av2-history-item">
-                    <div className="av2-history-icon" style={{ background: ptc.bg, color: ptc.color }}>
-                      <PIcon size={12} />
-                    </div>
-                    <div className="av2-history-content">
-                      <div className="av2-history-text">{pa.title}{pa.result ? ` — ${pa.result}` : ''}</div>
-                      <div className="av2-history-date">
-                        {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM yyyy", { locale: ptBR }) : ''}
-                      </div>
-                    </div>
+                <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 12, borderBottom: '1px solid var(--vp-bg)' }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: ptc.bg, color: ptc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <PIcon size={12} />
                   </div>
-
-                  {activityLogs.length > 0 && (
-                    <div className="av2-history-logs">
-                      {activityLogs.map(log => (
-                        <div key={log.id} className="av2-history-log">
-                          {log.content === "Atividade concluída sem observações." ? "Concluída sem observações" : log.content}
-                        </div>
-                      ))}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700 }}>{pa.title}</div>
+                    <div style={{ fontSize: 10, color: 'var(--vp-text-soft)' }}>
+                      {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM HH:mm", { locale: ptBR }) : ''}
                     </div>
-                  )}
+                    {interactionText && (
+                      <div style={{ 
+                        fontSize: 11, 
+                        color: 'var(--vp-text-muted)', 
+                        marginTop: 4, 
+                        padding: '6px 8px', 
+                        background: 'var(--vp-bg)', 
+                        borderRadius: 4,
+                        borderLeft: `2px solid ${ptc.color}`
+                      }}>
+                        {interactionText}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
-
-            {dealHistory.filter(l => !l.activityId).slice(0, 3).map(log => (
-              <div key={log.id} className="av2-history-item-group">
-                <div className="av2-history-item">
-                  <div className="av2-history-icon" style={{ background: 'var(--vp-ink-50)', color: 'var(--vp-ink-500)' }}>
-                    <Icons.clock size={12} />
-                  </div>
-                  <div className="av2-history-content">
-                    <div className="av2-history-text" style={{ whiteSpace: 'pre-wrap' }}>{log.content}</div>
-                    <div className="av2-history-date">{format(parseISO(log.createdAt), "dd MMM yyyy", { locale: ptBR })}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          
+          {activities.filter(a => a.dealId === deal?.id && a.completed).length === 0 && (
+            <div style={{ fontSize: 12, color: 'var(--vp-text-soft)', padding: '12px 0', textAlign: 'center', background: 'var(--vp-bg)', borderRadius: 6 }}>
+              Nenhuma interação anterior.
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="av2-detail-footer">
-        <button className="av2-btn av2-btn--success" onClick={() => onComplete(activity)}>
-          <Icons.check size={14} />
-          Concluir
+      {/* FOOTER ACTIONS */}
+      <div style={{ marginTop: 'auto', padding: '20px', borderTop: '1px solid var(--vp-border)', display: 'flex', gap: 10 }}>
+        <button 
+          className="ax-btn ax-btn-primary" 
+          style={{ flex: 1, height: 48, justifyContent: 'center' }}
+          onClick={() => onComplete(activity)}
+        >
+          <Icons.check size={18} /> Concluir
         </button>
-        <button className="av2-btn av2-btn--outline">Adiar</button>
       </div>
-    </div>
+    </aside>
   );
 });
 

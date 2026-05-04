@@ -24,9 +24,10 @@ interface Props {
     onClose: () => void;
     activity: Activity | null;
     onCompleted?: () => void;
+    initialNotes?: string;
 }
 
-export default function CompleteActivityModal({ isOpen, onClose, activity, onCompleted }: Props) {
+export default function CompleteActivityModal({ isOpen, onClose, activity, onCompleted, initialNotes }: Props) {
     const { 
         completeActivityWithLog, 
         cadenceTemplates, 
@@ -37,7 +38,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
         activities
     } = useCRM();
 
-    const [notes, setNotes] = useState('');
+    const [notes, setNotes] = useState(initialNotes || '');
     const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,25 +49,35 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
     const suggestions = useMemo(() => {
         if (!deal || cadenceStages.length === 0) return [];
 
-        // 1. Find Stage Tag
-        const stages = Object.values(pipelines).flatMap((p: any) => p.stages || []);
-        const currentStage = stages.find((s: any) => s.id === deal.stageId);
-        const stageTitle = currentStage?.title?.toUpperCase() || '';
-        
-        let matchedStage = cadenceStages.find((cs: any) => 
-            stageTitle.includes(cs.name.toUpperCase()) || 
-            cs.name.toUpperCase().includes(stageTitle) ||
-            stageTitle.includes(cs.id.toUpperCase())
-        );
+        // 1. Determine active tag (Prioritize current activity, then last activity, then stage fallback)
+        let tag = activity?.originStage;
 
-        if (!matchedStage) {
-            if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'ENGAJADO');
-            else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'DIAGNOSTICO');
-            else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'FECHAMENTO');
-            else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'LEAD');
+        if (!tag) {
+            const lastWithTag = activities
+                .filter(a => a.dealId === deal.id && a.completed && a.originStage)
+                .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))[0];
+            tag = lastWithTag?.originStage;
         }
 
-        const tag = matchedStage?.id || 'LEAD';
+        if (!tag) {
+            const stages = Object.values(pipelines).flatMap((p: any) => p.stages || []);
+            const currentStage = stages.find((s: any) => s.id === deal.stageId);
+            const stageTitle = currentStage?.title?.toUpperCase() || '';
+            
+            let matchedStage = cadenceStages.find((cs: any) => 
+                stageTitle.includes(cs.name.toUpperCase()) || 
+                cs.name.toUpperCase().includes(stageTitle) ||
+                stageTitle.includes(cs.id.toUpperCase())
+            );
+
+            if (!matchedStage) {
+                if (stageTitle.includes('ENGAJADO')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'ENGAJADO');
+                else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'DIAGNOSTICO');
+                else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'FECHAMENTO');
+                else if (stageTitle.includes('LEAD')) matchedStage = cadenceStages.find((cs: any) => cs.id === 'LEAD');
+            }
+            tag = matchedStage?.id || 'LEAD';
+        }
 
         // 2. Identify already executed steps for this deal and stage
         const executedSteps = new Set(
