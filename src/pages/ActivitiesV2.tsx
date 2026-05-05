@@ -33,7 +33,7 @@ function fmtMoney(v: number, currency: Currency): string {
 
 export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const {
-    deals, activities, contacts, companies, pipelines, logs,
+    deals, activities, contacts, pipelines, logs,
     updateActivity, openFocusDeal, isPrivacyMode,
     completeActivityWithLog, addActivity, updateDeal,
     deleteActivity
@@ -359,13 +359,6 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                       const dealId = currentHero.dealId;
                       const c = getContact(currentHero.contactId || getDeal(dealId)?.contactId);
                       
-                      // Get past activities with notes
-                      const pastWithNotes = activities
-                        .filter(a => a.dealId === dealId && a.completed && (a.notes || a.result))
-                        .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
-                      
-                      const lastInteraction = pastWithNotes[0];
-
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                           {/* CONTACT INFO */}

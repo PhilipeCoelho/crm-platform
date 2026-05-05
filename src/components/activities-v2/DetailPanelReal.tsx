@@ -130,7 +130,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
                         {interactionText}
                       </div>
                     ) : (
-                      <div style={{ fontSize: 10, color: 'var(--vp-text-muted)', italic: 'true', marginTop: 2 }}>
+                      <div style={{ fontSize: 10, color: 'var(--vp-text-muted)', fontStyle: 'italic', marginTop: 2 }}>
                         Sem observações registradas.
                       </div>
                     )}
