@@ -33,7 +33,7 @@ function fmtMoney(v: number, currency: Currency): string {
 
 export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const {
-    deals, activities, contacts, companies, pipelines,
+    deals, activities, contacts, companies, pipelines, logs,
     updateActivity, openFocusDeal, isPrivacyMode,
     completeActivityWithLog, addActivity, updateDeal,
     deleteActivity
@@ -299,6 +299,28 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                       {fmtMoney(getDeal(currentHero.dealId)?.value || 0, currency)}
                     </span>
                   </div>
+
+                  {!isFocusMode && (() => {
+                    const pastCompleted = activities
+                      .filter(a => a.dealId === currentHero.dealId && a.completed)
+                      .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
+                    
+                    const last = pastCompleted[0];
+                    if (!last) return null;
+
+                    // Get actual comment from log
+                    const lastLog = logs.find(l => l.activityId === last.id);
+                    const comment = lastLog?.content || last.notes || last.result;
+
+                    if (!comment || comment.includes("concluída sem observações")) return null;
+
+                    return (
+                      <div style={{ marginTop: 10, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 11, maxWidth: '600px' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--vp-text-soft)', textTransform: 'uppercase', fontSize: 9, display: 'block', marginBottom: 2 }}>Última Interação</span>
+                        <span style={{ color: '#475569' }}>"{comment}"</span>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="ax-exec-indicators">
@@ -334,23 +356,73 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <span className="ax-label">Informações de Contato</span>
                     {(() => {
-                      const c = getContact(currentHero.contactId || getDeal(currentHero.dealId)?.contactId);
+                      const dealId = currentHero.dealId;
+                      const c = getContact(currentHero.contactId || getDeal(dealId)?.contactId);
+                      
+                      // Get past activities with notes
+                      const pastWithNotes = activities
+                        .filter(a => a.dealId === dealId && a.completed && (a.notes || a.result))
+                        .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
+                      
+                      const lastInteraction = pastWithNotes[0];
+
                       return (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.phone size={16} /></div>
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Telefone</div>
-                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c?.phone || 'Não informado'}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                          {/* CONTACT INFO */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.phone size={16} /></div>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Telefone</div>
+                                <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c?.phone || 'Não informado'}</div>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#efebff', color: '#7c5cff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.mail size={16} /></div>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>E-mail</div>
+                                <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c?.email || ''}>{c?.email || 'Não informado'}</div>
+                              </div>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#efebff', color: '#7c5cff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.mail size={16} /></div>
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>E-mail</div>
-                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c?.email || ''}>{c?.email || 'Não informado'}</div>
-                            </div>
-                          </div>
+
+                          {/* LAST INTERACTION QUICK VIEW */}
+                          {(() => {
+                            const pastCompleted = activities
+                              .filter(a => a.dealId === dealId && a.completed)
+                              .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
+                            
+                            const last = pastCompleted[0];
+                            if (!last) return null;
+
+                            const lastLog = logs.find(l => l.activityId === last.id);
+                            const comment = lastLog?.content || last.notes || last.result;
+
+                            if (!comment || comment.includes("concluída sem observações")) return null;
+
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <span className="ax-label" style={{ margin: 0, fontSize: 10 }}>Última Interação</span>
+                                <div style={{ 
+                                  padding: '10px 12px', 
+                                  background: '#f8fafc', 
+                                  border: '1px solid #e2e8f0', 
+                                  borderRadius: 10,
+                                  fontSize: 12,
+                                  color: '#475569',
+                                  lineHeight: '1.5',
+                                  position: 'relative'
+                                }}>
+                                   <div style={{ fontWeight: 700, fontSize: 10, color: 'var(--vp-text-soft)', marginBottom: 4, textTransform: 'uppercase' }}>
+                                     {last.title}
+                                   </div>
+                                   <div style={{ whiteSpace: 'pre-wrap' }}>
+                                     "{comment}"
+                                   </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       );
                     })()}

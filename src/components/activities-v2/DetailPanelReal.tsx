@@ -30,7 +30,7 @@ interface Props {
 }
 
 const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete, className }: Props) {
-  const { deals, contacts, pipelines, activities, isPrivacyMode, openFocusDeal } = useCRM();
+  const { deals, contacts, pipelines, activities, logs, isPrivacyMode, openFocusDeal } = useCRM();
   const blur = isPrivacyMode ? 'ax-blur' : '';
 
   const deal = useMemo(() => deals.find(d => d.id === activity.dealId), [deals, activity.dealId]);
@@ -95,33 +95,43 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
           {activities
             .filter(a => a.dealId === deal?.id && a.completed)
             .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
-            .slice(0, 5) // Last 5 activities
             .map(pa => {
               const ptc = TYPE_CONFIG[pa.type] || TYPE_CONFIG.task;
               const PIcon = Icons[ptc.icon] || Icons.check;
-              const interactionText = pa.notes || pa.result || pa.description;
+              
+              // Search for the log associated with this activity
+              const activityLog = logs.find(l => l.activityId === pa.id);
+              const interactionText = activityLog?.content || pa.notes || pa.result || pa.description;
 
               return (
-                <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 12, borderBottom: '1px solid var(--vp-bg)' }}>
-                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: ptc.bg, color: ptc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <PIcon size={12} />
+                <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 16, borderBottom: '1px solid var(--vp-border)' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: ptc.bg, color: ptc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <PIcon size={14} />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>{pa.title}</div>
-                    <div style={{ fontSize: 10, color: 'var(--vp-text-soft)' }}>
-                      {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM HH:mm", { locale: ptBR }) : ''}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--vp-text)' }}>{pa.title}</div>
+                      <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>
+                        {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM", { locale: ptBR }) : ''}
+                      </div>
                     </div>
-                    {interactionText && (
+                    {interactionText ? (
                       <div style={{ 
                         fontSize: 11, 
-                        color: 'var(--vp-text-muted)', 
+                        color: 'var(--vp-text-soft)', 
                         marginTop: 4, 
-                        padding: '6px 8px', 
-                        background: 'var(--vp-bg)', 
-                        borderRadius: 4,
-                        borderLeft: `2px solid ${ptc.color}`
+                        padding: '8px 10px', 
+                        background: 'var(--vp-surface)', 
+                        borderRadius: '8px',
+                        border: '1px solid var(--vp-border)',
+                        lineHeight: '1.4',
+                        whiteSpace: 'pre-wrap'
                       }}>
                         {interactionText}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 10, color: 'var(--vp-text-muted)', italic: 'true', marginTop: 2 }}>
+                        Sem observações registradas.
                       </div>
                     )}
                   </div>
