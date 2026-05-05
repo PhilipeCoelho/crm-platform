@@ -7,7 +7,7 @@ import {
 import { ActivityScriptPopover } from './ActivityScriptPopover';
 import { getScriptByTitle, formatScript } from '@/services/cadence';
 import { useCRM } from '@/contexts/CRMContext';
-import { format, isBefore, isToday, parseISO } from 'date-fns';
+import { differenceInDays, format, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Props {
@@ -155,7 +155,12 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                                         <div className={`flex items-center gap-1.5 px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full text-[10px] sm:text-[10px] font-bold sm:font-medium border ${(!isCompleted && !isCanceled) ? `${style.bg} ${style.text} ${style.border}` : 'bg-muted text-muted-foreground border-transparent'}`}>
                                             <div className={`w-1.5 h-1.5 rounded-full ${(!isCompleted && !isCanceled) ? style.dot : 'bg-muted-foreground'}`} />
                                             <span>
-                                                {status === 'today' ? 'Hoje' : format(parseISO(activity.dueDate), "dd MMM", { locale: ptBR })}
+                                                {(() => {
+                                                    const due = differenceInDays(startOfDay(parseISO(activity.dueDate)), startOfDay(new Date()));
+                                                    if (due === 0) return 'Hoje';
+                                                    if (due < 0) return `${Math.abs(due)}d atraso`;
+                                                    return format(parseISO(activity.dueDate), "dd MMM", { locale: ptBR });
+                                                })()}
                                             </span>
                                         </div>
                                     )}
