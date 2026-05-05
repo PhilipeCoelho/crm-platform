@@ -25,4 +25,5 @@ export const Icons: Record<string, React.FC<{ size?: number; className?: string;
   chevronLeft:  ({ size = 15, ...p }) => <svg width={size} height={size} viewBox="0 0 24 24" {...s} {...p}><polyline points="15,18 9,12 15,6"/></svg>,
   chevronRight: ({ size = 15, ...p }) => <svg width={size} height={size} viewBox="0 0 24 24" {...s} {...p}><polyline points="9,18 15,12 9,6"/></svg>,
   history:  ({ size = 15, ...p }) => <svg width={size} height={size} viewBox="0 0 24 24" {...s} {...p}><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>,
+  instagram: ({ size = 15, ...p }) => <svg width={size} height={size} viewBox="0 0 24 24" {...s} {...p}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>,
 };

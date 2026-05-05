@@ -33,7 +33,7 @@ function fmtMoney(v: number, currency: Currency): string {
 
 export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const {
-    deals, activities, contacts, pipelines,
+    deals, activities, contacts, companies, pipelines,
     updateActivity, openFocusDeal, isPrivacyMode,
     completeActivityWithLog, addActivity, updateDeal,
     deleteActivity
@@ -333,81 +333,27 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                 <div className="ax-focus-grid">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <span className="ax-label">Informações de Contato</span>
-                      const deal = getDeal(currentHero.dealId);
-                      const c = getContact(currentHero.contactId || deal?.contactId);
-                      const company = companies.find(cp => cp.id === (c?.companyId || deal?.companyId));
-                      const searchQuery = company?.name || c?.name || '';
-                      
+                    {(() => {
+                      const c = getContact(currentHero.contactId || getDeal(currentHero.dealId)?.contactId);
                       return (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          {/* CONTACT INFO */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.phone size={16} /></div>
-                              <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Telefone</div>
-                                <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c?.phone || 'Não informado'}</div>
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#efebff', color: '#7c5cff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.mail size={16} /></div>
-                              <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>E-mail</div>
-                                <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c?.email || ''}>{c?.email || 'Não informado'}</div>
-                              </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.phone size={16} /></div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Telefone</div>
+                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c?.phone || 'Não informado'}</div>
                             </div>
                           </div>
-
-                          {/* MARKETING RESEARCH */}
-                          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                             <span className="ax-label">Pesquisa de Marketing</span>
-                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                {/* Instagram */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                   <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff0f3', color: '#ff4d6d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.instagram size={16} /></div>
-                                   <div style={{ minWidth: 0, flex: 1 }}>
-                                      <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Instagram</div>
-                                      <a 
-                                        href={c?.instagram ? (c.instagram.startsWith('http') ? c.instagram : `https://instagram.com/${c.instagram.replace('@', '')}`) : '#'} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        style={{ fontSize: 14, fontWeight: 700, color: 'var(--ax-blue)', textDecoration: 'none' }}
-                                        className={!c?.instagram ? 'opacity-40 pointer-events-none' : ''}
-                                      >
-                                         {c?.instagram || 'Não vinculado'}
-                                      </a>
-                                   </div>
-                                </div>
-                                {/* Ads Library */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                   <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eef2ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.zap size={16} /></div>
-                                   <div style={{ minWidth: 0, flex: 1 }}>
-                                      <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Biblioteca de Ads</div>
-                                      <button 
-                                        onClick={() => window.open(`https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL&q=${encodeURIComponent(searchQuery)}&search_type=keyword_unordered&media_type=all`, '_blank')}
-                                        style={{ 
-                                          background: '#f1f5f9', 
-                                          border: '1px solid #e2e8f0', 
-                                          padding: '4px 10px', 
-                                          borderRadius: 6, 
-                                          fontSize: 12, 
-                                          fontWeight: 700, 
-                                          color: '#475569', 
-                                          cursor: 'pointer',
-                                          marginTop: 4,
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: 6
-                                        }}
-                                      >
-                                         <Icons.search size={12} /> Auto-Buscar Ads
-                                      </button>
-                                   </div>
-                                </div>
-                             </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#efebff', color: '#7c5cff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.mail size={16} /></div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>E-mail</div>
+                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c?.email || ''}>{c?.email || 'Não informado'}</div>
+                            </div>
                           </div>
                         </div>
                       );
+                    })()}
 
                     <div style={{ marginTop: 12 }}>
                       <span className="ax-label">Próximo Passo Automatizado</span>
