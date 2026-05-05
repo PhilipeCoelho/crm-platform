@@ -75,11 +75,10 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const queue = openActivities.slice(1, 10); // Show up to 10 in queue
   const backlog = openActivities.slice(10);
 
-  // Auto-select hero if nothing selected
+  // Clear notes when switching
   useEffect(() => {
-    if (!selectedId && currentHero) setSelectedId(currentHero.id);
-    if (currentHero?.id !== selectedId) setExecNotes(''); // Clear notes when switching
-  }, [currentHero, selectedId]);
+    setExecNotes('');
+  }, [selectedId]);
 
   const selectedActivity = useMemo(() => 
     activities.find(a => a.id === selectedId) || null,
@@ -134,6 +133,25 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
     if (idx !== -1 && idx < openActivities.length - 1) {
       setSelectedId(openActivities[idx + 1].id);
     }
+  };
+
+  const handleMarkAsLost = async (a: Activity) => {
+    if (!execNotes) return;
+    if (!a.dealId) return;
+
+    const confirmLost = window.confirm("Tem certeza que deseja marcar este negócio como PERDIDO?");
+    if (!confirmLost) return;
+
+    // 1. Complete activity with the execution note
+    await completeActivityWithLog(a.id, execNotes, false);
+
+    // 2. Mark deal as lost
+    await updateDeal(a.dealId, { status: 'lost' });
+
+    // 3. Reset and move flow
+    setExecNotes('');
+    setNextTaskType(null);
+    setSelectedId(null);
   };
 
   const renderQueueItem = (a: Activity, idx: number) => {
@@ -216,15 +234,14 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
             {!isFocusMode && <span className="ax-label">Executar Agora</span>}
             <div 
               className={`ax-exec-block ax-exec-block--${getDueDays(currentHero.dueDate) < 0 ? 'warn' : 'normal'}`}
-              style={isFocusMode ? { padding: '32px', borderRadius: 16, flexDirection: 'column', alignItems: 'stretch' } : {}}
             >
-              <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+              <div className="ax-focus-header" onClick={() => setSelectedId(currentHero.id)} style={{ cursor: 'pointer' }}>
                 <div className="ax-exec-type" style={isFocusMode ? { fontSize: 13, padding: '6px 12px' } : {}}>
                   {(() => { const tc = TYPE_CONFIG[currentHero.type] || TYPE_CONFIG.task; return tc.label; })()}
                 </div>
                 
                 <div className="ax-exec-main">
-                  <h1 className="ax-exec-title" style={isFocusMode ? { fontSize: 32 } : {}}>{currentHero.title}</h1>
+                  <h1 className={`ax-exec-title ${isFocusMode ? 'ax-focus-title' : ''}`}>{currentHero.title}</h1>
                   <div className="ax-exec-meta" style={isFocusMode ? { fontSize: 16, marginTop: 8 } : {}}>
                     <span className={`ax-exec-deal ${isPrivacyMode ? 'ax-blur' : ''}`} onClick={() => openFocusDeal(currentHero.dealId!)}>
                       {getDeal(currentHero.dealId)?.title}
@@ -273,19 +290,19 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                     {(() => {
                       const c = getContact(currentHero.contactId || getDeal(currentHero.dealId)?.contactId);
                       return (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.phone size={16} /></div>
-                            <div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.phone size={16} /></div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
                               <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Telefone</div>
-                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700 }}>{c?.phone || 'Não informado'}</div>
+                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c?.phone || 'Não informado'}</div>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#efebff', color: '#7c5cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icons.mail size={16} /></div>
-                            <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#efebff', color: '#7c5cff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.mail size={16} /></div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
                               <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>E-mail</div>
-                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700 }}>{c?.email || 'Não informado'}</div>
+                              <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c?.email || ''}>{c?.email || 'Não informado'}</div>
                             </div>
                           </div>
                         </div>
@@ -329,31 +346,50 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                       onChange={e => setExecNotes(e.target.value)}
                       className="ax-notes-textarea"
                     />
-                    <div className="ax-focus-actions">
+                    <div className="ax-focus-actions" style={{ gap: '10px' }}>
                       <button 
                         className="ax-btn ax-btn-primary" 
                         style={{ 
-                          flex: 2, 
+                          flex: '2', 
                           height: 52, 
-                          fontSize: 15,
-                          opacity: nextTaskType ? 1 : 0.5,
+                          fontSize: 14,
+                          opacity: nextTaskType ? 1 : 0.6,
                           cursor: nextTaskType ? 'pointer' : 'not-allowed'
                         }}
                         disabled={!nextTaskType}
                         onClick={() => directComplete(currentHero)}
                       >
-                        <Icons.check size={20} /> Concluir
+                        <Icons.check size={18} /> Concluir
                       </button>
                       <button 
                         className="ax-btn ax-btn-secondary" 
-                        style={{ flex: 1, height: 52, fontSize: 15 }}
+                        style={{ flex: '1', height: 52, fontSize: 14, whiteSpace: 'nowrap' }}
                         onClick={() => handlePostpone(currentHero)}
                       >
                         Adiar +1d
                       </button>
                       <button 
+                        className="ax-btn" 
+                        style={{ 
+                          flex: '1', 
+                          height: 52, 
+                          fontSize: 14,
+                          background: execNotes ? '#fef2f2' : '#f8fafc',
+                          color: execNotes ? '#dc2626' : '#94a3b8',
+                          cursor: execNotes ? 'pointer' : 'not-allowed',
+                          opacity: execNotes ? 1 : 0.7,
+                          border: execNotes ? '1px solid #fee2e2' : '1px solid #e2e8f0',
+                          fontWeight: 700
+                        }}
+                        disabled={!execNotes}
+                        onClick={() => handleMarkAsLost(currentHero)}
+                        title={!execNotes ? "Adicione uma nota para poder dar como perdido" : ""}
+                      >
+                        <Icons.close size={18} /> Perdido
+                      </button>
+                      <button 
                         className="ax-btn ax-btn-ghost" 
-                        style={{ flex: 0.5, height: 52, fontSize: 15 }}
+                        style={{ flex: '0.7', height: 52, fontSize: 14 }}
                         onClick={handleSkip}
                       >
                         Pular
@@ -400,12 +436,16 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
 
       {/* STEP 6: SIDEBAR FUNCIONAL */}
       {selectedActivity && (
-        <DetailPanelReal 
-          activity={selectedActivity} 
-          currency={currency} 
-          onClose={() => setSelectedId(null)} 
-          onComplete={handleExecute} 
-        />
+        <>
+          <div className="ax-sidebar-backdrop" onClick={() => setSelectedId(null)} />
+          <DetailPanelReal 
+            activity={selectedActivity} 
+            currency={currency} 
+            onClose={() => setSelectedId(null)} 
+            onComplete={handleExecute} 
+            className="ax-sidebar--open"
+          />
+        </>
       )}
 
       <CompleteActivityModal 

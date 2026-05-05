@@ -26,9 +26,10 @@ interface Props {
   currency: Currency;
   onClose: () => void;
   onComplete: (activity: Activity) => void;
+  className?: string;
 }
 
-const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete }: Props) {
+const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete, className }: Props) {
   const { deals, contacts, pipelines, activities, isPrivacyMode, openFocusDeal } = useCRM();
   const blur = isPrivacyMode ? 'ax-blur' : '';
 
@@ -40,7 +41,7 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
   const suggestion = activity.notes || activity.tooltipScript;
 
   return (
-    <aside className="ax-sidebar">
+    <aside className={`ax-sidebar ${className || ''}`}>
       {/* HEADER */}
       <div style={{ padding: '24px 20px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span className="ax-label" style={{ margin: 0 }}>Guia de Execução</span>
