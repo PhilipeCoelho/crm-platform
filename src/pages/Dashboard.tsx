@@ -259,12 +259,16 @@ export default function Dashboard({ currency }: { currency: Currency }) {
 
         const overdueActivities = openRealActivities.filter(a => {
             if (!a.dueDate) return false;
+            const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
+            if (deal && deal.status !== 'open') return false;
             const dueDate = parseISO(a.dueDate);
             return isBefore(dueDate, now) && !isToday(dueDate);
         });
 
         const todayActivities = openRealActivities.filter(a => {
             if (!a.dueDate) return false;
+            const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
+            if (deal && deal.status !== 'open') return false;
             return isToday(parseISO(a.dueDate));
         });
 
