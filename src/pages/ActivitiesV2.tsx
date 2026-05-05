@@ -35,7 +35,8 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const {
     deals, activities, contacts, pipelines,
     updateActivity, openFocusDeal, isPrivacyMode,
-    completeActivityWithLog, addActivity, updateDeal
+    completeActivityWithLog, addActivity, updateDeal,
+    deleteActivity
   } = useCRM();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -60,6 +61,10 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const openActivities = useMemo(() => {
     return filterRealActivities(activities)
       .filter(a => !a.completed && a.status !== 'canceled')
+      .filter(a => {
+        const deal = getDeal(a.dealId);
+        return !deal || deal.status === 'open';
+      })
       .filter(a => filterType === 'all' || a.type === filterType)
       .sort((a, b) => {
         const dueA = getDueDays(a.dueDate);
@@ -155,6 +160,16 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
 
     // 2. Mark deal as lost
     await updateDeal(a.dealId, { status: 'lost' });
+
+    // 2.5 Delete other pending activities for this deal
+    const otherPending = activities.filter(act => 
+      act.dealId === a.dealId && 
+      act.id !== a.id && 
+      !act.completed
+    );
+    for (const p of otherPending) {
+      await deleteActivity(p.id);
+    }
 
     // 3. Move flow
     moveToNext(true);
