@@ -35,7 +35,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const {
     deals, activities, contacts, pipelines,
     updateActivity, openFocusDeal, isPrivacyMode,
-    completeActivityWithLog, addActivity
+    completeActivityWithLog, addActivity, updateDeal
   } = useCRM();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -126,7 +126,11 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
       notes: execNotes ? (a.notes ? a.notes + '\n' + execNotes : execNotes) : a.notes
     });
     setExecNotes('');
-    setSelectedId(null);
+    if (openActivities.length > 1) {
+      setSelectedId(openActivities[1].id);
+    } else {
+      setSelectedId(null);
+    }
   };
   const handleSkip = () => {
     const idx = openActivities.findIndex(a => a.id === selectedId);
