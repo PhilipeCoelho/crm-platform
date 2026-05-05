@@ -112,10 +112,8 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
       dueDate: nextDueDate.toISOString()
     });
 
-    // 3. Reset and move flow
-    setExecNotes('');
-    setNextTaskType(null);
-    setSelectedId(null);
+    // 3. Move flow
+    moveToNext(true);
   };
 
   const handlePostpone = (a: Activity) => {
@@ -125,17 +123,23 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
       dueDate: d.toISOString(),
       notes: execNotes ? (a.notes ? a.notes + '\n' + execNotes : execNotes) : a.notes
     });
-    setExecNotes('');
-    if (openActivities.length > 1) {
-      setSelectedId(openActivities[1].id);
-    } else {
-      setSelectedId(null);
-    }
+    moveToNext();
   };
   const handleSkip = () => {
     const idx = openActivities.findIndex(a => a.id === selectedId);
     if (idx !== -1 && idx < openActivities.length - 1) {
       setSelectedId(openActivities[idx + 1].id);
+    }
+  };
+
+  const moveToNext = (exitFocusIfEmpty = false) => {
+    setExecNotes('');
+    setNextTaskType(null);
+    if (openActivities.length > 1) {
+      setSelectedId(openActivities[1].id);
+    } else {
+      setSelectedId(null);
+      if (exitFocusIfEmpty) setIsFocusMode(false);
     }
   };
 
@@ -152,10 +156,8 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
     // 2. Mark deal as lost
     await updateDeal(a.dealId, { status: 'lost' });
 
-    // 3. Reset and move flow
-    setExecNotes('');
-    setNextTaskType(null);
-    setSelectedId(null);
+    // 3. Move flow
+    moveToNext(true);
   };
 
   const renderQueueItem = (a: Activity, idx: number) => {
