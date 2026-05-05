@@ -197,32 +197,57 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
     );
   };
 
+  const overdueCount = useMemo(() => 
+    openActivities.filter(a => getDueDays(a.dueDate) < 0).length,
+  [openActivities]);
+
   return (
     <div className={`av2 ax-flow-enter ${isFocusMode ? 'av2--focus-mode' : ''}`}>
       <div className="av2-main">
         {/* FILTERS & HEADER */}
         {!isFocusMode && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {['all', 'call', 'email', 'message', 'meeting', 'task'].map(t => (
-                <button 
-                  key={t}
-                  onClick={() => setFilterType(t)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    border: '1px solid var(--vp-border)',
-                    background: filterType === t ? 'var(--ax-blue)' : 'var(--vp-surface)',
-                    color: filterType === t ? 'white' : 'var(--vp-text-muted)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {t === 'all' ? 'Tudo' : TYPE_CONFIG[t]?.label || t}
-                </button>
-              ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {['all', 'call', 'email', 'message', 'meeting', 'task'].map(t => (
+                  <button 
+                    key={t}
+                    onClick={() => setFilterType(t)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      border: '1px solid var(--vp-border)',
+                      background: filterType === t ? 'var(--ax-blue)' : 'var(--vp-surface)',
+                      color: filterType === t ? 'white' : 'var(--vp-text-muted)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {t === 'all' ? 'Tudo' : TYPE_CONFIG[t]?.label || t}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 16, borderLeft: '1px solid var(--vp-border)' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--vp-text-soft)' }}>
+                  {openActivities.length} tarefas
+                </span>
+                {overdueCount > 0 && (
+                  <span style={{ 
+                    fontSize: 11, 
+                    fontWeight: 800, 
+                    background: '#fee2e2', 
+                    color: '#ef4444', 
+                    padding: '2px 8px', 
+                    borderRadius: 4,
+                    textTransform: 'uppercase'
+                  }}>
+                    {overdueCount} atrasadas
+                  </span>
+                )}
+              </div>
             </div>
             <button 
               className="ax-btn ax-btn-primary" 
