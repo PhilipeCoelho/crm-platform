@@ -191,9 +191,18 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
             return matchesStatus && isActuallyActive;
         }).sort((a: Deal, b: Deal) => {
+            // 1. Status Priority (Open deals first, Lost/Desqualified last)
+            const statusOrder: Record<string, number> = { 'open': 0, 'won': 1, 'lost': 2, 'desqualificado': 3 };
+            const orderA = statusOrder[a.status] ?? 0;
+            const orderB = statusOrder[b.status] ?? 0;
+            if (orderA !== orderB) return orderA - orderB;
+
+            // 2. Manual Position
             const posA = a.position || 0;
             const posB = b.position || 0;
             if (posA !== posB) return posA - posB;
+
+            // 3. Recency
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
     }, [pipelineDeals, contacts, companies, activities, searchTerm, viewMode, statusFilter, normalizeText, normalizeDigits]);
