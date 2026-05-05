@@ -5,7 +5,7 @@ import { Activity, Deal } from '@/types/schema';
 import { Currency } from '@/data/currencies';
 import { filterRealActivities } from '@/utils/activityHelpers';
 import { Icons } from '@/components/activities-v2/Icons';
-import { differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO, startOfDay } from 'date-fns';
 import DetailPanelReal from '@/components/activities-v2/DetailPanelReal';
 import CompleteActivityModal from '@/components/activities/CompleteActivityModal';
 import NewActivityModal from '@/components/activities/NewActivityModal';
@@ -20,7 +20,7 @@ const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; 
 
 function getDueDays(dueDate?: string): number {
   if (!dueDate) return 999;
-  return differenceInDays(parseISO(dueDate), new Date());
+  return differenceInDays(startOfDay(parseISO(dueDate)), startOfDay(new Date()));
 }
 
 function fmtMoney(v: number, currency: Currency): string {
