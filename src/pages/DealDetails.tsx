@@ -238,7 +238,6 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                         size={14}
                                         className="text-muted-foreground opacity-0 group-hover/title:opacity-100 cursor-pointer hover:text-primary transition-opacity"
                                         onClick={() => startEditing('title')}
-                                        title="Editar nome"
                                     />
                                 </div>
                             )}
