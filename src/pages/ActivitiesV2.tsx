@@ -206,9 +206,6 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
     );
   };
 
-  const overdueCount = useMemo(() => 
-    openActivities.filter(a => getDueDays(a.dueDate) < 0).length,
-  [openActivities]);
 
   return (
     <div className={`av2 ax-flow-enter ${isFocusMode ? 'av2--focus-mode' : ''}`}>
