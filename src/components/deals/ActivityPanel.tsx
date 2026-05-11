@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { isBefore, isToday, startOfToday, parseISO } from 'date-fns';
 import { Deal, Activity } from '@/types/schema';
 import { CheckSquare, FileText, Mail, File } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
@@ -28,10 +29,24 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
     const [activityToEdit, setActivityToEdit] = useState<Activity | null>(null);
     const [activityToComplete, setActivityToComplete] = useState<Activity | null>(null);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [activityFilter, setActivityFilter] = useState<'all' | 'overdue' | 'today' | 'future'>('all');
+
+    // Filter by period logic
+    const today = startOfToday();
+    const isOverdue = (dateStr?: string) => dateStr && isBefore(parseISO(dateStr), today);
+    const isTodayActivity = (dateStr?: string) => dateStr && isToday(parseISO(dateStr));
+    const isFuture = (dateStr?: string) => !dateStr || (!isBefore(parseISO(dateStr), today) && !isToday(parseISO(dateStr)));
 
     // Sort: Open (Due date asc), Completed (Created/Completed date desc)
     const openActivities = dealActivities
         .filter(a => !a.completed)
+        .filter(a => {
+            if (activityFilter === 'all') return true;
+            if (activityFilter === 'overdue') return isOverdue(a.dueDate);
+            if (activityFilter === 'today') return isTodayActivity(a.dueDate);
+            if (activityFilter === 'future') return isFuture(a.dueDate);
+            return true;
+        })
         .sort((a, b) => new Date(a.dueDate || a.createdAt).getTime() - new Date(b.dueDate || b.createdAt).getTime());
 
     const historyActivities = dealActivities
@@ -139,20 +154,47 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                 <div className="space-y-4">
 
                     {/* Focus / Planned Section */}
-                    {openActivities.length > 0 && (
+                    {(dealActivities.filter(a => !a.completed).length > 0) && (
                         <section>
-                            <h3 className="text-[8px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                                Atividades Planejadas
-                            </h3>
-                            <div className="space-y-0 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-muted dark:before:bg-border">
-                                <ActivityList
-                                    activities={openActivities}
-                                    onToggle={handleActivityToggle}
-                                    onDelete={readOnly ? undefined : handleDeleteActivity}
-                                    onEdit={readOnly ? undefined : setActivityToEdit}
-                                />
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-[8px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-widest flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                    Atividades Planejadas
+                                </h3>
+                                
+                                {/* Filtros */}
+                                <div className="flex bg-muted/20 dark:bg-muted/10 p-0.5 rounded-lg border border-border/50">
+                                    <button 
+                                        onClick={() => setActivityFilter('all')} 
+                                        className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${activityFilter === 'all' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground/60 hover:text-foreground'}`}
+                                    >Todas</button>
+                                    <button 
+                                        onClick={() => setActivityFilter('overdue')} 
+                                        className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${activityFilter === 'overdue' ? 'bg-destructive/10 text-destructive shadow-sm' : 'text-muted-foreground/60 hover:text-destructive'}`}
+                                    >Atrasadas</button>
+                                    <button 
+                                        onClick={() => setActivityFilter('today')} 
+                                        className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${activityFilter === 'today' ? 'bg-primary/10 text-primary shadow-sm' : 'text-muted-foreground/60 hover:text-primary'}`}
+                                    >Hoje</button>
+                                    <button 
+                                        onClick={() => setActivityFilter('future')} 
+                                        className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${activityFilter === 'future' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground/60 hover:text-foreground'}`}
+                                    >Futuras</button>
+                                </div>
                             </div>
+
+                            {openActivities.length === 0 ? (
+                                <p className="text-xs text-muted-foreground italic pl-3 border-l-2 border-border/50">Nenhuma atividade neste filtro.</p>
+                            ) : (
+                                <div className="space-y-0 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-muted dark:before:bg-border">
+                                    <ActivityList
+                                        activities={openActivities}
+                                        onToggle={handleActivityToggle}
+                                        onDelete={readOnly ? undefined : handleDeleteActivity}
+                                        onEdit={readOnly ? undefined : setActivityToEdit}
+                                    />
+                                </div>
+                            )}
                         </section>
                     )}
 

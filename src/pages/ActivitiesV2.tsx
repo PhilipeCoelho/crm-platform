@@ -44,6 +44,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const [dealIdForNewActivity, setDealIdForNewActivity] = useState<string | null>(null);
   const [isBacklogExpanded, setIsBacklogExpanded] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
+  const [periodFilter, setPeriodFilter] = useState<'all' | 'overdue' | 'today' | 'future'>('all');
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [execNotes, setExecNotes] = useState('');
   const [nextTaskType, setNextTaskType] = useState<string | null>(null);
@@ -66,6 +67,14 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
         return !deal || deal.status === 'open';
       })
       .filter(a => filterType === 'all' || a.type === filterType)
+      .filter(a => {
+        if (periodFilter === 'all') return true;
+        const dueDays = getDueDays(a.dueDate);
+        if (periodFilter === 'overdue') return dueDays < 0;
+        if (periodFilter === 'today') return dueDays === 0;
+        if (periodFilter === 'future') return dueDays > 0 && dueDays !== 999;
+        return true;
+      })
       .sort((a, b) => {
         const dueA = getDueDays(a.dueDate);
         const dueB = getDueDays(b.dueDate);
@@ -74,7 +83,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
         const valB = getDeal(b.dealId)?.value || 0;
         return valB - valA;
       });
-  }, [activities, getDeal, filterType]);
+  }, [activities, getDeal, filterType, periodFilter]);
 
   const currentHero = openActivities[0];
   const queue = openActivities.slice(1, 10); // Show up to 10 in queue
@@ -209,44 +218,58 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ display: 'flex', gap: 8 }}>
-                {['all', 'call', 'email', 'message', 'meeting', 'task'].map(t => (
-                  <button 
-                    key={t}
-                    onClick={() => setFilterType(t)}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      border: '1px solid var(--vp-border)',
-                      background: filterType === t ? 'var(--ax-blue)' : 'var(--vp-surface)',
-                      color: filterType === t ? 'white' : 'var(--vp-text-muted)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {t === 'all' ? 'Tudo' : TYPE_CONFIG[t]?.label || t}
-                  </button>
-                ))}
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    border: '1px solid var(--vp-border)',
+                    background: 'var(--vp-surface)',
+                    color: filterType === 'all' ? 'var(--vp-text-muted)' : 'var(--ax-blue)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="all">Todas Atividades</option>
+                  <option value="call">Ligar</option>
+                  <option value="email">E-mail</option>
+                  <option value="message">Mensagem</option>
+                  <option value="meeting">Reunião</option>
+                  <option value="task">Tarefa</option>
+                </select>
+              </div>
+
+              {/* PERÍODO FILTROS */}
+              <div style={{ display: 'flex', gap: 8, paddingLeft: 16, borderLeft: '1px solid var(--vp-border)' }}>
+                <select
+                  value={periodFilter}
+                  onChange={(e) => setPeriodFilter(e.target.value as any)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    border: '1px solid var(--vp-border)',
+                    background: 'var(--vp-surface)',
+                    color: periodFilter === 'all' ? 'var(--vp-text-muted)' : 'var(--ax-blue)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="all">Qualquer Data</option>
+                  <option value="today">Hoje</option>
+                  <option value="overdue">Atrasadas</option>
+                  <option value="future">Futuras</option>
+                </select>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 16, borderLeft: '1px solid var(--vp-border)' }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--vp-text-soft)' }}>
                   {openActivities.length} tarefas
                 </span>
-                {overdueCount > 0 && (
-                  <span style={{ 
-                    fontSize: 11, 
-                    fontWeight: 800, 
-                    background: '#fee2e2', 
-                    color: '#ef4444', 
-                    padding: '2px 8px', 
-                    borderRadius: 4,
-                    textTransform: 'uppercase'
-                  }}>
-                    {overdueCount} atrasadas
-                  </span>
-                )}
               </div>
             </div>
             <button 
