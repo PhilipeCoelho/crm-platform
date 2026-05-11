@@ -219,14 +219,28 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                     style={{ fontSize: '15px' }}
                                 />
                             ) : (
-                                <h1
-                                    onClick={() => startEditing('title')}
-                                    data-editable="true"
-                                    className="text-base sm:text-lg font-semibold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-primary cursor-text transition-colors relative group"
-                                >
-                                    {deal.title}
-                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
-                                </h1>
+                                <div className="flex items-center gap-2 group/title">
+                                    <h1
+                                        data-editable="true"
+                                        className="text-base sm:text-lg font-semibold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-primary transition-colors relative group"
+                                    >
+                                        <a
+                                            href={`https://www.google.com/search?q=${encodeURIComponent(deal.title.replace(/^Negócio /i, '').trim())}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title="Pesquisar no Google"
+                                        >
+                                            {deal.title}
+                                        </a>
+                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
+                                    </h1>
+                                    <Pencil
+                                        size={14}
+                                        className="text-muted-foreground opacity-0 group-hover/title:opacity-100 cursor-pointer hover:text-primary transition-opacity"
+                                        onClick={() => startEditing('title')}
+                                        title="Editar nome"
+                                    />
+                                </div>
                             )}
                             <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase border shadow-sm ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
                                 deal.status === 'lost' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :

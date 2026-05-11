@@ -48,6 +48,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [execNotes, setExecNotes] = useState('');
   const [nextTaskType, setNextTaskType] = useState<string | null>(null);
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
 
   // --- Lookups ---
   const getDeal = useCallback((id?: string) => deals.find(d => d.id === id), [deals]);
@@ -62,6 +63,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const openActivities = useMemo(() => {
     return filterRealActivities(activities)
       .filter(a => !a.completed && a.status !== 'canceled')
+      .filter(a => !skippedIds.has(a.id))
       .filter(a => {
         const deal = getDeal(a.dealId);
         return !deal || deal.status === 'open';
@@ -83,7 +85,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
         const valB = getDeal(b.dealId)?.value || 0;
         return valB - valA;
       });
-  }, [activities, getDeal, filterType, periodFilter]);
+  }, [activities, getDeal, filterType, periodFilter, skippedIds]);
 
   const currentHero = openActivities[0];
   const queue = openActivities.slice(1, 10); // Show up to 10 in queue
@@ -140,6 +142,13 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
     moveToNext();
   };
   const handleSkip = () => {
+    if (isFocusMode && currentHero) {
+      setSkippedIds(prev => new Set(prev).add(currentHero.id));
+      setExecNotes('');
+      setNextTaskType(null);
+      return;
+    }
+
     const idx = openActivities.findIndex(a => a.id === selectedId);
     if (idx !== -1 && idx < openActivities.length - 1) {
       setSelectedId(openActivities[idx + 1].id);
