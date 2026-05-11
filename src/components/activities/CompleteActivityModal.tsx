@@ -138,7 +138,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
             <div className="bg-card w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden border border-border animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">

@@ -149,13 +149,14 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
                                             })()}
                                         </h4>
 
-                                        {/* Display linked observation below the activity title */}
+                                        {/* Display notes and/or linked observation below the activity title */}
                                         {(() => {
                                             const observation = logs.find(l => l.activityId === activity?.id);
-                                            if (!observation) return null;
+                                            const textToShow = observation?.content || activity?.notes;
+                                            if (!textToShow) return null;
                                             return (
                                                 <div className="mt-1 text-xs text-foreground/80 bg-muted/20 p-2 rounded-md border border-border/30 whitespace-pre-wrap">
-                                                    {observation.content}
+                                                    {textToShow}
                                                 </div>
                                             );
                                         })()}
