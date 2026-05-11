@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Search, Filter, Plus, MoreHorizontal, Mail, Phone, Edit, Trash2, Columns, ArrowUpDown, Users, MessageCircle } from 'lucide-react';
 import NewContactModal from './NewContactModal';
-import { useNavigate } from 'react-router-dom';
 import { Contact } from '@/types/schema';
 import { PrivacyText } from '../ui/PrivacyMask';
 
@@ -27,7 +26,6 @@ export default function PeopleView() {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [selectedView, setSelectedView] = useState('Ativos');
     const [showViewSelector, setShowViewSelector] = useState(false);
-    const navigate = useNavigate();
 
     const [columns, setColumns] = useState<Column[]>([
         { id: 'name', label: 'Nome', visible: true, sortable: true },

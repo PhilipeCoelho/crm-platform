@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Search, Filter, Plus, MoreHorizontal, Edit, Trash2, Building2, ArrowUpDown, Columns, ChevronRight, Sparkles, ChevronDown, MapPin, Calendar } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { PrivacyText } from '../ui/PrivacyMask';
 
 type ColumnId = 'name' | 'address' | 'people' | 'closedDeals' | 'openDeals' | 'nextActivity' | 'owner';
@@ -26,7 +25,6 @@ export default function OrganizationsView() {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [selectedView, setSelectedView] = useState('Ativos');
     const [selectedOwner, setSelectedOwner] = useState('Philippe');
-    const navigate = useNavigate();
 
     const [columns, setColumns] = useState<Column[]>([
         { id: 'name', label: 'Nome', visible: true, sortable: true },

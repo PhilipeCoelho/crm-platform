@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ArrowLeft, Building, Globe, FileText, Trash2, Tag, Briefcase, Calendar, Phone, Mail, ExternalLink, MessageSquare, Plus, Users } from 'lucide-react';
+import { ArrowLeft, Building, Globe, FileText, Trash2, Tag, Calendar, Phone, Mail, ExternalLink, MessageSquare, Plus, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ActivityList from '@/components/activities/ActivityList';

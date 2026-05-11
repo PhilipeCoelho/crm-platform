@@ -1,6 +1,6 @@
 // Imports
 import { useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
 import { ArrowLeft, User, Building, Mail, Phone, Briefcase, Calendar, Pencil, Tag, ExternalLink, Trash2, Plus, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
