@@ -16,7 +16,7 @@ interface Column {
 }
 
 export default function PeopleView() {
-    const { contacts, companies, activities, deals, deleteContact } = useCRM();
+    const { contacts, companies, activities, deals, deleteContact, openFocusContact } = useCRM();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
@@ -25,6 +25,8 @@ export default function PeopleView() {
     const [showColumnPicker, setShowColumnPicker] = useState(false);
     const [sortColumn, setSortColumn] = useState<ColumnId | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const [selectedView, setSelectedView] = useState('Ativos');
+    const [showViewSelector, setShowViewSelector] = useState(false);
     const navigate = useNavigate();
 
     const [columns, setColumns] = useState<Column[]>([
@@ -32,17 +34,17 @@ export default function PeopleView() {
         { id: 'organization', label: 'Organização', visible: true, sortable: true },
         { id: 'email', label: 'E-mail', visible: true, sortable: true },
         { id: 'phone', label: 'Telefone', visible: true, sortable: false },
-        { id: 'marketingStatus', label: 'Marketing', visible: true, sortable: true },
+        { id: 'marketingStatus', label: 'Marketing', visible: false, sortable: true },
         { id: 'openDeals', label: 'Negócios em Aberto', visible: true, sortable: true },
         { id: 'closedDeals', label: 'Negócios Fechados', visible: true, sortable: true },
         { id: 'nextActivity', label: 'Próxima Atividade', visible: true, sortable: true },
     ]);
 
-    // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = () => {
             setOpenMenuId(null);
             setShowColumnPicker(false);
+            setShowViewSelector(false);
         };
         window.addEventListener('click', handleClickOutside);
         return () => window.removeEventListener('click', handleClickOutside);
@@ -93,12 +95,27 @@ export default function PeopleView() {
             const companyName = company?.name || '';
             const searchLower = searchTerm.toLowerCase();
 
-            return (
+            const matchesSearch = (
                 contact.name.toLowerCase().includes(searchLower) ||
                 contact.email.toLowerCase().includes(searchLower) ||
                 companyName.toLowerCase().includes(searchLower) ||
                 (contact.phone && contact.phone.toLowerCase().includes(searchLower))
             );
+
+            if (!matchesSearch) return false;
+
+            // Deal-based status filtering
+            const contactDeals = deals.filter(d => d.contactId === contact.id);
+            const isLost = contactDeals.length > 0 && contactDeals.every(d => d.status === 'lost');
+            const isDisqualified = contactDeals.length > 0 && contactDeals.every(d => d.status === 'desqualificado');
+            const isWon = contactDeals.length > 0 && contactDeals.every(d => d.status === 'won');
+
+            if (selectedView === 'Perdidos') return isLost;
+            if (selectedView === 'Desqualificados') return isDisqualified;
+            if (selectedView === 'Ganhos') return isWon;
+            if (selectedView === 'Ativos') return !isLost && !isDisqualified && !isWon;
+            
+            return true;
         });
 
         // Apply sorting
@@ -149,7 +166,7 @@ export default function PeopleView() {
         }
 
         return result;
-    }, [contacts, companies, searchTerm, sortColumn, sortDirection, deals, activities]);
+    }, [contacts, companies, searchTerm, sortColumn, sortDirection, deals, activities, selectedView]);
 
     const handleEditClick = (contact: Contact, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -183,6 +200,44 @@ export default function PeopleView() {
 
     const visibleColumns = columns.filter(col => col.visible);
 
+    const handleExportSelected = () => {
+        const selectedList = contacts.filter(c => selectedContacts.has(c.id));
+        const headers = ['Nome', 'Organização', 'E-mail', 'Telefone', 'Status de Marketing'];
+        
+        // Use semicolon (;) for better Excel compatibility in PT/BR/EU locales
+        const csvContent = [
+            headers.join(';'),
+            ...selectedList.map(c => [
+                `"${c.name}"`,
+                `"${getCompanyName(c.companyId || (c as any).company_id)}"`,
+                `"${c.email}"`,
+                `"${c.phone || ''}"`,
+                `"${c.marketingStatus || ''}"`
+            ].join(';'))
+        ].join('\n');
+
+        // Add UTF-8 BOM (\uFEFF) so Excel recognizes accents correctly
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `export_contatos_${new Date().getTime()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleDeleteSelected = async () => {
+        if (window.confirm(`Tem certeza que deseja excluir ${selectedContacts.size} ${selectedContacts.size === 1 ? 'pessoa' : 'pessoas'}?`)) {
+            for (const id of Array.from(selectedContacts)) {
+                await deleteContact(id);
+            }
+            setSelectedContacts(new Set());
+        }
+    };
+
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
@@ -215,10 +270,38 @@ export default function PeopleView() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button className="flex items-center gap-2 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                        <Filter size={16} />
-                        Filtros
-                    </button>
+                    
+                    {/* View Selector */}
+                    <div className="relative">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowViewSelector(!showViewSelector);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+                        >
+                            <Filter size={16} />
+                            <span>{selectedView}</span>
+                        </button>
+                        {showViewSelector && (
+                            <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                                {['Ativos', 'Ganhos', 'Perdidos', 'Desqualificados'].map((view) => (
+                                    <button
+                                        key={view}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedView(view);
+                                            setShowViewSelector(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${selectedView === view ? 'bg-muted font-medium' : ''}`}
+                                    >
+                                        {view}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <div className="relative">
                         <button
                             onClick={(e) => {
@@ -266,10 +349,16 @@ export default function PeopleView() {
                             {selectedContacts.size} {selectedContacts.size === 1 ? 'pessoa selecionada' : 'pessoas selecionadas'}
                         </span>
                         <div className="flex gap-2">
-                            <button className="px-3 py-1.5 text-sm font-medium text-foreground hover:bg-primary/20 rounded-md transition-colors">
+                            <button 
+                                onClick={handleExportSelected}
+                                className="px-3 py-1.5 text-sm font-medium text-foreground hover:bg-primary/20 rounded-md transition-colors"
+                            >
                                 Exportar
                             </button>
-                            <button className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
+                            <button 
+                                onClick={handleDeleteSelected}
+                                className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                            >
                                 Deletar
                             </button>
                         </div>
@@ -330,7 +419,7 @@ export default function PeopleView() {
                                     <tr
                                         key={contact.id}
                                         className="hover:bg-muted/30 transition-colors group cursor-pointer"
-                                        onClick={() => navigate(`/contacts/${contact.id}`)}
+                                        onClick={() => openFocusContact(contact.id)}
                                     >
                                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                             <input
@@ -403,14 +492,14 @@ export default function PeopleView() {
                                                 case 'marketingStatus':
                                                     return (
                                                         <td key={col.id} className="px-4 py-3">
-                                                            <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full ${contact.marketingStatus === 'subscribed'
-                                                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${contact.marketingStatus === 'subscribed'
+                                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                                                                 : contact.marketingStatus === 'unsubscribed'
-                                                                    ? 'bg-red-100 text-red-700 border border-red-200'
-                                                                    : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                                                    ? 'bg-slate-50 text-slate-500 border border-slate-200'
+                                                                    : 'bg-slate-50 text-slate-400 border border-slate-100'
                                                                 }`}>
                                                                 {contact.marketingStatus === 'subscribed' ? 'Inscrito' :
-                                                                    contact.marketingStatus === 'unsubscribed' ? 'Cancelado' : 'Não Inscrito'}
+                                                                    contact.marketingStatus === 'unsubscribed' ? 'Não Inscrito' : 'Não Inscrito'}
                                                             </span>
                                                         </td>
                                                     );

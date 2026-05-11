@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Deal } from "@/types/schema";
-import { User, Trash2, ChevronRight, AlertTriangle, Clock, Building2, DollarSign, ArrowRightLeft, XCircle } from "lucide-react";
+import { User, Trash2, ChevronRight, AlertTriangle, Clock, Building2, DollarSign, ArrowRightLeft, XCircle, CheckCircle2 } from "lucide-react";
 
 import { Currency } from "@/data/currencies";
 import { useCRM } from "@/contexts/CRMContext";
@@ -179,9 +179,16 @@ export const DealCardBase = React.memo(function DealCardBase({ deal, currency, o
         >
             {/* Status Indicator for Lost deals */}
             {deal.status === 'lost' && (
-                <div className="absolute top-2 right-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-black uppercase tracking-wider border border-red-200 dark:border-red-800 animate-in fade-in zoom-in duration-300">
+                <div className="absolute top-2 right-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-black uppercase tracking-wider border border-red-200 dark:border-red-800 animate-in fade-in zoom-in duration-300 shadow-sm">
                     <XCircle size={10} strokeWidth={3} />
                     PERDIDO
+                </div>
+            )}
+            {/* Status Indicator for Won deals */}
+            {deal.status === 'won' && (
+                <div className="absolute top-2 right-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[9px] font-black uppercase tracking-wider border border-green-200 dark:border-green-800 animate-in fade-in zoom-in duration-300 shadow-sm">
+                    <CheckCircle2 size={10} strokeWidth={3} />
+                    GANHO
                 </div>
             )}
             {/* Status Icon - Bottom Right Corner */}

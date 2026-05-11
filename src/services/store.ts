@@ -73,10 +73,18 @@ export interface CRMStore {
     deleteStage: (stageId: string) => Promise<void>;
     reorderStages: (pipelineId: string, newOrder: string[]) => Promise<void>;
 
-    // Focus Mode (Deal Detail)
+    // Focus Mode (Deal/Contact/Company Detail)
     activeFocusDealId: string | null;
     openFocusDeal: (id: string) => void;
     closeFocusDeal: () => void;
+
+    activeFocusContactId: string | null;
+    openFocusContact: (id: string) => void;
+    closeFocusContact: () => void;
+
+    activeFocusCompanyId: string | null;
+    openFocusCompany: (id: string) => void;
+    closeFocusCompany: () => void;
 
     // Privacy Mode (Global)
     isPrivacyMode: boolean;
@@ -182,6 +190,14 @@ export function useCRMStore(): CRMStore {
     const openFocusDeal = (id: string) => setActiveFocusDealId(id);
     const closeFocusDeal = () => setActiveFocusDealId(null);
 
+    const [activeFocusContactId, setActiveFocusContactId] = useState<string | null>(null);
+    const openFocusContact = (id: string) => setActiveFocusContactId(id);
+    const closeFocusContact = () => setActiveFocusContactId(null);
+
+    const [activeFocusCompanyId, setActiveFocusCompanyId] = useState<string | null>(null);
+    const openFocusCompany = (id: string) => setActiveFocusCompanyId(id);
+    const closeFocusCompany = () => setActiveFocusCompanyId(null);
+
     const openNewDealModal = (stageId?: string, editDeal?: Deal) => {
         setNewDealStageId(stageId || null);
         setDealToEdit(editDeal || null);
@@ -275,7 +291,7 @@ export function useCRMStore(): CRMStore {
                     ...c,
                     userId: c.user_id,
                     companyId: c.company_id,
-                    marketingStatus: c.marketing_status || 'unsubscribed',
+                    marketingStatus: c.marketing_status || 'subscribed',
                     createdAt: c.created_at
                 })));
             }
@@ -1852,6 +1868,12 @@ export function useCRMStore(): CRMStore {
         activeFocusDealId,
         openFocusDeal,
         closeFocusDeal,
+        activeFocusContactId,
+        openFocusContact,
+        closeFocusContact,
+        activeFocusCompanyId,
+        openFocusCompany,
+        closeFocusCompany,
         isPrivacyMode,
         togglePrivacyMode,
         addCampaign,

@@ -19,7 +19,7 @@ export default function NewContactModal({ isOpen, onClose, contactToEdit }: Prop
     const [phone, setPhone] = useState('');
     const [role, setRole] = useState('');
     const [status, setStatus] = useState<'active' | 'lead' | 'inactive'>('lead');
-    const [marketingStatus, setMarketingStatus] = useState<'subscribed' | 'unsubscribed' | 'cleaned' | 'archived'>('unsubscribed');
+    const [marketingStatus, setMarketingStatus] = useState<'subscribed' | 'unsubscribed' | 'cleaned' | 'archived'>('subscribed');
 
     // Company selection/creation state
     const [companyId, setCompanyId] = useState('');
@@ -44,7 +44,7 @@ export default function NewContactModal({ isOpen, onClose, contactToEdit }: Prop
                 setPhone('');
                 setRole('');
                 setStatus('lead');
-                setMarketingStatus('unsubscribed');
+                setMarketingStatus('subscribed');
                 setCompanyId('');
                 setNewCompanyName('');
                 setIsCreatingCompany(false);
@@ -163,23 +163,6 @@ export default function NewContactModal({ isOpen, onClose, contactToEdit }: Prop
                             <option value="lead">Lead</option>
                             <option value="active">Ativo</option>
                             <option value="inactive">Inativo</option>
-                        </select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium flex items-center gap-2">
-                            <Mail size={16} className="text-muted-foreground" />
-                            Marketing
-                        </label>
-                        <select
-                            className="w-full px-3 py-2 border border-input rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-ring"
-                            value={marketingStatus}
-                            onChange={(e) => setMarketingStatus(e.target.value as any)}
-                        >
-                            <option value="unsubscribed">Não Inscrito</option>
-                            <option value="subscribed">Inscrito</option>
-                            <option value="cleaned">Limpo (Bounce)</option>
-                            <option value="archived">Arquivado</option>
                         </select>
                     </div>
                 </div>

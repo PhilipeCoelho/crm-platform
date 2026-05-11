@@ -42,7 +42,13 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     const { user, signOut: handleLogout } = useSupabaseAuth();
     const location = useLocation();
     const { setTheme, theme } = useTheme();
-    const { isPipelineSettingsOpen, setPipelineSettingsOpen, activeFocusDealId, closeFocusDeal, togglePrivacyMode, isPrivacyMode } = useCRM();
+    const { 
+        isPipelineSettingsOpen, setPipelineSettingsOpen, 
+        activeFocusDealId, closeFocusDeal, 
+        activeFocusContactId, closeFocusContact,
+        activeFocusCompanyId, closeFocusCompany,
+        togglePrivacyMode, isPrivacyMode 
+    } = useCRM();
     const isMobile = useIsMobile();
 
     const [dashboardType, setDashboardType] = useState<'sales' | 'marketing'>('sales');
@@ -89,6 +95,12 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
             }
             if (e.key === 'Escape' && activeFocusDealId) {
                 closeFocusDeal();
+            }
+            if (e.key === 'Escape' && activeFocusContactId) {
+                closeFocusContact();
+            }
+            if (e.key === 'Escape' && activeFocusCompanyId) {
+                closeFocusCompany();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -420,6 +432,44 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                     onClose={() => closeFocusDeal()}
                                     isModal={true}
                                     currency={currency}
+                                />
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Focus Mode Overlay for Contacts */}
+                {
+                    activeFocusContactId && (
+                        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+                            <div
+                                className="absolute inset-0 bg-black/40 animate-in fade-in duration-200"
+                                onClick={() => closeFocusContact()}
+                            />
+                            <div className="relative w-full h-full sm:h-[95vh] sm:max-w-5xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                                <ContactDetails
+                                    contactId={activeFocusContactId}
+                                    onClose={() => closeFocusContact()}
+                                    isModal={true}
+                                />
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Focus Mode Overlay for Companies */}
+                {
+                    activeFocusCompanyId && (
+                        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+                            <div
+                                className="absolute inset-0 bg-black/40 animate-in fade-in duration-200"
+                                onClick={() => closeFocusCompany()}
+                            />
+                            <div className="relative w-full h-full sm:h-[95vh] sm:max-w-5xl shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                                <CompanyDetails
+                                    companyId={activeFocusCompanyId}
+                                    onClose={() => closeFocusCompany()}
+                                    isModal={true}
                                 />
                             </div>
                         </div>

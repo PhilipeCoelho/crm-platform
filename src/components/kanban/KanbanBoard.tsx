@@ -87,7 +87,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     // Strict Types for Local State
     type ViewMode = 'all' | 'today' | 'overdue' | 'no-action' | 'high-value';
-    type StatusFilter = 'open' | 'won' | 'lost' | 'desqualificado' | 'all';
+    type StatusFilter = 'open' | 'won' | 'lost' | 'all';
 
     // Safe LocalStorage Parsers
     const getSavedViewMode = (): ViewMode => {
@@ -98,7 +98,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     const getSavedStatusFilter = (): StatusFilter => {
         const saved = localStorage.getItem('kanban_status_filter');
-        const validStatuses: StatusFilter[] = ['open', 'won', 'lost', 'desqualificado', 'all'];
+        const validStatuses: StatusFilter[] = ['open', 'won', 'lost', 'all'];
         return validStatuses.includes(saved as StatusFilter) ? (saved as StatusFilter) : 'open';
     };
 
@@ -166,6 +166,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                 (searchDigits.length >= 7 && contactPhoneDigits.includes(searchDigits));
 
             if (!matchesSearch) return false;
+            if (searchTerm) return true; // Bypass all filters when searching
 
             // Priority / View Mode Logic
             let matchesView = true;
@@ -184,15 +185,15 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             if (!matchesView) return false;
 
             const matchesStatus = statusFilter === 'all'
-                ? deal.status !== 'desqualificado'
+                ? true // Since desqualificado is gone, 'all' means all statuses
                 : deal.status === statusFilter;
 
             const isActuallyActive = statusFilter === 'open' ? deal.status === 'open' : true;
 
             return matchesStatus && isActuallyActive;
         }).sort((a: Deal, b: Deal) => {
-            // 1. Status Priority (Open deals first, Lost/Desqualified last)
-            const statusOrder: Record<string, number> = { 'open': 0, 'won': 1, 'lost': 2, 'desqualificado': 3 };
+            // 1. Status Priority (Open deals first, Lost last)
+            const statusOrder: Record<string, number> = { 'open': 0, 'won': 1, 'lost': 2 };
             const orderA = statusOrder[a.status] ?? 0;
             const orderB = statusOrder[b.status] ?? 0;
             if (orderA !== orderB) return orderA - orderB;
@@ -283,7 +284,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                     { id: 'open', label: 'Abertos', icon: '🟢' },
                                     { id: 'won', label: 'Ganhos', icon: '🏆' },
                                     { id: 'lost', label: 'Perdidos', icon: '❌' },
-                                    { id: 'desqualificado', label: 'Desqualificados', icon: '🚫' },
                                     { id: 'all', label: 'Todos', icon: '📑' }
                                 ].map((s) => (
                                     <button
@@ -447,7 +447,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                             { id: 'open', label: 'Abertos', icon: '🟢' },
                                             { id: 'won', label: 'Ganhos', icon: '🏆' },
                                             { id: 'lost', label: 'Perdidos', icon: '❌' },
-                                            { id: 'desqualificado', label: 'Desqualificados', icon: '🚫' },
                                             { id: 'all', label: 'Todos', icon: '📑' }
                                         ].map((s) => (
                                             <button

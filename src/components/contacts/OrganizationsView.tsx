@@ -14,7 +14,7 @@ interface Column {
 }
 
 export default function OrganizationsView() {
-    const { companies, contacts, deals, activities } = useCRM();
+    const { companies, contacts, deals, activities, openFocusCompany } = useCRM();
     const [searchTerm, setSearchTerm] = useState('');
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [selectedOrgs, setSelectedOrgs] = useState<Set<string>>(new Set());
@@ -24,7 +24,7 @@ export default function OrganizationsView() {
     const [showMoreActions, setShowMoreActions] = useState(false);
     const [sortColumn, setSortColumn] = useState<ColumnId | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-    const [selectedView, setSelectedView] = useState('Todos os nomes');
+    const [selectedView, setSelectedView] = useState('Ativos');
     const [selectedOwner, setSelectedOwner] = useState('Philippe');
     const navigate = useNavigate();
 
@@ -93,7 +93,25 @@ export default function OrganizationsView() {
     const filteredAndSortedCompanies = useMemo(() => {
         let result = companies.filter(company => {
             const searchLower = searchTerm.toLowerCase();
-            return company.name.toLowerCase().includes(searchLower);
+            const matchesSearch = company.name.toLowerCase().includes(searchLower);
+            if (!matchesSearch) return false;
+
+            // Deal-based status filtering for organizations
+            const companyDeals = deals.filter(d => d.companyId === company.id);
+            const isLost = companyDeals.length > 0 && companyDeals.every(d => d.status === 'lost');
+            const isDisqualified = companyDeals.length > 0 && companyDeals.every(d => d.status === 'desqualificado');
+            const isWon = companyDeals.length > 0 && companyDeals.every(d => d.status === 'won');
+
+            if (selectedView === 'Perdidos') return isLost;
+            if (selectedView === 'Desqualificados') return isDisqualified;
+            if (selectedView === 'Ganhos') return isWon;
+            
+            // Default view should exclude lost, disqualified and won
+            if (selectedView === 'Ativos') {
+                return !isLost && !isDisqualified && !isWon;
+            }
+
+            return true;
         });
 
         if (sortColumn) {
@@ -143,7 +161,7 @@ export default function OrganizationsView() {
         }
 
         return result;
-    }, [companies, searchTerm, sortColumn, sortDirection, contacts, deals, activities]);
+    }, [companies, searchTerm, sortColumn, sortDirection, contacts, deals, activities, selectedView]);
 
     const toggleSelectAll = () => {
         if (selectedOrgs.size === filteredAndSortedCompanies.length) {
@@ -211,7 +229,7 @@ export default function OrganizationsView() {
                             </button>
                             {showViewSelector && (
                                 <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
-                                    {['Todos os nomes', 'Ativos', 'Inativos', 'Favoritos'].map((view) => (
+                                    {['Ativos', 'Ganhos', 'Perdidos', 'Desqualificados', 'Favoritos'].map((view) => (
                                         <button
                                             key={view}
                                             onClick={(e) => {
@@ -421,7 +439,7 @@ export default function OrganizationsView() {
                                     <tr
                                         key={company.id}
                                         className="hover:bg-muted/30 transition-colors group cursor-pointer"
-                                        onClick={() => navigate(`/companies/${company.id}`)}
+                                        onClick={() => openFocusCompany(company.id)}
                                     >
                                         <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
                                             <input

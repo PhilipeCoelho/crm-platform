@@ -9,30 +9,52 @@ import NewContactModal from '@/components/contacts/NewContactModal';
 import ActivityList from '@/components/activities/ActivityList';
 import NewActivityModal from '@/components/activities/NewActivityModal';
 
-export default function ContactDetails() {
-    const { id } = useParams();
+interface Props {
+    contactId?: string;
+    onClose?: () => void;
+    isModal?: boolean;
+}
+
+export default function ContactDetails({ contactId, onClose, isModal }: Props) {
+    const { id: paramsId } = useParams();
+    const id = contactId || paramsId;
     const navigate = useNavigate();
-    const { contacts, companies, deals, activities, deleteContact, deleteDeal, updateActivity, deleteActivity } = useCRM();
+    const { contacts, companies, deals, activities, deleteContact, deleteDeal, updateActivity, deleteActivity, openFocusDeal, openFocusCompany, addActivity } = useCRM();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+    const [noteText, setNoteText] = useState('');
 
     const contact = contacts.find(c => c.id === id);
     if (!contact) return <div className="p-8 text-center text-muted-foreground">Contato não encontrado</div>;
 
     const company = companies.find(c => c.id === contact.companyId);
 
+    const handleBack = () => {
+        if (onClose) {
+            onClose();
+        } else {
+            navigate(-1);
+        }
+    };
+
     // Filter Related Data
     const contactDeals = deals.filter(d => d.contactId === id);
-    // Filter activities: Linked directly to Contact OR to any of the Contact's Deals
+    const activeDeals = contactDeals.filter(d => !['lost', 'desqualificado'].includes(d.status));
+    
+    // Filter activities: Linked directly to Contact OR to any of the Contact's ACTIVE Deals
     const contactActivities = activities
-        .filter(a => a.contactId === id || (a.dealId && contactDeals.some(d => d.id === a.dealId)))
+        .filter(a => a.contactId === id || (a.dealId && activeDeals.some(d => d.id === a.dealId)))
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Newest first
 
     const handleDeleteContact = () => {
         if (window.confirm("Tem certeza que deseja excluir este contato? Esta ação apagará também todos os negócios e atividades vinculadas e não pode ser desfeita.")) {
             if (id) {
                 deleteContact(id);
-                navigate('/contacts');
+                if (onClose) {
+                    onClose();
+                } else {
+                    navigate('/contacts');
+                }
             }
         }
     };
@@ -43,12 +65,33 @@ export default function ContactDetails() {
         }
     };
 
+    const handleAddNote = async () => {
+        if (!noteText.trim() || activeDeals.length === 0) return;
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            await addActivity({
+                title: 'Nota Rápida',
+                type: 'note',
+                contactId: id,
+                dealId: activeDeals[0].id,
+                notes: noteText,
+                completed: true,
+                status: 'completed',
+                dueDate: `${today}T12:00:00.000Z`,
+                duration: 0
+            } as any);
+            setNoteText('');
+        } catch (error) {
+            console.error('Erro ao adicionar nota:', error);
+        }
+    };
+
     return (
         <div className="h-full flex flex-col overflow-hidden bg-background">
             {/* Header */}
             <div className="bg-card border-b border-border p-6 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate(-1)} className="p-2 hover:bg-muted rounded-full transition-colors">
+                    <button onClick={handleBack} className="p-2 hover:bg-muted rounded-full transition-colors">
                         <ArrowLeft size={20} className="text-muted-foreground" />
                     </button>
                     <div>
@@ -57,16 +100,17 @@ export default function ContactDetails() {
                                 <User size={24} className="text-primary" />
                                 {contact.name}
                             </h1>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border
-                                ${contact.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' :
-                                    contact.status === 'lead' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                                        'bg-gray-100 text-gray-700 border-gray-200'}`}>
-                                {contact.status === 'active' ? 'Ativo' : contact.status === 'lead' ? 'Lead' : 'Inativo'}
-                            </span>
                         </div>
                         <p className="text-muted-foreground text-sm flex items-center gap-4 mt-1">
                             {contact.role && <span className="flex items-center gap-1"><Briefcase size={12} /> {contact.role}</span>}
-                            {company && <span className="flex items-center gap-1 text-primary hover:underline cursor-pointer" onClick={() => navigate(`/companies/${company.id}`)}><Building size={12} /> {company.name}</span>}
+                            {company && (
+                                <span 
+                                    className="flex items-center gap-1 text-primary hover:underline cursor-pointer" 
+                                    onClick={() => isModal ? openFocusCompany(company.id) : navigate(`/companies/${company.id}`)}
+                                >
+                                    <Building size={12} /> {company.name}
+                                </span>
+                            )}
                         </p>
                     </div>
                 </div>
@@ -136,9 +180,12 @@ export default function ContactDetails() {
                                         <div className="flex items-center gap-2 text-foreground text-sm">
                                             <Building size={14} className="text-muted-foreground" />
                                             {company ? (
-                                                <Link to={`/companies/${company.id}`} className="hover:underline hover:text-primary transition-colors">
+                                                <button 
+                                                    onClick={() => isModal ? openFocusCompany(company.id) : navigate(`/companies/${company.id}`)}
+                                                    className="hover:underline hover:text-primary transition-colors text-left"
+                                                >
                                                     {company.name}
-                                                </Link>
+                                                </button>
                                             ) : <span className="text-muted-foreground italic">Sem empresa vinculada</span>}
                                         </div>
                                     </div>
@@ -175,7 +222,10 @@ export default function ContactDetails() {
                                 <div className="space-y-3">
                                     {contactDeals.length > 0 ? contactDeals.map(deal => (
                                         <div key={deal.id} className="block group relative">
-                                            <Link to={`/deals/${deal.id}`} className="block">
+                                            <button 
+                                                onClick={() => isModal ? openFocusDeal(deal.id) : navigate(`/deals/${deal.id}`)}
+                                                className="block w-full text-left"
+                                            >
                                                 <div className="p-4 bg-muted/30 group-hover:bg-muted rounded-lg border border-transparent group-hover:border-border transition-all flex justify-between items-center">
                                                     <div>
                                                         <div className="flex items-center gap-2">
@@ -197,7 +247,7 @@ export default function ContactDetails() {
                                                         <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
                                                     </div>
                                                 </div>
-                                            </Link>
+                                            </button>
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
@@ -232,6 +282,28 @@ export default function ContactDetails() {
                                         <Plus size={14} />
                                         Nova Atividade
                                     </button>
+                                </div>
+
+                                {/* Quick Note Box */}
+                                <div className="mb-6">
+                                    <div className="relative group">
+                                        <textarea
+                                            className="w-full text-sm bg-muted/10 border border-border rounded-xl p-4 pr-32 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary resize-none transition-all placeholder:text-muted-foreground/50 min-h-[80px]"
+                                            placeholder={activeDeals.length > 0 ? "Escreva uma anotação sobre este contato..." : "Crie um negócio primeiro para adicionar anotações."}
+                                            value={noteText}
+                                            onChange={(e) => setNoteText(e.target.value)}
+                                            disabled={activeDeals.length === 0}
+                                        />
+                                        <div className="absolute bottom-3 right-3">
+                                            <button
+                                                onClick={handleAddNote}
+                                                disabled={!noteText.trim() || activeDeals.length === 0}
+                                                className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground px-4 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-0"
+                                            >
+                                                Salvar Nota
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="relative pl-4 border-l-2 border-border/50 space-y-8">
