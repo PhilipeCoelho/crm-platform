@@ -293,40 +293,27 @@
   }
 }
 
-/* --- STEP 6: SIDEBAR FUNCIONAL --- */
+/* --- STEP 6: SIDEBAR OVERLAY/DRAWER (ALWAYS OVERLAYS) --- */
 .ax-sidebar {
-  width: 360px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  box-shadow: -10px 0 30px rgba(15, 23, 42, 0.08);
+  width: 400px;
+  max-width: 90vw;
   background: var(--vp-surface);
   border-left: 1px solid var(--vp-border);
   display: flex;
   flex-direction: column;
   height: 100%;
-  flex-shrink: 0;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (max-width: 1280px) {
-  .ax-sidebar {
-    width: 320px;
-  }
-}
-
-@media (max-width: 1100px) {
-  .ax-sidebar {
-    position: fixed;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 100;
-    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
-    width: 360px;
-    max-width: 90vw;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .ax-sidebar--open {
-    transform: translateX(0);
-  }
+.ax-sidebar--open {
+  transform: translateX(0);
 }
 
 .ax-sidebar-suggestion {
@@ -370,21 +357,14 @@
 .ax-sidebar-ctx-lbl { font-size: 11px; color: var(--vp-text-soft); text-transform: uppercase; font-weight: 700; }
 .ax-sidebar-ctx-val { font-size: 13px; font-weight: 700; text-align: right; }
 
-/* Backdrop for mobile sidebar */
+/* Backdrop for sidebar (closes on click outside) */
 .ax-sidebar-backdrop {
-  display: none;
-}
-
-@media (max-width: 1024px) {
-  .ax-sidebar-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(4px);
-    z-index: 90;
-    animation: ax-fade-in 0.2s ease-out;
-  }
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.15); /* Modern slate overlay */
+  backdrop-filter: blur(2px);
+  z-index: 90;
+  animation: ax-fade-in 0.2s ease-out;
 }
 
 @keyframes ax-fade-in {
@@ -402,26 +382,45 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* FOCUS MODE OVERRIDES */
+/* IMMERSIVE FULL-SCREEN FOCUS MODE OVERLAY (ZEN TAKEOVER) */
+.av2--focus-mode {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 10% 20%, rgba(243, 244, 246, 1) 0%, rgba(229, 231, 235, 1) 90.1%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px 20px;
+  animation: ax-fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .av2--focus-mode .av2-main {
   max-width: 800px;
   margin: 0 auto;
-  justify-content: center;
-  padding-bottom: 60px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   width: 100%;
 }
 
 .av2--focus-mode .ax-exec-block {
-  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-  border-width: 2px;
-  padding: 32px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.08), 0 0 1px rgba(15, 23, 42, 0.1);
+  border: 1px solid var(--vp-border);
+  border-top: 4px solid var(--ax-blue); /* Premium glowing top strip */
+  padding: 28px 32px;
   border-radius: 16px;
+  background: var(--vp-surface);
   flex-direction: column;
   align-items: stretch;
-  gap: 24px;
+  gap: 20px;
 }
 
 @media (max-width: 768px) {
+  .av2--focus-mode {
+    padding: 16px 12px;
+  }
   .av2--focus-mode .ax-exec-block {
     padding: 20px;
     gap: 16px;
@@ -430,7 +429,7 @@
 
 .ax-focus-header {
   display: flex;
-  gap: 24px;
+  gap: 16px;
   align-items: center;
   flex-wrap: wrap;
   width: 100%;
@@ -440,28 +439,31 @@
   .ax-focus-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
   }
 }
 
 .ax-focus-title {
-  font-size: 32px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.020em;
   overflow-wrap: break-word;
   word-break: normal;
+  line-height: 1.35;
 }
 
 @media (max-width: 768px) {
   .ax-focus-title {
-    font-size: 24px;
+    font-size: 18px;
   }
 }
 
 .ax-focus-grid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 32px;
-  margin-top: 24px;
-  padding-top: 24px;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 28px;
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 1px solid var(--vp-border);
   width: 100%;
   min-width: 0;
@@ -470,33 +472,35 @@
 @media (max-width: 900px) {
   .ax-focus-grid {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 20px;
   }
 }
 
 .ax-notes-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
   max-width: 100%;
 }
 
 .ax-notes-textarea {
   width: 100%;
-  height: 140px;
-  padding: 16px;
+  height: 110px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--vp-border-strong);
-  font-size: 14px;
+  font-size: 13.5px;
   font-family: inherit;
   resize: none;
   background: var(--vp-bg);
-  transition: border-color 0.2s;
+  transition: all 0.25s ease;
+  line-height: 1.45;
 }
 
 .ax-notes-textarea:focus {
   border-color: var(--ax-blue);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
   outline: none;
 }
 

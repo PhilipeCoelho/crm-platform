@@ -7,6 +7,8 @@ import {
 import { Activity, ActivityType } from '@/types/schema';
 import { useCRM } from '@/contexts/CRMContext';
 import { cn } from '@/lib/utils';
+import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
+import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
 
 const ICON_MAP: Record<string, any> = {
     call: Phone,
@@ -41,6 +43,19 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
     const [notes, setNotes] = useState(initialNotes || '');
     const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const {
+        isRecording,
+        toggleRecording,
+        interimTranscript
+    } = useVoiceTranscription({
+        lang: 'pt-PT',
+        onResult: (text, isFinal) => {
+            if (isFinal) {
+                setNotes(prev => prev + (prev ? ' ' : '') + text);
+            }
+        }
+    });
 
     const deal = useMemo(() => 
         activity?.dealId ? deals.find(d => d.id === activity.dealId) : null, 
@@ -160,13 +175,30 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
                     {/* Completion Notes */}
                     <div className="space-y-3">
                         <label className="block text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Resumo do que foi feito</label>
-                        <textarea
-                            className="w-full text-sm border border-input bg-muted/20 text-foreground rounded-2xl p-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none min-h-[120px] resize-none placeholder:text-muted-foreground/30 shadow-sm transition-all"
-                            placeholder="Ex: Enviei mensagem via Instagram perguntando como estão captando pacientes atualmente."
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
-                            autoFocus
-                        />
+                        <div className="relative group">
+                            <textarea
+                                autoFocus
+                                className="w-full min-h-[140px] p-6 pr-14 bg-muted/20 dark:bg-muted/5 border border-border focus:border-primary/50 rounded-3xl outline-none text-sm transition-all resize-none shadow-inner"
+                                placeholder="Descreva o resultado desta interação..."
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
+                            />
+                            
+                            <div className="absolute top-4 right-4">
+                                <VoiceMicButton 
+                                    isRecording={isRecording}
+                                    onToggle={toggleRecording}
+                                    size="sm"
+                                    variant="minimal"
+                                />
+                            </div>
+
+                            {isRecording && interimTranscript && (
+                                <div className="absolute bottom-4 left-4 right-4 p-4 bg-primary/5 backdrop-blur-sm border border-primary/10 rounded-2xl text-xs text-primary animate-pulse z-10 shadow-sm">
+                                    {interimTranscript}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Next Steps (Cadence) */}

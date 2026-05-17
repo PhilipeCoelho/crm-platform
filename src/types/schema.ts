@@ -76,6 +76,14 @@ export type ActivityType = 'call' | 'meeting' | 'task' | 'email' | 'message' | '
 // Tipos de eventos internos (não são atividades)
 export type InternalEventType = 'note' | 'fileUpload' | 'status_change' | 'followup' | 'system';
 
+export interface TranscriptEntry {
+    created_at: string;
+    content: string;
+    duration?: number;
+    source: 'voice';
+    speaker?: 'user' | 'lead';
+}
+
 export interface Activity {
     id: Id;
     type: ActivityType | InternalEventType;
@@ -83,6 +91,7 @@ export interface Activity {
     description?: string;
     result?: string; // Outcome of the activity
     notes?: string;  // Detailed notes
+    transcript?: TranscriptEntry[]; // Voice transcription
     priority?: 'low' | 'medium' | 'high';
 
     // Relations (Polymorphic-ish)

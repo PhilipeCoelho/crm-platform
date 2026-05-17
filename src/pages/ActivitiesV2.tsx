@@ -9,6 +9,8 @@ import { differenceInDays, parseISO, startOfDay } from 'date-fns';
 import DetailPanelReal from '@/components/activities-v2/DetailPanelReal';
 import CompleteActivityModal from '@/components/activities/CompleteActivityModal';
 import NewActivityModal from '@/components/activities/NewActivityModal';
+import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
+import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
 
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   call:      { label: 'Ligar',   icon: 'phone',    color: 'var(--ax-blue)',   bg: 'var(--ax-blue-bg)' },
@@ -31,9 +33,24 @@ function fmtMoney(v: number, currency: Currency): string {
   }).format(v).replace(/\s+/g, '');
 }
 
+function getCleanedWhatsAppLink(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('351')) {
+    return `https://wa.me/${digits}`;
+  }
+  return `https://wa.me/351${digits}`;
+}
+
+function getCleanedPhoneLink(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('351')) return `tel:+${digits}`;
+  if (digits.length === 9) return `tel:+351${digits}`;
+  return `tel:${digits}`;
+}
+
 export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const {
-    deals, activities, contacts, pipelines, logs,
+    deals, activities, contacts, pipelines,
     updateActivity, openFocusDeal, isPrivacyMode,
     completeActivityWithLog, addActivity, updateDeal,
     deleteActivity
@@ -49,6 +66,19 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
   const [execNotes, setExecNotes] = useState('');
   const [nextTaskType, setNextTaskType] = useState<string | null>(null);
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+
+  const {
+    isRecording,
+    toggleRecording,
+    interimTranscript
+  } = useVoiceTranscription({
+    lang: 'pt-PT',
+    onResult: (text, isFinal) => {
+      if (isFinal) {
+        setExecNotes(prev => prev + (prev ? ' ' : '') + text);
+      }
+    }
+  });
 
   // --- Lookups ---
   const getDeal = useCallback((id?: string) => deals.find(d => d.id === id), [deals]);
@@ -142,16 +172,10 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
     moveToNext();
   };
   const handleSkip = () => {
-    if (isFocusMode && currentHero) {
+    if (currentHero) {
       setSkippedIds(prev => new Set(prev).add(currentHero.id));
       setExecNotes('');
       setNextTaskType(null);
-      return;
-    }
-
-    const idx = openActivities.findIndex(a => a.id === selectedId);
-    if (idx !== -1 && idx < openActivities.length - 1) {
-      setSelectedId(openActivities[idx + 1].id);
     }
   };
 
@@ -288,20 +312,44 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
           </div>
         )}
 
-        {isFocusMode && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>Modo Foco</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--vp-text-soft)' }}>{openActivities.length} restantes</div>
-              <button 
-                className="ax-btn ax-btn-secondary" 
-                onClick={() => setIsFocusMode(false)}
-              >
-                <Icons.close size={14} /> Sair do Foco
-              </button>
+        {isFocusMode && (() => {
+          const totalCount = openActivities.length + skippedIds.size;
+          const completedCount = skippedIds.size;
+          const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', padding: '5px 12px', borderRadius: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Icons.zap size={11} /> Modo Foco
+                  </span>
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 850, color: 'var(--vp-text)', letterSpacing: '-0.02em' }}>Fila de Atividades</h2>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--vp-text-soft)', background: 'var(--vp-surface)', border: '1px solid var(--vp-border)', padding: '6px 14px', borderRadius: '20px' }}>
+                    {openActivities.length} restantes
+                  </div>
+                  <button 
+                    className="ax-btn ax-btn-secondary" 
+                    onClick={() => setIsFocusMode(false)}
+                    style={{ borderRadius: '20px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, height: 36 }}
+                  >
+                    <Icons.close size={14} /> Sair do Foco
+                  </button>
+                </div>
+              </div>
+              
+              {/* Premium Progress Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ flex: 1, height: 6, background: 'var(--vp-border)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: 'var(--ax-blue)', borderRadius: 3, transition: 'width 0.4s ease' }} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--vp-text-soft)', width: 36, textAlign: 'right' }}>{pct}%</span>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* STEP 1 & 2: EXECUTION BLOCK */}
         {currentHero ? (
@@ -317,39 +365,70 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                 
                 <div className="ax-exec-main">
                   <h1 className={`ax-exec-title ${isFocusMode ? 'ax-focus-title' : ''}`}>{currentHero.title}</h1>
-                  <div className="ax-exec-meta" style={isFocusMode ? { fontSize: 16, marginTop: 8 } : {}}>
-                    <span className={`ax-exec-deal ${isPrivacyMode ? 'ax-blur' : ''}`} onClick={() => openFocusDeal(currentHero.dealId!)}>
-                      {getDeal(currentHero.dealId)?.title}
-                    </span>
-                    <span style={{ opacity: 0.3 }}>·</span>
-                    <span>{getStage(getDeal(currentHero.dealId))?.title}</span>
-                    <span style={{ opacity: 0.3 }}>·</span>
-                    <span className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontWeight: 700 }}>
-                      {fmtMoney(getDeal(currentHero.dealId)?.value || 0, currency)}
-                    </span>
+                  <div className="ax-exec-meta" style={isFocusMode ? { fontSize: 13, marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' } : {}}>
+                    {isFocusMode ? (
+                      <>
+                        <span className={`ax-exec-deal ${isPrivacyMode ? 'ax-blur' : ''}`} onClick={(e) => { e.stopPropagation(); openFocusDeal(currentHero.dealId!); }} style={{ background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '6px', fontWeight: 600 }}>
+                          {getDeal(currentHero.dealId)?.title}
+                        </span>
+                        <span style={{ background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', padding: '4px 10px', borderRadius: '6px', fontWeight: 600 }}>
+                          {getStage(getDeal(currentHero.dealId))?.title}
+                        </span>
+                        <span className={isPrivacyMode ? 'ax-blur' : ''} style={{ background: '#fef3c7', color: '#d97706', padding: '4px 10px', borderRadius: '6px', fontWeight: 800 }}>
+                          {fmtMoney(getDeal(currentHero.dealId)?.value || 0, currency)}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className={`ax-exec-deal ${isPrivacyMode ? 'ax-blur' : ''}`} onClick={(e) => { e.stopPropagation(); openFocusDeal(currentHero.dealId!); }}>
+                          {getDeal(currentHero.dealId)?.title}
+                        </span>
+                        <span style={{ opacity: 0.3 }}>·</span>
+                        <span>{getStage(getDeal(currentHero.dealId))?.title}</span>
+                        <span style={{ opacity: 0.3 }}>·</span>
+                        <span className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontWeight: 700 }}>
+                          {fmtMoney(getDeal(currentHero.dealId)?.value || 0, currency)}
+                        </span>
+                        {(() => {
+                          const c = getContact(currentHero.contactId || getDeal(currentHero.dealId)?.contactId);
+                          if (!c) return null;
+                          return (
+                            <>
+                              <span style={{ opacity: 0.3 }}>·</span>
+                              <a
+                                href={c.phone ? getCleanedPhoneLink(c.phone) : '#'}
+                                className={`hover:text-primary transition-colors ${isPrivacyMode ? 'ax-blur' : ''} ${c.phone ? 'underline decoration-dotted' : ''}`}
+                                style={{ color: 'var(--vp-text-soft)', fontWeight: 600 }}
+                                title={c.phone ? `Ligar para ${c.phone}` : ''}
+                                onClick={(e) => {
+                                  if (!c.phone) e.preventDefault();
+                                  else e.stopPropagation();
+                                }}
+                              >
+                                {c.name}
+                              </a>
+                              {c.phone && (
+                                <span style={{ display: 'inline-flex', marginLeft: 8, verticalAlign: 'middle' }} onClick={(e) => e.stopPropagation()}>
+                                  <a
+                                    href={getCleanedWhatsAppLink(c.phone)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 px-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded text-[10px] font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-1"
+                                    title="WhatsApp"
+                                  >
+                                    <Icons.whatsapp size={8} />
+                                    WhatsApp
+                                  </a>
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </>
+                    )}
                   </div>
 
-                  {!isFocusMode && (() => {
-                    const pastCompleted = activities
-                      .filter(a => a.dealId === currentHero.dealId && a.completed)
-                      .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
-                    
-                    const last = pastCompleted[0];
-                    if (!last) return null;
 
-                    // Get actual comment from log
-                    const lastLog = logs.find(l => l.activityId === last.id);
-                    const comment = lastLog?.content || last.notes || last.result;
-
-                    if (!comment || comment.includes("concluída sem observações")) return null;
-
-                    return (
-                      <div style={{ marginTop: 10, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 11, maxWidth: '600px' }}>
-                        <span style={{ fontWeight: 700, color: 'var(--vp-text-soft)', textTransform: 'uppercase', fontSize: 9, display: 'block', marginBottom: 2 }}>Última Interação</span>
-                        <span style={{ color: '#475569' }}>"{comment}"</span>
-                      </div>
-                    );
-                  })()}
                 </div>
 
                 <div className="ax-exec-indicators">
@@ -367,7 +446,7 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                       className="ax-btn ax-btn-primary" 
                       onClick={() => handleExecute(currentHero)}
                     >
-                      <Icons.phone size={16} /> {TYPE_CONFIG[currentHero.type]?.label || 'Executar'}
+                      <Icons.check size={16} /> Concluir
                     </button>
                     <button className="ax-btn ax-btn-secondary" onClick={() => handlePostpone(currentHero)}>
                       +1 Dia
@@ -378,162 +457,213 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                   </div>
                 )}
               </div>
-
-              {/* FOCUS MODE EXTRA INFO & NOTES */}
+                           {/* FOCUS MODE EXTRA INFO & NOTES */}
               {isFocusMode && (
-                <div className="ax-focus-grid">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <span className="ax-label">Informações de Contato</span>
-                    {(() => {
-                      const dealId = currentHero.dealId;
-                      const c = getContact(currentHero.contactId || getDeal(dealId)?.contactId);
-                      
-                      return (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                          {/* CONTACT INFO */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--ax-blue-bg)', color: 'var(--ax-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.phone size={16} /></div>
-                              <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>Telefone</div>
-                                <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c?.phone || 'Não informado'}</div>
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#efebff', color: '#7c5cff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icons.mail size={16} /></div>
-                              <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>E-mail</div>
-                                <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c?.email || ''}>{c?.email || 'Não informado'}</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* LAST INTERACTION QUICK VIEW */}
-                          {(() => {
-                            const pastCompleted = activities
-                              .filter(a => a.dealId === dealId && a.completed)
-                              .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
-                            
-                            const last = pastCompleted[0];
-                            if (!last) return null;
-
-                            const lastLog = logs.find(l => l.activityId === last.id);
-                            const comment = lastLog?.content || last.notes || last.result;
-
-                            if (!comment || comment.includes("concluída sem observações")) return null;
-
-                            return (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                <span className="ax-label" style={{ margin: 0, fontSize: 10 }}>Última Interação</span>
-                                <div style={{ 
-                                  padding: '10px 12px', 
-                                  background: '#f8fafc', 
-                                  border: '1px solid #e2e8f0', 
-                                  borderRadius: 10,
-                                  fontSize: 12,
-                                  color: '#475569',
-                                  lineHeight: '1.5',
-                                  position: 'relative'
-                                }}>
-                                   <div style={{ fontWeight: 700, fontSize: 10, color: 'var(--vp-text-soft)', marginBottom: 4, textTransform: 'uppercase' }}>
-                                     {last.title}
-                                   </div>
-                                   <div style={{ whiteSpace: 'pre-wrap' }}>
-                                     "{comment}"
-                                   </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="ax-focus-grid">
+                    {/* Left Column: Lead Info & Automations */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                      <div>
+                        <span className="ax-label" style={{ marginBottom: 12, display: 'block' }}>Informações de Contato</span>
+                        {(() => {
+                          const dealId = currentHero.dealId;
+                          const c = getContact(currentHero.contactId || getDeal(dealId)?.contactId);
+                          
+                          return (
+                            <div style={{ background: 'var(--vp-surface-muted, #f8fafc)', border: '1px solid var(--vp-border)', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                              <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                                <div style={{ minWidth: 0, flex: 1 }}>
+                                  <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase', marginBottom: 2 }}>Telefone</div>
+                                  {c?.phone ? (
+                                    <a
+                                      href={getCleanedPhoneLink(c.phone)}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        if (c?.phone) {
+                                          window.location.href = getCleanedPhoneLink(c.phone);
+                                        }
+                                      }}
+                                      className={`hover:text-primary transition-colors ${isPrivacyMode ? 'ax-blur' : ''}`}
+                                      style={{ fontSize: 16, fontWeight: 750, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', width: 'fit-content', textDecoration: 'underline', textDecorationStyle: 'dotted', cursor: 'pointer' }}
+                                      title={`Ligar para ${c.phone}`}
+                                    >
+                                      {c.phone}
+                                    </a>
+                                  ) : (
+                                    <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, color: 'var(--vp-text-muted)' }}>Não informado</div>
+                                  )}
                                 </div>
+                                {c?.phone && (
+                                  <div style={{ display: 'flex', flexShrink: 0 }}>
+                                    <a
+                                      href={getCleanedWhatsAppLink(c.phone)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="p-1.5 px-3.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-extrabold hover:bg-emerald-500/20 transition-all flex items-center gap-1.5"
+                                      title="Enviar WhatsApp"
+                                    >
+                                      <Icons.whatsapp size={11} />
+                                      WhatsApp
+                                    </a>
+                                  </div>
+                                )}
                               </div>
-                            );
-                          })()}
-                        </div>
-                      );
-                    })()}
-
-                    <div style={{ marginTop: 12 }}>
-                      <span className="ax-label">Próximo Passo Automatizado</span>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
-                        {['call', 'email', 'message', 'task'].map(t => (
-                          <button 
-                            key={t}
-                            onClick={() => setNextTaskType(nextTaskType === t ? null : t)}
-                            style={{
-                              padding: '8px',
-                              borderRadius: 8,
-                              fontSize: 11,
-                              fontWeight: 700,
-                              border: '1px solid var(--vp-border)',
-                              background: nextTaskType === t ? 'var(--ax-blue)' : 'var(--vp-surface)',
-                              color: nextTaskType === t ? 'white' : 'var(--vp-text-muted)',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6
-                            }}
-                          >
-                            {(() => { const Icon = Icons[TYPE_CONFIG[t]?.icon || 'check']; return <Icon size={12} />; })()}
-                            {TYPE_CONFIG[t]?.label}
-                          </button>
-                        ))}
+                              
+                              <div style={{ minWidth: 0, flex: 1, borderTop: '1px solid var(--vp-border)', paddingTop: 14 }}>
+                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase', marginBottom: 2 }}>E-mail</div>
+                                <div className={isPrivacyMode ? 'ax-blur' : ''} style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--vp-text)' }} title={c?.email || ''}>{c?.email || 'Não informado'}</div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="ax-notes-container">
-                    <span className="ax-label">Notas da Execução</span>
-                    <textarea 
-                      placeholder="O que aconteceu nesta interação? (Ex: Não atendeu, agendamos reunião...)"
-                      value={execNotes}
-                      onChange={e => setExecNotes(e.target.value)}
-                      className="ax-notes-textarea"
-                    />
-                    <div className="ax-focus-actions" style={{ gap: '10px' }}>
-                      <button 
-                        className="ax-btn ax-btn-primary" 
-                        style={{ 
-                          flex: '2', 
-                          height: 52, 
-                          fontSize: 14,
-                          opacity: nextTaskType ? 1 : 0.6,
-                          cursor: nextTaskType ? 'pointer' : 'not-allowed'
-                        }}
-                        disabled={!nextTaskType}
-                        onClick={() => directComplete(currentHero)}
-                      >
-                        <Icons.check size={18} /> Concluir
-                      </button>
-                      <button 
-                        className="ax-btn ax-btn-secondary" 
-                        style={{ flex: '1', height: 52, fontSize: 14, whiteSpace: 'nowrap' }}
-                        onClick={() => handlePostpone(currentHero)}
-                      >
-                        Adiar +1d
-                      </button>
-                      <button 
-                        className="ax-btn" 
-                        style={{ 
-                          flex: '1', 
-                          height: 52, 
-                          fontSize: 14,
-                          background: execNotes ? '#fef2f2' : '#f8fafc',
-                          color: execNotes ? '#dc2626' : '#94a3b8',
-                          cursor: execNotes ? 'pointer' : 'not-allowed',
-                          opacity: execNotes ? 1 : 0.7,
-                          border: execNotes ? '1px solid #fee2e2' : '1px solid #e2e8f0',
-                          fontWeight: 700
-                        }}
-                        disabled={!execNotes}
-                        onClick={() => handleMarkAsLost(currentHero)}
-                        title={!execNotes ? "Adicione uma nota para poder dar como perdido" : ""}
-                      >
-                        <Icons.close size={18} /> Perdido
-                      </button>
-                      <button 
-                        className="ax-btn ax-btn-ghost" 
-                        style={{ flex: '0.7', height: 52, fontSize: 14 }}
-                        onClick={handleSkip}
-                      >
-                        Pular
-                      </button>
+                    </div>
+
+                    {/* Right Column: Notes & Recording */}
+                    <div className="ax-notes-container">
+                      <span className="ax-label">Notas da Execução</span>
+                      <div className="relative group" style={{ position: 'relative' }}>
+                        <textarea 
+                          placeholder="O que aconteceu nesta interação? (Ex: Não atendeu, agendamos reunião...)"
+                          value={execNotes}
+                          onChange={e => setExecNotes(e.target.value)}
+                          className="ax-notes-textarea pr-12"
+                          style={{
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                            fontSize: '14px'
+                          }}
+                        />
+                        
+                        <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5 }}>
+                          <VoiceMicButton 
+                            isRecording={isRecording}
+                            onToggle={toggleRecording}
+                            size="sm"
+                            variant="minimal"
+                          />
+                        </div>
+
+                        {isRecording && interimTranscript && (
+                          <div style={{
+                            position: 'absolute',
+                            bottom: 12,
+                            left: 12,
+                            right: 12,
+                            padding: '8px 12px',
+                            background: 'rgba(59, 130, 246, 0.05)',
+                            backdropFilter: 'blur(4px)',
+                            border: '1px solid rgba(59, 130, 246, 0.1)',
+                            borderRadius: 12,
+                            fontSize: 12,
+                            color: 'var(--ax-blue)',
+                            zIndex: 10,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                          }} className="animate-pulse">
+                            {interimTranscript}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Inline Next Automated Step Row */}
+                      <div style={{ marginTop: 12 }}>
+                        <span className="ax-label" style={{ marginBottom: 6, display: 'block', fontSize: 10, fontWeight: 800 }}>Próximo Passo Automatizado</span>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          {['call', 'email', 'message', 'task'].map(t => {
+                            const active = nextTaskType === t;
+                            const ptc = TYPE_CONFIG[t] || TYPE_CONFIG.task;
+                            const Icon = Icons[ptc.icon || 'check'];
+                            
+                            return (
+                              <button 
+                                key={t}
+                                onClick={() => setNextTaskType(nextTaskType === t ? null : t)}
+                                style={{
+                                  flex: 1,
+                                  height: 32,
+                                  borderRadius: 8,
+                                  fontSize: 10.5,
+                                  fontWeight: 750,
+                                  border: active ? '1px solid var(--ax-blue)' : '1px solid var(--vp-border)',
+                                  background: active ? 'var(--ax-blue-bg)' : 'var(--vp-surface)',
+                                  color: active ? 'var(--ax-blue)' : 'var(--vp-text-muted)',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 4,
+                                  boxShadow: active ? '0 2px 6px rgba(59, 130, 246, 0.06)' : 'none',
+                                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }}
+                              >
+                                <Icon size={12} style={{ flexShrink: 0 }} />
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {ptc.label}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Unified Execution Actions Row directly under Next Steps */}
+                      <div style={{ display: 'flex', gap: 6, marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--vp-border)' }}>
+                        <button 
+                          className="ax-btn ax-btn-primary" 
+                          style={{ 
+                            flex: 1.5,
+                            height: 34, 
+                            borderRadius: 8,
+                            padding: '0 16px', 
+                            fontSize: 12,
+                            fontWeight: 800,
+                            background: nextTaskType ? '#16a34a' : '#16a34a',
+                            color: 'white',
+                            opacity: nextTaskType ? 1 : 0.5,
+                            cursor: nextTaskType ? 'pointer' : 'not-allowed',
+                            boxShadow: nextTaskType ? '0 3px 8px rgba(22, 163, 74, 0.15)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6
+                          }}
+                          disabled={!nextTaskType}
+                          onClick={() => directComplete(currentHero)}
+                        >
+                          <Icons.check size={14} /> Concluir Atividade
+                        </button>
+                        <button 
+                          className="ax-btn ax-btn-ghost" 
+                          onClick={handleSkip} 
+                          style={{ height: 34, borderRadius: 8, padding: '0 12px', fontSize: 12, fontWeight: 700 }}
+                        >
+                          Pular Atividade
+                        </button>
+                        <button 
+                          className="ax-btn" 
+                          style={{ 
+                            height: 34, 
+                            borderRadius: 8,
+                            padding: '0 12px', 
+                            fontSize: 12,
+                            background: execNotes ? '#fef2f2' : '#f8fafc',
+                            color: execNotes ? '#dc2626' : '#94a3b8',
+                            cursor: execNotes ? 'pointer' : 'not-allowed',
+                            opacity: execNotes ? 1 : 0.7,
+                            border: execNotes ? '1px solid #fee2e2' : '1px solid #e2e8f0',
+                            fontWeight: 750,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 4
+                          }}
+                          disabled={!execNotes}
+                          onClick={() => handleMarkAsLost(currentHero)}
+                          title={!execNotes ? "Adicione uma nota para poder dar como perdido" : ""}
+                        >
+                          <Icons.close size={14} /> Dar como Perdido
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

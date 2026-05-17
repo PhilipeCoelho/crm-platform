@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/tooltip";
 import TimePicker from '../ui/TimePicker';
 import { DatePicker } from '../ui/DatePicker';
+import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
+import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
 
 
 export interface ActivityFormProps {
@@ -44,6 +46,18 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     });
     const [selectedType, setSelectedType] = useState(initialData?.type || 'task');
 
+    const {
+        isRecording,
+        toggleRecording,
+        interimTranscript
+    } = useVoiceTranscription({
+        lang: 'pt-PT',
+        onResult: (text, isFinal) => {
+            if (isFinal) {
+                setTitle(prev => prev + (prev ? ' ' : '') + text);
+            }
+        }
+    });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -87,13 +101,28 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     return (
         <form onSubmit={handleSubmit} className="p-2 sm:p-2.5 space-y-2">
             {/* ROW 1: Textarea */}
-            <textarea
-                placeholder="O que precisa fazer?"
-                className="w-full min-h-[40px] max-h-[60px] p-2 bg-transparent border border-border/60 focus:border-primary/50 rounded-lg outline-none text-sm transition-all resize-none font-medium custom-scrollbar"
-                style={{ fontSize: '13px' }}
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-            />
+            <div className="relative">
+                <textarea
+                    placeholder="O que precisa fazer?"
+                    className="w-full min-h-[40px] max-h-[60px] p-2 pr-10 bg-transparent border border-border/60 focus:border-primary/50 rounded-lg outline-none text-sm transition-all resize-none font-medium custom-scrollbar"
+                    style={{ fontSize: '13px' }}
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                />
+                <div className="absolute top-2 right-2">
+                    <VoiceMicButton 
+                        isRecording={isRecording}
+                        onToggle={toggleRecording}
+                        size="xs"
+                        variant="minimal"
+                    />
+                </div>
+                {isRecording && interimTranscript && (
+                    <div className="absolute inset-x-2 bottom-2 p-1.5 bg-primary/5 border border-primary/10 rounded text-[11px] text-primary animate-pulse z-10">
+                        {interimTranscript}
+                    </div>
+                )}
+            </div>
 
             {/* ROW 2: Icons and Metadata */}
             <div className="flex items-center justify-between gap-3">

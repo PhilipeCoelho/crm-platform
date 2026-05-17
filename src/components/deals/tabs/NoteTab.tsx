@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { Deal } from '@/types/schema';
 import { Bold, Italic, List, Link as LinkIcon, Image } from 'lucide-react';
+import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
+import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
 
 interface NoteTabProps {
     deal: Deal;
@@ -32,6 +34,19 @@ export default function NoteTab({ deal, onSave }: NoteTabProps) {
             textarea.setSelectionRange(start + prefix.length, end + prefix.length);
         }, 0);
     };
+
+    const {
+        isRecording,
+        toggleRecording,
+        interimTranscript
+    } = useVoiceTranscription({
+        lang: 'pt-PT',
+        onResult: (text, isFinal) => {
+            if (isFinal) {
+                setContent(prev => prev + (prev ? ' ' : '') + text);
+            }
+        }
+    });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -66,12 +81,29 @@ export default function NoteTab({ deal, onSave }: NoteTabProps) {
                 <button onClick={() => insertFormatting('![', '](image-url)')} title="Imagem" type="button" className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors"><Image size={16} /></button>
             </div>
 
-            <textarea
-                className="w-full h-32 p-4 bg-transparent outline-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground/50"
-                placeholder="Comece a escrever uma nota... (Markdown suportado)"
-                value={content}
-                onChange={e => setContent(e.target.value)}
-            />
+            <div className="relative group">
+                <textarea
+                    className="w-full h-32 p-4 pr-12 bg-transparent outline-none resize-none text-sm leading-relaxed placeholder:text-muted-foreground/50"
+                    placeholder="Comece a escrever uma nota... (Markdown suportado)"
+                    value={content}
+                    onChange={e => setContent(e.target.value)}
+                />
+                
+                <div className="absolute top-3 right-3">
+                    <VoiceMicButton 
+                        isRecording={isRecording}
+                        onToggle={toggleRecording}
+                        size="sm"
+                        variant="minimal"
+                    />
+                </div>
+
+                {isRecording && interimTranscript && (
+                    <div className="absolute bottom-3 left-3 right-3 p-3 bg-primary/5 backdrop-blur-sm border border-primary/10 rounded-xl text-xs text-primary animate-pulse z-10 shadow-sm">
+                        {interimTranscript}
+                    </div>
+                )}
+            </div>
 
             <div className="flex justify-between items-center p-2 bg-muted/10 border-t border-border">
                 <span className="text-xs text-muted-foreground px-2">Suporta Markdown básico</span>

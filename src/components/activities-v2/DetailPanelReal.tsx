@@ -50,100 +50,138 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
         </button>
       </div>
 
-      {/* STEP 6: PRATIC SUGGESTION (PINK BOX) */}
-      {suggestion && (
-        <div className="ax-sidebar-suggestion">
-          <div className="ax-sidebar-suggestion-lbl">
-            <Icons.zap size={10} />
-            O que falar agora
+      {/* SCROLLABLE BODY */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        {/* STEP 6: PRATIC SUGGESTION (PINK BOX) */}
+        {suggestion && (
+          <div className="ax-sidebar-suggestion" style={{ margin: '12px 20px' }}>
+            <div className="ax-sidebar-suggestion-lbl">
+              <Icons.zap size={10} />
+              O que falar agora
+            </div>
+            <div className="ax-sidebar-suggestion-txt">"{suggestion}"</div>
           </div>
-          <div className="ax-sidebar-suggestion-txt">"{suggestion}"</div>
-        </div>
-      )}
+        )}
 
-      {/* STEP 6: DIRECT CONTEXT */}
-      <div className="ax-sidebar-ctx">
-        <span className="ax-label">Contexto do Negócio</span>
-        
-        <div className="ax-sidebar-ctx-row">
-          <span className="ax-sidebar-ctx-lbl">Negócio</span>
-          <span className={`ax-sidebar-ctx-val ax-exec-deal ${blur}`} onClick={() => deal && openFocusDeal(deal.id)}>
-            {deal?.title || '—'}
-          </span>
-        </div>
-
-        <div className="ax-sidebar-ctx-row">
-          <span className="ax-sidebar-ctx-lbl">Contato</span>
-          <span className={`ax-sidebar-ctx-val ${blur}`}>{contact?.name || '—'}</span>
-        </div>
-
-        <div className="ax-sidebar-ctx-row">
-          <span className="ax-sidebar-ctx-lbl">Estágio</span>
-          <span className="ax-sidebar-ctx-val" style={{ color: currentStage?.color }}>
-            {currentStage?.title || '—'}
-          </span>
-        </div>
-
-        <div className="ax-sidebar-ctx-row">
-          <span className="ax-sidebar-ctx-lbl">Valor</span>
-          <span className={`ax-sidebar-ctx-val ${blur}`}>{deal ? fmtMoney(deal.value, currency) : '—'}</span>
-        </div>
-
-        {/* FULL HISTORY */}
-        <span className="ax-label" style={{ marginTop: 16 }}>Histórico de Interações</span>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
-          {activities
-            .filter(a => a.dealId === deal?.id && a.completed)
-            .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
-            .map(pa => {
-              const ptc = TYPE_CONFIG[pa.type] || TYPE_CONFIG.task;
-              const PIcon = Icons[ptc.icon] || Icons.check;
-              
-              // Search for the log associated with this activity
-              const activityLog = logs.find(l => l.activityId === pa.id);
-              const interactionText = activityLog?.content || pa.notes || pa.result || pa.description;
-
-              return (
-                <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 16, borderBottom: '1px solid var(--vp-border)' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: ptc.bg, color: ptc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <PIcon size={14} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--vp-text)' }}>{pa.title}</div>
-                      <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>
-                        {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM", { locale: ptBR }) : ''}
-                      </div>
-                    </div>
-                    {interactionText ? (
-                      <div style={{ 
-                        fontSize: 11, 
-                        color: 'var(--vp-text-soft)', 
-                        marginTop: 4, 
-                        padding: '8px 10px', 
-                        background: 'var(--vp-surface)', 
-                        borderRadius: '8px',
-                        border: '1px solid var(--vp-border)',
-                        lineHeight: '1.4',
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {interactionText}
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: 10, color: 'var(--vp-text-muted)', fontStyle: 'italic', marginTop: 2 }}>
-                        Sem observações registradas.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+        {/* STEP 6: DIRECT CONTEXT */}
+        <div className="ax-sidebar-ctx" style={{ padding: '0 20px 24px' }}>
+          <span className="ax-label">Contexto do Negócio</span>
           
-          {activities.filter(a => a.dealId === deal?.id && a.completed).length === 0 && (
-            <div style={{ fontSize: 12, color: 'var(--vp-text-soft)', padding: '12px 0', textAlign: 'center', background: 'var(--vp-bg)', borderRadius: 6 }}>
-              Nenhuma interação anterior.
+          <div className="ax-sidebar-ctx-row">
+            <span className="ax-sidebar-ctx-lbl">Negócio</span>
+            <span className={`ax-sidebar-ctx-val ax-exec-deal ${blur}`} onClick={(e) => { e.stopPropagation(); deal && openFocusDeal(deal.id); }}>
+              {deal?.title || '—'}
+            </span>
+          </div>
+
+          <div className="ax-sidebar-ctx-row">
+            <span className="ax-sidebar-ctx-lbl">Contato</span>
+            <span className={`ax-sidebar-ctx-val ${blur}`}>{contact?.name || '—'}</span>
+          </div>
+
+          {contact?.phone && (
+            <div className="ax-sidebar-ctx-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
+              <span className="ax-sidebar-ctx-lbl">Telefone</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <a
+                  href={`tel:${contact.phone.replace(/\D/g, '')}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (contact?.phone) {
+                      window.location.href = `tel:${contact.phone.replace(/\D/g, '')}`;
+                    }
+                  }}
+                  className={`ax-sidebar-ctx-val hover:text-primary transition-colors ${blur}`}
+                  style={{ fontWeight: 600, textDecoration: 'underline', textDecorationStyle: 'dotted', cursor: 'pointer' }}
+                  title={`Ligar para ${contact.phone}`}
+                >
+                  {contact.phone}
+                </a>
+                <a
+                  href={(() => {
+                    const digits = contact.phone.replace(/\D/g, '');
+                    return digits.startsWith('351') ? `https://wa.me/${digits}` : `https://wa.me/351${digits}`;
+                  })()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1 px-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md text-[10px] font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-1"
+                  title="Enviar WhatsApp"
+                >
+                  <Icons.whatsapp size={10} />
+                  WhatsApp
+                </a>
+              </div>
             </div>
           )}
+
+          <div className="ax-sidebar-ctx-row">
+            <span className="ax-sidebar-ctx-lbl">Estágio</span>
+            <span className="ax-sidebar-ctx-val" style={{ color: currentStage?.color }}>
+              {currentStage?.title || '—'}
+            </span>
+          </div>
+
+          <div className="ax-sidebar-ctx-row">
+            <span className="ax-sidebar-ctx-lbl">Valor</span>
+            <span className={`ax-sidebar-ctx-val ${blur}`}>{deal ? fmtMoney(deal.value, currency) : '—'}</span>
+          </div>
+
+          {/* FULL HISTORY */}
+          <span className="ax-label" style={{ marginTop: 16 }}>Histórico de Interações</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+            {activities
+              .filter(a => a.dealId === deal?.id && a.completed)
+              .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
+              .map(pa => {
+                const ptc = TYPE_CONFIG[pa.type] || TYPE_CONFIG.task;
+                const PIcon = Icons[ptc.icon] || Icons.check;
+                
+                // Search for the log associated with this activity
+                const activityLog = logs.find(l => l.activityId === pa.id);
+                const interactionText = activityLog?.content || pa.notes || pa.result || pa.description;
+
+                return (
+                  <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 16, borderBottom: '1px solid var(--vp-border)' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: ptc.bg, color: ptc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <PIcon size={14} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--vp-text)' }}>{pa.title}</div>
+                        <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--vp-text-soft)', textTransform: 'uppercase' }}>
+                          {pa.completedAt ? format(parseISO(pa.completedAt), "dd MMM", { locale: ptBR }) : ''}
+                        </div>
+                      </div>
+                      {interactionText ? (
+                        <div style={{ 
+                          fontSize: 11, 
+                          color: 'var(--vp-text-soft)', 
+                          marginTop: 4, 
+                          padding: '8px 10px', 
+                          background: 'var(--vp-surface)', 
+                          borderRadius: '8px',
+                          border: '1px solid var(--vp-border)',
+                          lineHeight: '1.4',
+                          whiteSpace: 'pre-wrap'
+                        }}>
+                          {interactionText}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 10, color: 'var(--vp-text-muted)', fontStyle: 'italic', marginTop: 2 }}>
+                          Sem observações registradas.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            
+            {activities.filter(a => a.dealId === deal?.id && a.completed).length === 0 && (
+              <div style={{ fontSize: 12, color: 'var(--vp-text-soft)', padding: '12px 0', textAlign: 'center', background: 'var(--vp-bg)', borderRadius: 6 }}>
+                Nenhuma interação anterior.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

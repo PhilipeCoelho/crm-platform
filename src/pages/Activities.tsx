@@ -24,7 +24,8 @@ import {
     SkipForward,
     CalendarClock,
     PhoneOff,
-    CheckSquare
+    CheckSquare,
+    Copy
 } from 'lucide-react';
 import {
     format,
@@ -46,7 +47,9 @@ import BulkEditActivitiesModal from '@/components/activities/BulkEditActivitiesM
 import ActivitiesMoreActions from '@/components/activities/ActivitiesMoreActions';
 import DealDetailsModal from '@/components/kanban/DealDetailsModal';
 import { filterRealActivities } from '@/utils/activityHelpers';
-import { Activity, ActivityType, Deal } from '@/types/schema';
+import { Activity, ActivityType, Deal, TranscriptEntry } from '@/types/schema';
+import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
+import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -319,8 +322,12 @@ export default function Activities({ currency: _currency }: { currency: Currency
     }, [filteredActivities]);
 
     // ── Handlers ──────────────────────────────────────────────────────────────
-    const handleToggleComplete = (id: string, completed: boolean) => {
-        updateActivity(id, { completed, completedAt: completed ? new Date().toISOString() : undefined });
+    const handleToggleComplete = (id: string, completed: boolean, extraUpdates?: Partial<Activity>) => {
+        updateActivity(id, { 
+            completed, 
+            completedAt: completed ? new Date().toISOString() : undefined,
+            ...extraUpdates
+        });
         if (isExecutionMode && completed) {
             setExecutionCompletedCount(prev => prev + 1);
         }
@@ -664,7 +671,7 @@ export default function Activities({ currency: _currency }: { currency: Currency
                     contacts={contacts}
                     completedCount={executionCompletedCount}
                     onClose={() => setIsExecutionMode(false)}
-                    onComplete={(id) => handleToggleComplete(id, true)}
+                    onComplete={(id, updates) => handleToggleComplete(id, true, updates)}
                     onReschedule={(activity) => {
                         setEditingActivity(activity);
                     }}
@@ -845,10 +852,29 @@ function ActivityCompactRow({
 
 // ─── Refined Execution Mode Component ─────────────────────────────────────────
 function ExecutionMode({ activities, deals, contacts, completedCount, onClose, onComplete, onReschedule }: {
-    activities: Activity[], deals: Deal[], contacts: any[], completedCount: number, onClose: () => void, onComplete: (id: string) => void, onReschedule: (a: Activity) => void
+    activities: Activity[], deals: Deal[], contacts: any[], completedCount: number, onClose: () => void, onComplete: (id: string, updates: Partial<Activity>) => void, onReschedule: (a: Activity) => void
 }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const activeA = activities[currentIndex];
+    const [localNotes, setLocalNotes] = useState('');
+
+    const {
+        isRecording,
+        transcript,
+        interimTranscript,
+        toggleRecording,
+        stopRecording,
+        resetTranscript
+    } = useVoiceTranscription({
+        lang: 'pt-PT'
+    });
+
+    useEffect(() => {
+        if (activeA) {
+            setLocalNotes(activeA.notes || '');
+            resetTranscript();
+        }
+    }, [activeA, resetTranscript]);
 
     // Auto-close if finished
     useEffect(() => {
@@ -864,7 +890,26 @@ function ExecutionMode({ activities, deals, contacts, completedCount, onClose, o
     const contact = contacts.find(c => c.id === activeA.contactId);
 
     const handleCompleteNext = () => {
-        onComplete(activeA.id);
+        if (isRecording) stopRecording();
+
+        const updates: Partial<Activity> = {
+            notes: localNotes
+        };
+
+        if (transcript) {
+            const newEntry: TranscriptEntry = {
+                created_at: new Date().toISOString(),
+                content: transcript,
+                source: 'voice',
+                speaker: 'user' // Default to user for now
+            };
+            updates.transcript = [...(activeA.transcript || []), newEntry];
+            
+            // Also append to notes if requested
+            updates.notes = (updates.notes ? updates.notes + '\n\n' : '') + `[Transcrição]: ${transcript}`;
+        }
+
+        onComplete(activeA.id, updates);
         setCurrentIndex(v => v + 1);
     };
 
@@ -924,12 +969,65 @@ function ExecutionMode({ activities, deals, contacts, completedCount, onClose, o
                             )}
                         </div>
 
-                        {activeA.notes && (
+                        {activeA.notes && !isRecording && (
                             <div className="w-full bg-slate-50 dark:bg-[#1A1A1A]/40 border border-slate-100 dark:border-border rounded-3xl p-8 mb-12 text-left shadow-inner">
                                 <span className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-400 mb-4 block">Observações do Negócio</span>
                                 <p className="text-slate-600 dark:text-slate-300 font-bold text-lg leading-relaxed">{activeA.notes}</p>
                             </div>
                         )}
+
+                        {/* Live Transcription Panel */}
+                        {(isRecording || transcript) && (
+                            <div className="w-full bg-indigo-50/30 dark:bg-primary/5 border border-indigo-100 dark:border-indigo-500/20 rounded-3xl p-8 mb-12 text-left shadow-inner animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="font-black text-[11px] uppercase tracking-[0.2em] text-primary block">Transcrição ao Vivo</span>
+                                    <div className="flex items-center gap-3">
+                                        {transcript && (
+                                            <button 
+                                                onClick={() => navigator.clipboard.writeText(transcript)}
+                                                className="p-1.5 hover:bg-primary/10 rounded-lg text-primary transition-colors"
+                                                title="Copiar Transcrição"
+                                            >
+                                                <Copy size={14} />
+                                            </button>
+                                        )}
+                                        {isRecording && <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />}
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-slate-700 dark:text-slate-200 font-bold text-xl leading-relaxed">
+                                        {transcript}
+                                        {interimTranscript && (
+                                            <span className="text-slate-400 dark:text-slate-500 ml-1">
+                                                {interimTranscript}
+                                            </span>
+                                        )}
+                                    </p>
+                                    {!transcript && !interimTranscript && isRecording && (
+                                        <p className="text-slate-400 italic text-lg animate-pulse">Ouvindo...</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mb-12 flex flex-col items-center gap-4">
+                            <VoiceMicButton 
+                                isRecording={isRecording} 
+                                onToggle={toggleRecording}
+                                size="lg"
+                            />
+                            
+                            <div className="flex flex-col items-center gap-1">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Transcrição experimental — depende do navegador
+                                </span>
+                                {!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window) && (
+                                    <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">
+                                        Navegador não compatível (Use Chrome ou Safari)
+                                    </span>
+                                )}
+                            </div>
+                        </div>
 
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                             <button 
@@ -983,6 +1081,19 @@ function QuickEditModal({ activity, onClose, onSave }: QuickEditModalProps) {
         return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     });
     const [notes, setNotes] = useState(activity.notes || '');
+
+    const {
+        isRecording,
+        toggleRecording,
+        interimTranscript
+    } = useVoiceTranscription({
+        lang: 'pt-PT',
+        onResult: (text, isFinal) => {
+            if (isFinal) {
+                setNotes(prev => prev + (prev ? ' ' : '') + text);
+            }
+        }
+    });
 
     const handleSave = () => {
         const updates: Partial<Activity> = {
@@ -1068,14 +1179,29 @@ function QuickEditModal({ activity, onClose, onSave }: QuickEditModalProps) {
 
                     {/* Notes Field */}
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 block">Detalhamento / Contexto</label>
-                        <textarea
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
-                            rows={4}
-                            placeholder="Descreva o objetivo desta interação..."
-                            className="w-full px-6 py-5 bg-slate-50 dark:bg-[#1A1A1A] border-none rounded-2xl text-md font-bold text-slate-700 dark:text-slate-300 outline-none ring-2 focus:ring-indigo-500/20 transition-all resize-none shadow-inner"
-                        />
+                        <div className="flex items-center justify-between mb-3">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block">Detalhamento / Contexto</label>
+                            <VoiceMicButton 
+                                isRecording={isRecording}
+                                onToggle={toggleRecording}
+                                size="sm"
+                                className="flex-row items-center gap-2"
+                            />
+                        </div>
+                        <div className="relative">
+                            <textarea
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
+                                rows={4}
+                                placeholder="Descreva o objetivo desta interação..."
+                                className="w-full px-6 py-5 bg-slate-50 dark:bg-[#1A1A1A] border-none rounded-2xl text-md font-bold text-slate-700 dark:text-slate-300 outline-none ring-2 focus:ring-indigo-500/20 transition-all resize-none shadow-inner"
+                            />
+                            {isRecording && interimTranscript && (
+                                <div className="absolute bottom-4 left-4 right-4 p-2 bg-primary/10 rounded-lg border border-primary/20 text-xs text-primary animate-pulse">
+                                    {interimTranscript}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
