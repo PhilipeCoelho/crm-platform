@@ -364,7 +364,26 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
                 </div>
                 
                 <div className="ax-exec-main">
-                  <h1 className={`ax-exec-title ${isFocusMode ? 'ax-focus-title' : ''}`}>{currentHero.title}</h1>
+                  <h1 className={`ax-exec-title ${isFocusMode ? 'ax-focus-title' : ''}`}>
+                    {isFocusMode ? (
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(
+                          currentHero.title
+                            .replace(/^(Ligar para|ligar para|Ligar a|ligar a|Ligar|ligar|Mensagem para|mensagem para|E-mail para|e-mail para)\s+/i, '')
+                            .trim()
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Pesquisar no Google"
+                        className="ax-focus-title-link"
+                      >
+                        {currentHero.title}
+                      </a>
+                    ) : (
+                      currentHero.title
+                    )}
+                  </h1>
                   <div className="ax-exec-meta" style={isFocusMode ? { fontSize: 13, marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' } : {}}>
                     {isFocusMode ? (
                       <>

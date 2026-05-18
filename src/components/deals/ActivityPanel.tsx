@@ -51,7 +51,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
 
     const historyActivities = dealActivities
         .filter(a => a.completed)
-        .sort((a, b) => new Date(b.dueDate || b.createdAt).getTime() - new Date(a.dueDate || a.createdAt).getTime());
+        .sort((a, b) => new Date(b.completedAt || b.dueDate || b.createdAt).getTime() - new Date(a.completedAt || a.dueDate || a.createdAt).getTime());
 
     const tabs = [
         { id: 'activity', label: 'Atividades', icon: CheckSquare },

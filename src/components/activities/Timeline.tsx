@@ -16,9 +16,15 @@ interface Props {
 
 export default function Timeline({ activities, logs = [], onReopen, onEdit, onDelete }: Props) {
     const { contacts, companies, deals } = useCRM();
-    // Combine and Sort by createdAt descending
-    // Filter out logs that are linked to an activity to avoid duplicate separate entries
-    // Combine and Sort by createdAt descending
+
+    const getItemDate = (item: any) => {
+        if (item.itemType === 'activity' && item.completed && item.completedAt) {
+            return new Date(item.completedAt);
+        }
+        return new Date(item.createdAt);
+    };
+
+    // Combine and Sort by completedAt (for completed activities) or createdAt (for logs / pending activities)
     // Filter out logs that are linked to an activity to avoid duplicate separate entries
     const items = [
         ...activities.map(a => ({ ...a, itemType: 'activity' as const })),
@@ -29,7 +35,7 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
             if (l.logType === 'system' && l.content === 'Atividade concluída sem observações.') return false;
             return true;
         }).map(l => ({ ...l, itemType: 'log' as const, type: 'note' as const, title: 'Nota' }))
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    ].sort((a, b) => getItemDate(b).getTime() - getItemDate(a).getTime());
 
     if (items.length === 0) {
         return <div className="text-sm text-muted-foreground text-center py-8 bg-muted/10 rounded-xl border border-dashed border-border/50">Nenhum histórico ainda.</div>;
@@ -66,7 +72,7 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
                 const isLog = item.itemType === 'log';
                 const log = isLog ? (item as any as DealLog) : null;
                 const activity = !isLog ? (item as any as Activity) : null;
-                const date = new Date(item.createdAt);
+                const date = getItemDate(item);
 
                 return (
                     <div key={item.id} className="relative group">
