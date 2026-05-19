@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
+import cron from 'node-cron';
 
 const LOG_FILE = '/tmp/crm_server.log';
 function logToFile(msg) {
@@ -875,6 +876,233 @@ app.post('/api/imap/verify', authenticate, (req, res) => {
     });
 
     imap.connect();
+});
+
+/**
+ * Helper: Send daily summary of today's activities to a specific user
+ */
+async function sendDailySummaryForUser(supabase, userId, userEmail, userName) {
+    logToFile(`📧 [Daily Cron] Generating daily summary for ${userName} (${userEmail})`);
+
+    // Fetch all pending activities
+    const { data: activities, error: actError } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('completed', false);
+
+    if (actError) {
+        logToFile(`❌ [Daily Cron] Error fetching activities for ${userId}: ${actError.message}`);
+        return { success: false, error: actError.message };
+    }
+
+    if (!activities || activities.length === 0) {
+        logToFile(`ℹ️ [Daily Cron] No pending activities found for ${userName}`);
+        return { success: true, count: 0, reason: 'No pending activities' };
+    }
+
+    // Filter for today in Lisbon/Server local time format (YYYY-MM-DD)
+    const todayStr = new Date().toLocaleDateString('sv'); // SV-SE formats YYYY-MM-DD
+    const todayActivities = activities.filter(a => {
+        if (!a.date) return false;
+        return a.date.substring(0, 10) === todayStr;
+    });
+
+    if (todayActivities.length === 0) {
+        logToFile(`ℹ️ [Daily Cron] No activities scheduled for today (${todayStr}) for ${userName}`);
+        return { success: true, count: 0, reason: `No activities scheduled for ${todayStr}` };
+    }
+
+    // Fetch deals to map titles
+    const { data: deals } = await supabase
+        .from('deals')
+        .select('id, title')
+        .eq('user_id', userId);
+    
+    const dealsMap = new Map(deals?.map(d => [d.id, d.title]) || []);
+
+    const transporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: parseInt(SMTP_PORT || '587'),
+        secure: parseInt(SMTP_PORT) === 465,
+        auth: { user: SMTP_USER, pass: SMTP_PASS },
+        tls: { rejectUnauthorized: false }
+    });
+
+    const itemsHtml = todayActivities.map(a => {
+        const typeLabels = {
+            call: '📞 Ligação',
+            meeting: '📅 Reunião',
+            email: '📧 E-mail',
+            message: '💬 Mensagem',
+            instagram: '📸 Instagram',
+            analysis: '📊 Análise',
+            audit: '🎥 Auditoria',
+            task: '✅ Tarefa'
+        };
+        const typeColors = {
+            call: '#2563eb',
+            meeting: '#16a34a',
+            email: '#d97706',
+            message: '#0d9488',
+            instagram: '#db2777',
+            analysis: '#4f46e5',
+            audit: '#e11d48',
+            task: '#4b5563'
+        };
+
+        const typeLabel = typeLabels[a.type] || '✅ Tarefa';
+        const typeColor = typeColors[a.type] || '#4b5563';
+        const dealTitle = a.deal_id ? dealsMap.get(a.deal_id) || 'Negócio associado' : 'Sem negócio associado';
+
+        return `
+            <div style="margin-bottom: 16px; padding: 16px; background-color: #ffffff; border-radius: 8px; border-left: 4px solid ${typeColor}; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+                    <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: ${typeColor}; background-color: ${typeColor}15; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.05em;">
+                        ${typeLabel}
+                    </span>
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">
+                        ${dealTitle}
+                    </span>
+                </div>
+                <h4 style="margin: 6px 0; font-size: 14px; font-weight: 700; color: #1e293b;">
+                    ${a.title}
+                </h4>
+                ${a.notes ? `<p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b; line-height: 1.5; font-style: italic;">Obs: ${a.notes}</p>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    const htmlBody = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+            </style>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; color: #334155;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 32px 24px; border-radius: 12px 12px 0 0; text-align: center; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                    <h1 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em;">Bom dia, ${userName || 'Philippe'}!</h1>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #bfdbfe; font-weight: 500;">
+                        Aqui está o seu planejamento para hoje, dia <strong>${new Date().toLocaleDateString('pt-BR')}</strong>.
+                    </p>
+                </div>
+
+                <!-- Summary Card -->
+                <div style="background-color: #ffffff; padding: 20px; border-radius: 0 0 12px 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); text-align: center; border-top: 1px solid #f1f5f9;">
+                    <div style="display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 28px; font-weight: 800; padding: 12px 24px; border-radius: 50%; margin-bottom: 12px;">
+                        ${todayActivities.length}
+                    </div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">
+                        Atividades agendadas para hoje
+                    </h3>
+                    <p style="margin: 6px 0 0 0; font-size: 13px; color: #64748b;">
+                        Organize sua rotina e mantenha o foco para bater as metas!
+                    </p>
+                </div>
+
+                <!-- Activities List -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">
+                        Lista de Tarefas
+                    </h3>
+                    ${itemsHtml}
+                </div>
+
+                <!-- Action Button -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <a href="${process.env.TRACKING_BASE_URL || 'https://crm.dentalcarelisboa.com'}/activities" target="_blank" style="display: inline-block; background-color: #2563eb; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 32px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.2);">
+                        Abrir Fila de Atividades (Modo Foco)
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; line-height: 1.5;">
+                    <p style="margin: 0 0 4px 0;">Este é um resumo automático enviado pelo seu Dentalcare CRM.</p>
+                    <p style="margin: 0;">&copy; ${new Date().getFullYear()} CRM Platform. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    await transporter.sendMail({
+        from: `"${SMTP_FROM_NAME || 'CRM System'}" <${SMTP_USER}>`,
+        to: userEmail,
+        subject: `📅 Resumo de Hoje: ${todayActivities.length} atividade(s) planejada(s)`,
+        html: htmlBody
+    });
+
+    logToFile(`✅ [Daily Cron] Summary successfully sent to ${userEmail}`);
+    return { success: true, count: todayActivities.length };
+}
+
+/**
+ * Cron Job: Run daily at 07:00 Lisbon time
+ */
+cron.schedule('0 7 * * *', async () => {
+    logToFile('⏰ [Daily Cron] Running scheduled daily activities summary...');
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { data: users, error: userError } = await supabase
+            .from('profiles')
+            .select('id, email, name');
+
+        if (userError) {
+            logToFile(`❌ [Daily Cron] Failed to fetch users: ${userError.message}`);
+            return;
+        }
+
+        if (!users || users.length === 0) {
+            logToFile('ℹ️ [Daily Cron] No users found in profiles to send summaries.');
+            return;
+        }
+
+        for (const user of users) {
+            if (user.email) {
+                await sendDailySummaryForUser(supabase, user.id, user.email, user.name);
+            }
+        }
+        logToFile('✅ [Daily Cron] All daily summary crons finished.');
+    } catch (e) {
+        logToFile(`🔥 [Daily Cron Exception]: ${e.message}`);
+    }
+}, {
+    timezone: "Europe/Lisbon"
+});
+
+/**
+ * POST /api/cron/daily-activities-test
+ * Allows manual trigger of daily summaries for testing
+ */
+app.post('/api/cron/daily-activities-test', authenticate, async (req, res) => {
+    logToFile(`🧪 [Cron Manual Trigger] Running summary for current user...`);
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const { data: user, error: userError } = await supabase
+            .from('profiles')
+            .select('id, email, name')
+            .eq('id', req.user.sub)
+            .single();
+
+        if (userError || !user) {
+            return res.status(404).json({ error: 'User profile not found in profiles table.' });
+        }
+
+        const result = await sendDailySummaryForUser(supabase, user.id, user.email, user.name);
+        res.status(200).json({ success: true, message: 'Summary email trigger processed', result });
+    } catch (error) {
+        console.error('[Manual Cron Error]:', error.message);
+        res.status(500).json({ error: 'Cron manual trigger failed', details: error.message });
+    }
 });
 
 // Only start the server locally, otherwise export the app for Vercel Serverless
