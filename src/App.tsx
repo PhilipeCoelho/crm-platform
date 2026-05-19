@@ -58,8 +58,6 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         { path: '/pipeline', label: 'Pipeline', icon: CheckSquare },
         { path: '/activities', label: 'Atividades', icon: CalendarDays },
         { path: '/contacts', label: 'Contatos', icon: Users },
-        { path: '/email', label: 'E-mail', icon: Inbox },
-        { path: '/campaigns', label: 'Campaigns', icon: Mail },
         { path: '/insights', label: 'Insights', icon: BarChart3 },
     ];
 
@@ -396,6 +394,36 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                                 <div className="flex items-center gap-2">
                                                     <Zap size={14} className="text-primary" />
                                                     <span>Cadência Automática</span>
+                                                </div>
+                                                <ChevronRight size={14} />
+                                            </NavLink>
+                                        </div>
+
+                                        {/* E-mail Sync / Inbox */}
+                                        <div className="relative">
+                                            <NavLink
+                                                to="/email"
+                                                onClick={() => setIsSettingsOpen(false)}
+                                                className="w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Inbox size={14} className="text-primary" />
+                                                    <span>E-mail</span>
+                                                </div>
+                                                <ChevronRight size={14} />
+                                            </NavLink>
+                                        </div>
+
+                                        {/* Campaigns */}
+                                        <div className="relative">
+                                            <NavLink
+                                                to="/campaigns"
+                                                onClick={() => setIsSettingsOpen(false)}
+                                                className="w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Mail size={14} className="text-primary" />
+                                                    <span>Campanhas (Campaigns)</span>
                                                 </div>
                                                 <ChevronRight size={14} />
                                             </NavLink>
