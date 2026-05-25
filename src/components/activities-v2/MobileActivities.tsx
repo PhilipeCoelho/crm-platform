@@ -428,18 +428,18 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
         <button
           onClick={() => setActivityToComplete(a)}
           style={{
-            flex: hasPhone ? 0.5 : 1,
+            flex: 1,
             background: hasPhone ? 'var(--vp-surface)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
             color: hasPhone ? 'var(--vp-text)' : 'white',
             border: hasPhone ? '1.5px solid var(--vp-border)' : 'none',
-            padding: '15px', borderRadius: 16,
-            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
-            fontWeight: 700, fontSize: hasPhone ? 14 : 16, cursor: 'pointer',
+            padding: '15px 10px', borderRadius: 16,
+            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6,
+            fontWeight: 700, fontSize: 13, cursor: 'pointer',
             boxShadow: hasPhone ? 'none' : '0 6px 20px rgba(59,130,246,0.2)',
           }}
         >
-          <Icons.check size={18} />
-          {hasPhone ? '' : 'Concluir'}
+          <Icons.check size={16} />
+          Concluir atividade
         </button>
         {hasPhone && (
           <a
