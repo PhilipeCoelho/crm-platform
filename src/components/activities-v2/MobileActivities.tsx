@@ -292,12 +292,24 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
 
           {/* Deal Title */}
           <div>
-            <h1 style={{
-              margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--vp-text)',
-              lineHeight: 1.2, letterSpacing: '-0.5px',
-            }}>
-              {deal.title}
-            </h1>
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(
+                deal.title
+                  .replace(/^(neg[oó]cio\b\s*[:\-|\s]*)/gi, '')
+                  .replace(/\bneg[oó]cio\b/gi, '')
+                  .trim()
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+            >
+              <h1 style={{
+                margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--vp-text)',
+                lineHeight: 1.2, letterSpacing: '-0.5px', cursor: 'pointer',
+              }}>
+                {deal.title}
+              </h1>
+            </a>
             {a.title && a.title !== deal.title && (
               <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 600, color: 'var(--vp-text-soft)', lineHeight: 1.3 }}>
                 {a.title}
@@ -334,20 +346,29 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                 <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--vp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {contact?.name || 'Sem contato'}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--vp-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {contact?.phone || 'Sem telefone'}
-                </div>
+                {contact?.phone ? (
+                  <a
+                    href={`tel:${contact.phone.replace(/\s+/g, '')}`}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: 'var(--vp-text-muted)',
+                      textDecoration: 'none',
+                      display: 'block',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {contact.phone}
+                  </a>
+                ) : (
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--vp-text-muted)' }}>
+                    Sem telefone
+                  </div>
+                )}
               </div>
-              {contact?.email && (
-                <div style={{
-                  fontSize: 10, fontWeight: 700, color: 'var(--vp-text-muted)',
-                  padding: '4px 8px', borderRadius: 8,
-                  background: 'var(--vp-surface-muted)', border: '1px solid var(--vp-border)',
-                  maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {contact.email}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -413,6 +434,22 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
         borderTop: '1px solid var(--vp-border)',
         display: 'flex', gap: 10,
       }}>
+        <button
+          onClick={() => setActivityToComplete(a)}
+          style={{
+            flex: hasPhone ? 0.5 : 1,
+            background: hasPhone ? 'var(--vp-surface)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            color: hasPhone ? 'var(--vp-text)' : 'white',
+            border: hasPhone ? '1.5px solid var(--vp-border)' : 'none',
+            padding: '15px', borderRadius: 16,
+            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
+            fontWeight: 700, fontSize: hasPhone ? 14 : 16, cursor: 'pointer',
+            boxShadow: hasPhone ? 'none' : '0 6px 20px rgba(59,130,246,0.2)',
+          }}
+        >
+          <Icons.check size={18} />
+          {hasPhone ? '' : 'Concluir'}
+        </button>
         {hasPhone && (
           <a
             href={isMobile ? getWhatsAppUrl(contact.phone!) : getCleanedPhoneLink(contact.phone!)}
@@ -435,22 +472,6 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
             {isMobile ? 'WhatsApp' : 'Ligar'}
           </a>
         )}
-        <button
-          onClick={() => setActivityToComplete(a)}
-          style={{
-            flex: hasPhone ? 0.5 : 1,
-            background: hasPhone ? 'var(--vp-surface)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            color: hasPhone ? 'var(--vp-text)' : 'white',
-            border: hasPhone ? '1.5px solid var(--vp-border)' : 'none',
-            padding: '15px', borderRadius: 16,
-            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8,
-            fontWeight: 700, fontSize: hasPhone ? 14 : 16, cursor: 'pointer',
-            boxShadow: hasPhone ? 'none' : '0 6px 20px rgba(59,130,246,0.2)',
-          }}
-        >
-          <Icons.check size={18} />
-          {hasPhone ? '' : 'Concluir'}
-        </button>
       </div>
 
       {/* ===== WHATSAPP BOTTOM SHEET ===== */}
