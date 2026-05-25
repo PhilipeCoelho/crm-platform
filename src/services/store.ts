@@ -504,7 +504,9 @@ export function useCRMStore(): CRMStore {
                             houveResposta: newAct.houve_resposta,
                             originStage: newAct.origin_stage,
                             isAutomatic: newAct.is_automatic,
-                            sequenceStep: newAct.sequence_step
+                            sequenceStep: newAct.sequence_step,
+                            parentActivityId: newAct.parent_activity_id,
+                            relatedActivityId: newAct.related_activity_id
                         };
                         setActivities((prev: any[]) => {
                             if (prev.some((a: any) => a.id === mapped.id)) return prev;
@@ -703,7 +705,9 @@ export function useCRMStore(): CRMStore {
             sequence_step: data.sequenceStep,
             is_automatic: data.isAutomatic || false,
             suggested_delay: data.suggestedDelay,
-            tooltip_script: data.tooltipScript
+            tooltip_script: data.tooltipScript,
+            parent_activity_id: data.parentActivityId,
+            related_activity_id: data.relatedActivityId
         };
 
         let optimisticDate = normalizedDate || data.dueDate;

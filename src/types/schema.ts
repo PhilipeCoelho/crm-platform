@@ -110,6 +110,8 @@ export interface Activity {
     tooltipScript?: string;
     sequenceStep?: number;
     suggestedDelay?: number;
+    parentActivityId?: string;
+    relatedActivityId?: string;
     createdAt: string;
     updatedAt?: string;
     completedAt?: string;

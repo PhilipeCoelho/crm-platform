@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ArrowLeft, Building, User, Pencil, Trash2, X, Ban, MoreHorizontal, Phone, Check, MessageCircle, Instagram, ExternalLink, Search, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Building, User, Pencil, Trash2, X, Ban, MoreHorizontal, Phone, Check, MessageCircle, Instagram, ExternalLink, Search } from 'lucide-react';
 
 
 
 
 import ActivityPanel from '@/components/deals/ActivityPanel';
 import LostReasonModal from '@/components/deals/LostReasonModal';
+import { isMobileNumber, isLandline, getWhatsAppUrl, getCleanedPhoneLink } from '@/utils/phoneHelpers';
 
 import { Currency } from '@/data/currencies';
 
@@ -189,153 +190,132 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
     return (
         <div className={`flex flex-col overflow-hidden w-full h-full bg-background overscroll-none ${!isModal && 'max-w-full lg:max-w-6xl mx-auto border-x border-border shadow-lg'}`}>
 
-            {/* HEADER PIPEDRIVE STYLE */}
-            <header className="shrink-0 bg-background border-b border-border dark:border-border px-5 py-4 z-40 relative">
-                <button
-                    onClick={() => isModal ? onClose?.() : navigate(-1)}
-                    className="absolute top-4 left-5 p-1.5 hover:bg-muted dark:hover:bg-muted/10 rounded-full transition-colors shrink-0 text-muted-foreground z-50 focus:ring-2 focus:ring-primary/20"
-                    title="Fechar"
-                >
-                    {isModal ? <X size={18} /> : <ArrowLeft size={18} />}
-                </button>
+            {/* HEADER PREMIUM MOBILE-FIRST */}
+            <header className="shrink-0 bg-background border-b border-border dark:border-border z-40">
 
-                <div className="flex items-start justify-between gap-4 pl-12">
-                    {/* Top Left: Title Info */}
-                    <div className="min-w-0 space-y-1.5 pt-1">
-                        <div className="flex items-center gap-3">
+                {/* Linha única: [←] [título+valor] [ações] */}
+                <div className="flex items-center gap-2 px-3 sm:px-5 pt-3 pb-2">
+
+                    {/* Botão Voltar / Fechar */}
+                    <button
+                        onClick={() => isModal ? onClose?.() : navigate(-1)}
+                        className="shrink-0 w-8 h-8 flex items-center justify-center hover:bg-muted dark:hover:bg-muted/10 rounded-full transition-colors text-muted-foreground"
+                        title="Fechar"
+                    >
+                        {isModal ? <X size={17} /> : <ArrowLeft size={17} />}
+                    </button>
+
+                    {/* Bloco central: Título + Valor — flex-1 + min-w-0 garante truncate correto */}
+                    <div className="min-w-0 flex-1">
+
+                        {/* Linha do título + badge status */}
+                        <div className="flex items-center gap-2 min-w-0">
                             {editingField === 'title' ? (
                                 <input
                                     ref={inputRef as any}
                                     value={tempTitle}
-                                    onChange={(e) => {
-                                        setTempTitle(e.target.value);
-                                        saveChanges('title', e.target.value);
-                                    }}
+                                    onChange={(e) => { setTempTitle(e.target.value); saveChanges('title', e.target.value); }}
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
                                     data-editable="true"
-                                    className="text-base sm:text-lg font-bold text-primary dark:text-primary bg-transparent border-b-2 border-primary/50 outline-none w-full max-w-[450px] transition-all"
+                                    className="text-sm font-semibold text-primary bg-transparent border-b-2 border-primary/50 outline-none flex-1 min-w-0"
                                     autoFocus
                                     style={{ fontSize: '15px' }}
                                 />
                             ) : (
-                                <div className="flex items-center gap-2 group/title">
-                                    <h1
-                                        data-editable="true"
-                                        className="text-base sm:text-lg font-semibold text-foreground truncate max-w-[200px] sm:max-w-[450px] hover:text-primary transition-colors relative group"
-                                    >
+                                <div className="flex items-center gap-1 min-w-0 group/title">
+                                    <h1 className="text-[13px] sm:text-sm font-semibold text-foreground truncate leading-snug">
                                         <a
                                             href={`https://www.google.com/search?q=${encodeURIComponent(deal.title.replace(/^Negócio /i, '').trim())}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            target="_blank" rel="noopener noreferrer"
+                                            className="hover:text-primary transition-colors"
                                             title="Pesquisar no Google"
                                         >
                                             {deal.title}
                                         </a>
-                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
                                     </h1>
-                                    <Pencil
-                                        size={14}
-                                        className="text-muted-foreground opacity-0 group-hover/title:opacity-100 cursor-pointer hover:text-primary transition-opacity"
-                                        onClick={() => startEditing('title')}
-                                    />
+                                    <Pencil size={10} className="shrink-0 text-muted-foreground/40 opacity-0 group-hover/title:opacity-100 cursor-pointer hover:text-primary transition-opacity" onClick={() => startEditing('title')} />
                                 </div>
                             )}
-                            <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase border shadow-sm ${deal.status === 'won' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
-                                deal.status === 'lost' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
-                                    'bg-primary/10 text-primary border-primary dark:bg-primary/30 dark:text-primary dark:border-primary'
-                                }`}>
-                                {deal.status === 'open' ? 'Aberto' : deal.status === 'won' ? 'Ganho' : 'Perdido'}
+
+                            {/* Status badge compacto — nunca estoura */}
+                            <span className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide border ${
+                                deal.status === 'won'  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' :
+                                deal.status === 'lost' ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800' :
+                                                         'bg-primary/8 text-primary border-primary/30 dark:bg-primary/20 dark:text-primary dark:border-primary/40'
+                            }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                    deal.status === 'won' ? 'bg-emerald-500' : deal.status === 'lost' ? 'bg-rose-500' : 'bg-primary'
+                                }`} />
+                                <span className="hidden xs:inline">{deal.status === 'open' ? 'Aberto' : deal.status === 'won' ? 'Ganho' : 'Perdido'}</span>
                             </span>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        {/* Valor editável */}
+                        <div className="mt-0.5">
                             {editingField === 'value' ? (
-                                <div className="flex items-center gap-1 border-b-2 border-primary/50">
-                                    <span className="text-sm font-bold text-primary">{currency.symbol}</span>
+                                <div className="flex items-center gap-1 border-b border-primary/50 w-fit">
+                                    <span className="text-[11px] font-bold text-primary">{currency.symbol}</span>
                                     <input
                                         ref={inputRef as any}
                                         type="number"
                                         value={tempValue}
-                                        onChange={(e) => {
-                                            setTempValue(e.target.value);
-                                            saveChanges('value', e.target.value);
-                                        }}
+                                        onChange={(e) => { setTempValue(e.target.value); saveChanges('value', e.target.value); }}
                                         onBlur={handleBlur}
                                         onKeyDown={handleKeyDown}
                                         data-editable="true"
-                                        className="text-sm sm:text-base font-semibold text-primary dark:text-primary bg-transparent outline-none w-24"
+                                        className="text-[11px] font-semibold text-primary bg-transparent outline-none w-20"
                                         style={{ fontSize: '16px' }}
                                     />
                                 </div>
                             ) : (
-                                <div
-                                    className="group flex items-center gap-2 cursor-text w-fit"
-                                    onClick={() => startEditing('value')}
-                                    data-editable="true"
-                                >
-                                    <span className="text-xs font-semibold text-primary dark:text-primary group-hover:underline decoration-primary/30">
+                                <div className="group flex items-center gap-1 cursor-text w-fit" onClick={() => startEditing('value')} data-editable="true">
+                                    <span className="text-[11px] font-bold text-primary group-hover:underline decoration-primary/30">
                                         {deal.value.toLocaleString(currency.locale, { style: 'currency', currency: currency.code })}
                                     </span>
-                                    <Pencil size={10} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Pencil size={8} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
                             )}
                         </div>
-                        {/* Data de Adição Display */}
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60 dark:text-muted-foreground/40 uppercase tracking-wider bg-muted/30 dark:bg-muted/5 px-2.5 py-1 rounded-lg border border-border/50 dark:border-border/20 mt-0.5">
-                            <CalendarDays size={12} className="text-primary" />
-                            <span>Adicionado em {deal.expectedCloseDate ? new Date(deal.expectedCloseDate + 'T12:00:00').toLocaleDateString('pt-PT') : deal.createdAt ? new Date(deal.createdAt).toLocaleDateString('pt-PT') : 'N/A'}</span>
-                        </div>
                     </div>
 
-                    {/* Top Right: Actions */}
-                    <div className="flex items-center gap-2">
+                    {/* Ações — quadrados 32×32 no mobile, texto visível sm+ */}
+                    <div className="flex items-center gap-1 shrink-0">
                         {deal.status === 'open' ? (
                             <>
-                                <button
-                                    onClick={handleWon}
-                                    className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
-                                >
-                                    <Check size={14} />
-                                    Ganho
+                                <button onClick={handleWon} title="Ganho"
+                                    className="w-8 h-8 sm:w-auto sm:h-8 sm:px-3 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-all shadow-sm">
+                                    <Check size={15} strokeWidth={2.5} />
+                                    <span className="hidden sm:inline">Ganho</span>
                                 </button>
-                                <button
-                                    onClick={handleLost}
-                                    className="h-8 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
-                                >
-                                    <X size={14} />
-                                    Perdido
+                                <button onClick={handleLost} title="Perdido"
+                                    className="w-8 h-8 sm:w-auto sm:h-8 sm:px-3 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-all shadow-sm">
+                                    <X size={15} strokeWidth={2.5} />
+                                    <span className="hidden sm:inline">Perdido</span>
                                 </button>
                             </>
                         ) : (
-                            <button
-                                onClick={handleReopen}
-                                className="h-9 px-4 bg-muted dark:bg-muted/10 hover:bg-muted/80 border border-border dark:border-border rounded-md text-sm font-semibold flex items-center gap-2 transition-all active:scale-95"
-                            >
-                                <Ban size={16} />
-                                Reabrir
+                            <button onClick={handleReopen} title="Reabrir"
+                                className="w-8 h-8 sm:w-auto sm:h-8 sm:px-3 bg-muted hover:bg-muted/80 border border-border rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-all active:scale-95">
+                                <Ban size={14} />
+                                <span className="hidden sm:inline">Reabrir</span>
                             </button>
                         )}
-                        <div className="relative">
-                            <button
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className={`p-2 hover:bg-muted dark:hover:bg-muted/10 rounded-md transition-colors ml-1 ${isMenuOpen ? 'bg-muted dark:bg-muted/10 text-foreground' : 'text-muted-foreground'}`}
-                            >
-                                <MoreHorizontal size={20} />
-                            </button>
 
+                        {/* Menu ⋯ */}
+                        <div className="relative">
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${isMenuOpen ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
+                                <MoreHorizontal size={17} />
+                            </button>
                             {isMenuOpen && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)} />
-                                    <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="absolute right-0 mt-1.5 w-48 bg-popover border border-border rounded-xl shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-150">
                                         <button
-                                            onClick={() => {
-                                                setIsMenuOpen(false);
-                                                handleDeleteDeal();
-                                            }}
-                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-500/10 transition-colors text-left font-medium"
-                                        >
-                                            <Trash2 size={16} />
+                                            onClick={() => { setIsMenuOpen(false); handleDeleteDeal(); }}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-rose-500 hover:bg-rose-500/10 transition-colors text-left font-medium">
+                                            <Trash2 size={15} />
                                             Excluir Negócio
                                         </button>
                                     </div>
@@ -344,68 +324,33 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         </div>
                     </div>
                 </div>
-            </header>
 
-            {/* PIPELINE BAR - LINHA FINA REFORMULADA */}
-            <div className="bg-background border-b border-border dark:border-border px-6 py-4 shrink-0 overflow-x-auto no-scrollbar touch-pan-x">
-                <div className="flex items-center gap-1.5 min-w-[600px] sm:min-w-full h-1 bg-muted/20 dark:bg-muted/5 rounded-full overflow-hidden">
-                    {pipeline.stages.map((stage: any, index: number) => {
-                        const isActive = index === currentStageIndex;
-                        const isPast = index < currentStageIndex;
-                        const isWon = deal.status === 'won';
-                        const isLost = deal.status === 'lost' && isActive;
-
-                        let colorClass = "bg-transparent";
-                        if (isWon) colorClass = "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]";
-                        else if (isLost) colorClass = "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.3)]";
-                        else if (isActive) colorClass = "bg-primary shadow-[0_0_8px_rgba(99,102,241,0.4)]";
-                        else if (isPast) colorClass = "bg-primary/30";
-
-                        return (
-                            <div
-                                key={stage.id}
-                                className={`h-full flex-1 transition-all duration-300 ${colorClass} cursor-pointer hover:bg-primary/50`}
-                                title={stage.title}
-                                onClick={() => handleStageChange(stage.id)}
-                            />
-                        );
-                    })}
-                </div>
-                <div className="flex justify-between mt-2.5 px-1">
-                    <div className="flex items-center gap-2 group relative">
+                {/* Pipeline — só o label da etapa */}
+                <div className="px-3 sm:px-5 pb-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-1 group/stage cursor-pointer" onClick={() => startEditing('stage')} data-editable="true">
                         {editingField === 'stage' ? (
-                            <div className="flex items-center border-b border-primary/50">
-                                <select
-                                    ref={inputRef as any}
-                                    value={deal.stageId}
-                                    onChange={(e) => {
-                                        handleStageChange(e.target.value);
-                                        setEditingField(null);
-                                    }}
-                                    onBlur={() => setEditingField(null)}
-                                    className="text-[10px] sm:text-xs font-semibold text-primary dark:text-primary uppercase tracking-[0.15em] bg-transparent outline-none cursor-pointer pr-4"
-                                    autoFocus
-                                    style={{ fontSize: '16px' }}
-                                >
-                                    {pipeline.stages.map((s: any) => (
-                                        <option key={s.id} value={s.id}>{s.title}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            <select ref={inputRef as any} value={deal.stageId}
+                                onChange={(e) => { handleStageChange(e.target.value); setEditingField(null); }}
+                                onBlur={() => setEditingField(null)}
+                                className="text-[10px] font-bold text-primary uppercase tracking-widest bg-transparent outline-none cursor-pointer"
+                                autoFocus style={{ fontSize: '16px' }}>
+                                {pipeline.stages.map((s: any) => <option key={s.id} value={s.id}>{s.title}</option>)}
+                            </select>
                         ) : (
-                            <div className="flex items-center gap-2 group cursor-text" onClick={() => startEditing('stage')} data-editable="true">
-                                <span className="text-[10px] font-semibold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-[0.15em]">
-                                    Etapa: <span className="text-primary dark:text-primary font-semibold group-hover:underline">{pipeline.stages[currentStageIndex]?.title}</span>
+                            <>
+                                <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">
+                                    Etapa: <span className="text-primary group-hover/stage:underline">{pipeline.stages[currentStageIndex]?.title}</span>
                                 </span>
-                                <Pencil size={10} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
+                                <Pencil size={9} className="text-muted-foreground/30 opacity-0 group-hover/stage:opacity-100 transition-opacity" />
+                            </>
                         )}
                     </div>
-                    <span className="text-[10px] font-medium text-muted-foreground/60 dark:text-muted-foreground/40">
-                        {currentStageIndex + 1} / {pipeline.stages.length}
+                    <span className="text-[10px] font-medium text-muted-foreground/40">
+                        {currentStageIndex + 1}/{pipeline.stages.length}
                     </span>
                 </div>
-            </div>
+            </header>
+
 
             {/* VERTICAL CONTENT AREA - SPLIT VIEW PARA EVITAR SCROLL */}
             <div className="flex-1 overflow-y-auto md:overflow-hidden bg-background flex flex-col md:flex-row custom-scrollbar">
@@ -504,7 +449,7 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                             </div>
                                         ) : (
                                             <div className="flex items-center justify-between group/phone gap-2">
-                                                <div className="flex items-center gap-2 min-w-0">
+                                                <div className="flex items-center gap-2 min-w-0 flex-wrap">
                                                     <div
                                                         className="flex items-center gap-2 text-[11px] text-muted-foreground dark:text-muted-foreground/60 hover:text-primary cursor-text py-0.5 whitespace-nowrap"
                                                         onClick={() => startEditing('phone')}
@@ -515,9 +460,10 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                         <Pencil size={8} className="opacity-0 group-hover/phone:opacity-100 shrink-0" />
                                                     </div>
                                                     {contact.phone && (
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            {/* Ligar */}
                                                             <a
-                                                                href={`tel:${contact.phone.replace(/\D/g, '')}`}
+                                                                href={getCleanedPhoneLink(contact.phone)}
                                                                 className="p-1 px-2 bg-primary/10 text-primary dark:text-primary rounded-md text-[10px] font-bold hover:bg-primary/20 transition-all flex items-center gap-1"
                                                                 title="Ligar"
                                                             >
@@ -525,32 +471,27 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                                                                 Ligar
                                                             </a>
 
-                                                            {/* WhatsApp Link - Estilo Premium clicável */}
-                                                            {contact.phone.replace(/\D/g, '').startsWith('9') && (
+                                                            {/* WhatsApp — só para celular */}
+                                                            {isMobileNumber(contact.phone) ? (
                                                                 <a
-                                                                    href={`https://wa.me/351${contact.phone.replace(/\D/g, '')}`}
+                                                                    href={getWhatsAppUrl(contact.phone, `Olá ${contact.name.split(' ')[0]}`)}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="p-1 px-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md text-[10px] font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-1"
-                                                                    title="Enviar WhatsApp"
+                                                                    className="p-1 px-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md text-[10px] font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-1 border border-emerald-500/20"
+                                                                    title={`WhatsApp: ${contact.phone}`}
                                                                 >
                                                                     <MessageCircle size={10} />
                                                                     WhatsApp
                                                                 </a>
-                                                            )}
+                                                            ) : isLandline(contact.phone) ? (
+                                                                <span className="p-1 px-2 bg-muted/30 text-muted-foreground/50 rounded-md text-[10px] font-bold flex items-center gap-1 border border-border/40" title="Número fixo — sem WhatsApp">
+                                                                    <Phone size={10} />
+                                                                    Fixo
+                                                                </span>
+                                                            ) : null}
                                                         </div>
                                                     )}
                                                 </div>
-
-                                                {/* Botão de Chamada Nativa Mobile (Mantido para UX mobile rápida) */}
-                                                {contact.phone && (
-                                                    <a
-                                                        href={`tel:${contact.phone.replace(/\D/g, '')}`}
-                                                        className="sm:hidden h-10 w-10 flex items-center justify-center bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-500/20 active:scale-90 transition-all"
-                                                    >
-                                                        <Phone size={18} fill="currentColor" />
-                                                    </a>
-                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -706,10 +647,33 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                         </div>
                     </div>
 
-                    <div className="pt-6 flex flex-col gap-4 pb-20 sm:pb-0">
+                    <div className="pt-6 flex flex-col gap-4 pb-24 sm:pb-0">
                         <div className="h-px bg-border/50 dark:bg-border/20" />
                     </div>
                 </aside>
+
+                {/* ── BOTÃO FLUTUANTE WHATSAPP (mobile-only, só para celular) ── */}
+                {contact && isMobileNumber(contact.phone) && (
+                    <a
+                        href={getWhatsAppUrl(contact.phone!, `Olá ${contact.name.split(' ')[0]}`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={`WhatsApp ${contact.name.split(' ')[0]}`}
+                        className="
+                            fixed bottom-6 right-5 z-50
+                            flex md:hidden items-center gap-2
+                            bg-emerald-500 hover:bg-emerald-600 active:scale-95
+                            text-white text-xs font-bold
+                            px-4 py-3 rounded-full
+                            shadow-[0_4px_20px_rgba(16,185,129,0.45)]
+                            transition-all duration-200
+                            animate-[pulse_2.5s_ease-in-out_3]
+                        "
+                    >
+                        <MessageCircle size={17} strokeWidth={2.5} />
+                        <span>WhatsApp {contact.name.split(' ')[0]}</span>
+                    </a>
+                )}
             </div>
 
             <LostReasonModal

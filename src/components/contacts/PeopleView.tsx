@@ -4,6 +4,7 @@ import { Search, Filter, Plus, MoreHorizontal, Mail, Phone, Edit, Trash2, Column
 import NewContactModal from './NewContactModal';
 import { Contact } from '@/types/schema';
 import { PrivacyText } from '../ui/PrivacyMask';
+import { isMobileNumber, getCleanedWhatsAppLink, getCleanedPhoneLink } from '@/utils/phoneHelpers';
 
 type ColumnId = 'name' | 'organization' | 'email' | 'phone' | 'marketingStatus' | 'openDeals' | 'closedDeals' | 'nextActivity';
 
@@ -466,15 +467,15 @@ export default function PeopleView() {
                                                         <td key={col.id} className="px-4 py-3">
                                                             <div className="flex items-center gap-2">
                                                                 <a
-                                                                    href={`tel:${contact.phone?.replace(/\D/g, '')}`}
+                                                                    href={getCleanedPhoneLink(contact.phone || '')}
                                                                     className="hover:text-primary transition-colors"
                                                                     onClick={e => e.stopPropagation()}
                                                                 >
                                                                     <PrivacyText text={contact.phone || '-'} type="phone" />
                                                                 </a>
-                                                                {contact.phone && contact.phone.replace(/\D/g, '').startsWith('9') && (
+                                                                {contact.phone && isMobileNumber(contact.phone) && (
                                                                     <a
-                                                                        href={`https://wa.me/351${contact.phone.replace(/\D/g, '')}`}
+                                                                        href={getCleanedWhatsAppLink(contact.phone)}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="text-emerald-500 hover:text-emerald-600 transition-colors p-1 hover:bg-emerald-500/10 rounded"
@@ -549,15 +550,15 @@ export default function PeopleView() {
                                                     <Mail size={14} />
                                                 </button>
                                                 <a
-                                                    href={`tel:${contact.phone?.replace(/\D/g, '')}`}
+                                                    href={getCleanedPhoneLink(contact.phone || '')}
                                                     className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-primary transition-colors"
                                                     title="Ligar"
                                                 >
                                                     <Phone size={14} />
                                                 </a>
-                                                {contact.phone && contact.phone.replace(/\D/g, '').startsWith('9') && (
+                                                {contact.phone && isMobileNumber(contact.phone) && (
                                                     <a
-                                                        href={`https://wa.me/351${contact.phone.replace(/\D/g, '')}`}
+                                                        href={getCleanedWhatsAppLink(contact.phone)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-emerald-500 transition-colors"

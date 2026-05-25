@@ -8,6 +8,7 @@ import { ptBR } from 'date-fns/locale';
 import NewContactModal from '@/components/contacts/NewContactModal';
 import ActivityList from '@/components/activities/ActivityList';
 import NewActivityModal from '@/components/activities/NewActivityModal';
+import { isMobileNumber, getCleanedWhatsAppLink } from '@/utils/phoneHelpers';
 
 interface Props {
     contactId?: string;
@@ -162,9 +163,9 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
                                                     {contact.phone || <span className="text-muted-foreground italic">Não informado</span>}
                                                 </a>
                                             </div>
-                                            {contact.phone && contact.phone.replace(/\D/g, '').startsWith('9') && (
+                                            {contact.phone && isMobileNumber(contact.phone) && (
                                                 <a
-                                                    href={`https://wa.me/351${contact.phone.replace(/\D/g, '')}`}
+                                                    href={getCleanedWhatsAppLink(contact.phone)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-1 text-[10px] font-bold bg-emerald-500/5 px-2 py-1 rounded-md"

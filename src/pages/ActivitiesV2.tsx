@@ -1,3 +1,5 @@
+import { useIsMobile } from '@/hooks/useMediaQuery';
+import MobileActivities from '@/components/activities-v2/MobileActivities';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import './activities-v2.css';
 import { useCRM } from '@/contexts/CRMContext';
@@ -48,7 +50,8 @@ function getCleanedPhoneLink(phone: string): string {
   return `tel:${digits}`;
 }
 
-export default function ActivitiesV2({ currency }: { currency: Currency }) {
+function DesktopActivitiesV2({ currency }: { currency: Currency }) {
+
   const {
     deals, activities, contacts, pipelines,
     updateActivity, openFocusDeal, isPrivacyMode,
@@ -773,4 +776,12 @@ export default function ActivitiesV2({ currency }: { currency: Currency }) {
       />
     </div>
   );
+}
+
+export default function ActivitiesV2({ currency }: { currency: Currency }) {
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return <MobileActivities currency={currency} />;
+  }
+  return <DesktopActivitiesV2 currency={currency} />;
 }
