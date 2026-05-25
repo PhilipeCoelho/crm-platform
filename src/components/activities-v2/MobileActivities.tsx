@@ -52,6 +52,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
   const [pendingWhatsAppActivity, setPendingWhatsAppActivity] = useState<Activity | null>(null);
   const [hasLeftApp, setHasLeftApp] = useState(false);
   const [showWhatsAppPrompt, setShowWhatsAppPrompt] = useState(false);
+  const [pastedMessage, setPastedMessage] = useState('');
 
   const getDeal = useCallback((id?: string) => deals.find(d => d.id === id), [deals]);
   const getContact = useCallback((id?: string) => contacts.find(c => c.id === id), [contacts]);
@@ -99,6 +100,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
     setPendingWhatsAppActivity(a);
     setHasLeftApp(false);
     setShowWhatsAppPrompt(false);
+    setPastedMessage('');
 
     // Fallback: se os eventos blur/visibilitychange não dispararem ou demorarem em alguns browsers
     setTimeout(() => {
@@ -705,17 +707,53 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                 Conseguiu enviar a mensagem com sucesso?
               </div>
 
+              {/* Optional Textarea to paste message */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--vp-text-soft)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Mensagem Enviada (Opcional)
+                </label>
+                <textarea
+                  placeholder="Cole aqui o texto da mensagem para guardar no histórico..."
+                  value={pastedMessage}
+                  onChange={(e) => setPastedMessage(e.target.value)}
+                  style={{
+                    width: '100%',
+                    minHeight: 70,
+                    maxHeight: 120,
+                    padding: '10px 12px',
+                    borderRadius: 12,
+                    border: '1px solid var(--vp-border)',
+                    fontSize: 13,
+                    outline: 'none',
+                    resize: 'vertical',
+                    backgroundColor: 'var(--vp-surface)',
+                    color: 'var(--vp-text)',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)'
+                  }}
+                />
+              </div>
+
               {/* Action Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   onClick={async () => {
                     const activity = pendingWhatsAppActivity;
+                    const messageContent = pastedMessage.trim();
+
                     // Reset do prompt imediatamente para fechar modal e evitar cliques duplicados
                     setShowWhatsAppPrompt(false);
                     setPendingWhatsAppActivity(null);
+                    setPastedMessage('');
 
                     // 1. Concluir atividade atual com notas
-                    const notes = execNotes[activity.id] || "Mensagem enviada via WhatsApp.";
+                    let notes = execNotes[activity.id] || "";
+                    if (messageContent) {
+                      notes = notes 
+                        ? `${notes}\n\n[Mensagem Enviada]:\n"${messageContent}"`
+                        : `Mensagem enviada via WhatsApp:\n\n"${messageContent}"`;
+                    } else {
+                      notes = notes || "Mensagem enviada via WhatsApp.";
+                    }
                     await completeActivityWithLog(activity.id, notes, true);
 
                     // 2. Criar nova atividade para 1 dia
