@@ -34,7 +34,7 @@ function fmtMoney(v: number, currency: Currency): string {
 export default function MobileActivities({ currency }: { currency: Currency }) {
   const {
     deals, activities, contacts, pipelines,
-    addActivity, completeActivityWithLog, addLog
+    addActivity, completeActivityWithLog
   } = useCRM();
 
   const [filterType, setFilterType] = useState<string>('all');
@@ -745,43 +745,25 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                     setPendingWhatsAppActivity(null);
                     setPastedMessage('');
 
-                    // 1. Concluir a atividade apenas se for do tipo 'message' (WhatsApp)
-                    if (activity.type === 'message') {
-                      let notes = execNotes[activity.id] || "";
-                      if (messageContent) {
-                        notes = notes 
-                          ? `${notes}\n\n[Mensagem Enviada]:\n"${messageContent}"`
-                          : `Mensagem enviada via WhatsApp:\n\n"${messageContent}"`;
-                      } else {
-                        notes = notes || "Mensagem enviada via WhatsApp.";
-                      }
-                      await completeActivityWithLog(activity.id, notes, true);
+                    // 1. Concluir a atividade atual com as notas da interação e mensagem enviada (funciona para qualquer tipo de atividade)
+                    let notes = execNotes[activity.id] || "";
+                    if (messageContent) {
+                      notes = notes 
+                        ? `${notes}\n\n[Mensagem Enviada]:\n"${messageContent}"`
+                        : `Mensagem enviada via WhatsApp:\n\n"${messageContent}"`;
                     } else {
-                      // Se a atividade for 'call', 'email', etc., não a concluímos.
-                      // Mas se o usuário colou uma mensagem, registamos isso no histórico do negócio via addLog.
-                      if (messageContent) {
-                        await addLog({
-                          dealId: activity.dealId!,
-                          content: `Abordagem WhatsApp realizada:\n\n"${messageContent}"`,
-                          logType: 'activity_note'
-                        });
-                      } else {
-                        await addLog({
-                          dealId: activity.dealId!,
-                          content: "Contacto iniciado via WhatsApp.",
-                          logType: 'system'
-                        });
-                      }
+                      notes = notes || "Mensagem enviada via WhatsApp.";
                     }
+                    await completeActivityWithLog(activity.id, notes, true);
 
-                    // 2. Criar nova atividade para 1 dia
+                    // 2. Criar nova atividade para amanhã (+1 dia) para verificar se respondeu
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     
                     await addActivity({
                       dealId: activity.dealId,
                       type: 'message',
-                      title: 'Follow-up da mensagem do WhatsApp',
+                      title: 'Verificar se respondeu ao WhatsApp',
                       status: 'pending',
                       completed: false,
                       dueDate: tomorrow.toISOString(),
