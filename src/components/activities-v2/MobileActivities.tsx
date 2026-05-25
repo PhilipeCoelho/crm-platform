@@ -121,6 +121,12 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
       setCurrentIndex(mobileActivities.length - 1);
   }, [mobileActivities.length, currentIndex]);
 
+  useEffect(() => {
+    if (periodFilter === 'today' && mobileActivities.length === 0) {
+      setPeriodFilter('all');
+    }
+  }, [mobileActivities.length, periodFilter]);
+
   const current = mobileActivities[currentIndex] || null;
 
   const { isRecording, toggleRecording } = useVoiceTranscription({
