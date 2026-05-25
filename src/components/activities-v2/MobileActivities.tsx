@@ -26,7 +26,7 @@ function getDueDays(dueDate?: string): number {
 export default function MobileActivities({ currency }: { currency: Currency }) {
   void currency;
   const {
-    deals, activities, contacts, pipelines,
+    deals, activities, contacts, pipelines, logs,
     addActivity, completeActivityWithLog
   } = useCRM();
 
@@ -35,6 +35,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const [execNotes, setExecNotes] = useState<Record<string, string>>({});
   const [activityToComplete, setActivityToComplete] = useState<Activity | null>(null);
@@ -108,7 +109,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
       });
   }, [activities, getDeal, getContact, filterType, periodFilter]);
 
-  useEffect(() => { setCurrentIndex(0); setShowNotes(false); }, [filterType, periodFilter]);
+  useEffect(() => { setCurrentIndex(0); setShowNotes(false); setShowHistory(false); }, [filterType, periodFilter]);
   useEffect(() => {
     if (currentIndex >= mobileActivities.length && mobileActivities.length > 0)
       setCurrentIndex(mobileActivities.length - 1);
@@ -139,6 +140,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
     if (next < 0 || next >= mobileActivities.length) return;
     setSlideDir(dir);
     setShowNotes(false);
+    setShowHistory(false);
     setTimeout(() => { setCurrentIndex(next); setSlideDir(null); }, 150);
   }, [currentIndex, mobileActivities.length]);
 
@@ -410,6 +412,98 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                   <VoiceMicButton isRecording={isRecording} onToggle={toggleRecording} size="sm" variant="minimal" />
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* History section */}
+        <div style={{ marginTop: 8 }}>
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            style={{
+              width: '100%', padding: '14px 16px', borderRadius: 16,
+              background: showHistory ? 'var(--vp-surface)' : 'transparent',
+              border: showHistory ? '1px solid var(--vp-border)' : '1px solid transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: showHistory ? 'var(--vp-text)' : 'var(--vp-text-soft)' }}>
+              <Icons.history size={16} />
+              Ver histórico
+            </span>
+            <Icons.chevronRight size={14} style={{
+              color: 'var(--vp-text-muted)',
+              transform: showHistory ? 'rotate(90deg)' : 'none',
+              transition: 'transform 0.2s',
+            }} />
+          </button>
+
+          {showHistory && (
+            <div style={{
+              padding: '16px', marginTop: 4,
+              background: 'var(--vp-surface)', borderRadius: 24,
+              border: '1px solid var(--vp-border)',
+              display: 'flex', flexDirection: 'column', gap: 12,
+              animation: 'fadeIn 0.15s',
+              maxHeight: 280, overflowY: 'auto',
+            }}>
+              {activities
+                .filter(pa => pa.dealId === deal.id && pa.completed)
+                .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
+                .map(pa => {
+                  const activityLog = logs?.find(l => l.activityId === pa.id);
+                  const interactionText = activityLog?.content || pa.notes || pa.result || pa.description;
+                  
+                  const getIcon = () => {
+                    if (pa.type === 'call') return '📞';
+                    if (pa.type === 'message') return '💬';
+                    if (pa.type === 'email') return '✉️';
+                    if (pa.type === 'meeting') return '👥';
+                    return '✅';
+                  };
+
+                  const formatDate = (dateStr?: string) => {
+                    if (!dateStr) return '';
+                    try {
+                      const d = new Date(dateStr);
+                      return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
+                    } catch (e) {
+                      return '';
+                    }
+                  };
+
+                  return (
+                    <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 12, borderBottom: '1px solid var(--vp-border)' }}>
+                      <div style={{ fontSize: 16, flexShrink: 0, marginTop: 2 }}>{getIcon()}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--vp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {pa.title}
+                          </span>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--vp-text-muted)' }}>
+                            {formatDate(pa.completedAt)}
+                          </span>
+                        </div>
+                        {interactionText && (
+                          <div style={{ 
+                            fontSize: 11, color: 'var(--vp-text-soft)', marginTop: 4, 
+                            padding: '8px 10px', background: 'var(--vp-surface-muted)', borderRadius: 10,
+                            lineHeight: '1.4', whiteSpace: 'pre-wrap'
+                          }}>
+                            {interactionText}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {activities.filter(pa => pa.dealId === deal.id && pa.completed).length === 0 && (
+                <div style={{ fontSize: 12, color: 'var(--vp-text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '12px 0' }}>
+                  Nenhuma atividade concluída anteriormente.
+                </div>
+              )}
             </div>
           )}
         </div>
