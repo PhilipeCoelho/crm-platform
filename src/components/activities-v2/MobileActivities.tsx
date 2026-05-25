@@ -23,15 +23,8 @@ function getDueDays(dueDate?: string): number {
   return differenceInDays(startOfDay(parseISO(dueDate)), startOfDay(new Date()));
 }
 
-function fmtMoney(v: number, currency: Currency): string {
-  return new Intl.NumberFormat(currency.locale, {
-    style: 'currency', currency: currency.code,
-    minimumFractionDigits: 0,
-    notation: v >= 100_000 ? 'compact' : 'standard',
-  }).format(v).replace(/\s+/g, '');
-}
-
 export default function MobileActivities({ currency }: { currency: Currency }) {
+  void currency;
   const {
     deals, activities, contacts, pipelines,
     addActivity, completeActivityWithLog
@@ -278,21 +271,13 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           padding: '20px',
           display: 'flex', flexDirection: 'column', gap: 16,
         }}>
-          {/* Due Badge */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Due Info (Right aligned, minimal plain text) */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             <div style={{
-              fontSize: 13, fontWeight: 800, padding: '6px 14px', borderRadius: 12,
-              background: isOverdue ? 'linear-gradient(135deg, #fef2f2, #fee2e2)' : 'var(--vp-surface-muted)',
-              border: isOverdue ? '1px solid #fecaca' : '1px solid var(--vp-border)',
-              color: isOverdue ? '#dc2626' : 'var(--vp-text-soft)',
+              fontSize: 13, fontWeight: 700,
+              color: isOverdue ? '#dc2626' : 'var(--vp-text-muted)',
             }}>
-              {due === 0 ? '📅 Hoje' : due < 0 ? `🔥 ${Math.abs(due)}d atraso` : `⏳ Em ${due}d`}
-            </div>
-            <div style={{
-              fontSize: 15, fontWeight: 900, color: '#d97706',
-              letterSpacing: '-0.3px',
-            }}>
-              {fmtMoney(deal.value, currency)}
+              {due === 0 ? 'Hoje' : due < 0 ? `${Math.abs(due)}d atraso` : `Em ${due}d`}
             </div>
           </div>
 
