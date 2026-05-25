@@ -34,7 +34,7 @@ function fmtMoney(v: number, currency: Currency): string {
 export default function MobileActivities({ currency }: { currency: Currency }) {
   const {
     deals, activities, contacts, pipelines,
-    addActivity, completeActivityWithLog
+    addActivity, completeActivityWithLog, addLog
   } = useCRM();
 
   const [filterType, setFilterType] = useState<string>('all');
@@ -745,16 +745,34 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                     setPendingWhatsAppActivity(null);
                     setPastedMessage('');
 
-                    // 1. Concluir atividade atual com notas
-                    let notes = execNotes[activity.id] || "";
-                    if (messageContent) {
-                      notes = notes 
-                        ? `${notes}\n\n[Mensagem Enviada]:\n"${messageContent}"`
-                        : `Mensagem enviada via WhatsApp:\n\n"${messageContent}"`;
+                    // 1. Concluir a atividade apenas se for do tipo 'message' (WhatsApp)
+                    if (activity.type === 'message') {
+                      let notes = execNotes[activity.id] || "";
+                      if (messageContent) {
+                        notes = notes 
+                          ? `${notes}\n\n[Mensagem Enviada]:\n"${messageContent}"`
+                          : `Mensagem enviada via WhatsApp:\n\n"${messageContent}"`;
+                      } else {
+                        notes = notes || "Mensagem enviada via WhatsApp.";
+                      }
+                      await completeActivityWithLog(activity.id, notes, true);
                     } else {
-                      notes = notes || "Mensagem enviada via WhatsApp.";
+                      // Se a atividade for 'call', 'email', etc., não a concluímos.
+                      // Mas se o usuário colou uma mensagem, registamos isso no histórico do negócio via addLog.
+                      if (messageContent) {
+                        await addLog({
+                          dealId: activity.dealId!,
+                          content: `Abordagem WhatsApp realizada:\n\n"${messageContent}"`,
+                          logType: 'activity_note'
+                        });
+                      } else {
+                        await addLog({
+                          dealId: activity.dealId!,
+                          content: "Contacto iniciado via WhatsApp.",
+                          logType: 'system'
+                        });
+                      }
                     }
-                    await completeActivityWithLog(activity.id, notes, true);
 
                     // 2. Criar nova atividade para 1 dia
                     const tomorrow = new Date();
