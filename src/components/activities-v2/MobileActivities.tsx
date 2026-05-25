@@ -190,7 +190,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
         @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
         @keyframes slideL { from { opacity:0; transform:translateX(60px) } to { opacity:1; transform:translateX(0) } }
         @keyframes slideR { from { opacity:0; transform:translateX(-60px) } to { opacity:1; transform:translateX(0) } }
-        @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0) } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0.12) } }
+
       `}</style>
 
       {/* ===== TOP BAR ===== */}
@@ -267,13 +267,10 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
         {/* Main Card */}
         <div style={{
           background: 'var(--vp-surface)', borderRadius: 24,
-          border: `1px solid ${isOverdue ? 'rgba(239,68,68,0.2)' : 'var(--vp-border)'}`,
-          boxShadow: isOverdue
-            ? '0 8px 32px rgba(239,68,68,0.06), 0 0 0 1px rgba(239,68,68,0.05)'
-            : '0 8px 32px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)',
+          border: '1px solid var(--vp-border)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)',
           padding: '20px',
           display: 'flex', flexDirection: 'column', gap: 16,
-          animation: isOverdue ? 'pulseGlow 3s ease-in-out infinite' : 'none',
         }}>
           {/* Due Badge */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
