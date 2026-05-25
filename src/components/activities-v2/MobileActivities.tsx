@@ -745,7 +745,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                     setPendingWhatsAppActivity(null);
                     setPastedMessage('');
 
-                    // 1. Concluir a atividade atual com as notas da interação e mensagem enviada (funciona para qualquer tipo de atividade)
+                    // Lógica de Notas / Mensagem Enviada
                     let notes = execNotes[activity.id] || "";
                     if (messageContent) {
                       notes = notes 
@@ -754,9 +754,26 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                     } else {
                       notes = notes || "Mensagem enviada via WhatsApp.";
                     }
-                    await completeActivityWithLog(activity.id, notes, true);
 
-                    // 2. Criar nova atividade para amanhã (+1 dia) para verificar se respondeu
+                    // 1. Se a atividade primária for de mensagem (WhatsApp), concluímos ela diretamente
+                    if (activity.type === 'message') {
+                      await completeActivityWithLog(activity.id, notes, true);
+                    } else {
+                      // Se for Tarefa, Ligar, etc., NÃO concluímos a atividade primária (ela fica aberta).
+                      // Em vez disso, criamos uma NOVA atividade de mensagem CONCLUÍDA no Histórico do Negócio.
+                      const now = new Date();
+                      await addActivity({
+                        dealId: activity.dealId,
+                        type: 'message',
+                        title: 'Mensagem enviada via WhatsApp',
+                        status: 'completed',
+                        completed: true,
+                        dueDate: now.toISOString(),
+                        notes: notes
+                      });
+                    }
+
+                    // 2. Criar nova atividade pendente para amanhã (+1 dia) para verificar se respondeu
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     
