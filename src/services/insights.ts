@@ -135,9 +135,11 @@ export async function getInsightsData(
 ): Promise<InsightsData> {
 
     const fetchStats = async (start: string, end: string): Promise<InsightsStats & { funnel: FunnelData, activity: ActivityData, intensity: IntensityData, timing: TimingData, channel: ChannelData, lost: LostData, abordagem: AbordagemData }> => {
-        // Garantir que a data final cubra o final do dia
-        const endOfDay = end.includes('T') ? end : `${end}T23:59:59.999Z`;
-        const startOfDay = start.includes('T') ? start : `${start}T00:00:00.000Z`;
+        // Garantir que a data inicial e final cubram os dias inteiros de forma robusta e independente de clock skews/timezones
+        const startPart = start.includes('T') ? start.split('T')[0] : start;
+        const endPart = end.includes('T') ? end.split('T')[0] : end;
+        const startOfDay = `${startPart}T00:00:00.000Z`;
+        const endOfDay = `${endPart}T23:59:59.999Z`;
 
         const IGNORE_TEST_DATA_BEFORE = '2026-02-22T00:00:00.000Z'; // Ajustado para hoje para "esquecer o passado" de testes recente
 
