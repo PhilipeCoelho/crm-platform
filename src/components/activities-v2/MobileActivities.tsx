@@ -322,16 +322,6 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
             gap: 16,
             margin: (showNotes || showHistory) ? '-8px 0 -8px 0' : '0',
           }}>
-            {/* Due Info (Right aligned, minimal plain text) */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-              <div style={{
-                fontSize: 13, fontWeight: 700,
-                color: isOverdue ? '#dc2626' : 'var(--vp-text-muted)',
-              }}>
-                {due === 0 ? 'Hoje' : due < 0 ? `${Math.abs(due)}d atraso` : `Em ${due}d`}
-              </div>
-            </div>
-
             {/* Deal Title */}
             <div>
               <a
@@ -359,15 +349,22 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
               )}
             </div>
 
-            {/* Stage pill */}
-            <div style={{
-              alignSelf: 'flex-start',
-              fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
-              padding: '5px 12px', borderRadius: 8,
-              background: 'var(--vp-surface-muted)', color: 'var(--vp-text-soft)',
-              border: '1px solid var(--vp-border)',
-            }}>
-              {stage?.title || 'Sem etapa'}
+            {/* Stage & Due Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{
+                fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+                padding: '5px 12px', borderRadius: 8,
+                background: 'var(--vp-surface-muted)', color: 'var(--vp-text-soft)',
+                border: '1px solid var(--vp-border)',
+              }}>
+                {stage?.title || 'Sem etapa'}
+              </div>
+              <div style={{
+                fontSize: 12, fontWeight: 700,
+                color: isOverdue ? '#dc2626' : 'var(--vp-text-muted)',
+              }}>
+                {due === 0 ? '• Hoje' : due < 0 ? `• ${Math.abs(due)}d atraso` : `• Em ${due}d`}
+              </div>
             </div>
 
             {/* Divider */}
