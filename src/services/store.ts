@@ -688,6 +688,9 @@ export function useCRMStore(): CRMStore {
         }
         normalizedDate = adjustDateForWeekend(normalizedDate || data.dueDate);
 
+        const isCompleted = data.completed !== undefined ? data.completed : (data.status === 'completed');
+        const completedAtTime = data.completedAt || (isCompleted ? new Date().toISOString() : null);
+
         const newActivity = {
             id: tempId,
             title: data.title,
@@ -697,8 +700,9 @@ export function useCRMStore(): CRMStore {
             deal_id: data.dealId,
             user_id: user.id,
             notes: data.notes,
-            completed: data.completed !== undefined ? data.completed : false,
-            status: data.status || (data.completed ? 'completed' : 'pending'),
+            completed: isCompleted,
+            status: data.status || (isCompleted ? 'completed' : 'pending'),
+            completed_at: completedAtTime,
             houve_resposta: data.houveResposta !== undefined ? data.houveResposta : false,
             origin_stage: data.originStage,
             sequence_id: data.sequenceId,
@@ -717,6 +721,7 @@ export function useCRMStore(): CRMStore {
             id: tempId,
             userId: user.id,
             createdAt: new Date().toISOString(),
+            completedAt: completedAtTime || undefined,
             isOptimistic: true
         };
 
