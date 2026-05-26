@@ -273,240 +273,248 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           padding: '20px',
           display: 'flex', flexDirection: 'column', gap: 16,
         }}>
-          {/* Due Info (Right aligned, minimal plain text) */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <div style={{
-              fontSize: 13, fontWeight: 700,
-              color: isOverdue ? '#dc2626' : 'var(--vp-text-muted)',
-            }}>
-              {due === 0 ? 'Hoje' : due < 0 ? `${Math.abs(due)}d atraso` : `Em ${due}d`}
-            </div>
-          </div>
-
-          {/* Deal Title */}
-          <div>
-            <a
-              href={`https://www.google.com/search?q=${encodeURIComponent(
-                deal.title
-                  .replace(/^(neg[oó]cio\b\s*[:\-|\s]*)/gi, '')
-                  .replace(/\bneg[oó]cio\b/gi, '')
-                  .trim()
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-            >
-              <h1 style={{
-                margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--vp-text)',
-                lineHeight: 1.2, letterSpacing: '-0.5px', cursor: 'pointer',
-              }}>
-                {deal.title}
-              </h1>
-            </a>
-            {a.title && a.title !== deal.title && (
-              <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 600, color: 'var(--vp-text-soft)', lineHeight: 1.3 }}>
-                {a.title}
-              </p>
-            )}
-          </div>
-
-          {/* Stage pill */}
-          <div style={{
-            alignSelf: 'flex-start',
-            fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
-            padding: '5px 12px', borderRadius: 8,
-            background: 'var(--vp-surface-muted)', color: 'var(--vp-text-soft)',
-            border: '1px solid var(--vp-border)',
-          }}>
-            {stage?.title || 'Sem etapa'}
-          </div>
-
-          {/* Divider */}
-          <div style={{ height: 1, background: 'var(--vp-border)' }} />
-
-          {/* Contact Info — always visible */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 12,
-                background: 'var(--vp-surface-muted)', border: '1px solid var(--vp-border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--vp-text-soft)', flexShrink: 0,
-              }}>
-                <Icons.user size={16} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--vp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {contact?.name || 'Sem contato'}
+          {!showNotes && !showHistory && (
+            <>
+              {/* Due Info (Right aligned, minimal plain text) */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <div style={{
+                  fontSize: 13, fontWeight: 700,
+                  color: isOverdue ? '#dc2626' : 'var(--vp-text-muted)',
+                }}>
+                  {due === 0 ? 'Hoje' : due < 0 ? `${Math.abs(due)}d atraso` : `Em ${due}d`}
                 </div>
-                {contact?.phone ? (
-                  <a
-                    href={`tel:${contact.phone.replace(/\s+/g, '')}`}
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: 'var(--vp-text-muted)',
-                      textDecoration: 'none',
-                      display: 'block',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {contact.phone}
-                  </a>
-                ) : (
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--vp-text-muted)' }}>
-                    Sem telefone
-                  </div>
+              </div>
+
+              {/* Deal Title */}
+              <div>
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(
+                    deal.title
+                      .replace(/^(neg[oó]cio\b\s*[:\-|\s]*)/gi, '')
+                      .replace(/\bneg[oó]cio\b/gi, '')
+                      .trim()
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+                >
+                  <h1 style={{
+                    margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--vp-text)',
+                    lineHeight: 1.2, letterSpacing: '-0.5px', cursor: 'pointer',
+                  }}>
+                    {deal.title}
+                  </h1>
+                </a>
+                {a.title && a.title !== deal.title && (
+                  <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 600, color: 'var(--vp-text-soft)', lineHeight: 1.3 }}>
+                    {a.title}
+                  </p>
                 )}
               </div>
-            </div>
-          </div>
+
+              {/* Stage pill */}
+              <div style={{
+                alignSelf: 'flex-start',
+                fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+                padding: '5px 12px', borderRadius: 8,
+                background: 'var(--vp-surface-muted)', color: 'var(--vp-text-soft)',
+                border: '1px solid var(--vp-border)',
+              }}>
+                {stage?.title || 'Sem etapa'}
+              </div>
+
+              {/* Divider */}
+              <div style={{ height: 1, background: 'var(--vp-border)' }} />
+
+              {/* Contact Info — always visible */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 12,
+                    background: 'var(--vp-surface-muted)', border: '1px solid var(--vp-border)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--vp-text-soft)', flexShrink: 0,
+                  }}>
+                    <Icons.user size={16} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--vp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {contact?.name || 'Sem contato'}
+                    </div>
+                    {contact?.phone ? (
+                      <a
+                        href={`tel:${contact.phone.replace(/\s+/g, '')}`}
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: 'var(--vp-text-muted)',
+                          textDecoration: 'none',
+                          display: 'block',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {contact.phone}
+                      </a>
+                    ) : (
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--vp-text-muted)' }}>
+                        Sem telefone
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Notes section */}
-        <div style={{ marginTop: 12 }}>
-          <button
-            onClick={() => setShowNotes(!showNotes)}
-            style={{
-              width: '100%', padding: '14px 16px', borderRadius: 16,
-              background: showNotes ? 'var(--vp-surface)' : 'transparent',
-              border: showNotes ? '1px solid var(--vp-border)' : '1px solid transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: showNotes ? 'var(--vp-text)' : 'var(--vp-text-soft)' }}>
-              <Icons.fileText size={16} />
-              {execNotes[a.id] ? '✏️ Notas adicionadas' : 'Adicionar notas'}
-            </span>
-            <Icons.chevronRight size={14} style={{
-              color: 'var(--vp-text-muted)',
-              transform: showNotes ? 'rotate(90deg)' : 'none',
-              transition: 'transform 0.2s',
-            }} />
-          </button>
+        {!showHistory && (
+          <div style={{ marginTop: 12 }}>
+            <button
+              onClick={() => setShowNotes(!showNotes)}
+              style={{
+                width: '100%', padding: '14px 16px', borderRadius: 16,
+                background: showNotes ? 'var(--vp-surface)' : 'transparent',
+                border: showNotes ? '1px solid var(--vp-border)' : '1px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: showNotes ? 'var(--vp-text)' : 'var(--vp-text-soft)' }}>
+                <Icons.fileText size={16} />
+                {execNotes[a.id] ? '✏️ Notas adicionadas' : 'Adicionar notas'}
+              </span>
+              <Icons.chevronRight size={14} style={{
+                color: 'var(--vp-text-muted)',
+                transform: showNotes ? 'rotate(90deg)' : 'none',
+                transition: 'transform 0.2s',
+              }} />
+            </button>
 
-          {showNotes && (
-            <div style={{
-              padding: '12px 16px', marginTop: 4,
-              background: 'var(--vp-surface)', borderRadius: 16,
-              border: '1px solid var(--vp-border)',
-              animation: 'fadeIn 0.15s',
-            }}>
-              <div style={{ position: 'relative' }}>
-                <textarea
-                  placeholder="O que aconteceu nesta interação?"
-                  value={execNotes[a.id] || ''}
-                  onChange={e => setExecNotes(p => ({ ...p, [a.id]: e.target.value }))}
-                  style={{
-                    width: '100%', minHeight: 72, padding: '12px 44px 12px 12px',
-                    borderRadius: 12, border: '1px solid var(--vp-border)',
-                    fontSize: 14, outline: 'none', resize: 'vertical',
-                    backgroundColor: 'var(--vp-surface-muted)',
-                  }}
-                />
-                <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                  <VoiceMicButton isRecording={isRecording} onToggle={toggleRecording} size="sm" variant="minimal" />
+            {showNotes && (
+              <div style={{
+                padding: '12px 16px', marginTop: 4,
+                background: 'var(--vp-surface)', borderRadius: 16,
+                border: '1px solid var(--vp-border)',
+                animation: 'fadeIn 0.15s',
+              }}>
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    placeholder="O que aconteceu nesta interação?"
+                    value={execNotes[a.id] || ''}
+                    onChange={e => setExecNotes(p => ({ ...p, [a.id]: e.target.value }))}
+                    style={{
+                      width: '100%', minHeight: 72, padding: '12px 44px 12px 12px',
+                      borderRadius: 12, border: '1px solid var(--vp-border)',
+                      fontSize: 14, outline: 'none', resize: 'vertical',
+                      backgroundColor: 'var(--vp-surface-muted)',
+                    }}
+                  />
+                  <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                    <VoiceMicButton isRecording={isRecording} onToggle={toggleRecording} size="sm" variant="minimal" />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* History section */}
-        <div style={{ marginTop: 8 }}>
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            style={{
-              width: '100%', padding: '14px 16px', borderRadius: 16,
-              background: showHistory ? 'var(--vp-surface)' : 'transparent',
-              border: showHistory ? '1px solid var(--vp-border)' : '1px solid transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: showHistory ? 'var(--vp-text)' : 'var(--vp-text-soft)' }}>
-              <Icons.history size={16} />
-              Ver histórico
-            </span>
-            <Icons.chevronRight size={14} style={{
-              color: 'var(--vp-text-muted)',
-              transform: showHistory ? 'rotate(90deg)' : 'none',
-              transition: 'transform 0.2s',
-            }} />
-          </button>
+        {!showNotes && (
+          <div style={{ marginTop: 8 }}>
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              style={{
+                width: '100%', padding: '14px 16px', borderRadius: 16,
+                background: showHistory ? 'var(--vp-surface)' : 'transparent',
+                border: showHistory ? '1px solid var(--vp-border)' : '1px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: showHistory ? 'var(--vp-text)' : 'var(--vp-text-soft)' }}>
+                <Icons.history size={16} />
+                Ver histórico
+              </span>
+              <Icons.chevronRight size={14} style={{
+                color: 'var(--vp-text-muted)',
+                transform: showHistory ? 'rotate(90deg)' : 'none',
+                transition: 'transform 0.2s',
+              }} />
+            </button>
 
-          {showHistory && (
-            <div style={{
-              padding: '16px', marginTop: 4,
-              background: 'var(--vp-surface)', borderRadius: 24,
-              border: '1px solid var(--vp-border)',
-              display: 'flex', flexDirection: 'column', gap: 12,
-              animation: 'fadeIn 0.15s',
-              maxHeight: 280, overflowY: 'auto',
-            }}>
-              {activities
-                .filter(pa => pa.dealId === deal.id && pa.completed)
-                .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
-                .map(pa => {
-                  const activityLog = logs?.find(l => l.activityId === pa.id);
-                  const interactionText = activityLog?.content || pa.notes || pa.result || pa.description;
-                  
-                  const getIcon = () => {
-                    if (pa.type === 'call') return '📞';
-                    if (pa.type === 'message') return '💬';
-                    if (pa.type === 'email') return '✉️';
-                    if (pa.type === 'meeting') return '👥';
-                    return '✅';
-                  };
+            {showHistory && (
+              <div style={{
+                padding: '16px', marginTop: 4,
+                background: 'var(--vp-surface)', borderRadius: 24,
+                border: '1px solid var(--vp-border)',
+                display: 'flex', flexDirection: 'column', gap: 12,
+                animation: 'fadeIn 0.15s',
+                maxHeight: 280, overflowY: 'auto',
+              }}>
+                {activities
+                  .filter(pa => pa.dealId === deal.id && pa.completed)
+                  .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
+                  .map(pa => {
+                    const activityLog = logs?.find(l => l.activityId === pa.id);
+                    const interactionText = activityLog?.content || pa.notes || pa.result || pa.description;
+                    
+                    const getIcon = () => {
+                      if (pa.type === 'call') return '📞';
+                      if (pa.type === 'message') return '💬';
+                      if (pa.type === 'email') return '✉️';
+                      if (pa.type === 'meeting') return '👥';
+                      return '✅';
+                    };
 
-                  const formatDate = (dateStr?: string) => {
-                    if (!dateStr) return '';
-                    try {
-                      const d = new Date(dateStr);
-                      return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
-                    } catch (e) {
-                      return '';
-                    }
-                  };
+                    const formatDate = (dateStr?: string) => {
+                      if (!dateStr) return '';
+                      try {
+                        const d = new Date(dateStr);
+                        return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
+                      } catch (e) {
+                        return '';
+                      }
+                    };
 
-                  return (
-                    <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 12, borderBottom: '1px solid var(--vp-border)' }}>
-                      <div style={{ fontSize: 16, flexShrink: 0, marginTop: 2 }}>{getIcon()}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--vp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {pa.title}
-                          </span>
-                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--vp-text-muted)' }}>
-                            {formatDate(pa.completedAt)}
-                          </span>
-                        </div>
-                        {interactionText && (
-                          <div style={{ 
-                            fontSize: 11, color: 'var(--vp-text-soft)', marginTop: 4, 
-                            padding: '8px 10px', background: 'var(--vp-surface-muted)', borderRadius: 10,
-                            lineHeight: '1.4', whiteSpace: 'pre-wrap'
-                          }}>
-                            {interactionText}
+                    return (
+                      <div key={pa.id} style={{ display: 'flex', gap: 10, paddingBottom: 12, borderBottom: '1px solid var(--vp-border)' }}>
+                        <div style={{ fontSize: 16, flexShrink: 0, marginTop: 2 }}>{getIcon()}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--vp-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {pa.title}
+                            </span>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--vp-text-muted)' }}>
+                              {formatDate(pa.completedAt)}
+                            </span>
                           </div>
-                        )}
+                          {interactionText && (
+                            <div style={{ 
+                              fontSize: 11, color: 'var(--vp-text-soft)', marginTop: 4, 
+                              padding: '8px 10px', background: 'var(--vp-surface-muted)', borderRadius: 10,
+                              lineHeight: '1.4', whiteSpace: 'pre-wrap'
+                            }}>
+                              {interactionText}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-              {activities.filter(pa => pa.dealId === deal.id && pa.completed).length === 0 && (
-                <div style={{ fontSize: 12, color: 'var(--vp-text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '12px 0' }}>
-                  Nenhuma atividade concluída anteriormente.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                {activities.filter(pa => pa.dealId === deal.id && pa.completed).length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--vp-text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '12px 0' }}>
+                    Nenhuma atividade concluída anteriormente.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ flex: 1, minHeight: 12 }} />
       </div>
