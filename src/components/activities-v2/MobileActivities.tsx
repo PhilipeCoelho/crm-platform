@@ -416,63 +416,6 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           </div>
         </div>
 
-        {/* Notes section */}
-        <div style={{
-          maxHeight: showHistory ? 0 : 250,
-          opacity: showHistory ? 0 : 1,
-          transform: showHistory ? 'translateY(12px) scale(0.96)' : 'translateY(0) scale(1)',
-          overflow: 'hidden',
-          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-          marginTop: showHistory ? 0 : 12,
-        }}>
-          <button
-            onClick={() => setShowNotes(!showNotes)}
-            style={{
-              width: '100%', padding: '14px 16px', borderRadius: 16,
-              background: showNotes ? 'var(--vp-surface)' : 'transparent',
-              border: showNotes ? '1px solid var(--vp-border)' : '1px solid transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: showNotes ? 'var(--vp-text)' : 'var(--vp-text-soft)' }}>
-              <Icons.fileText size={16} />
-              {execNotes[a.id] ? '✏️ Notas adicionadas' : 'Adicionar notas'}
-            </span>
-            <Icons.chevronRight size={14} style={{
-              color: 'var(--vp-text-muted)',
-              transform: showNotes ? 'rotate(90deg)' : 'none',
-              transition: 'transform 0.2s',
-            }} />
-          </button>
-
-          {showNotes && (
-            <div style={{
-              padding: '12px 16px', marginTop: 4,
-              background: 'var(--vp-surface)', borderRadius: 16,
-              border: '1px solid var(--vp-border)',
-              animation: 'fadeIn 0.15s',
-            }}>
-              <div style={{ position: 'relative' }}>
-                <textarea
-                  placeholder="O que aconteceu nesta interação?"
-                  value={execNotes[a.id] || ''}
-                  onChange={e => setExecNotes(p => ({ ...p, [a.id]: e.target.value }))}
-                  style={{
-                    width: '100%', minHeight: 72, padding: '12px 44px 12px 12px',
-                    borderRadius: 12, border: '1px solid var(--vp-border)',
-                    fontSize: 14, outline: 'none', resize: 'vertical',
-                    backgroundColor: 'var(--vp-surface-muted)',
-                  }}
-                />
-                <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                  <VoiceMicButton isRecording={isRecording} onToggle={toggleRecording} size="sm" variant="minimal" />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* History section */}
         <div style={{
           maxHeight: showNotes ? 0 : 500,
@@ -480,7 +423,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           transform: showNotes ? 'translateY(12px) scale(0.96)' : 'translateY(0) scale(1)',
           overflow: 'hidden',
           transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-          marginTop: showNotes ? 0 : 8,
+          marginTop: showNotes ? 0 : 12,
         }}>
           <button
             onClick={() => setShowHistory(!showHistory)}
@@ -568,6 +511,63 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                   Nenhuma atividade concluída anteriormente.
                 </div>
               )}
+            </div>
+          )}
+        </div>
+
+        {/* Notes section */}
+        <div style={{
+          maxHeight: showHistory ? 0 : 250,
+          opacity: showHistory ? 0 : 1,
+          transform: showHistory ? 'translateY(12px) scale(0.96)' : 'translateY(0) scale(1)',
+          overflow: 'hidden',
+          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          marginTop: showHistory ? 0 : 8,
+        }}>
+          <button
+            onClick={() => setShowNotes(!showNotes)}
+            style={{
+              width: '100%', padding: '14px 16px', borderRadius: 16,
+              background: showNotes ? 'var(--vp-surface)' : 'transparent',
+              border: showNotes ? '1px solid var(--vp-border)' : '1px solid transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: showNotes ? 'var(--vp-text)' : 'var(--vp-text-soft)' }}>
+              <Icons.fileText size={16} />
+              {execNotes[a.id] ? '✏️ Notas adicionadas' : 'Adicionar notas'}
+            </span>
+            <Icons.chevronRight size={14} style={{
+              color: 'var(--vp-text-muted)',
+              transform: showNotes ? 'rotate(90deg)' : 'none',
+              transition: 'transform 0.2s',
+            }} />
+          </button>
+
+          {showNotes && (
+            <div style={{
+              padding: '12px 16px', marginTop: 4,
+              background: 'var(--vp-surface)', borderRadius: 16,
+              border: '1px solid var(--vp-border)',
+              animation: 'fadeIn 0.15s',
+            }}>
+              <div style={{ position: 'relative' }}>
+                <textarea
+                  placeholder="O que aconteceu nesta interação?"
+                  value={execNotes[a.id] || ''}
+                  onChange={e => setExecNotes(p => ({ ...p, [a.id]: e.target.value }))}
+                  style={{
+                    width: '100%', minHeight: 72, padding: '12px 44px 12px 12px',
+                    borderRadius: 12, border: '1px solid var(--vp-border)',
+                    fontSize: 14, outline: 'none', resize: 'vertical',
+                    backgroundColor: 'var(--vp-surface-muted)',
+                  }}
+                />
+                <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                  <VoiceMicButton isRecording={isRecording} onToggle={toggleRecording} size="sm" variant="minimal" />
+                </div>
+              </div>
             </div>
           )}
         </div>
