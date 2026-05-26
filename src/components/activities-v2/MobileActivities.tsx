@@ -447,14 +447,19 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           </button>
 
           {showHistory && (
-            <div style={{
-              padding: '16px', marginTop: 4,
-              background: 'var(--vp-surface)', borderRadius: 24,
-              border: '1px solid var(--vp-border)',
-              display: 'flex', flexDirection: 'column', gap: 12,
-              animation: 'fadeIn 0.15s',
-              maxHeight: 280, overflowY: 'auto',
-            }}>
+            <div 
+              onTouchStart={e => e.stopPropagation()}
+              onTouchMove={e => e.stopPropagation()}
+              onScroll={e => e.stopPropagation()}
+              style={{
+                padding: '16px', marginTop: 4,
+                background: 'var(--vp-surface)', borderRadius: 24,
+                border: '1px solid var(--vp-border)',
+                display: 'flex', flexDirection: 'column', gap: 12,
+                animation: 'fadeIn 0.15s',
+                maxHeight: 280, overflowY: 'auto',
+              }}
+            >
               {activities
                 .filter(pa => pa.dealId === deal.id && pa.completed)
                 .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''))
@@ -546,12 +551,17 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           </button>
 
           {showNotes && (
-            <div style={{
-              padding: '12px 16px', marginTop: 4,
-              background: 'var(--vp-surface)', borderRadius: 16,
-              border: '1px solid var(--vp-border)',
-              animation: 'fadeIn 0.15s',
-            }}>
+            <div 
+              onTouchStart={e => e.stopPropagation()}
+              onTouchMove={e => e.stopPropagation()}
+              onScroll={e => e.stopPropagation()}
+              style={{
+                padding: '12px 16px', marginTop: 4,
+                background: 'var(--vp-surface)', borderRadius: 16,
+                border: '1px solid var(--vp-border)',
+                animation: 'fadeIn 0.15s',
+              }}
+            >
               <div style={{ position: 'relative' }}>
                 <textarea
                   placeholder="O que aconteceu nesta interação?"
