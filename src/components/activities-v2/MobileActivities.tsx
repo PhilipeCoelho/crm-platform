@@ -196,6 +196,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
   const contact = getContact(a.contactId || deal.contactId);
   const due = getDueDays(a.dueDate);
   const theme = TYPE_THEME[a.type] || TYPE_THEME.task;
+  const ActionIcon = Icons[theme.icon] || Icons.check;
   const hasPhone = !!contact?.phone;
   const isMobile = hasPhone && isMobileNumber(contact.phone);
   const isOverdue = due < 0;
@@ -341,11 +342,19 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                   {deal.title}
                 </h1>
               </a>
-              {a.title && a.title !== deal.title && (
-                <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 600, color: 'var(--vp-text-soft)', lineHeight: 1.3 }}>
-                  {a.title}
+              <div style={{ margin: '8px 0 0 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 22, height: 22, borderRadius: 6,
+                  background: theme.gradient,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
+                  flexShrink: 0
+                }}>
+                  <ActionIcon size={11} />
+                </div>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--vp-text-soft)', lineHeight: 1.3 }}>
+                  {a.title && a.title !== deal.title ? a.title : theme.label}
                 </p>
-              )}
+              </div>
             </div>
 
             {/* Stage & Due Info */}
