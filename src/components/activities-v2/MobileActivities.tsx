@@ -27,7 +27,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
   void currency;
   const {
     deals, activities, contacts, pipelines, logs,
-    addActivity, completeActivityWithLog
+    addActivity, completeActivityWithLog, updateDeal
   } = useCRM();
 
   const [filterType, setFilterType] = useState<string>('all');
@@ -609,6 +609,31 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           <Icons.check size={16} />
           Concluir atividade
         </button>
+
+        <button
+          onClick={async () => {
+            if (window.confirm('Marcar este negócio como perdido?')) {
+              try {
+                await updateDeal(deal.id, { status: 'lost' });
+              } catch (err) {
+                console.error(err);
+              }
+            }
+          }}
+          style={{
+            flex: hasPhone ? 1 : 0.5,
+            background: 'rgba(239,68,68,0.06)',
+            color: '#dc2626',
+            border: '1.5px solid rgba(239,68,68,0.18)',
+            padding: '15px 10px', borderRadius: 16,
+            display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6,
+            fontWeight: 700, fontSize: 13, cursor: 'pointer',
+          }}
+        >
+          <Icons.close size={16} />
+          Perdido
+        </button>
+
         {hasPhone && (
           <a
             href={isMobile ? getWhatsAppUrl(contact.phone!) : getCleanedPhoneLink(contact.phone!)}
@@ -620,7 +645,7 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
               background: isMobile
                 ? 'linear-gradient(135deg, #25D366, #128C7E)'
                 : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-              color: 'white', padding: '15px', borderRadius: 16,
+              color: 'white', padding: '15px 10px', borderRadius: 16,
               display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10,
               fontWeight: 800, fontSize: 16, textDecoration: 'none',
               boxShadow: isMobile ? '0 6px 20px rgba(37,211,102,0.2)' : '0 6px 20px rgba(59,130,246,0.2)',
