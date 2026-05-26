@@ -196,7 +196,6 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
   const contact = getContact(a.contactId || deal.contactId);
   const due = getDueDays(a.dueDate);
   const theme = TYPE_THEME[a.type] || TYPE_THEME.task;
-  const ActionIcon = Icons[theme.icon];
   const hasPhone = !!contact?.phone;
   const isMobile = hasPhone && isMobileNumber(contact.phone);
   const isOverdue = due < 0;
@@ -225,15 +224,15 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 12,
-            background: theme.gradient,
-            boxShadow: `0 4px 12px ${theme.glow}`,
+            background: 'linear-gradient(135deg, #6366f1, #3b82f6)',
+            boxShadow: '0 4px 12px rgba(99,102,241,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
           }}>
-            <ActionIcon size={16} />
+            <Icons.zap size={16} />
           </div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--vp-text)', lineHeight: 1.1 }}>
-              {theme.label}
+              Atividades
             </div>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--vp-text-muted)', marginTop: 1 }}>
               {currentIndex + 1} de {total}
