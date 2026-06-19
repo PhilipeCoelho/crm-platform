@@ -174,11 +174,13 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
     });
     moveToNext();
   };
-  const handleSkip = () => {
-    if (currentHero) {
-      setSkippedIds(prev => new Set(prev).add(currentHero.id));
+  const handleSkip = (a?: Activity | React.MouseEvent) => {
+    const target = (a && !('nativeEvent' in a)) ? (a as Activity) : currentHero;
+    if (target) {
+      setSkippedIds(prev => new Set(prev).add(target.id));
       setExecNotes('');
       setNextTaskType(null);
+      if (selectedId === target.id) setSelectedId(null);
     }
   };
 
@@ -204,7 +206,7 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
     await completeActivityWithLog(a.id, execNotes, false);
 
     // 2. Mark deal as lost
-    await updateDeal(a.dealId, { status: 'lost' });
+    await updateDeal(a.dealId, { status: 'lost', lostReason: execNotes });
 
     // 2.5 Delete other pending activities for this deal
     const otherPending = activities.filter(act => 
@@ -473,7 +475,7 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
                     <button className="ax-btn ax-btn-secondary" onClick={() => handlePostpone(currentHero)}>
                       +1 Dia
                     </button>
-                    <button className="ax-btn ax-btn-ghost" onClick={handleSkip}>
+                    <button className="ax-btn ax-btn-ghost" onClick={() => handleSkip()}>
                       Pular
                     </button>
                   </div>
@@ -656,7 +658,7 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
                         </button>
                         <button 
                           className="ax-btn ax-btn-ghost" 
-                          onClick={handleSkip} 
+                          onClick={() => handleSkip()} 
                           style={{ height: 34, borderRadius: 8, padding: '0 12px', fontSize: 12, fontWeight: 700 }}
                         >
                           Pular Atividade
@@ -735,6 +737,7 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
             currency={currency} 
             onClose={() => setSelectedId(null)} 
             onComplete={handleExecute} 
+            onSkip={() => handleSkip(selectedActivity)}
             className="ax-sidebar--open"
           />
         </>

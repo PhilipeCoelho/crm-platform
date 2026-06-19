@@ -264,7 +264,12 @@ export function useCRMStore(): CRMStore {
                     contactId: d.contact_id,
                     userId: d.user_id,
                     createdAt: d.created_at,
-                    updatedAt: d.created_at,
+                    updatedAt: d.updated_at || d.created_at,
+                    lostAt: d.lost_at,
+                    wonAt: d.won_at,
+                    lostReason: d.lost_reason,
+                    disqualifiedAt: d.disqualified_at,
+                    disqualifiedReason: d.disqualified_reason,
                     pipelineId: d.pipeline_id || 'sales',
                     companyId: d.company_id,
                     tags: d.tags || [],
@@ -954,11 +959,15 @@ export function useCRMStore(): CRMStore {
 
                 // Extra safety: Sync deal_analytics status if status was changed
                 if (dbUpdates.status) {
-                    supabase.from('deal_analytics').update({
+                    const analyticsUpdate: any = {
                         status_final: dbUpdates.status,
                         closed_at: dbUpdates.status !== 'open' ? new Date().toISOString() : null,
                         updated_at: new Date().toISOString()
-                    }).eq('deal_id', id).then(({ error: syncErr }) => {
+                    };
+                    if (dbUpdates.status === 'lost' && finalUpdates.lostReason) {
+                        analyticsUpdate.motivo_perda = finalUpdates.lostReason;
+                    }
+                    supabase.from('deal_analytics').update(analyticsUpdate).eq('deal_id', id).then(({ error: syncErr }) => {
                         if (syncErr) console.warn('Sync deal_analytics warning:', syncErr);
                     });
                 }

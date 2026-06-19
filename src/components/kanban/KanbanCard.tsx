@@ -214,6 +214,16 @@ export const DealCardBase = React.memo(function DealCardBase({ deal, currency, o
                     <PrivacyText text={deal.title} type="text" />
                 </h4>
 
+                {/* Lost Reason Display */}
+                {deal.status === 'lost' && deal.lostReason && (
+                    <div className="mt-2 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30">
+                        <span className="text-[9px] font-bold text-red-800 dark:text-red-400 uppercase tracking-wider block mb-0.5">Motivo da Perda</span>
+                        <p className="text-xs text-red-900/80 dark:text-red-300/80 italic leading-snug line-clamp-3">
+                            "{deal.lostReason}"
+                        </p>
+                    </div>
+                )}
+
                 {/* Match Indicators (Search specific) */}
                 {isSearching && (
                     <div className="flex flex-wrap gap-1 mt-1.5 leading-none">

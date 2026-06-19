@@ -292,20 +292,86 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                         </div>
                     </div>
 
-                    {/* Linha 5: Funil & Etapa */}
-                    <div className="p-3 bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/50 rounded-xl space-y-3">
+                    {/* Linha 5: Funil & Etapa com Barra de Progresso Horizontal Premium */}
+                    <div className="p-3 bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/50 rounded-xl space-y-2.5">
                         <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                             <span>Funil & Etapa</span>
                             <select className="bg-transparent border-0 text-primary font-bold outline-none p-0 h-auto cursor-pointer hover:opacity-80 transition-opacity" value={selectedPipelineId} onChange={(e) => setSelectedPipelineId(e.target.value)}>
                                 {Object.values(pipelines).map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
-                        <div className="flex gap-1.5 h-1.5">
-                            {stages.map((stage: any, idx: number) => (
-                                <div key={stage.id} onClick={() => setSelectedStageId(stage.id)} className={`flex-1 rounded-full cursor-pointer transition-all duration-300 ${stage.id === selectedStageId ? 'bg-primary ring-4 ring-primary/10' : stages.findIndex((s: any) => s.id === selectedStageId) > idx ? 'bg-primary/30' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
-                            ))}
+
+                        {/* Barra de Progresso Segmentada Compacta */}
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 select-none -mx-1 px-1 custom-scrollbar">
+                            {stages.map((stage: any, idx: number) => {
+                                const currentStageIndex = stages.findIndex((s: any) => s.id === selectedStageId);
+                                const isActive = stage.id === selectedStageId;
+                                const isCompleted = idx < currentStageIndex;
+                                
+                                let bgClass = '';
+                                let textClass = '';
+                                let borderClass = '';
+                                let glowClass = '';
+
+                                if (isActive) {
+                                    if (dealToEdit?.status === 'won') {
+                                        bgClass = 'bg-emerald-500 text-white';
+                                        borderClass = 'border-emerald-600 dark:border-emerald-500';
+                                        glowClass = 'shadow-[0_2px_6px_rgba(16,185,129,0.25)]';
+                                    } else if (dealToEdit?.status === 'lost') {
+                                        bgClass = 'bg-rose-500 text-white';
+                                        borderClass = 'border-rose-600 dark:border-rose-500';
+                                        glowClass = 'shadow-[0_2px_6px_rgba(244,63,94,0.25)]';
+                                    } else {
+                                        bgClass = 'bg-primary text-white';
+                                        borderClass = 'border-primary';
+                                        glowClass = 'shadow-[0_2px_6px_rgba(59,130,246,0.25)]';
+                                    }
+                                } else if (isCompleted) {
+                                    if (dealToEdit?.status === 'won') {
+                                        bgClass = 'bg-emerald-50/70 dark:bg-emerald-950/20';
+                                        textClass = 'text-emerald-600 dark:text-emerald-400 font-bold';
+                                        borderClass = 'border-emerald-100 dark:border-emerald-900/20';
+                                    } else {
+                                        bgClass = 'bg-primary/5 dark:bg-primary/10';
+                                        textClass = 'text-primary dark:text-primary font-bold';
+                                        borderClass = 'border-primary/10 dark:border-primary/25';
+                                    }
+                                } else {
+                                    bgClass = 'bg-white dark:bg-zinc-900/60';
+                                    textClass = 'text-zinc-400 dark:text-zinc-500 font-medium';
+                                    borderClass = 'border-zinc-200/50 dark:border-zinc-800/40';
+                                }
+
+                                const interactiveHoverClass = !isActive 
+                                    ? (isCompleted 
+                                        ? 'hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary transition-all duration-200' 
+                                        : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-300 transition-all duration-200')
+                                    : 'transition-all duration-200';
+
+                                return (
+                                    <button
+                                        key={stage.id}
+                                        type="button"
+                                        onClick={() => setSelectedStageId(stage.id)}
+                                        title={`Mudar para ${stage.title}`}
+                                        className={`
+                                            flex-1 min-w-[70px] xs:min-w-[80px] sm:min-w-[90px] py-1.5 px-1.5
+                                            rounded-lg border text-[9px] font-bold uppercase tracking-wider text-center truncate
+                                            relative overflow-hidden transition-all duration-200 cursor-pointer hover:scale-[1.01] active:scale-[0.99]
+                                            ${bgClass} ${textClass} ${borderClass} ${glowClass} ${interactiveHoverClass}
+                                        `}
+                                    >
+                                        <div className="flex items-center justify-center gap-0.5 truncate">
+                                            {isCompleted && (
+                                                <Check size={8} strokeWidth={3} className="shrink-0 text-emerald-500 dark:text-emerald-400" />
+                                            )}
+                                            <span className="truncate">{stage.title}</span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
-                        <div className="text-[10px] text-right font-black text-primary/80 uppercase tracking-tighter">{stages.find((s: any) => s.id === selectedStageId)?.title}</div>
                     </div>
 
                     {/* Linha 6: Origem */}

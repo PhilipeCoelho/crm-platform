@@ -26,10 +26,11 @@ interface Props {
   currency: Currency;
   onClose: () => void;
   onComplete: (activity: Activity) => void;
+  onSkip?: () => void;
   className?: string;
 }
 
-const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete, className }: Props) {
+const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency, onClose, onComplete, onSkip, className }: Props) {
   const { deals, contacts, pipelines, activities, logs, isPrivacyMode, openFocusDeal } = useCRM();
   const blur = isPrivacyMode ? 'ax-blur' : '';
 
@@ -187,6 +188,15 @@ const DetailPanelReal = React.memo(function DetailPanelReal({ activity, currency
 
       {/* FOOTER ACTIONS */}
       <div style={{ marginTop: 'auto', padding: '20px', borderTop: '1px solid var(--vp-border)', display: 'flex', gap: 10 }}>
+        {onSkip && (
+          <button 
+            className="ax-btn ax-btn-ghost" 
+            style={{ flex: 1, height: 48, justifyContent: 'center' }}
+            onClick={onSkip}
+          >
+            Pular
+          </button>
+        )}
         <button 
           className="ax-btn ax-btn-primary" 
           style={{ flex: 1, height: 48, justifyContent: 'center' }}

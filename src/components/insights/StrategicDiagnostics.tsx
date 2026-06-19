@@ -1,20 +1,52 @@
+import { useState, useEffect } from 'react';
 import { useInsights } from '@/contexts/InsightsContext';
 import { generateStrategicRecommendations, StrategicRecommendation } from '@/services/recommendations';
 import {
     BrainCircuit,
-    Lightbulb
+    Lightbulb,
+    EyeOff,
+    Eye
 } from 'lucide-react';
 
 export default function StrategicDiagnostics() {
     const { data, loading } = useInsights();
+    const [isHidden, setIsHidden] = useState(false);
+
+    useEffect(() => {
+        const stored = localStorage.getItem('hideStrategicDiagnostics');
+        if (stored === 'true') setIsHidden(true);
+    }, []);
+
+    const toggleHidden = () => {
+        const newValue = !isHidden;
+        setIsHidden(newValue);
+        localStorage.setItem('hideStrategicDiagnostics', newValue ? 'true' : 'false');
+    };
 
     if (loading || !data) return null;
 
     const recommendations = generateStrategicRecommendations(data);
 
+    if (isHidden) {
+        return (
+            <div className="w-full bg-[#FFFFFF] dark:bg-[#0D0D0D] py-4 px-6 border-b border-[#E5E7EB] dark:border-[#1F1F1F] flex items-center justify-between">
+                <div className="flex items-center gap-2 opacity-50">
+                    <BrainCircuit className="w-4 h-4 text-[#6B7280] dark:text-[#8A8A8A]" />
+                    <span className="text-sm font-medium text-[#6B7280] dark:text-[#8A8A8A]">Diagnóstico Estratégico (Oculto)</span>
+                </div>
+                <button onClick={toggleHidden} className="text-xs flex items-center gap-1 text-[#6B7280] dark:text-[#8A8A8A] hover:text-primary transition-colors">
+                    <Eye className="w-3 h-3" /> Exibir
+                </button>
+            </div>
+        );
+    }
+
     if (recommendations.length === 0) {
         return (
-            <div className="w-full bg-[#FFFFFF] dark:bg-[#0D0D0D] py-12 px-6 border-b border-[#E5E7EB] dark:border-[#1F1F1F]">
+            <div className="w-full bg-[#FFFFFF] dark:bg-[#0D0D0D] py-12 px-6 border-b border-[#E5E7EB] dark:border-[#1F1F1F] relative">
+                <button onClick={toggleHidden} className="absolute top-4 right-6 text-xs flex items-center gap-1 text-[#6B7280] dark:text-[#8A8A8A] hover:text-primary transition-colors" title="Ocultar Diagnóstico">
+                    <EyeOff className="w-4 h-4" />
+                </button>
                 <div className="max-w-[1200px] mx-auto flex flex-col items-center justify-center text-center">
                     <BrainCircuit className="w-8 h-8 text-[#6B7280] dark:text-[#8A8A8A] opacity-50 mb-4" />
                     <h3 className="text-lg font-semibold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Diagnóstico Estratégico</h3>
@@ -30,12 +62,18 @@ export default function StrategicDiagnostics() {
         <div className="w-full bg-[#FFFFFF] dark:bg-[#0D0D0D] py-10 px-6 border-b border-[#E5E7EB] dark:border-[#1F1F1F]">
             <div className="max-w-[1200px] mx-auto">
                 {/* Header do Diagnóstico */}
-                <div className="flex items-center gap-3 mb-8 shrink-0">
-                    <BrainCircuit className="w-6 h-6 text-primary" />
-                    <div>
-                        <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Diagnóstico Estratégico</h2>
-                        <p className="text-xs text-[#6B7280] dark:text-[#8A8A8A] uppercase tracking-widest font-semibold mt-1">Visão Prioritária</p>
+                <div className="flex items-center justify-between mb-8 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <BrainCircuit className="w-6 h-6 text-primary" />
+                        <div>
+                            <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Diagnóstico Estratégico</h2>
+                            <p className="text-xs text-[#6B7280] dark:text-[#8A8A8A] uppercase tracking-widest font-semibold mt-1">Visão Prioritária</p>
+                        </div>
                     </div>
+                    <button onClick={toggleHidden} className="p-2 text-[#6B7280] dark:text-[#8A8A8A] hover:text-primary hover:bg-primary/5 rounded-md transition-colors flex items-center gap-2 text-xs font-medium" title="Ocultar Módulo">
+                        <EyeOff className="w-4 h-4" />
+                        Ocultar
+                    </button>
                 </div>
 
                 {/* List of Recommendations */}

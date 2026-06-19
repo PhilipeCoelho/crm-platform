@@ -104,7 +104,7 @@ export interface LostData {
     tempoMedioAtePerda: number;
     mediaContatosAtePerda: number;
     etapas: { etapa_onde_perdeu: string; quantidade: number; percentual: number }[];
-    motivos: { motivo_perda: string; quantidade: number; percentual: number }[];
+    motivos: { motivo_perda: string; quantidade: number; percentual: number; notas_exatas: string[] }[];
 }
 
 export interface AbordagemData {
@@ -158,7 +158,7 @@ export async function getInsightsData(
                 .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(completed_at.gte.${startOfDay},completed_at.lte.${endOfDay})`),
             supabase
                 .from('deal_analytics')
-                .select('*')
+                .select('*, deals(lost_reason)')
                 .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(closed_at.gte.${startOfDay},closed_at.lte.${endOfDay}),and(updated_at.gte.${startOfDay},updated_at.lte.${endOfDay})`)
         ]);
 
@@ -313,17 +313,33 @@ export async function getInsightsData(
         const mediaContatosAtePerda = lostDeals.length > 0 ? lostDeals.reduce((sum, d) => sum + (d.total_contatos_realizados || 0), 0) / lostDeals.length : 0;
 
         const etapasMap: Record<string, number> = {};
-        const motivosMap: Record<string, number> = {};
+        const motivosMap: Record<string, { count: number, notas: string[] }> = {};
 
         lostDeals.forEach(d => {
-            const etapa = d.etapa_onde_perdeu || 'Desconhecida';
+            const etapa = d.etapa_onde_perdeu || d.stage_atual || 'Desconhecida';
             etapasMap[etapa] = (etapasMap[etapa] || 0) + 1;
-            const motivo = d.motivo_perda || 'Sem motivo registrado';
-            motivosMap[motivo] = (motivosMap[motivo] || 0) + 1;
+            
+            // Fallback to deals table if deal_analytics is missing motivo_perda due to RLS/Trigger issues
+            const fallbackReason = d.deals ? (Array.isArray(d.deals) ? d.deals[0]?.lost_reason : d.deals.lost_reason) : null;
+            const rawMotivo = d.motivo_perda || fallbackReason || 'Sem motivo registrado';
+            
+            const motivo = groupLostReason(rawMotivo);
+            if (!motivosMap[motivo]) {
+                 motivosMap[motivo] = { count: 0, notas: [] };
+            }
+            motivosMap[motivo].count += 1;
+            if (rawMotivo !== 'Sem motivo registrado' && rawMotivo !== motivo) {
+                 motivosMap[motivo].notas.push(rawMotivo);
+            }
         });
 
         const etapasList = Object.keys(etapasMap).map(etapa => ({ etapa_onde_perdeu: etapa, quantidade: etapasMap[etapa], percentual: totalLost > 0 ? (etapasMap[etapa] / totalLost) * 100 : 0 })).sort((a, b) => b.quantidade - a.quantidade);
-        const motivosList = Object.keys(motivosMap).map(motivo => ({ motivo_perda: motivo, quantidade: motivosMap[motivo], percentual: totalLost > 0 ? (motivosMap[motivo] / totalLost) * 100 : 0 })).sort((a, b) => b.quantidade - a.quantidade);
+        const motivosList = Object.keys(motivosMap).map(motivo => ({ 
+            motivo_perda: motivo, 
+            quantidade: motivosMap[motivo].count, 
+            percentual: totalLost > 0 ? (motivosMap[motivo].count / totalLost) * 100 : 0,
+            notas_exatas: [...new Set(motivosMap[motivo].notas)]
+        })).sort((a, b) => b.quantidade - a.quantidade);
 
         const flowGanhosCount = wonDeals.length;
         const flowPerdidosCount = lostDeals.length;
@@ -673,4 +689,47 @@ function emptyAbordagem(): AbordagemData {
         respondidos: 0,
         taxaResposta: 0
     };
+}
+
+// --- Funções de Inteligência / Agrupamento ---
+
+function groupLostReason(rawReason: string): string {
+    if (!rawReason) return 'Sem motivo registrado';
+    
+    const lower = rawReason.toLowerCase();
+
+    // 1. Preço / Orçamento
+    if (lower.includes('caro') || lower.includes('preço') || lower.includes('preco') || lower.includes('valor') || lower.includes('verba') || lower.includes('orçamento') || lower.includes('orcamento') || lower.includes('dinheiro') || lower.includes('financeiro')) {
+        return 'Preço / Orçamento insuficiente';
+    }
+    // 2. Concorrência
+    if (lower.includes('concorrente') || lower.includes('outra empresa') || lower.includes('fechou com outro') || lower.includes('concorrência') || lower.includes('concorrencia')) {
+        return 'Perdido para a Concorrência';
+    }
+    // 3. Comunicação (Ghosting)
+    if (lower.includes('não responde') || lower.includes('nao responde') || lower.includes('sumiu') || lower.includes('vácuo') || lower.includes('ghosting') || lower.includes('parou de falar') || lower.includes('sem contato') || lower.includes('contato perdido') || lower.includes('visto e ignorado')) {
+        return 'Sem Resposta / Perda de Contato';
+    }
+    // 4. Interesse / Momento
+    if (lower.includes('não teve interesse') || lower.includes('nao teve interesse') || lower.includes('desistiu') || lower.includes('momento') || lower.includes('esfriou') || lower.includes('adiou') || lower.includes('pausou') || lower.includes('agora não') || lower.includes('agora nao')) {
+        return 'Falta de Interesse / Momento Inadequado';
+    }
+    // 5. Qualificação
+    if (lower.includes('desqualificado') || lower.includes('perfil') || lower.includes('fora do perfil') || lower.includes('tamanho') || lower.includes('pequeno') || lower.includes('não atende')) {
+        return 'Lead Desqualificado / Fora do Perfil';
+    }
+    // 6. Produto / Fit
+    if (lower.includes('funcionalidade') || lower.includes('recurso') || lower.includes('produto') || lower.includes('não tem') || lower.includes('nao tem') || lower.includes('falta')) {
+        return 'Sem fit técnico / Faltam recursos';
+    }
+    // 7. Já anuncia / Já usa outro fornecedor
+    if (lower.includes('já anuncia') || lower.includes('ja anuncia') || lower.includes('já usa') || lower.includes('ja usa') || lower.includes('contratou') || lower.includes('satisfeito')) {
+        return 'Já possui fornecedor / Serviço ativo';
+    }
+
+    if (rawReason === 'Sem motivo registrado') {
+        return 'Sem motivo registrado';
+    }
+
+    return 'Outros Motivos';
 }

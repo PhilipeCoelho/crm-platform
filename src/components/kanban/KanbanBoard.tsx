@@ -23,6 +23,8 @@ import { Currency } from "@/data/currencies";
 import MobileKanbanView from "./MobileKanbanView";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 
+import { useLocation, useNavigate } from "react-router-dom";
+
 interface KanbanBoardProps {
     currency: Currency;
 }
@@ -34,6 +36,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         openNewDealModal, openFocusDeal
     } = useCRM();
 
+    const location = useLocation();
+    const navigate = useNavigate();
     const isMobile = useIsMobile();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId, setCurrentPipelineId] = useState(() => {
@@ -97,14 +101,39 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     };
 
     const getSavedStatusFilter = (): StatusFilter => {
-        const saved = localStorage.getItem('kanban_status_filter');
+        const params = new URLSearchParams(location.search);
+        const urlStatus = params.get('status') as StatusFilter;
         const validStatuses: StatusFilter[] = ['open', 'won', 'lost', 'all'];
+
+        if (urlStatus && validStatuses.includes(urlStatus)) {
+            return urlStatus;
+        }
+
+        const saved = localStorage.getItem('kanban_status_filter');
         return validStatuses.includes(saved as StatusFilter) ? (saved as StatusFilter) : 'open';
     };
 
     // Persisted State
     const [viewMode, setViewMode] = useState<ViewMode>(getSavedViewMode);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>(getSavedStatusFilter);
+    const [dateFilter, setDateFilter] = useState<{ start: string | null; end: string | null }>({ start: null, end: null });
+
+    // Update status if URL changes
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const urlStatus = params.get('status') as StatusFilter;
+        const start = params.get('start');
+        const end = params.get('end');
+
+        if (urlStatus && ['open', 'won', 'lost', 'all'].includes(urlStatus)) {
+            setStatusFilter(urlStatus);
+        }
+        
+        if (start && end) {
+            setDateFilter({ start, end });
+            setViewMode('all'); // Force viewMode to 'all' to avoid conflicting filters
+        }
+    }, [location.search]);
 
     // Persistence Effects
     useEffect(() => {
@@ -172,14 +201,26 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             let matchesView = true;
             const dealActivities = openActivitiesByDeal.get(deal.id) || [];
 
-            if (viewMode === 'today') {
-                matchesView = dealActivities.some(a => a.dueDate?.split('T')[0] === todayStr);
-            } else if (viewMode === 'overdue') {
-                matchesView = dealActivities.some(a => a.dueDate && a.dueDate.split('T')[0] < todayStr);
-            } else if (viewMode === 'no-action') {
-                matchesView = dealActivities.length === 0;
-            } else if (viewMode === 'high-value') {
-                matchesView = deal.value >= 10000;
+            if (deal.status === 'open') {
+                if (viewMode === 'today') {
+                    matchesView = dealActivities.some(a => a.dueDate?.split('T')[0] === todayStr);
+                } else if (viewMode === 'overdue') {
+                    matchesView = dealActivities.some(a => a.dueDate && a.dueDate.split('T')[0] < todayStr);
+                } else if (viewMode === 'no-action') {
+                    matchesView = dealActivities.length === 0;
+                } else if (viewMode === 'high-value') {
+                    matchesView = deal.value >= 10000;
+                }
+            } else {
+                // If it's closed (won/lost)
+                if (viewMode === 'today') {
+                    const closedDate = deal.lostAt || deal.wonAt || deal.updatedAt;
+                    matchesView = closedDate ? closedDate.split('T')[0] === todayStr : false;
+                } else if (viewMode === 'high-value') {
+                    matchesView = deal.value >= 10000;
+                } else if (viewMode === 'overdue' || viewMode === 'no-action') {
+                    matchesView = false; // Doesn't make sense for closed deals
+                }
             }
 
             if (!matchesView) return false;
@@ -190,7 +231,20 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
             const isActuallyActive = statusFilter === 'open' ? deal.status === 'open' : true;
 
-            return matchesStatus && isActuallyActive;
+            // Date Filter Logic (Specific for "lost" or global)
+            let matchesDate = true;
+            if (dateFilter.start && dateFilter.end && statusFilter === 'lost') {
+                const dateToUse = deal.lostAt || deal.updatedAt || deal.createdAt;
+                const d = new Date(dateToUse);
+                const start = new Date(dateFilter.start);
+                const end = new Date(dateFilter.end);
+                end.setHours(23, 59, 59, 999);
+                if (d < start || d > end) {
+                    matchesDate = false;
+                }
+            }
+
+            return matchesStatus && isActuallyActive && matchesDate;
         }).sort((a: Deal, b: Deal) => {
             // 1. Status Priority (Open deals first, Lost last)
             const statusOrder: Record<string, number> = { 'open': 0, 'won': 1, 'lost': 2 };
@@ -206,7 +260,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             // 3. Recency
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
-    }, [pipelineDeals, contacts, companies, activities, searchTerm, viewMode, statusFilter, normalizeText, normalizeDigits]);
+    }, [pipelineDeals, contacts, companies, activities, searchTerm, viewMode, statusFilter, dateFilter, normalizeText, normalizeDigits]);
 
 
     const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
@@ -291,6 +345,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                         onClick={() => {
                                             if (statusFilter === s.id) setStatusFilter('all');
                                             else setStatusFilter(s.id as StatusFilter);
+                                            setDateFilter({ start: null, end: null });
                                         }}
                                         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all ${statusFilter === s.id
                                             ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
@@ -454,6 +509,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                                 onClick={() => {
                                                     if (statusFilter === s.id) setStatusFilter('all');
                                                     else setStatusFilter(s.id as StatusFilter);
+                                                    setDateFilter({ start: null, end: null });
                                                 }}
                                                 className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${statusFilter === s.id
                                                     ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
@@ -525,7 +581,8 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                             setStatusFilter('open');
                                             setViewMode('all');
                                             setSearchInput('');
-                                     setSearchTerm('');
+                                            setSearchTerm('');
+                                            setDateFilter({ start: null, end: null });
                                         }}
                                         className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
                                     >

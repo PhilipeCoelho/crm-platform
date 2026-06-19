@@ -619,7 +619,10 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
           onClick={async () => {
             if (window.confirm('Marcar este negócio como perdido?')) {
               try {
-                await updateDeal(deal.id, { status: 'lost' });
+                if (execNotes[a.id]) {
+                  await completeActivityWithLog(a.id, execNotes[a.id], false);
+                }
+                await updateDeal(deal.id, { status: 'lost', lostReason: execNotes[a.id] });
               } catch (err) {
                 console.error(err);
               }

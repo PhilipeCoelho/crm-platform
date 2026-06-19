@@ -25,8 +25,12 @@ export default function PeopleView() {
     const [showColumnPicker, setShowColumnPicker] = useState(false);
     const [sortColumn, setSortColumn] = useState<ColumnId | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-    const [selectedView, setSelectedView] = useState('Ativos');
+    const [selectedView, setSelectedView] = useState('Todos');
     const [showViewSelector, setShowViewSelector] = useState(false);
+    const [selectedDataFilter, setSelectedDataFilter] = useState('Todos os Contatos');
+    const [showDataFilterSelector, setShowDataFilterSelector] = useState(false);
+    const [lastExportDate, setLastExportDate] = useState<string | null>(null);
+    const [showExportMenu, setShowExportMenu] = useState(false);
 
     const [columns, setColumns] = useState<Column[]>([
         { id: 'name', label: 'Nome', visible: true, sortable: true },
@@ -44,7 +48,13 @@ export default function PeopleView() {
             setOpenMenuId(null);
             setShowColumnPicker(false);
             setShowViewSelector(false);
+            setShowDataFilterSelector(false);
+            setShowExportMenu(false);
         };
+        const savedDate = localStorage.getItem('lastContactsExportDate');
+        if (savedDate) {
+            setLastExportDate(savedDate);
+        }
         window.addEventListener('click', handleClickOutside);
         return () => window.removeEventListener('click', handleClickOutside);
     }, []);
@@ -109,11 +119,19 @@ export default function PeopleView() {
             const isDisqualified = contactDeals.length > 0 && contactDeals.every(d => d.status === 'desqualificado');
             const isWon = contactDeals.length > 0 && contactDeals.every(d => d.status === 'won');
 
-            if (selectedView === 'Perdidos') return isLost;
-            if (selectedView === 'Desqualificados') return isDisqualified;
-            if (selectedView === 'Ganhos') return isWon;
-            if (selectedView === 'Ativos') return !isLost && !isDisqualified && !isWon;
+            let passViewFilter = true;
+            if (selectedView === 'Perdidos') passViewFilter = isLost || isDisqualified;
+            else if (selectedView === 'Ganhos') passViewFilter = isWon;
+            else if (selectedView === 'Ativos') passViewFilter = !isLost && !isDisqualified && !isWon;
+            else if (selectedView === 'Todos') passViewFilter = true;
             
+            if (!passViewFilter) return false;
+
+            // Data availability filtering
+            if (selectedDataFilter === 'Com Telefone' && !contact.phone) return false;
+            if (selectedDataFilter === 'Com E-mail' && !contact.email) return false;
+            if (selectedDataFilter === 'Com Nome, Tel e E-mail' && (!contact.name || !contact.phone || !contact.email)) return false;
+
             return true;
         });
 
@@ -165,7 +183,7 @@ export default function PeopleView() {
         }
 
         return result;
-    }, [contacts, companies, searchTerm, sortColumn, sortDirection, deals, activities, selectedView]);
+    }, [contacts, companies, searchTerm, sortColumn, sortDirection, deals, activities, selectedView, selectedDataFilter]);
 
     const handleEditClick = (contact: Contact, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -199,33 +217,95 @@ export default function PeopleView() {
 
     const visibleColumns = columns.filter(col => col.visible);
 
-    const handleExportSelected = () => {
+    const formatMetaPhone = (phone: string) => {
+        if (!phone) return '';
+        let digits = phone.replace(/\D/g, '');
+        // Assumindo DDI 351 (Portugal) se o número tiver 9 dígitos
+        if (digits.length === 9) {
+            return `351${digits}`;
+        }
+        return digits;
+    };
+
+    const executeExport = (format: 'csv_excel' | 'csv_universal' | 'json' | 'csv_meta') => {
         const selectedList = contacts.filter(c => selectedContacts.has(c.id));
         const headers = ['Nome', 'Organização', 'E-mail', 'Telefone', 'Status de Marketing'];
         
-        // Use semicolon (;) for better Excel compatibility in PT/BR/EU locales
-        const csvContent = [
-            headers.join(';'),
-            ...selectedList.map(c => [
-                `"${c.name}"`,
-                `"${getCompanyName(c.companyId || (c as any).company_id)}"`,
-                `"${c.email}"`,
-                `"${c.phone || ''}"`,
-                `"${c.marketingStatus || ''}"`
-            ].join(';'))
-        ].join('\n');
+        let fileContent = '';
+        let fileType = '';
+        let fileExtension = '';
 
-        // Add UTF-8 BOM (\uFEFF) so Excel recognizes accents correctly
-        const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        if (format === 'json') {
+            const data = selectedList.map(c => ({
+                Nome: c.name,
+                Organização: getCompanyName(c.companyId || (c as any).company_id),
+                Email: c.email,
+                Telefone: c.phone || '',
+                StatusMarketing: c.marketingStatus || ''
+            }));
+            fileContent = JSON.stringify(data, null, 2);
+            fileType = 'application/json';
+            fileExtension = 'json';
+        } else if (format === 'csv_meta') {
+            const separator = ',';
+            const metaHeaders = ['email', 'phone', 'fn', 'ln', 'value'];
+            const csvContent = [
+                metaHeaders.join(separator),
+                ...selectedList.map(c => {
+                    const names = c.name.split(' ');
+                    const fn = names[0] || '';
+                    const ln = names.slice(1).join(' ') || '';
+                    
+                    // LTV: Soma do valor de todos os negócios GANHOS da pessoa
+                    const contactDeals = deals.filter(d => d.contactId === c.id && d.status === 'won');
+                    const customerValue = contactDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+                    const valueStr = customerValue > 0 ? customerValue.toFixed(2) : '';
+
+                    return [
+                        `"${c.email ? c.email.trim().toLowerCase() : ''}"`,
+                        `"${formatMetaPhone(c.phone || '')}"`,
+                        `"${fn}"`,
+                        `"${ln}"`,
+                        `"${valueStr}"`
+                    ].join(separator);
+                })
+            ].join('\n');
+            fileContent = csvContent;
+            fileType = 'text/csv;charset=utf-8;';
+            fileExtension = 'csv';
+        } else {
+            const separator = format === 'csv_excel' ? ';' : ',';
+            const csvContent = [
+                headers.join(separator),
+                ...selectedList.map(c => [
+                    `"${c.name}"`,
+                    `"${getCompanyName(c.companyId || (c as any).company_id)}"`,
+                    `"${c.email}"`,
+                    `"${c.phone || ''}"`,
+                    `"${c.marketingStatus || ''}"`
+                ].join(separator))
+            ].join('\n');
+
+            const BOM = format === 'csv_excel' ? '\uFEFF' : '';
+            fileContent = BOM + csvContent;
+            fileType = 'text/csv;charset=utf-8;';
+            fileExtension = 'csv';
+        }
+
+        const blob = new Blob([fileContent], { type: fileType });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `export_contatos_${new Date().getTime()}.csv`);
+        link.setAttribute("download", `export_contatos_${new Date().getTime()}.${fileExtension}`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+
+        const now = new Date().toLocaleString('pt-BR');
+        setLastExportDate(now);
+        localStorage.setItem('lastContactsExportDate', now);
+        setShowExportMenu(false);
     };
 
     const handleDeleteSelected = async () => {
@@ -276,6 +356,7 @@ export default function PeopleView() {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setShowViewSelector(!showViewSelector);
+                                setShowDataFilterSelector(false);
                             }}
                             className="flex items-center gap-2 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium"
                         >
@@ -284,7 +365,7 @@ export default function PeopleView() {
                         </button>
                         {showViewSelector && (
                             <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
-                                {['Ativos', 'Ganhos', 'Perdidos', 'Desqualificados'].map((view) => (
+                                {['Todos', 'Ativos', 'Ganhos', 'Perdidos'].map((view) => (
                                     <button
                                         key={view}
                                         onClick={(e) => {
@@ -295,6 +376,39 @@ export default function PeopleView() {
                                         className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${selectedView === view ? 'bg-muted font-medium' : ''}`}
                                     >
                                         {view}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Data Availability Filter */}
+                    <div className="relative">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDataFilterSelector(!showDataFilterSelector);
+                                setShowViewSelector(false);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+                            title="Filtrar por preenchimento de dados"
+                        >
+                            <Filter size={16} />
+                            <span className="max-w-[140px] truncate">{selectedDataFilter}</span>
+                        </button>
+                        {showDataFilterSelector && (
+                            <div className="absolute left-0 mt-2 w-56 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                                {['Todos os Contatos', 'Com Telefone', 'Com E-mail', 'Com Nome, Tel e E-mail'].map((filter) => (
+                                    <button
+                                        key={filter}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedDataFilter(filter);
+                                            setShowDataFilterSelector(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${selectedDataFilter === filter ? 'bg-muted font-medium' : ''}`}
+                                    >
+                                        {filter}
                                     </button>
                                 ))}
                             </div>
@@ -347,19 +461,76 @@ export default function PeopleView() {
                         <span className="text-sm font-medium text-foreground">
                             {selectedContacts.size} {selectedContacts.size === 1 ? 'pessoa selecionada' : 'pessoas selecionadas'}
                         </span>
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={handleExportSelected}
-                                className="px-3 py-1.5 text-sm font-medium text-foreground hover:bg-primary/20 rounded-md transition-colors"
-                            >
-                                Exportar
-                            </button>
-                            <button 
-                                onClick={handleDeleteSelected}
-                                className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                            >
-                                Deletar
-                            </button>
+                        <div className="flex gap-4 items-center">
+                            {lastExportDate && (
+                                <span className="text-xs text-muted-foreground hidden sm:inline-block">
+                                    Última exportação: {lastExportDate}
+                                </span>
+                            )}
+                            <div className="flex gap-2 relative">
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowExportMenu(!showExportMenu);
+                                    }}
+                                    className="px-3 py-1.5 text-sm font-medium text-foreground hover:bg-primary/20 rounded-md transition-colors"
+                                >
+                                    Exportar
+                                </button>
+                                {showExportMenu && (
+                                    <div className="absolute right-0 top-full mt-1 w-56 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="px-3 py-1.5 border-b border-border mb-1">
+                                            <p className="text-xs font-semibold text-muted-foreground">Formato de Exportação</p>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                executeExport('csv_excel');
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex flex-col"
+                                        >
+                                            <span>CSV (Excel / Padrão BR)</span>
+                                            <span className="text-[10px] text-muted-foreground">Recomendado para Excel</span>
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                executeExport('csv_universal');
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex flex-col"
+                                        >
+                                            <span>CSV (Universal / Migração)</span>
+                                            <span className="text-[10px] text-muted-foreground">Separado por vírgula</span>
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                executeExport('csv_meta');
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex flex-col"
+                                        >
+                                            <span>CSV (Meta / Facebook Ads)</span>
+                                            <span className="text-[10px] text-muted-foreground">Formato oficial para Públicos</span>
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                executeExport('json');
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex flex-col"
+                                        >
+                                            <span>JSON</span>
+                                            <span className="text-[10px] text-muted-foreground">Para desenvolvedores/APIs</span>
+                                        </button>
+                                    </div>
+                                )}
+                                <button 
+                                    onClick={handleDeleteSelected}
+                                    className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                                >
+                                    Deletar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

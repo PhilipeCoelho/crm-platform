@@ -2,6 +2,7 @@ import { useInsights } from '@/contexts/InsightsContext';
 import VariationBadge from './VariationBadge';
 import { Link2, AlertCircle } from 'lucide-react';
 import QuickGuide from '../ui/QuickGuide';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
     activeGuide: string | null;
@@ -9,7 +10,8 @@ interface Props {
 }
 
 export default function LostModule({ activeGuide, setActiveGuide }: Props) {
-    const { data, loading } = useInsights();
+    const { data, loading, startDate, endDate } = useInsights();
+    const navigate = useNavigate();
 
     if (loading || !data) {
         return (
@@ -27,13 +29,24 @@ export default function LostModule({ activeGuide, setActiveGuide }: Props) {
 
     return (
         <div className="flex flex-col gap-6 w-full animate-in fade-in duration-500">
-            <div className="flex items-center">
-                <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Análise de Perdas</h2>
-                <QuickGuide
-                    moduleName="insights_perdas"
-                    activeGuide={activeGuide}
-                    setActiveGuide={setActiveGuide}
-                />
+            <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                    <h2 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Análise de Perdas</h2>
+                    <QuickGuide
+                        moduleName="insights_perdas"
+                        activeGuide={activeGuide}
+                        setActiveGuide={setActiveGuide}
+                    />
+                </div>
+                <button
+                    onClick={() => {
+                        navigate(`/pipeline?status=lost&start=${startDate}&end=${endDate}`);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-semibold rounded-lg transition-colors"
+                >
+                    <AlertCircle size={16} />
+                    <span>Ver Negócios</span>
+                </button>
             </div>
 
             {/* Top KPIs */}
