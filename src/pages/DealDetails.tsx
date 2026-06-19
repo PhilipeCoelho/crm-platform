@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Fragment } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ArrowLeft, Building, User, Pencil, Trash2, X, Ban, MoreHorizontal, Phone, Check, MessageCircle, Instagram, ExternalLink, Search } from 'lucide-react';
+import { ArrowLeft, Building, User, Pencil, Trash2, X, Ban, MoreHorizontal, Phone, Check, MessageCircle, Instagram, ExternalLink, Search, ChevronRight } from 'lucide-react';
 
 
 
@@ -327,44 +327,33 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
 
                 {/* Pipeline Stepper Horizontal */}
                 <div className="px-3 sm:px-5 pb-3">
-                    <div className="bg-muted/30 dark:bg-muted/10 p-[2px] rounded-lg border border-border/40 flex w-full items-center gap-[2px] overflow-hidden">
+                    <div className="flex w-full items-center justify-between gap-1 overflow-x-auto no-scrollbar py-1">
                         {pipeline.stages.map((s: any, idx: number) => {
                             const isPast = idx < currentStageIndex;
                             const isCurrent = idx === currentStageIndex;
-                            const isFirst = idx === 0;
-                            const isLast = idx === pipeline.stages.length - 1;
                             
-                            const clipPathStyle = isFirst && isLast
-                                ? 'none'
-                                : isFirst
-                                ? 'polygon(0% 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 0% 100%)'
-                                : isLast
-                                ? 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 8px 50%)'
-                                : 'polygon(0% 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 0% 100%, 8px 50%)';
-
                             return (
-                                <button
-                                    key={s.id}
-                                    disabled={isClosed}
-                                    onClick={() => handleStageChange(s.id)}
-                                    style={{ clipPath: clipPathStyle }}
-                                    className={`relative h-8 flex-1 min-w-0 flex items-center justify-center transition-all duration-150 ${
-                                        isFirst ? 'pl-3 pr-4' : isLast ? 'pl-5 pr-3' : 'pl-5 pr-4'
-                                    } ${
-                                        isCurrent ? 'bg-primary text-primary-foreground font-bold shadow-inner' :
-                                        isPast ? 'bg-primary/15 dark:bg-primary/20 text-primary font-semibold hover:bg-primary/25 dark:hover:bg-primary/30' :
-                                        'bg-muted/45 dark:bg-muted/25 text-muted-foreground font-medium hover:bg-muted/65 dark:hover:bg-muted/40'
-                                    } ${isClosed ? 'opacity-85 cursor-not-allowed' : 'cursor-pointer active:opacity-90'}`}
-                                    title={s.title}
-                                >
-                                    <span className="flex items-center justify-center gap-1.5 truncate w-full">
-                                        {isPast && <Check size={11} className="shrink-0 stroke-[3px]" />}
-                                        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground animate-pulse shrink-0" />}
-                                        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider truncate">
-                                            {s.title}
-                                        </span>
-                                    </span>
-                                </button>
+                                <Fragment key={s.id}>
+                                    {idx > 0 && (
+                                        <ChevronRight size={13} className="text-muted-foreground/30 shrink-0" />
+                                    )}
+                                    <button
+                                        disabled={isClosed}
+                                        onClick={() => handleStageChange(s.id)}
+                                        className={`flex-1 min-w-[75px] sm:min-w-0 h-8 flex items-center justify-center gap-1.5 px-2 rounded-lg text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold transition-all duration-150 truncate ${
+                                            isCurrent 
+                                                ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm' 
+                                                : isPast 
+                                                ? 'text-primary/80 hover:text-primary hover:bg-primary/5' 
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                                        } ${isClosed ? 'opacity-80 cursor-not-allowed' : 'cursor-pointer active:scale-[0.98]'}`}
+                                        title={s.title}
+                                    >
+                                        {isPast && <span className="w-1 h-1 rounded-full bg-primary shrink-0" />}
+                                        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shrink-0" />}
+                                        <span className="truncate">{s.title}</span>
+                                    </button>
+                                </Fragment>
                             );
                         })}
                     </div>
