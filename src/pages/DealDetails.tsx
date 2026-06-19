@@ -327,26 +327,44 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
 
                 {/* Pipeline Stepper Horizontal */}
                 <div className="px-3 sm:px-5 pb-3">
-                    <div className="flex w-full items-center overflow-hidden rounded-md shadow-sm border border-border/40">
+                    <div className="bg-muted/30 dark:bg-muted/10 p-[2px] rounded-lg border border-border/40 flex w-full items-center gap-[2px] overflow-hidden">
                         {pipeline.stages.map((s: any, idx: number) => {
                             const isPast = idx < currentStageIndex;
                             const isCurrent = idx === currentStageIndex;
+                            const isFirst = idx === 0;
+                            const isLast = idx === pipeline.stages.length - 1;
                             
+                            const clipPathStyle = isFirst && isLast
+                                ? 'none'
+                                : isFirst
+                                ? 'polygon(0% 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 0% 100%)'
+                                : isLast
+                                ? 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 8px 50%)'
+                                : 'polygon(0% 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 0% 100%, 8px 50%)';
+
                             return (
-                                <div 
+                                <button
                                     key={s.id}
+                                    disabled={isClosed}
                                     onClick={() => handleStageChange(s.id)}
-                                    className={`relative h-7 flex-1 flex items-center justify-center cursor-pointer transition-colors border-r last:border-r-0 border-background/50 dark:border-background/20 ${
-                                        isCurrent ? 'bg-primary text-primary-foreground font-bold' :
+                                    style={{ clipPath: clipPathStyle }}
+                                    className={`relative h-8 flex-1 min-w-0 flex items-center justify-center transition-all duration-150 ${
+                                        isFirst ? 'pl-3 pr-4' : isLast ? 'pl-5 pr-3' : 'pl-5 pr-4'
+                                    } ${
+                                        isCurrent ? 'bg-primary text-primary-foreground font-bold shadow-inner' :
                                         isPast ? 'bg-primary/15 dark:bg-primary/20 text-primary font-semibold hover:bg-primary/25 dark:hover:bg-primary/30' :
-                                        'bg-muted/40 dark:bg-muted/20 text-muted-foreground font-medium hover:bg-muted/60 dark:hover:bg-muted/40'
-                                    }`}
+                                        'bg-muted/45 dark:bg-muted/25 text-muted-foreground font-medium hover:bg-muted/65 dark:hover:bg-muted/40'
+                                    } ${isClosed ? 'opacity-85 cursor-not-allowed' : 'cursor-pointer active:opacity-90'}`}
                                     title={s.title}
                                 >
-                                    <span className="text-[9px] sm:text-[10px] uppercase tracking-wider truncate px-1">
-                                        {s.title}
+                                    <span className="flex items-center justify-center gap-1.5 truncate w-full">
+                                        {isPast && <Check size={11} className="shrink-0 stroke-[3px]" />}
+                                        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground animate-pulse shrink-0" />}
+                                        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider truncate">
+                                            {s.title}
+                                        </span>
                                     </span>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
