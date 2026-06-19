@@ -23,7 +23,7 @@ import { Currency } from "@/data/currencies";
 import MobileKanbanView from "./MobileKanbanView";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 interface KanbanBoardProps {
     currency: Currency;
@@ -37,7 +37,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     } = useCRM();
 
     const location = useLocation();
-    const navigate = useNavigate();
     const isMobile = useIsMobile();
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId, setCurrentPipelineId] = useState(() => {
