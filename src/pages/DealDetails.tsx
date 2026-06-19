@@ -325,29 +325,31 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                     </div>
                 </div>
 
-                {/* Pipeline — só o label da etapa */}
-                <div className="px-3 sm:px-5 pb-2.5 flex items-center justify-between">
-                    <div className="flex items-center gap-1 group/stage cursor-pointer" onClick={() => startEditing('stage')} data-editable="true">
-                        {editingField === 'stage' ? (
-                            <select ref={inputRef as any} value={deal.stageId}
-                                onChange={(e) => { handleStageChange(e.target.value); setEditingField(null); }}
-                                onBlur={() => setEditingField(null)}
-                                className="text-[10px] font-bold text-primary uppercase tracking-widest bg-transparent outline-none cursor-pointer"
-                                autoFocus style={{ fontSize: '16px' }}>
-                                {pipeline.stages.map((s: any) => <option key={s.id} value={s.id}>{s.title}</option>)}
-                            </select>
-                        ) : (
-                            <>
-                                <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">
-                                    Etapa: <span className="text-primary group-hover/stage:underline">{pipeline.stages[currentStageIndex]?.title}</span>
-                                </span>
-                                <Pencil size={9} className="text-muted-foreground/30 opacity-0 group-hover/stage:opacity-100 transition-opacity" />
-                            </>
-                        )}
+                {/* Pipeline Stepper Horizontal */}
+                <div className="px-3 sm:px-5 pb-3">
+                    <div className="flex w-full items-center overflow-hidden rounded-md shadow-sm border border-border/40">
+                        {pipeline.stages.map((s: any, idx: number) => {
+                            const isPast = idx < currentStageIndex;
+                            const isCurrent = idx === currentStageIndex;
+                            
+                            return (
+                                <div 
+                                    key={s.id}
+                                    onClick={() => handleStageChange(s.id)}
+                                    className={`relative h-7 flex-1 flex items-center justify-center cursor-pointer transition-colors border-r last:border-r-0 border-background/50 dark:border-background/20 ${
+                                        isCurrent ? 'bg-primary text-primary-foreground font-bold' :
+                                        isPast ? 'bg-primary/15 dark:bg-primary/20 text-primary font-semibold hover:bg-primary/25 dark:hover:bg-primary/30' :
+                                        'bg-muted/40 dark:bg-muted/20 text-muted-foreground font-medium hover:bg-muted/60 dark:hover:bg-muted/40'
+                                    }`}
+                                    title={s.title}
+                                >
+                                    <span className="text-[9px] sm:text-[10px] uppercase tracking-wider truncate px-1">
+                                        {s.title}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
-                    <span className="text-[10px] font-medium text-muted-foreground/40">
-                        {currentStageIndex + 1}/{pipeline.stages.length}
-                    </span>
                 </div>
             </header>
 
