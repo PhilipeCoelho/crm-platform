@@ -270,3 +270,26 @@ export interface CampaignSender {
     verificationToken?: string;
     createdAt: string;
 }
+
+export type CategoriaInsight = 'dor' | 'objecao' | 'barreira_acesso' | 'motivo_perda' | 'motivo_ganho' | 'neutro';
+
+export type TagTematicaInsight = 'decisor' | 'concorrencia' | 'orcamento' | 'urgencia' | 'autoridade' | 'indicacao' | 'marketing_atual' | 'expansao' | 'crescimento' | 'operacional';
+
+export interface InsightComercial {
+    id: string;
+    userId: string;
+    negocioId?: string | null;
+    atividadeId?: string | null;
+    textoOrigem: string;
+    categoria: CategoriaInsight;
+    tagsTematicas: TagTematicaInsight[];
+    subcategoria: string;
+    resumo: string;
+    confianca?: number;
+    revisarManualmente: boolean;
+    classificacaoFalhou: boolean;
+    erroClassificacao?: string | null;
+    contentSignal?: string | null;
+    criadoEm: string;
+}
+

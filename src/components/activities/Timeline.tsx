@@ -29,8 +29,8 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
     const items = [
         ...activities.map(a => ({ ...a, itemType: 'activity' as const })),
         ...logs.filter(l => {
-            // Hide logs that have an activityId (they show inside activities)
-            if (l.activityId) return false;
+            // Hide logs that have an activityId (they show inside activities), unless they are manual notes
+            if (l.activityId && l.logType !== 'manual_note') return false;
             // Hide system "no notes" logs that somehow lost their link - they clutter the UI
             if (l.logType === 'system' && l.content === 'Atividade concluída sem observações.') return false;
             return true;
@@ -157,7 +157,7 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
 
                                         {/* Display notes and/or linked observation below the activity title */}
                                         {(() => {
-                                            const observation = logs.find(l => l.activityId === activity?.id);
+                                            const observation = logs.find(l => l.activityId === activity?.id && l.logType !== 'manual_note');
                                             const textToShow = observation?.content || activity?.notes;
                                             if (!textToShow) return null;
                                             return (

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, Fragment } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
 import { ArrowLeft, Building, User, Pencil, Trash2, X, Ban, MoreHorizontal, Phone, Check, MessageCircle, Instagram, ExternalLink, Search, ChevronRight } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 
 
@@ -53,12 +54,67 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
         }
     }, [editingField]);
 
-    // Scroll right column to top when deal changes
     useEffect(() => {
         if (contentRef.current) {
             contentRef.current.scrollTop = 0;
         }
     }, [id]);
+
+    // Auto-cleanup duplicate entries for this deal
+    useEffect(() => {
+        if (!deal?.id) return;
+
+        const cleanupDuplicates = async () => {
+            try {
+                // 1. Fetch insights for this deal
+                const { data: insights } = await supabase
+                    .from('insights_comerciais')
+                    .select('id, texto_origem')
+                    .eq('negocio_id', deal.id);
+
+                if (insights && insights.length > 1) {
+                    // Find duplicate notes (especially the ones starting with "Negócio marcado como Perdido")
+                    const toDelete = insights.find(ins => ins.texto_origem.startsWith('Negócio marcado como Perdido'));
+                    if (toDelete) {
+                        await supabase.from('insights_comerciais').delete().eq('id', toDelete.id);
+                        console.log('Cleaned up duplicate commercial insight:', toDelete.id);
+                    }
+                }
+
+                // 2. Fetch duplicate status_change activities
+                const { data: acts } = await supabase
+                    .from('activities')
+                    .select('id, completed, status')
+                    .eq('deal_id', deal.id)
+                    .eq('type', 'status_change');
+
+                if (acts && acts.length > 1) {
+                    const incomplete = acts.find(a => !a.completed || a.status !== 'completed');
+                    const toDeleteAct = incomplete || acts[1];
+                    await supabase.from('activities').delete().eq('id', toDeleteAct.id);
+                    console.log('Cleaned up duplicate status change activity:', toDeleteAct.id);
+                }
+
+                // 3. Delete redundant logs in deal_logs
+                const { data: logs } = await supabase
+                    .from('deal_logs')
+                    .select('id')
+                    .eq('deal_id', deal.id)
+                    .ilike('content', 'Negócio marcado como Perdido%');
+
+                if (logs && logs.length > 0) {
+                    for (const log of logs) {
+                        await supabase.from('deal_logs').delete().eq('id', log.id);
+                        console.log('Cleaned up redundant status change log:', log.id);
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to auto-cleanup deal duplicates:', err);
+            }
+        };
+
+        cleanupDuplicates();
+    }, [deal?.id]);
 
     if (!deal) {
         return (

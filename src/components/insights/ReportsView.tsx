@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Download, Trash2, BarChart2 } from 'lucide-react';
+import { Plus, Download, Trash2, BarChart2, CheckCircle2 } from 'lucide-react';
 import ReportBuilderCorrected, { ReportConfig } from './ReportBuilderCorrected';
 import ReportViewer from './ReportViewer';
 
@@ -23,6 +23,12 @@ export default function ReportsView() {
     });
     const [showBuilder, setShowBuilder] = useState(false);
     const [viewingReport, setViewingReport] = useState<SavedReport | null>(null);
+    const [toast, setToast] = useState<string | null>(null);
+
+    const showToast = (msg: string) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 3000);
+    };
 
     // Persist reports to LocalStorage
     useEffect(() => {
@@ -49,10 +55,7 @@ export default function ReportsView() {
             <ReportViewer
                 report={viewingReport}
                 onClose={() => setViewingReport(null)}
-                onEdit={() => {
-                    // TODO: Implement edit mode
-                    alert('Modo de edição em desenvolvimento');
-                }}
+                onEdit={() => showToast('Modo de edição em breve')}
                 onDuplicate={() => {
                     const duplicated: SavedReport = {
                         ...viewingReport,
@@ -63,53 +66,59 @@ export default function ReportsView() {
                     };
                     setReports([...reports, duplicated]);
                     setViewingReport(null);
-                    alert('Relatório duplicado com sucesso!');
+                    showToast('Relatório duplicado com sucesso!');
                 }}
-                onExport={() => {
-                    // TODO: Implement export
-                    alert('Exportação em desenvolvimento');
-                }}
+                onExport={() => showToast('Exportação em breve (CSV/XLS)')}
             />
         );
     }
 
     return (
         <div className="h-full flex flex-col">
+            {/* Inline Toast */}
+            {toast && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-[#111827] dark:bg-[#EAEAEA] text-white dark:text-[#111827] px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium animate-in slide-in-from-bottom-3 duration-300">
+                    <CheckCircle2 size={15} className="text-emerald-400 dark:text-emerald-600 shrink-0" />
+                    {toast}
+                </div>
+            )}
+
             {/* Header */}
-            <div className="px-6 py-4 border-b border-border">
+            <div className="px-6 py-4 border-b border-[#E5E7EB] dark:border-[#1F1F1F] bg-[#FFFFFF] dark:bg-[#0D0D0D]">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-semibold text-foreground">Relatórios</h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Visualize e analise dados do CRM com relatórios personalizados
+                        <h1 className="text-xl font-bold text-[#111827] dark:text-[#EAEAEA] tracking-tight">Relatórios</h1>
+                        <p className="text-xs text-[#6B7280] dark:text-[#8A8A8A] mt-0.5">
+                            Crie e analise relatórios personalizados com os dados do CRM
                         </p>
                     </div>
                     <button
                         onClick={() => setShowBuilder(true)}
-                        className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                        className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors"
                     >
-                        <Plus size={18} />
+                        <Plus size={16} />
                         Criar Relatório
                     </button>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto p-6 bg-[#F7F9FC] dark:bg-[#0D0D0D]">
                 {reports.length === 0 ? (
-                    <div className="bg-card rounded-lg border border-border p-12 text-center">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                            <BarChart2 size={32} className="text-muted-foreground" />
+                    <div className="flex flex-col items-center justify-center h-full text-center max-w-sm mx-auto">
+                        <div className="w-16 h-16 rounded-2xl bg-[#FFFFFF] dark:bg-[#141414] border border-[#E5E7EB] dark:border-[#262626] flex items-center justify-center mx-auto mb-5 shadow-sm">
+                            <BarChart2 size={28} className="text-[#6B7280] dark:text-[#8A8A8A]" />
                         </div>
-                        <p className="text-foreground font-semibold mb-2">Nenhum relatório criado</p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Crie relatórios personalizados para visualizar seus dados do CRM
+                        <h2 className="text-base font-bold text-[#111827] dark:text-[#EAEAEA] mb-2">Nenhum relatório criado</h2>
+                        <p className="text-sm text-[#6B7280] dark:text-[#8A8A8A] mb-6 leading-relaxed">
+                            Crie relatórios personalizados escolhendo uma fonte de dados, métricas e visualização.
                         </p>
                         <button
                             onClick={() => setShowBuilder(true)}
-                            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                            className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors"
                         >
-                            + Criar Primeiro Relatório
+                            <Plus size={15} />
+                            Criar Primeiro Relatório
                         </button>
                     </div>
                 ) : (
@@ -154,28 +163,27 @@ export default function ReportsView() {
                                     <span>{report.metrics.length} métrica(s)</span>
                                 </div>
 
-                                <div className="flex gap-2 pt-3 border-t border-border">
+                                <div className="flex gap-2 pt-3 border-t border-[#E5E7EB] dark:border-[#262626]">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // TODO: Implement export
-                                            alert('Exportação em desenvolvimento');
+                                            showToast('Exportação em breve (CSV/XLS)');
                                         }}
-                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm border border-border rounded-lg hover:bg-muted transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium border border-[#E5E7EB] dark:border-[#262626] rounded-lg text-[#6B7280] dark:text-[#8A8A8A] hover:bg-[#F3F4F6] dark:hover:bg-[#1F1F1F] transition-colors"
                                     >
-                                        <Download size={14} />
+                                        <Download size={13} />
                                         Exportar
                                     </button>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (confirm('Tem certeza que deseja excluir este relatório?')) {
+                                            if (window.confirm('Excluir este relatório?')) {
                                                 handleDeleteReport(report.id);
                                             }
                                         }}
-                                        className="flex items-center justify-center gap-2 px-3 py-2 text-sm border border-border rounded-lg hover:bg-muted transition-colors text-red-600"
+                                        className="flex items-center justify-center gap-2 px-3 py-2 text-xs border border-[#E5E7EB] dark:border-[#262626] rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                                     >
-                                        <Trash2 size={14} />
+                                        <Trash2 size={13} />
                                     </button>
                                 </div>
                             </div>

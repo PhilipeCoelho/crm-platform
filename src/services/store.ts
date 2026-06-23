@@ -514,7 +514,13 @@ export function useCRMStore(): CRMStore {
                             relatedActivityId: newAct.related_activity_id
                         };
                         setActivities((prev: any[]) => {
-                            if (prev.some((a: any) => a.id === mapped.id)) return prev;
+                            const exists = prev.find((a: any) => a.id === mapped.id);
+                            if (exists) {
+                                if (exists.isOptimistic) {
+                                    return prev.map((a: any) => a.id === mapped.id ? mapped : a);
+                                }
+                                return prev;
+                            }
                             const filtered = prev.filter((a: any) => !((a as any).isOptimistic && a.dealId === mapped.dealId && a.title === mapped.title));
                             return [...filtered, mapped];
                         });
@@ -653,7 +659,33 @@ export function useCRMStore(): CRMStore {
             console.error('Error creating log:', error);
             alert(`Erro ao gerar histórico (Log): ${error.message}. Verifique se a tabela deal_logs existe.`);
             setLogs((prev: any[]) => prev.filter((l: any) => l.id !== tempId));
+        } else {
+            try {
+                // Trigger AI classification asynchronously (fire-and-forget)
+                if (data.logType === 'manual_note' || data.logType === 'activity_note') {
+                    supabase.auth.getSession().then(({ data: { session } }) => {
+                        const token = session?.access_token;
+                        fetch('/api/insights/classify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                            },
+                            body: JSON.stringify({
+                                negocioId: data.dealId,
+                                atividadeId: data.activityId || null,
+                                textoOrigem: data.content,
+                                userId: user.id
+                            })
+                        }).catch(err => console.error("Failed to trigger classification:", err));
+                    }).catch(err => console.error("Failed to get session:", err));
+                }
+            } catch (err) {
+                console.error("Failed to trigger classification:", err);
+            }
         }
+
+
     }
 
     async function deleteLog(id: string) {
@@ -664,6 +696,19 @@ export function useCRMStore(): CRMStore {
             console.error('Error deleting log:', error);
             alert(`Erro ao excluir nota: ${error.message}`);
             if (removedLog) setLogs((prev: any[]) => [...prev, removedLog]);
+        } else if (removedLog) {
+            // Automatically delete corresponding commercial insight to trigger recalculation
+            let query = supabase.from('insights_comerciais')
+                .delete()
+                .eq('texto_origem', removedLog.content);
+            if (removedLog.dealId) {
+                query = query.eq('negocio_id', removedLog.dealId);
+            } else {
+                query = query.is('negocio_id', null);
+            }
+            query.then(({ error: insightErr }) => {
+                if (insightErr) console.warn('Sync insights warning on note deletion:', insightErr);
+            });
         }
     }
 
@@ -725,6 +770,7 @@ export function useCRMStore(): CRMStore {
             dueDate: optimisticDate,
             id: tempId,
             userId: user.id,
+            status: data.status || (isCompleted ? 'completed' : 'pending'),
             createdAt: new Date().toISOString(),
             completedAt: completedAtTime || undefined,
             isOptimistic: true
@@ -822,7 +868,7 @@ export function useCRMStore(): CRMStore {
             dealId: activity.dealId!,
             activityId: activityId.startsWith('opt-') ? undefined : activityId,
             content: content?.trim() || "Atividade concluída sem observações.",
-            logType: content?.trim() ? 'activity_note' : 'system'
+            logType: content?.trim() ? 'manual_note' : 'system'
         });
 
     }
@@ -970,6 +1016,40 @@ export function useCRMStore(): CRMStore {
                     supabase.from('deal_analytics').update(analyticsUpdate).eq('deal_id', id).then(({ error: syncErr }) => {
                         if (syncErr) console.warn('Sync deal_analytics warning:', syncErr);
                     });
+
+                    // Clean up old lost reason insight if deal status is no longer lost or lost reason changed
+                    if (originalDeal.status === 'lost' && originalDeal.lostReason && (dbUpdates.status !== 'lost' || (finalUpdates.lostReason !== undefined && finalUpdates.lostReason !== originalDeal.lostReason))) {
+                        supabase.from('insights_comerciais')
+                            .delete()
+                            .eq('negocio_id', id)
+                            .eq('texto_origem', originalDeal.lostReason)
+                            .then(({ error: delErr }) => {
+                                if (delErr) console.warn('Failed to delete old lost reason insight:', delErr);
+                            });
+                    }
+
+                    // Trigger AI classification for lost reason
+                    if (dbUpdates.status === 'lost' && finalUpdates.lostReason) {
+                        supabase.auth.getSession().then(({ data: { session } }) => {
+                            const token = session?.access_token;
+                            const userId = session?.user?.id;
+                            if (userId) {
+                                fetch('/api/insights/classify', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                    },
+                                    body: JSON.stringify({
+                                        negocioId: id,
+                                        atividadeId: null,
+                                        textoOrigem: finalUpdates.lostReason,
+                                        userId: userId
+                                    })
+                                }).catch(err => console.error("Failed to trigger lost reason classification:", err));
+                            }
+                        }).catch(err => console.error("Failed to get session for lost reason classification:", err));
+                    }
                 }
 
                 // --- LIMPEZA AUTOMÁTICA DE ATIVIDADES PENDENTES ---

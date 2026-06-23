@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Users, CheckSquare, LogOut,
     ChevronRight, ChevronLeft, Loader2, Moon,
     Sun, Laptop as Monitor, Menu, X, CalendarDays, BarChart3,
-    Zap, DollarSign, Check, Mail, Eye, Inbox
+    Zap, DollarSign, Check, Mail, Eye, Inbox, Brain
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
@@ -24,6 +24,7 @@ import PipelineSettingsModal from '@/components/kanban/PipelineSettingsModal';
 import NewDealModal from '@/components/kanban/NewDealModal';
 import ActivitiesV2 from './pages/ActivitiesV2';
 import Insights from './pages/Insights';
+import KnowledgeBase from './pages/KnowledgeBase';
 import { PrivacyBanner } from '@/components/ui/PrivacyBanner';
 import { VamusLogo } from '@/components/ui/VamusLogo';
 import CampaignsLayout from './pages/campaigns/CampaignsLayout';
@@ -59,6 +60,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         { path: '/activities', label: 'Atividades', icon: CalendarDays },
         { path: '/contacts', label: 'Contatos', icon: Users },
         { path: '/insights', label: 'Insights', icon: BarChart3 },
+        { path: '/knowledge-base', label: 'Inteligência Comercial', icon: Brain },
     ];
 
     // Sidebar States: Pinned and Hovered
@@ -590,6 +592,7 @@ function App() {
                         <Route path="/campaigns/wizard" element={<CampaignWizard />} />
                         <Route path="/email" element={<EmailInbox />} />
                         <Route path="/insights" element={<Insights />} />
+                        <Route path="/knowledge-base" element={<KnowledgeBase />} />
                         <Route path="/settings/cadence" element={<CadenceSettings />} />
                         <Route path="/deals/:id" element={<DealDetails currency={selectedCurrency} />} />
                         <Route path="/companies/:id" element={<CompanyDetails />} />

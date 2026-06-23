@@ -201,7 +201,8 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
                     {/* Hint if no planned activities - REMOVED AS REQUESTED */}
 
                     {/* History Section - TIMELINE LIMPA */}
-                    {historyActivities.length > 0 && (
+                    {(historyActivities.length > 0 || dealLogs.length > 0) && (
+
                         <section>
                             <h3 className="text-[8px] font-bold text-muted-foreground dark:text-muted-foreground/60 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-muted dark:bg-muted/40" />

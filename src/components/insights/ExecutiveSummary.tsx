@@ -1,5 +1,5 @@
 import { useInsights } from '@/contexts/InsightsContext';
-import VariationBadge from './VariationBadge';
+import KPICard from './KPICard';
 import QuickGuide from '../ui/QuickGuide';
 import { AlertCircle } from 'lucide-react';
 
@@ -15,7 +15,7 @@ export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props)
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="h-24 bg-[#E5E7EB] dark:bg-[#1F2937] animate-pulse rounded-lg bg-opacity-30"></div>
+                    <KPICard key={i} title="" value="" loading />
                 ))}
             </div>
         );
@@ -63,7 +63,7 @@ export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props)
                 />
             </div>
 
-            {/* Nova Seção: Eficiência de Conversão */}
+            {/* Eficiência de Prospecção */}
             <div className="pt-8">
                 <h3 className="text-sm font-bold text-[#111827] dark:text-[#EAEAEA] uppercase tracking-wider mb-6 flex items-center gap-2">
                     <AlertCircle size={16} className="text-primary" />
@@ -124,19 +124,6 @@ export default function ExecutiveSummary({ activeGuide, setActiveGuide }: Props)
                     </div>
                 </div>
             )}
-        </div>
-    );
-}
-
-function KPICard({ title, value, variation, subtitle }: any) {
-    return (
-        <div className="flex flex-col gap-1 p-5 bg-[#FFFFFF] dark:bg-[#141414] rounded-xl border border-[#E5E7EB] dark:border-[#262626] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#8A8A8A] tracking-widest">{title}</span>
-            <div className="flex items-baseline gap-3 my-1">
-                <span className="text-4xl font-semibold tracking-tighter text-[#111827] dark:text-[#EAEAEA]">{value}</span>
-                <VariationBadge value={variation} />
-            </div>
-            <span className="text-xs text-[#6B7280] dark:text-[#8A8A8A] font-medium">{subtitle}</span>
         </div>
     );
 }
