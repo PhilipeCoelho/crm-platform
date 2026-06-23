@@ -1269,158 +1269,153 @@ app.post('/api/insights/classify', authenticate, async (req, res) => {
         return res.status(400).json({ error: 'textoOrigem and userId are required' });
     }
 
-    // Acknowledge request immediately to run in background (fire-and-forget)
-    res.status(202).json({ message: 'Classification queued' });
+    logToFile(`🤖 [Insights AI] Starting classification for note: "${textoOrigem.substring(0, 50)}..."`);
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+    });
 
-    // Run classification in the background
-    (async () => {
-        logToFile(`🤖 [Insights AI] Starting classification for note: "${textoOrigem.substring(0, 50)}..."`);
-        const apiKey = process.env.ANTHROPIC_API_KEY;
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
-        });
+    let activity = null;
+    try {
+        if (atividadeId) {
+            const { data: act } = await supabase.from('activities').select('type, title').eq('id', atividadeId).maybeSingle();
+            activity = act;
+        }
+    } catch (err) {
+        logToFile(`⚠️ [Insights AI] Failed to fetch activity: ${err.message}`);
+    }
 
-        let activity = null;
+    const direcao = getDirecao(activity, textoOrigem);
+
+    if (direcao === 'enviado') {
+        logToFile(`ℹ️ [Insights AI] Forcing categoria='neutro' for outgoing activity (direcao = enviado). Skipping Claude.`);
+        const subcat = (activity?.type === 'email' || (activity?.title && activity.title.toLowerCase().includes('email'))) ? 'email_enviado' : 'mensagem_enviada';
+        const resumoText = textoOrigem.length > 80 ? `${textoOrigem.substring(0, 80)}...` : textoOrigem;
+        
         try {
-            if (atividadeId) {
-                const { data: act } = await supabase.from('activities').select('type, title').eq('id', atividadeId).maybeSingle();
-                activity = act;
-            }
-        } catch (err) {
-            logToFile(`⚠️ [Insights AI] Failed to fetch activity: ${err.message}`);
-        }
-
-        const direcao = getDirecao(activity, textoOrigem);
-
-        if (direcao === 'enviado') {
-            logToFile(`ℹ️ [Insights AI] Forcing categoria='neutro' for outgoing activity (direcao = enviado). Skipping Claude.`);
-            const subcat = (activity?.type === 'email' || (activity?.title && activity.title.toLowerCase().includes('email'))) ? 'email_enviado' : 'mensagem_enviada';
-            const resumoText = textoOrigem.length > 80 ? `${textoOrigem.substring(0, 80)}...` : textoOrigem;
-            
-            try {
-                await upsertInsight(supabase, {
-                    userId,
-                    negocioId,
-                    atividadeId,
-                    textoOrigem,
-                    categoria: 'neutro',
-                    tags_tematicas: [],
-                    subcategoria: subcat,
-                    resumo: `Mensagem enviada: "${resumoText}"`,
-                    confianca: 1.0,
-                    revisarManualmente: false,
-                    classificacaoFalhou: false,
-                    erroClassificacao: null,
-                    contentSignal: null,
-                    direcao: 'enviado'
-                });
-                logToFile(`✅ [Insights AI] Outgoing activity processed: "${textoOrigem.substring(0, 40)}..." -> Categoria: neutro, Subcategoria: ${subcat}, Direcao: enviado`);
-            } catch (dbErr) {
-                logToFile(`❌ [Insights DB] Failed to save outgoing activity: ${dbErr.message}`);
-            }
-            return;
-        }
-
-        // MOCK AI CLASSIFICATION MODE FOR TESTING
-        if (process.env.MOCK_AI_CLASSIFICATION === 'true') {
-            logToFile(`🤖 [Insights AI] [MOCK MODE] Simulating classification for note: "${textoOrigem.substring(0, 50)}..."`);
-            await new Promise(r => setTimeout(r, 500));
-
-            let mockResult = {
-                categoria: "neutro",
+            await upsertInsight(supabase, {
+                userId,
+                negocioId,
+                atividadeId,
+                textoOrigem,
+                categoria: 'neutro',
                 tags_tematicas: [],
-                subcategoria: "sem_classificacao_mock",
-                resumo: "[MOCK] Nota sem padrão reconhecido no modo de teste",
-                confianca: 0.5,
-                contentSignal: null
+                subcategoria: subcat,
+                resumo: `Mensagem enviada: "${resumoText}"`,
+                confianca: 1.0,
+                revisarManualmente: false,
+                classificacaoFalhou: false,
+                erroClassificacao: null,
+                contentSignal: null,
+                direcao: 'enviado'
+            });
+            logToFile(`✅ [Insights AI] Outgoing activity processed: "${textoOrigem.substring(0, 40)}..." -> Categoria: neutro, Subcategoria: ${subcat}, Direcao: enviado`);
+            return res.status(200).json({ success: true, message: 'Outgoing activity processed' });
+        } catch (dbErr) {
+            logToFile(`❌ [Insights DB] Failed to save outgoing activity: ${dbErr.message}`);
+            return res.status(500).json({ error: dbErr.message });
+        }
+    }
+
+    // MOCK AI CLASSIFICATION MODE FOR TESTING
+    if (process.env.MOCK_AI_CLASSIFICATION === 'true') {
+        logToFile(`🤖 [Insights AI] [MOCK MODE] Simulating classification for note: "${textoOrigem.substring(0, 50)}..."`);
+        await new Promise(r => setTimeout(r, 500));
+
+        let mockResult = {
+            categoria: "neutro",
+            tags_tematicas: [],
+            subcategoria: "sem_classificacao_mock",
+            resumo: "[MOCK] Nota sem padrão reconhecido no modo de teste",
+            confianca: 0.5,
+            contentSignal: null
+        };
+
+        const lowerText = textoOrigem.toLowerCase();
+        if (lowerText.includes("recepcionista") || lowerText.includes("atendendo")) {
+            mockResult = {
+                categoria: "barreira_acesso",
+                tags_tematicas: ["decisor"],
+                subcategoria: "recepcionista_bloqueia_decisor",
+                resumo: "[MOCK] Recepcionista impediu contacto direto com decisor",
+                confianca: 0.85,
+                contentSignal: "Decisores estão protegidos por filtros internos que impedem novas oportunidades"
             };
-
-            const lowerText = textoOrigem.toLowerCase();
-            if (lowerText.includes("recepcionista") || lowerText.includes("atendendo")) {
-                mockResult = {
-                    categoria: "barreira_acesso",
-                    tags_tematicas: ["decisor"],
-                    subcategoria: "recepcionista_bloqueia_decisor",
-                    resumo: "[MOCK] Recepcionista impediu contacto direto com decisor",
-                    confianca: 0.85,
-                    contentSignal: "Decisores estão protegidos por filtros internos que impedem novas oportunidades"
-                };
-            } else if (lowerText.includes("agência") || lowerText.includes("agencia") || lowerText.includes("orçamento") || lowerText.includes("orcamento") || lowerText.includes("preço") || lowerText.includes("preco")) {
-                // If it looks like a lost reason or objection based on pricing/agency
-                const isLostReason = lowerText.includes("perda") || lowerText.includes("concorrência") || lowerText.includes("concorrencia") || lowerText.includes("preço") || lowerText.includes("preco");
-                mockResult = {
-                    categoria: isLostReason ? "motivo_perda" : "objecao",
-                    tags_tematicas: ["concorrencia", "orcamento"],
-                    subcategoria: "preco_concorrencia_alto",
-                    resumo: "[MOCK] Negócio perdido devido a preço da concorrência mais atraente",
-                    confianca: 0.9,
-                    contentSignal: "Muitas clínicas confundem presença digital com estratégia de crescimento"
-                };
-            } else if (lowerText.includes("indicação") || lowerText.includes("indicacao")) {
-                mockResult = {
-                    categoria: "dor",
-                    tags_tematicas: ["indicacao", "crescimento"],
-                    subcategoria: "dependencia_indicacao",
-                    resumo: "[MOCK] Clínica depende de indicação de pacientes",
-                    confianca: 0.88,
-                    contentSignal: "Clínicas confundem indicação espontânea com estratégia de crescimento"
-                };
-            }
-
-            try {
-                const confianca = mockResult.confianca;
-                const revisarManualmente = confianca < 0.5;
-
-                await upsertInsight(supabase, {
-                    userId,
-                    negocioId,
-                    atividadeId,
-                    textoOrigem,
-                    categoria: mockResult.categoria,
-                    tags_tematicas: mockResult.tags_tematicas,
-                    subcategoria: mockResult.subcategoria,
-                    resumo: mockResult.resumo,
-                    confianca,
-                    revisarManualmente,
-                    classificacaoFalhou: false,
-                    erroClassificacao: null,
-                    contentSignal: mockResult.contentSignal,
-                    direcao: 'recebido'
-                });
-                logToFile(`✅ [Insights AI] [MOCK MODE] Classified note: "${textoOrigem.substring(0, 40)}..." -> Categoria: ${mockResult.categoria}, Subcategoria: ${mockResult.subcategoria}, Direcao: recebido`);
-            } catch (dbErr) {
-                logToFile(`❌ [Insights DB] [MOCK MODE] Failed to save classified insight: ${dbErr.message}`);
-            }
-            return;
+        } else if (lowerText.includes("agência") || lowerText.includes("agencia") || lowerText.includes("orçamento") || lowerText.includes("orcamento") || lowerText.includes("preço") || lowerText.includes("preco")) {
+            const isLostReason = lowerText.includes("perda") || lowerText.includes("concorrência") || lowerText.includes("concorrencia") || lowerText.includes("preço") || lowerText.includes("preco");
+            mockResult = {
+                categoria: isLostReason ? "motivo_perda" : "objecao",
+                tags_tematicas: ["concorrencia", "orcamento"],
+                subcategoria: "preco_concorrencia_alto",
+                resumo: "[MOCK] Negócio perdido devido a preço da concorrência mais atraente",
+                confianca: 0.9,
+                contentSignal: "Muitas clínicas confundem presença digital com estratégia de crescimento"
+            };
+        } else if (lowerText.includes("indicação") || lowerText.includes("indicacao")) {
+            mockResult = {
+                categoria: "dor",
+                tags_tematicas: ["indicacao", "crescimento"],
+                subcategoria: "dependencia_indicacao",
+                resumo: "[MOCK] Clínica depende de indicação de pacientes",
+                confianca: 0.88,
+                contentSignal: "Clínicas confundem indicação espontânea com estratégia de crescimento"
+            };
         }
 
+        try {
+            const confianca = mockResult.confianca;
+            const revisarManualmente = confianca < 0.5;
 
-
-        if (!apiKey) {
-            logToFile(`❌ [Insights AI] ANTHROPIC_API_KEY is not defined in environment variables.`);
-            try {
-                await upsertInsight(supabase, {
-                    userId,
-                    negocioId,
-                    atividadeId,
-                    textoOrigem,
-                    categoria: 'neutro',
-                    tags_tematicas: [],
-                    subcategoria: 'erro_configuracao',
-                    resumo: 'Erro de configuração: ANTHROPIC_API_KEY ausente',
-                    confianca: 0,
-                    revisarManualmente: true,
-                    classificacaoFalhou: true,
-                    erroClassificacao: 'ANTHROPIC_API_KEY is missing on backend server',
-                    contentSignal: null
-                });
-            } catch (dbErr) {
-                logToFile(`❌ [Insights DB] Failed to write API key error to DB: ${dbErr.message}`);
-            }
-            return;
+            await upsertInsight(supabase, {
+                userId,
+                negocioId,
+                atividadeId,
+                textoOrigem,
+                categoria: mockResult.categoria,
+                tags_tematicas: mockResult.tags_tematicas,
+                subcategoria: mockResult.subcategoria,
+                resumo: mockResult.resumo,
+                confianca,
+                revisarManualmente,
+                classificacaoFalhou: false,
+                erroClassificacao: null,
+                contentSignal: mockResult.contentSignal,
+                direcao: 'recebido'
+            });
+            logToFile(`✅ [Insights AI] [MOCK MODE] Classified note: "${textoOrigem.substring(0, 40)}..." -> Categoria: ${mockResult.categoria}, Subcategoria: ${mockResult.subcategoria}, Direcao: recebido`);
+            return res.status(200).json({ success: true, message: 'Note classified (mock)' });
+        } catch (dbErr) {
+            logToFile(`❌ [Insights DB] [MOCK MODE] Failed to save classified insight: ${dbErr.message}`);
+            return res.status(500).json({ error: dbErr.message });
         }
+    }
 
-        const systemPrompt = `Você é um classificador de notas comerciais de uma agência de tráfego pago para clínicas odontológicas e profissionais de saúde em Portugal. Você vai receber o texto de uma nota registrada por um vendedor durante o processo de prospecção ou negociação.
+    if (!apiKey) {
+        logToFile(`❌ [Insights AI] ANTHROPIC_API_KEY is not defined in environment variables.`);
+        try {
+            await upsertInsight(supabase, {
+                userId,
+                negocioId,
+                atividadeId,
+                textoOrigem,
+                categoria: 'neutro',
+                tags_tematicas: [],
+                subcategoria: 'erro_configuracao',
+                resumo: 'Erro de configuração: ANTHROPIC_API_KEY ausente',
+                confianca: 0,
+                revisarManualmente: true,
+                classificacaoFalhou: true,
+                erroClassificacao: 'ANTHROPIC_API_KEY is missing on backend server',
+                contentSignal: null
+            });
+            return res.status(200).json({ success: false, error: 'API key missing, insight written as error' });
+        } catch (dbErr) {
+            logToFile(`❌ [Insights DB] Failed to write API key error to DB: ${dbErr.message}`);
+            return res.status(500).json({ error: dbErr.message });
+        }
+    }
+
+    const systemPrompt = `Você é um classificador de notas comerciais de uma agência de tráfego pago para clínicas odontológicas e profissionais de saúde em Portugal. Você vai receber o texto de uma nota registrada por um vendedor durante o processo de prospecção ou negociação.
 
 Classifique a nota em DOIS EIXOS independentes:
 
@@ -1470,121 +1465,123 @@ Retorne EXCLUSIVAMENTE neste formato JSON, sem nenhum texto antes ou depois:
   "content_signal": "string ou null"
 }`;
 
-        let attempt = 0;
-        let success = false;
-        let lastError = null;
-        let parsedResult = null;
+    let attempt = 0;
+    let success = false;
+    let lastError = null;
+    let parsedResult = null;
 
-        const maxAttempts = 4; // 1 initial + 3 retries
-        const backoffTimes = [1000, 3000, 9000];
+    const maxAttempts = 4; // 1 initial + 3 retries
+    const backoffTimes = [1000, 3000, 9000];
 
-        while (attempt < maxAttempts && !success) {
-            if (attempt > 0) {
-                const waitTime = backoffTimes[attempt - 1] || 1000;
-                logToFile(`🤖 [Insights AI] Retrying attempt ${attempt} in ${waitTime}ms...`);
-                await new Promise(r => setTimeout(r, waitTime));
-            }
-
-            attempt++;
-            try {
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01',
-                        'content-type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-sonnet-4-6',
-                        max_tokens: 1024,
-
-                        system: systemPrompt,
-                        messages: [
-                            { role: 'user', content: textoOrigem }
-                        ]
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Anthropic API error: Status ${response.status} - ${errorText}`);
-                }
-
-                const data = await response.json();
-                const text = data?.content?.[0]?.text;
-                if (!text) {
-                    throw new Error("Empty text returned from Anthropic API");
-                }
-
-                // Clean markdown JSON wrapper blocks
-                let cleaned = text.trim();
-                if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
-                if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
-                if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
-                cleaned = cleaned.trim();
-
-                parsedResult = JSON.parse(cleaned);
-
-                // Basic validation
-                if (!parsedResult.categoria || !Array.isArray(parsedResult.tags_tematicas) || !parsedResult.subcategoria || !parsedResult.resumo) {
-                    throw new Error("Response JSON lacks required fields or has invalid types");
-                }
-
-                success = true;
-            } catch (err) {
-                logToFile(`❌ [Insights AI] Attempt ${attempt} failed: ${err.message}`);
-                lastError = err;
-            }
+    while (attempt < maxAttempts && !success) {
+        if (attempt > 0) {
+            const waitTime = backoffTimes[attempt - 1] || 1000;
+            logToFile(`🤖 [Insights AI] Retrying attempt ${attempt} in ${waitTime}ms...`);
+            await new Promise(r => setTimeout(r, waitTime));
         }
 
-        if (success && parsedResult) {
-            try {
-                const confianca = parsedResult.confianca !== undefined ? Number(parsedResult.confianca) : 1.0;
-                const revisarManualmente = confianca < 0.5;
+        attempt++;
+        try {
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-6',
+                    max_tokens: 1024,
+                    system: systemPrompt,
+                    messages: [
+                        { role: 'user', content: textoOrigem }
+                    ]
+                })
+            });
 
-                await upsertInsight(supabase, {
-                    userId,
-                    negocioId,
-                    atividadeId,
-                    textoOrigem,
-                    categoria: parsedResult.categoria,
-                    tags_tematicas: parsedResult.tags_tematicas,
-                    subcategoria: parsedResult.subcategoria,
-                    resumo: parsedResult.resumo,
-                    confianca,
-                    revisarManualmente,
-                    classificacaoFalhou: false,
-                    erroClassificacao: null,
-                    contentSignal: parsedResult.content_signal,
-                    direcao: 'recebido'
-                });
-                logToFile(`✅ [Insights AI] Classified note: "${textoOrigem.substring(0, 40)}..." -> Categoria: ${parsedResult.categoria}, Subcategoria: ${parsedResult.subcategoria}, Direcao: recebido`);
-            } catch (dbErr) {
-                logToFile(`❌ [Insights DB] Failed to save classified insight to database: ${dbErr.message}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Anthropic API error: Status ${response.status} - ${errorText}`);
             }
-        } else {
-            logToFile(`❌ [Insights AI] All classification attempts failed. Saving failure state in DB...`);
-            try {
-                await upsertInsight(supabase, {
-                    userId,
-                    negocioId,
-                    atividadeId,
-                    textoOrigem,
-                    categoria: 'neutro',
-                    tags_tematicas: [],
-                    subcategoria: 'erro_classificacao',
-                    resumo: 'Falha ao classificar via IA',
-                    confianca: 0,
-                    revisarManualmente: true,
-                    classificacaoFalhou: true,
-                    erroClassificacao: lastError ? lastError.message : 'Unknown classification error',
-                    contentSignal: null
-                });
-            } catch (dbErr) {
-                logToFile(`❌ [Insights DB] Failed to save failure state to database: ${dbErr.message}`);
+
+            const data = await response.json();
+            const text = data?.content?.[0]?.text;
+            if (!text) {
+                throw new Error("Empty text returned from Anthropic API");
             }
+
+            // Clean markdown JSON wrapper blocks
+            let cleaned = text.trim();
+            if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+            if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+            if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+            cleaned = cleaned.trim();
+
+            parsedResult = JSON.parse(cleaned);
+
+            // Basic validation
+            if (!parsedResult.categoria || !Array.isArray(parsedResult.tags_tematicas) || !parsedResult.subcategoria || !parsedResult.resumo) {
+                throw new Error("Response JSON lacks required fields or has invalid types");
+            }
+
+            success = true;
+        } catch (err) {
+            logToFile(`❌ [Insights AI] Attempt ${attempt} failed: ${err.message}`);
+            lastError = err;
         }
-    })();
+    }
+
+    if (success && parsedResult) {
+        try {
+            const confianca = parsedResult.confianca !== undefined ? Number(parsedResult.confianca) : 1.0;
+            const revisarManualmente = confianca < 0.5;
+
+            await upsertInsight(supabase, {
+                userId,
+                negocioId,
+                atividadeId,
+                textoOrigem,
+                categoria: parsedResult.categoria,
+                tags_tematicas: parsedResult.tags_tematicas,
+                subcategoria: parsedResult.subcategoria,
+                resumo: parsedResult.resumo,
+                confianca,
+                revisarManualmente,
+                classificacaoFalhou: false,
+                erroClassificacao: null,
+                contentSignal: parsedResult.content_signal,
+                direcao: 'recebido'
+            });
+            logToFile(`✅ [Insights AI] Classified note: "${textoOrigem.substring(0, 40)}..." -> Categoria: ${parsedResult.categoria}, Subcategoria: ${parsedResult.subcategoria}, Direcao: recebido`);
+            return res.status(200).json({ success: true, classification: parsedResult });
+        } catch (dbErr) {
+            logToFile(`❌ [Insights DB] Failed to save classified insight to database: ${dbErr.message}`);
+            return res.status(500).json({ error: dbErr.message });
+        }
+    } else {
+        logToFile(`❌ [Insights AI] All classification attempts failed. Saving failure state in DB...`);
+        try {
+            await upsertInsight(supabase, {
+                userId,
+                negocioId,
+                atividadeId,
+                textoOrigem,
+                categoria: 'neutro',
+                tags_tematicas: [],
+                subcategoria: 'erro_classificacao',
+                resumo: 'Falha ao classificar via IA',
+                confianca: 0,
+                revisarManualmente: true,
+                classificacaoFalhou: true,
+                erroClassificacao: lastError ? lastError.message : 'Unknown classification error',
+                contentSignal: null
+            });
+            return res.status(200).json({ success: false, error: 'Classification failed', details: lastError ? lastError.message : 'Unknown error' });
+        } catch (dbErr) {
+            logToFile(`❌ [Insights DB] Failed to save failure state to database: ${dbErr.message}`);
+            return res.status(500).json({ error: dbErr.message });
+        }
+    }
 });
 
 /**
@@ -1765,17 +1762,7 @@ app.post('/api/knowledge-base/backfill', authenticate, async (req, res) => {
     }
 
     // Acknowledge immediately and run in background
-    res.status(202).json({
-        found: allItems.length,
-        queued: allItems.length,
-        skipped: 0,
-        errors: 0,
-        duration_ms: 0,
-        message: `${allItems.length} itens encontrados. A classificação está a correr em background — recarregue o painel em alguns minutos.`
-    });
-
-    // Process in batches of 10 with 500ms delay between batches (background)
-    (async () => {
+    try {
         const BATCH_SIZE = 10;
         const BATCH_DELAY_MS = 500;
         let processed = 0;
@@ -1945,7 +1932,18 @@ Retorne EXCLUSIVAMENTE neste formato JSON, sem nenhum texto antes ou depois:
 
         const totalDuration = Date.now() - startTime;
         logToFile(`🏁 [Backfill] Completed. Processed: ${processed}, Errors: ${errors}, Duration: ${totalDuration}ms`);
-    })();
+        return res.status(200).json({
+            found: allItems.length,
+            queued: allItems.length,
+            skipped: 0,
+            errors,
+            duration_ms: totalDuration,
+            message: `Classificação de histórico concluída. ${processed} de ${allItems.length} itens classificados com sucesso. Erros: ${errors}.`
+        });
+    } catch (e) {
+        logToFile(`❌ [Backfill] Critical failure: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
 });
 
 // Only start the server locally, otherwise export the app for Vercel Serverless
