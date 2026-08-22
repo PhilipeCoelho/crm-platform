@@ -11,6 +11,9 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
 import cron from 'node-cron';
+import { LeadProcessor } from './utils/leadProcessor.js';
+import { encrypt, decrypt } from './utils/crypto.js';
+import { sendMetaCAPIEvent, testMetaConnection } from './utils/capiSender.js';
 
 const LOG_FILE = '/tmp/crm_server.log';
 function logToFile(msg) {
@@ -88,6 +91,77 @@ const authenticate = async (req, res, next) => {
     }
 };
 
+// Cron job endpoint to keep Supabase alive
+app.get('/api/ping-db', async (req, res) => {
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        await supabase.from('contacts').select('id').limit(1);
+        logToFile('✅ [Ping] Supabase database pinged to keep alive');
+        res.status(200).send('Ping OK');
+    } catch (e) {
+        logToFile(`❌ [Ping] Error pinging db: ${e.message}`);
+        res.status(500).send('Ping Error');
+    }
+});
+
+// Webhook público para receber interações de campanhas do Brevo
+app.post('/api/webhooks/brevo', async (req, res) => {
+    try {
+        const payload = req.body;
+        logToFile(`📥 [Webhook Brevo] Evento recebido: ${JSON.stringify(payload)}`);
+
+        // Brevo envia o e-mail em payload.email ou payload.recipient
+        const email = payload.email || payload.recipient;
+        if (!email) {
+            logToFile(`⚠️ [Webhook Brevo] E-mail não encontrado no payload`);
+            return res.status(400).json({ error: "Missing email" });
+        }
+
+        // Brevo envia o ID da campanha em campaign-id, campaignId, camp_id ou id
+        const campaignIdStr = payload['campaign-id'] || payload.campaignId || payload.camp_id || payload.id;
+        const campaignId = campaignIdStr ? parseInt(campaignIdStr, 10) : null;
+        if (!campaignId) {
+            logToFile(`⚠️ [Webhook Brevo] ID da campanha não encontrado no payload`);
+            return res.status(400).json({ error: "Missing campaign ID" });
+        }
+
+        // Brevo envia o nome da campanha ou assunto em campaign_name, subject, etc.
+        const campaignName = payload['campaign-name'] || payload.campaign_name || payload.subject || `Campanha #${campaignId}`;
+
+        // Evento (opened, click, bounce, unsubscribed, spam, etc.)
+        const event = (payload.event || '').toLowerCase();
+
+        // URL clicada (apenas para eventos de clique)
+        const clickUrl = payload.url || '';
+
+        // Data do evento
+        const nowIso = new Date().toISOString();
+        const eventDate = payload.date || payload.ts ? new Date((payload.ts ? payload.ts * 1000 : payload.date)).toISOString() : nowIso;
+
+        // Executar processamento atômico no banco via RPC
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { data, error } = await supabase.rpc('update_brevo_campaign_log', {
+            p_email: email,
+            p_campaign_id: campaignId,
+            p_campaign_name: campaignName,
+            p_event: event,
+            p_url: clickUrl,
+            p_event_date: eventDate
+        });
+
+        if (error) {
+            logToFile(`❌ [Webhook Brevo] Falha ao processar RPC: ${error.message}`);
+            return res.status(500).json({ error: error.message });
+        }
+
+        logToFile(`✅ [Webhook Brevo] RPC Executado com sucesso: ${JSON.stringify(data)}`);
+        return res.json(data);
+    } catch (err) {
+        logToFile(`🔥 [Webhook Brevo] Erro interno: ${err.message}`);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 // --- Public Tracking Endpoints ---
 
 // Tracking de Abertura (Pixel)
@@ -152,7 +226,7 @@ app.get('/api/email/open/:log_id', async (req, res) => {
     })();
 });
 
-// Tracking de Cliques
+// Tracking de Cliques - Hardened against Open Redirect
 app.get('/api/email/click/:log_id', async (req, res) => {
     const { log_id } = req.params;
     const { url } = req.query;
@@ -168,54 +242,99 @@ app.get('/api/email/click/:log_id', async (req, res) => {
 
     logToFile(`📥 [Tracking] Click requested for ID: ${log_id} to URL: ${originalUrl}`);
 
-    res.redirect(originalUrl);
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        logToFile(`   🔍 [Tracking] Fetching log for click validation: ${log_id}`);
 
-    // Async Update
-    (async () => {
-        try {
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            logToFile(`   🔍 [Tracking] Fetching log for click ID: ${log_id}`);
+        const { data: log, error: fetchErr } = await supabase
+            .from('email_logs')
+            .select('*')
+            .eq('id', log_id)
+            .single();
 
-            const { data: log, error: fetchErr } = await supabase.from('email_logs').select('*').eq('id', log_id).single();
-            if (fetchErr || !log) {
-                logToFile(`   ❌ [Tracking] Click log not found for ID ${log_id}`);
-                return;
-            }
-
-            logToFile(`   ✅ [Tracking] Processing click for: ${log_id}`);
-
-            const isFirstClick = !log.clicked;
-
-            // 1. Update Log
-            await supabase.from('email_logs').update({
-                clicked: true,
-                clicked_at: new Date().toISOString(),
-                click_ip: ip,
-                click_user_agent: userAgent,
-                clicked_url: originalUrl,
-                // Also mark as opened if it wasn't
-                opened: true,
-                opened_at: log.opened ? log.opened_at : new Date().toISOString()
-            }).eq('id', log_id);
-
-            // 2. Metrics (only if first click)
-            if (isFirstClick && log.campaign_id) {
-                await supabase.rpc('increment_campaign_metric', {
-                    target_campaign_id: log.campaign_id,
-                    metric_column: 'clicked_count'
-                });
-
-                await supabase.from('campaign_recipients')
-                    .update({ clicked: true, clicked_at: new Date().toISOString() })
-                    .eq('campaign_id', log.campaign_id)
-                    .eq('email', log.recipient_email);
-
-                logToFile(`   📈 [Tracking] Click campaign metrics updated for ${log_id}`);
-            }
-        } catch (e) {
-            logToFile(`   ❌ [Tracking] Error in async click tracking: ${e.message}`);
+        if (fetchErr || !log) {
+            logToFile(`   ❌ [Tracking] Click validation failed: Log not found for ID ${log_id}`);
+            return res.status(400).send('Invalid click tracking link.');
         }
-    })();
+
+        // Validate that the requested destination URL exists in the email content
+        const emailContent = log.content || '';
+        const normalizedTarget = originalUrl.trim().toLowerCase();
+        const encodedTarget = encodeURIComponent(originalUrl);
+        
+        let isValid = emailContent.includes(originalUrl) || emailContent.includes(encodedTarget);
+
+        if (!isValid) {
+            // Extract from tracked links pattern: /api/email/click/log_id?url=...
+            const escapedLogId = log_id.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const regex = new RegExp(`(?:/api/email/click/|/click/)${escapedLogId}\\?url=([^"\\s>]+)`, 'gi');
+            let match;
+            while ((match = regex.exec(emailContent)) !== null) {
+                let matchedUrl = match[1];
+                matchedUrl = matchedUrl.replace(/&amp;/gi, '&');
+                try {
+                    const decodedUrl = decodeURIComponent(matchedUrl);
+                    if (decodedUrl.trim().toLowerCase() === normalizedTarget) {
+                        isValid = true;
+                        break;
+                    }
+                } catch (e) {
+                    if (matchedUrl.trim().toLowerCase() === normalizedTarget) {
+                        isValid = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!isValid) {
+            logToFile(`   ❌ [Tracking] Click validation failed: URL "${originalUrl}" not found in email content of log ${log_id}`);
+            return res.status(400).send('Redirection blocked: Destination URL is not authorized.');
+        }
+
+        // Redirect immediately after successful validation
+        res.redirect(originalUrl);
+
+        // Perform updates asynchronously in the background
+        (async () => {
+            try {
+                logToFile(`   ✅ [Tracking] Processing click log updates for: ${log_id}`);
+                const isFirstClick = !log.clicked;
+
+                // 1. Update Log
+                await supabase.from('email_logs').update({
+                    clicked: true,
+                    clicked_at: new Date().toISOString(),
+                    click_ip: ip,
+                    click_user_agent: userAgent,
+                    clicked_url: originalUrl,
+                    opened: true,
+                    opened_at: log.opened ? log.opened_at : new Date().toISOString()
+                }).eq('id', log_id);
+
+                // 2. Metrics (only if first click)
+                if (isFirstClick && log.campaign_id) {
+                    await supabase.rpc('increment_campaign_metric', {
+                        target_campaign_id: log.campaign_id,
+                        metric_column: 'clicked_count'
+                    });
+
+                    await supabase.from('campaign_recipients')
+                        .update({ clicked: true, clicked_at: new Date().toISOString() })
+                        .eq('campaign_id', log.campaign_id)
+                        .eq('email', log.recipient_email);
+
+                    logToFile(`   📈 [Tracking] Click campaign metrics updated for ${log_id}`);
+                }
+            } catch (e) {
+                logToFile(`   ❌ [Tracking] Error in async log update: ${e.message}`);
+            }
+        })();
+
+    } catch (e) {
+        logToFile(`   ❌ [Tracking] Server error during click handling: ${e.message}`);
+        res.status(500).send('Internal server error.');
+    }
 });
 
 // Unsubscribe Endpoint
@@ -1470,8 +1589,8 @@ Retorne EXCLUSIVAMENTE neste formato JSON, sem nenhum texto antes ou depois:
     let lastError = null;
     let parsedResult = null;
 
-    const maxAttempts = 4; // 1 initial + 3 retries
-    const backoffTimes = [1000, 3000, 9000];
+    const maxAttempts = 5; // 1 initial + 4 retries
+    const backoffTimes = [2000, 5000, 15000, 30000];
 
     while (attempt < maxAttempts && !success) {
         if (attempt > 0) {
@@ -1943,6 +2062,1551 @@ Retorne EXCLUSIVAMENTE neste formato JSON, sem nenhum texto antes ou depois:
     } catch (e) {
         logToFile(`❌ [Backfill] Critical failure: ${e.message}`);
         return res.status(500).json({ error: e.message });
+    }
+});
+
+
+// ==========================================
+// BREVO INTEGRATION ENDPOINTS
+// ==========================================
+
+// 1. Get Brevo Config (API key presence and last sync)
+app.get('/api/brevo/config', authenticate, async (req, res) => {
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('brevo_api_key, brevo_last_sync_at')
+            .eq('id', req.user.sub)
+            .single();
+
+        if (error) {
+            console.error('Error fetching brevo config:', error);
+            return res.status(500).json({ error: error.message });
+        }
+
+        const hasKey = !!profile?.brevo_api_key;
+        const maskedKey = hasKey ? `${profile.brevo_api_key.substring(0, 8)}...` : '';
+
+        return res.json({
+            hasKey,
+            apiKey: maskedKey,
+            lastSyncAt: profile?.brevo_last_sync_at || null
+        });
+    } catch (err) {
+        console.error('Error in GET /api/brevo/config:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// 2. Connect and Validate Brevo API Key
+app.post('/api/brevo/config', authenticate, async (req, res) => {
+    const { apiKey } = req.body;
+    if (!apiKey) {
+        return res.status(400).json({ error: 'API key is required' });
+    }
+
+    try {
+        // Validate API key with Brevo API
+        const validateRes = await fetch('https://api.brevo.com/v3/contacts?limit=1', {
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey
+            }
+        });
+
+        if (!validateRes.ok) {
+            const errData = await validateRes.json().catch(() => ({}));
+            return res.status(400).json({
+                error: 'Chave de API do Brevo inválida.',
+                details: errData.message || validateRes.statusText
+            });
+        }
+
+        const valData = await validateRes.json();
+        const totalContacts = valData.count || 0;
+
+        // Save key to profiles table
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ brevo_api_key: apiKey })
+            .eq('id', req.user.sub);
+
+        if (updateError) {
+            console.error('Error saving brevo API key:', updateError);
+            return res.status(500).json({ error: updateError.message });
+        }
+
+        return res.json({
+            success: true,
+            totalContacts
+        });
+    } catch (err) {
+        console.error('Error in POST /api/brevo/config:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Helper function to sync Brevo contacts and marketing campaign stats
+const runBrevoSyncForUser = async (userId, apiKey) => {
+    const startTime = Date.now();
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 1. Fetch all contacts from Brevo paginated
+    const brevoEmails = new Set();
+    let offset = 0;
+    let limit = 100;
+    let hasMore = true;
+    let totalBrevoContacts = 0;
+
+    while (hasMore) {
+        const response = await fetch(`https://api.brevo.com/v3/contacts?limit=${limit}&offset=${offset}`, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey
+            }
+        });
+
+        if (!response.ok) {
+            const errBody = await response.json().catch(() => ({}));
+            throw new Error(`Brevo API error: ${errBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        totalBrevoContacts = data.count || totalBrevoContacts;
+        
+        if (data && data.contacts && data.contacts.length > 0) {
+            data.contacts.forEach(c => {
+                if (c.email) {
+                    const normEmail = c.email.trim().toLowerCase().replace(/\s+/g, '');
+                    brevoEmails.add(normEmail);
+                }
+            });
+            offset += data.contacts.length;
+            if (data.contacts.length < limit) {
+                hasMore = false;
+            }
+        } else {
+            hasMore = false;
+        }
+    }
+
+    // 2. Fetch CRM contacts and active deals via SECURITY DEFINER function to bypass RLS
+    const { data: dbData, error: dbDataErr } = await supabase.rpc('get_contacts_and_active_deals_for_sync', { p_user_id: userId });
+    if (dbDataErr) throw dbDataErr;
+
+    const crmContacts = dbData.contacts || [];
+    const activeDeals = dbData.deals || [];
+    const activeDealContactIds = new Set(activeDeals.filter(d => d.contact_id).map(d => d.contact_id));
+
+    // 3. Compare and partition contacts
+    const syncedIds = [];
+    const notSyncedIds = [];
+    const notEligibleIds = [];
+
+    let totalCRM = crmContacts.length;
+    let totalWithEmail = 0;
+    let foundInBrevo = 0;
+    let notFoundInBrevo = 0;
+    let withoutEmail = 0;
+
+    const cleanEmail = (email) => {
+        if (!email) return '';
+        const parts = email.split(/[\s,;|/]+/);
+        const firstValid = parts.find(p => p.includes('@'));
+        return firstValid ? firstValid.trim().toLowerCase() : '';
+    };
+
+    for (const contact of crmContacts) {
+        const cleanedEmail = cleanEmail(contact.email);
+        const hasEmail = cleanedEmail.length > 0;
+        const isEligible = hasEmail;
+
+        if (hasEmail) {
+            totalWithEmail++;
+            if (brevoEmails.has(cleanedEmail)) {
+                foundInBrevo++;
+            } else {
+                notFoundInBrevo++;
+            }
+        } else {
+            withoutEmail++;
+        }
+
+        if (!isEligible) {
+            notEligibleIds.push(contact.id);
+        } else {
+            if (brevoEmails.has(cleanedEmail)) {
+                syncedIds.push(contact.id);
+            } else {
+                notSyncedIds.push(contact.id);
+            }
+        }
+    }
+
+    // 4. Pull Campaign Stats and interaction events from Brevo API
+    try {
+        logToFile(`⚡ [Campaign Stats Sync] Starting active stats extraction via Brevo API for user ${userId}...`);
+        
+        const campaignMap = new Map();
+        let campOffset = 0;
+        let campLimit = 50;
+        let campHasMore = true;
+        
+        while (campHasMore) {
+            const campRes = await fetch(`https://api.brevo.com/v3/emailCampaigns?limit=${campLimit}&offset=${campOffset}`, {
+                headers: { 'accept': 'application/json', 'api-key': apiKey }
+            });
+            if (campRes.ok) {
+                const campData = await campRes.json();
+                if (campData.campaigns && campData.campaigns.length > 0) {
+                    campData.campaigns.forEach(c => {
+                        campaignMap.set(c.id, c.name);
+                    });
+                    campOffset += campData.campaigns.length;
+                    if (campData.campaigns.length < campLimit) {
+                        campHasMore = false;
+                    }
+                } else {
+                    campHasMore = false;
+                }
+            } else {
+                campHasMore = false;
+            }
+        }
+
+        const activeDealContacts = crmContacts.filter(c => {
+            const cleaned = cleanEmail(c.email);
+            return cleaned && activeDealContactIds.has(c.id);
+        });
+
+        for (let i = 0; i < activeDealContacts.length; i += 10) {
+            const chunk = activeDealContacts.slice(i, i + 10);
+            await Promise.all(chunk.map(async (contact) => {
+                const email = cleanEmail(contact.email);
+                try {
+                    const statsRes = await fetch(`https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}/campaignStats`, {
+                        headers: { 'accept': 'application/json', 'api-key': apiKey }
+                    });
+                    
+                    if (!statsRes.ok) return;
+
+                    const stats = await statsRes.json();
+                    const campaignEvents = {};
+
+                    const addEvent = (campaignId, eventType, date, extra = {}) => {
+                        if (!campaignId) return;
+                        if (!campaignEvents[campaignId]) {
+                            campaignEvents[campaignId] = {
+                                delivered: false,
+                                opens: [],
+                                clicks: [],
+                                bounce: false,
+                                spam: false,
+                                unsubscribed: false
+                            };
+                        }
+                        if (eventType === 'delivered') campaignEvents[campaignId].delivered = true;
+                        if (eventType === 'opened') campaignEvents[campaignId].opens.push(date);
+                        if (eventType === 'click') campaignEvents[campaignId].clicks.push({ date, url: extra.url || '' });
+                        if (eventType === 'bounce') campaignEvents[campaignId].bounce = true;
+                        if (eventType === 'spam') campaignEvents[campaignId].spam = true;
+                        if (eventType === 'unsubscribed') campaignEvents[campaignId].unsubscribed = true;
+                    };
+
+                    if (stats.delivered) stats.delivered.forEach(e => addEvent(e.campaignId, 'delivered', e.eventDate));
+                    if (stats.opened) stats.opened.forEach(e => addEvent(e.campaignId, 'opened', e.eventDate));
+                    if (stats.clicked) stats.clicked.forEach(e => addEvent(e.campaignId, 'click', e.eventDate, { url: e.url }));
+                    if (stats.hardBounces) stats.hardBounces.forEach(e => addEvent(e.campaignId, 'bounce', e.eventDate));
+                    if (stats.softBounces) stats.softBounces.forEach(e => addEvent(e.campaignId, 'bounce', e.eventDate));
+                    if (stats.unsubscriptions && stats.unsubscriptions.userUnsubscribed) {
+                        stats.unsubscriptions.userUnsubscribed.forEach(e => addEvent(e.campaignId, 'unsubscribed', e.eventDate));
+                    }
+
+                    for (const campaignIdStr of Object.keys(campaignEvents)) {
+                        const campaignId = parseInt(campaignIdStr, 10);
+                        const eventsObj = campaignEvents[campaignId];
+                        const campaignName = campaignMap.get(campaignId) || `Campanha #${campaignId}`;
+
+                        const deliveryStatus = eventsObj.bounce ? 'bounce' : 'delivered';
+                        const sortedOpens = eventsObj.opens.sort();
+                        const firstOpen = sortedOpens.length > 0 ? sortedOpens[0] : null;
+                        const lastOpen = sortedOpens.length > 0 ? sortedOpens[sortedOpens.length - 1] : null;
+                        const opensCount = sortedOpens.length;
+                        const clicksCount = eventsObj.clicks.length;
+                        
+                        const clickedLinks = [];
+                        eventsObj.clicks.forEach(c => {
+                            const clickUrl = c.url || 'Link de Acesso';
+                            let anchor = clickUrl;
+                            try {
+                                const parsedUrl = new URL(clickUrl);
+                                anchor = parsedUrl.hostname + parsedUrl.pathname;
+                                if (anchor.length > 30) {
+                                    anchor = anchor.substring(0, 30) + '...';
+                                }
+                            } catch (err) {}
+
+                            const existing = clickedLinks.find(l => l.url === clickUrl);
+                            if (existing) {
+                                existing.clicks++;
+                                if (c.date > existing.lastClickedAt) {
+                                    existing.lastClickedAt = c.date;
+                                }
+                            } else {
+                                clickedLinks.push({
+                                    url: clickUrl,
+                                    anchor,
+                                    clicks: 1,
+                                    lastClickedAt: c.date
+                                });
+                            }
+                        });
+
+                        const campaignContent = {
+                            type: "brevo_campaign",
+                            campaignName,
+                            campaignId,
+                            sentAt: stats.delivered && stats.delivered.find(e => e.campaignId === campaignId)?.eventDate || lastOpen || new Date().toISOString(),
+                            deliveryStatus,
+                            opensCount,
+                            firstOpenedAt: firstOpen,
+                            lastOpenedAt: lastOpen,
+                            clicksCount,
+                            clickedLinks,
+                            bounce: eventsObj.bounce,
+                            spam: eventsObj.spam,
+                            unsubscribed: eventsObj.unsubscribed,
+                            updatedAt: new Date().toISOString()
+                        };
+
+                        await supabase.rpc('upsert_aggregated_brevo_campaign_log', {
+                            p_email: email,
+                            p_campaign_id: campaignId,
+                            p_campaign_name: campaignName,
+                            p_log_content: campaignContent,
+                            p_event_date: campaignContent.sentAt
+                        });
+                    }
+                } catch (contactErr) {
+                    console.error(`Error syncing campaign stats for ${email}:`, contactErr);
+                }
+            }));
+        }
+    } catch (syncCampaignsErr) {
+        console.error(`Error pulling Brevo campaign stats:`, syncCampaignsErr);
+    }
+
+    // 5. Save results to Database bypassing RLS in a single transaction-safe call
+    const durationMs = Date.now() - startTime;
+    const { error: saveErr } = await supabase.rpc('save_brevo_sync_results', {
+        p_user_id: userId,
+        p_synced_ids: syncedIds,
+        p_not_synced_ids: notSyncedIds,
+        p_not_eligible_ids: notEligibleIds,
+        p_log_synced: syncedIds.length,
+        p_log_not_synced: notSyncedIds.length,
+        p_log_ignored: notEligibleIds.length,
+        p_duration: durationMs
+    });
+    if (saveErr) throw saveErr;
+
+    // Fetch the inserted log for return value
+    const { data: syncLog } = await supabase
+        .from('brevo_sync_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('sync_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    return {
+        totalCRM,
+        totalWithEmail,
+        foundInBrevo,
+        notFoundInBrevo,
+        withoutEmail,
+        syncedCount: syncedIds.length,
+        notSyncedCount: notSyncedIds.length,
+        ignoredCount: notEligibleIds.length,
+        totalBrevoContacts,
+        durationMs,
+        log: syncLog
+    };
+};
+
+// 3. Synchronize Brevo Status (API to CRM check)
+app.post('/api/brevo/sync', authenticate, async (req, res) => {
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('brevo_api_key')
+            .eq('id', req.user.sub)
+            .single();
+
+        if (profileErr || !profile?.brevo_api_key) {
+            return res.status(400).json({ error: 'Brevo API key not configured' });
+        }
+
+        const result = await runBrevoSyncForUser(req.user.sub, profile.brevo_api_key);
+        return res.json({
+            success: true,
+            ...result,
+            lastSyncAt: new Date().toISOString()
+        });
+    } catch (err) {
+        console.error('Error in POST /api/brevo/sync:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Cron Job: Sincronização Automática do Brevo a cada 5 minutos
+cron.schedule('*/5 * * * *', async () => {
+    logToFile('⏰ [Brevo Auto-Sync Cron] Iniciando sincronização automática de 5 minutos...');
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Busca todos os usuários com chave API configurada via RPC (SECURITY DEFINER para ignorar RLS)
+        const { data: profiles, error: profileErr } = await supabase.rpc('get_profiles_with_brevo_key');
+
+        if (profileErr) {
+            logToFile(`❌ [Brevo Auto-Sync Cron] Falha ao buscar perfis: ${profileErr.message}`);
+            return;
+        }
+
+        if (!profiles || profiles.length === 0) {
+            logToFile('ℹ️ [Brevo Auto-Sync Cron] Nenhum usuário configurado com chave Brevo.');
+            return;
+        }
+
+        for (const profile of profiles) {
+            try {
+                logToFile(`🔄 [Brevo Auto-Sync Cron] Sincronizando para Usuário ID: ${profile.id}...`);
+                const result = await runBrevoSyncForUser(profile.id, profile.brevo_api_key);
+                logToFile(`✅ [Brevo Auto-Sync Cron] Usuário ${profile.id} sincronizado: ${result.syncedCount} contatos mapeados.`);
+            } catch (err) {
+                logToFile(`❌ [Brevo Auto-Sync Cron] Erro ao sincronizar para Usuário ${profile.id}: ${err.message}`);
+            }
+        }
+        logToFile('✅ [Brevo Auto-Sync Cron] Sincronização automática finalizada.');
+    } catch (e) {
+        logToFile(`🔥 [Brevo Auto-Sync Cron Exception]: ${e.message}`);
+    }
+});
+
+// 4. Send Unsynced and Eligible CRM contacts to Brevo (Batch upload)
+app.post('/api/brevo/send', authenticate, async (req, res) => {
+    const startTime = Date.now();
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        // 1. Fetch Brevo API key
+        const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('brevo_api_key')
+            .eq('id', req.user.sub)
+            .single();
+
+        if (profileErr || !profile?.brevo_api_key) {
+            return res.status(400).json({ error: 'Brevo API key not configured' });
+        }
+
+        const apiKey = profile.brevo_api_key;
+
+        // 2. Fetch all contacts from active deals for this user
+        const { data: activeDeals, error: dealsErr } = await supabase
+            .from('deals')
+            .select('contact_id')
+            .eq('user_id', req.user.sub)
+            .eq('status', 'open');
+
+        if (dealsErr) throw dealsErr;
+
+        const activeDealContactIds = new Set(
+            activeDeals
+                .filter(d => d.contact_id)
+                .map(d => d.contact_id)
+        );
+
+        // 3. Fetch CRM contacts with status 'nao_sincronizado'
+        const { data: contactsToSend, error: contactsErr } = await supabase
+            .from('contacts')
+            .select('*')
+            .eq('user_id', req.user.sub)
+            .eq('brevo_sync_status', 'nao_sincronizado');
+
+        if (contactsErr) throw contactsErr;
+
+        // Filter again in backend to ensure strict security / eligibility
+        const eligibleContacts = contactsToSend.filter(c => {
+            const hasEmail = !!c.email && c.email.trim().length > 0;
+            return hasEmail;
+        });
+
+        if (eligibleContacts.length === 0) {
+            return res.json({ success: true, count: 0, message: 'Nenhum contato pendente de sincronização.' });
+        }
+
+        const cleanEmail = (email) => {
+            if (!email) return '';
+            const parts = email.split(/[\s,;|/]+/);
+            const firstValid = parts.find(p => p.includes('@'));
+            return firstValid ? firstValid.trim().toLowerCase() : '';
+        };
+
+        // 4. Format for Brevo Batch API
+        const brevoContactsList = eligibleContacts.map(c => {
+            const attributes = {
+                FIRSTNAME: c.name || 'Contato'
+            };
+            if (c.phone) {
+                const digits = c.phone.replace(/\D/g, '');
+                if (digits.length === 9) {
+                    attributes.SMS = '351' + digits; // Auto-prefix Portugal
+                } else if (digits.length === 11 && digits.startsWith('9')) {
+                    attributes.SMS = '55' + digits;  // Auto-prefix Brazil
+                } else if (digits.length >= 10) {
+                    attributes.SMS = digits;          // Has country code
+                }
+            }
+            return {
+                email: cleanEmail(c.email),
+                attributes
+            };
+        });
+
+        // 5. Send one by one (upsert) in parallel chunks of 10 to respect rate limits
+        const errors = [];
+        for (let i = 0; i < brevoContactsList.length; i += 10) {
+            const chunk = brevoContactsList.slice(i, i + 10);
+            await Promise.all(chunk.map(async (contact) => {
+                try {
+                    const brevoRes = await fetch('https://api.brevo.com/v3/contacts', {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json',
+                            'content-type': 'application/json',
+                            'api-key': apiKey
+                        },
+                        body: JSON.stringify({
+                            email: contact.email,
+                            attributes: contact.attributes,
+                            updateEnabled: true
+                        })
+                    });
+                    
+                    if (!brevoRes.ok) {
+                        const errBody = await brevoRes.json().catch(() => ({}));
+                        console.error("Brevo API error for contact:", contact.email, errBody);
+                        errors.push({ email: contact.email, error: errBody.message || brevoRes.statusText });
+                    }
+                } catch (err) {
+                    errors.push({ email: contact.email, error: err.message });
+                }
+            }));
+        }
+
+        if (errors.length > 0) {
+            throw new Error(`Erro ao enviar contatos: ${errors.map(e => `${e.email}: ${e.error}`).join(', ')}`);
+        }
+
+        // 6. Update status in CRM to 'sincronizado' for all sent contacts
+        const contactIds = eligibleContacts.map(c => c.id);
+        for (let i = 0; i < contactIds.length; i += 500) {
+            await supabase
+                .from('contacts')
+                .update({ brevo_sync_status: 'sincronizado', brevo_status: true })
+                .in('id', contactIds.slice(i, i + 500));
+        }
+
+        const now = new Date().toISOString();
+
+        // Update profile last sync time
+        await supabase
+            .from('profiles')
+            .update({ brevo_last_sync_at: now })
+            .eq('id', req.user.sub);
+
+        return res.json({
+            success: true,
+            count: eligibleContacts.length,
+            lastSyncAt: now
+        });
+
+    } catch (err) {
+        console.error('Error in POST /api/brevo/send:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// ============================================================================
+// META LEAD ADS INTEGRATION ENDPOINTS
+// ============================================================================
+
+const META_APP_ID = process.env.META_APP_ID || '';
+const META_APP_SECRET = process.env.META_APP_SECRET || '';
+const META_WEBHOOK_VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN || 'crm_meta_leadgen_token';
+const META_GRAPH_VERSION = 'v21.0';
+
+/**
+ * PUBLIC WEBHOOK - GET (Hub challenge verification)
+ */
+app.get('/api/webhooks/meta-leadgen', (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode === 'subscribe' && token === META_WEBHOOK_VERIFY_TOKEN) {
+        logToFile('✅ [Meta Webhook] Verification successful');
+        return res.status(200).send(challenge);
+    } else {
+        logToFile(`❌ [Meta Webhook] Verification failed. Expected token: ${META_WEBHOOK_VERIFY_TOKEN}, got: ${token}`);
+        return res.sendStatus(403);
+    }
+});
+
+/**
+ * PUBLIC WEBHOOK - POST (Incoming lead notifications)
+ */
+app.post('/api/webhooks/meta-leadgen', async (req, res) => {
+    // 1. Send 200 immediately to Meta to acknowledge receipt
+    res.status(200).send('EVENT_RECEIVED');
+
+    try {
+        const payload = req.body;
+        logToFile(`📥 [Meta Webhook] Event received: ${JSON.stringify(payload)}`);
+
+        if (payload.object !== 'page') return;
+
+        const supabaseAdmin = createClient(
+            SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
+        );
+
+        for (const entry of payload.entry || []) {
+            for (const change of entry.changes || []) {
+                if (change.field !== 'leadgen') continue;
+
+                const value = change.value || {};
+                const pageId = value.page_id;
+                const formId = value.form_id;
+                const leadgenId = value.leadgen_id;
+                const createdTime = value.created_time;
+
+                if (!leadgenId) continue;
+
+                // Find user_id connected to this page_id
+                const { data: pageRecord } = await supabaseAdmin
+                    .from('meta_pages')
+                    .select('user_id, page_access_token')
+                    .eq('page_id', pageId)
+                    .single();
+
+                let userId = pageRecord?.user_id;
+                let pageAccessToken = pageRecord?.page_access_token ? decrypt(pageRecord.page_access_token) : null;
+
+                if (!userId) {
+                    // Fallback to meta_connections
+                    const { data: conn } = await supabaseAdmin
+                        .from('meta_connections')
+                        .select('user_id, access_token')
+                        .eq('status', 'active')
+                        .limit(1)
+                        .single();
+
+                    if (conn) {
+                        userId = conn.user_id;
+                        pageAccessToken = decrypt(conn.access_token);
+                    }
+                }
+
+                if (!userId) {
+                    logToFile(`⚠️ [Meta Webhook] No user found for page_id: ${pageId}`);
+                    continue;
+                }
+
+                // Check form sync settings
+                if (formId) {
+                    const { data: formRecord } = await supabaseAdmin
+                        .from('meta_forms')
+                        .select('sync_enabled')
+                        .eq('form_id', formId)
+                        .eq('user_id', userId)
+                        .single();
+
+                    if (formRecord && formRecord.sync_enabled === false) {
+                        logToFile(`⏸️ [Meta Webhook] Sync disabled for form_id: ${formId}`);
+                        continue;
+                    }
+                }
+
+                // Fetch lead details from Meta Graph API
+                let name = '';
+                let email = '';
+                let phone = '';
+                let companyName = '';
+                let formName = '';
+                let campaignName = '';
+                let adsetName = '';
+                let adName = '';
+                let utmSource = 'meta_ads';
+                let utmMedium = 'cpc';
+                let utmCampaign = '';
+                let utmContent = '';
+                let utmTerm = '';
+
+                if (pageAccessToken) {
+                    try {
+                        const graphRes = await fetch(
+                            `https://graph.facebook.com/${META_GRAPH_VERSION}/${leadgenId}?access_token=${pageAccessToken}`
+                        );
+                        if (graphRes.ok) {
+                            const leadDetails = await graphRes.json();
+                            logToFile(`📄 [Meta Graph API] Lead details: ${JSON.stringify(leadDetails)}`);
+
+                            formName = leadDetails.form_name || formName;
+                            campaignName = leadDetails.campaign_name || campaignName;
+                            adsetName = leadDetails.adset_name || adsetName;
+                            adName = leadDetails.ad_name || adName;
+                            utmCampaign = campaignName;
+                            utmContent = adName;
+                            utmTerm = adsetName;
+
+                            for (const field of leadDetails.field_data || []) {
+                                const fn = (field.name || '').toLowerCase();
+                                const val = Array.isArray(field.values) ? field.values[0] : field.values;
+                                if (!val) continue;
+
+                                if (fn.includes('email') || fn.includes('e-mail')) {
+                                    email = val;
+                                } else if (fn.includes('phone') || fn.includes('telefone') || fn.includes('celular') || fn.includes('whatsapp')) {
+                                    phone = val;
+                                } else if (fn.includes('full_name') || fn.includes('name') || fn.includes('nome')) {
+                                    name = val;
+                                } else if (fn.includes('company') || fn.includes('empresa') || fn.includes('organizacao')) {
+                                    companyName = val;
+                                } else if (fn.includes('utm_source')) {
+                                    utmSource = val;
+                                } else if (fn.includes('utm_medium')) {
+                                    utmMedium = val;
+                                } else if (fn.includes('utm_campaign')) {
+                                    utmCampaign = val;
+                                } else if (fn.includes('utm_content')) {
+                                    utmContent = val;
+                                } else if (fn.includes('utm_term')) {
+                                    utmTerm = val;
+                                }
+                            }
+                        } else {
+                            const errBody = await graphRes.text();
+                            logToFile(`❌ [Meta Graph API] Error fetching lead: ${errBody}`);
+                        }
+                    } catch (gErr) {
+                        logToFile(`❌ [Meta Graph API] Exception: ${gErr.message}`);
+                    }
+                }
+
+                // Process lead using LeadProcessor
+                const processor = new LeadProcessor(supabaseAdmin, userId);
+                const result = await processor.processLead({
+                    source: 'Meta Lead Ads',
+                    leadgenId,
+                    pageId,
+                    formId,
+                    name,
+                    email,
+                    phone,
+                    companyName,
+                    formName,
+                    campaignName,
+                    adsetName,
+                    adName,
+                    utmSource,
+                    utmMedium,
+                    utmCampaign,
+                    utmContent,
+                    utmTerm,
+                    rawPayload: payload,
+                    createdTime: createdTime ? new Date(createdTime * 1000).toISOString() : new Date().toISOString()
+                });
+
+                logToFile(`✅ [Meta LeadProcessor] Result: ${JSON.stringify(result)}`);
+            }
+        }
+    } catch (err) {
+        logToFile(`❌ [Meta Webhook Error] ${err.message}`);
+    }
+});
+
+/**
+ * AUTHENTICATED: OAuth URL Generator
+ */
+app.get('/api/meta/auth-url', authenticate, (req, res) => {
+    if (!META_APP_ID) {
+        return res.status(400).json({ error: 'META_APP_ID não configurado no servidor' });
+    }
+    let redirectUri = req.query.redirect_uri;
+    if (!redirectUri) {
+        const origin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : null);
+        redirectUri = origin ? `${origin}/settings/meta-lead-ads` : 'http://localhost:5173/settings/meta-lead-ads';
+    }
+    const scope = 'pages_show_list,pages_read_engagement,leads_retrieval,pages_manage_ads,business_management';
+    const url = `https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth?client_id=${META_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
+    return res.json({ url, redirectUri });
+});
+
+/**
+ * AUTHENTICATED: OAuth Callback (Code -> Token)
+ */
+app.post('/api/meta/callback', authenticate, async (req, res) => {
+    const { code, redirectUri: clientRedirectUri } = req.body;
+    if (!code) return res.status(400).json({ error: 'Code é obrigatório' });
+
+    try {
+        const userId = req.user.sub;
+        let redirectUri = clientRedirectUri;
+        if (!redirectUri) {
+            const origin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : null);
+            redirectUri = origin ? `${origin}/settings/meta-lead-ads` : 'http://localhost:5173/settings/meta-lead-ads';
+        }
+
+        // 1. Exchange code for short-lived token
+        const tokenRes = await fetch(
+            `https://graph.facebook.com/${META_GRAPH_VERSION}/oauth/access_token?client_id=${META_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&client_secret=${META_APP_SECRET}&code=${code}`
+        );
+        const tokenData = await tokenRes.json();
+        if (tokenData.error) throw new Error(tokenData.error.message);
+
+        const shortLivedToken = tokenData.access_token;
+
+        // 2. Exchange for long-lived token (60 days)
+        const longTokenRes = await fetch(
+            `https://graph.facebook.com/${META_GRAPH_VERSION}/oauth/access_token?grant_type=fb_exchange_token&client_id=${META_APP_ID}&client_secret=${META_APP_SECRET}&fb_exchange_token=${shortLivedToken}`
+        );
+        const longTokenData = await longTokenRes.json();
+        const longLivedToken = longTokenData.access_token || shortLivedToken;
+        const expiresIn = longTokenData.expires_in;
+
+        // 3. Get Meta User Info
+        const meRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me?access_token=${longLivedToken}`);
+        const meData = await meRes.json();
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        // 4. Encrypt and save connection
+        const encryptedToken = encrypt(longLivedToken);
+        const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000).toISOString() : null;
+
+        const { error: connErr } = await supabase
+            .from('meta_connections')
+            .upsert({
+                user_id: userId,
+                meta_user_id: meData.id || 'unknown',
+                meta_user_name: meData.name || 'Usuário Meta',
+                access_token: encryptedToken,
+                token_type: 'long_lived',
+                expires_at: expiresAt,
+                status: 'active',
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+
+        if (connErr) throw connErr;
+
+        // Helper function to fetch all pages (direct + Business Manager pages)
+        async function fetchAllUserPages(token) {
+            const pageMap = new Map();
+
+            // 1. Direct user pages
+            try {
+                const pagesRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?limit=100&access_token=${token}`);
+                const pagesData = await pagesRes.json();
+                logToFile(`📄 [Meta Page Fetch] /me/accounts response: ${JSON.stringify(pagesData)}`);
+                for (const p of pagesData.data || []) {
+                    pageMap.set(p.id, p);
+                }
+            } catch (err) {
+                logToFile(`⚠️ [Meta Page Fetch] Error fetching /me/accounts: ${err.message}`);
+            }
+
+            // 2. Business Manager pages
+            try {
+                const bizRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/businesses?access_token=${token}`);
+                const bizData = await bizRes.json();
+                logToFile(`🏢 [Meta Page Fetch] /me/businesses response: ${JSON.stringify(bizData)}`);
+
+                for (const biz of bizData.data || []) {
+                    // Fetch owned pages
+                    try {
+                        const ownedRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/${biz.id}/owned_pages?fields=id,name,access_token&access_token=${token}`);
+                        const ownedData = await ownedRes.json();
+                        logToFile(`🏢 [Meta Page Fetch] Business ${biz.id} (${biz.name}) owned_pages: ${JSON.stringify(ownedData)}`);
+                        for (const p of ownedData.data || []) {
+                            if (!pageMap.has(p.id)) pageMap.set(p.id, p);
+                        }
+                    } catch (e) { /* silent */ }
+
+                    // Fetch client pages
+                    try {
+                        const clientRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/${biz.id}/client_pages?fields=id,name,access_token&access_token=${token}`);
+                        const clientData = await clientRes.json();
+                        logToFile(`🏢 [Meta Page Fetch] Business ${biz.id} (${biz.name}) client_pages: ${JSON.stringify(clientData)}`);
+                        for (const p of clientData.data || []) {
+                            if (!pageMap.has(p.id)) pageMap.set(p.id, p);
+                        }
+                    } catch (e) { /* silent */ }
+                }
+            } catch (err) {
+                logToFile(`⚠️ [Meta Page Fetch] Error fetching /me/businesses: ${err.message}`);
+            }
+
+            return Array.from(pageMap.values());
+        }
+
+        // 5. Fetch user pages and save to meta_pages
+        const fetchedPages = await fetchAllUserPages(longLivedToken);
+
+        for (const p of fetchedPages) {
+            const encPageToken = p.access_token ? encrypt(p.access_token) : null;
+            await supabase.from('meta_pages').upsert({
+                user_id: userId,
+                page_id: p.id,
+                page_name: p.name,
+                page_access_token: encPageToken,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id,page_id' });
+        }
+
+        // Log connection event
+        const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+        await supabaseAdmin.from('meta_integration_logs').insert({
+            user_id: userId,
+            event_type: 'connection',
+            status: 'success',
+            message: `Conta Meta conectada por ${meData.name}`
+        });
+
+        return res.json({ success: true, userName: meData.name });
+    } catch (err) {
+        console.error('Meta Callback Error:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Status Check
+ */
+app.get('/api/meta/status', authenticate, async (req, res) => {
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const { data } = await supabase
+            .from('meta_connections')
+            .select('*')
+            .eq('user_id', req.user.sub)
+            .single();
+
+        if (!data) {
+            return res.json({ connected: false, userName: null, status: null, expiresAt: null });
+        }
+
+        return res.json({
+            connected: data.status === 'active',
+            userName: data.meta_user_name,
+            status: data.status,
+            expiresAt: data.expires_at
+        });
+    } catch (err) {
+        return res.json({ connected: false, userName: null, status: null, expiresAt: null });
+    }
+});
+
+/**
+ * AUTHENTICATED: Disconnect
+ */
+app.delete('/api/meta/disconnect', authenticate, async (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        await supabase.from('meta_connections').delete().eq('user_id', userId);
+        await supabase.from('meta_pages').delete().eq('user_id', userId);
+
+        const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+        await supabaseAdmin.from('meta_integration_logs').insert({
+            user_id: userId,
+            event_type: 'disconnection',
+            status: 'success',
+            message: 'Conta Meta desconectada'
+        });
+
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Pages List
+ */
+app.get('/api/meta/pages', authenticate, async (req, res) => {
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const { data } = await supabase
+            .from('meta_pages')
+            .select('id, page_id, page_name, is_subscribed')
+            .eq('user_id', req.user.sub);
+
+        const pages = (data || []).map(p => ({
+            id: p.id,
+            pageId: p.page_id,
+            pageName: p.page_name,
+            isSubscribed: p.is_subscribed
+        }));
+
+        return res.json({ pages });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Subscribe Page Webhook
+ */
+app.post('/api/meta/pages/:pageId/subscribe', authenticate, async (req, res) => {
+    const { pageId } = req.params;
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const { data: page } = await supabase
+            .from('meta_pages')
+            .select('page_access_token')
+            .eq('page_id', pageId)
+            .eq('user_id', req.user.sub)
+            .single();
+
+        if (page?.page_access_token) {
+            const pageToken = decrypt(page.page_access_token);
+            const subRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/${pageId}/subscribed_apps`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subscribed_fields: 'leadgen', access_token: pageToken })
+            });
+            const subData = await subRes.json();
+            logToFile(`🔔 [Meta Page Subscribe] Graph API response for page ${pageId}: ${JSON.stringify(subData)}`);
+            if (subData.error) throw new Error(subData.error.message);
+        }
+
+        await supabase
+            .from('meta_pages')
+            .update({ is_subscribed: true })
+            .eq('page_id', pageId)
+            .eq('user_id', req.user.sub);
+
+        // Audit log
+        const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+        await supabaseAdmin.from('meta_integration_logs').insert({
+            user_id: req.user.sub,
+            event_type: 'page_subscribed',
+            status: 'success',
+            message: `Página ${pageId} inscrita com sucesso nos webhooks de leadgen`,
+            page_id: pageId
+        });
+
+        return res.json({ success: true });
+    } catch (err) {
+        logToFile(`❌ [Meta Page Subscribe] Error: ${err.message}`);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Unsubscribe Page Webhook
+ */
+app.delete('/api/meta/pages/:pageId/subscribe', authenticate, async (req, res) => {
+    const { pageId } = req.params;
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        await supabase
+            .from('meta_pages')
+            .update({ is_subscribed: false })
+            .eq('page_id', pageId)
+            .eq('user_id', req.user.sub);
+
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Page Forms List
+ */
+app.get('/api/meta/pages/:pageId/forms', authenticate, async (req, res) => {
+    const { pageId } = req.params;
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        // Try fetching cached forms first
+        const { data: cachedForms } = await supabase
+            .from('meta_forms')
+            .select('*')
+            .eq('page_id', pageId)
+            .eq('user_id', req.user.sub);
+
+        // Fetch fresh list from Meta Graph API if page_access_token exists
+        const { data: page } = await supabase
+            .from('meta_pages')
+            .select('page_access_token')
+            .eq('page_id', pageId)
+            .eq('user_id', req.user.sub)
+            .single();
+
+        if (page?.page_access_token) {
+            const pageToken = decrypt(page.page_access_token);
+            const graphRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/${pageId}/leadgen_forms?access_token=${pageToken}`);
+            if (graphRes.ok) {
+                const graphData = await graphRes.json();
+                for (const f of graphData.data || []) {
+                    await supabase.from('meta_forms').upsert({
+                        user_id: req.user.sub,
+                        form_id: f.id,
+                        form_name: f.name,
+                        page_id: pageId,
+                        status: f.status || 'active'
+                    }, { onConflict: 'user_id,form_id' });
+                }
+            }
+        }
+
+        // Return updated list
+        const { data: updatedForms } = await supabase
+            .from('meta_forms')
+            .select('*')
+            .eq('page_id', pageId)
+            .eq('user_id', req.user.sub);
+
+        const forms = (updatedForms || cachedForms || []).map(f => ({
+            id: f.id,
+            formId: f.form_id,
+            formName: f.form_name,
+            pageId: f.page_id,
+            syncEnabled: f.sync_enabled ?? true,
+            leadsCount: f.leads_count || 0,
+            lastLeadAt: f.last_lead_at
+        }));
+
+        return res.json({ forms });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Toggle Form Sync
+ */
+app.patch('/api/meta/forms/:formId/toggle', authenticate, async (req, res) => {
+    const { formId } = req.params;
+    const { sync_enabled } = req.body;
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        await supabase
+            .from('meta_forms')
+            .update({ sync_enabled: !!sync_enabled })
+            .eq('form_id', formId)
+            .eq('user_id', req.user.sub);
+
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Get Settings
+ */
+app.get('/api/meta/settings', authenticate, async (req, res) => {
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const { data } = await supabase
+            .from('meta_lead_ads_settings')
+            .select('*')
+            .eq('user_id', req.user.sub)
+            .single();
+
+        return res.json({
+            defaultPipelineId: data?.default_pipeline_id || 'sales',
+            defaultStageId: data?.default_stage_id || 'new',
+            autoCreateContact: data?.auto_create_contact ?? true,
+            autoCreateCompany: data?.auto_create_company ?? true,
+            autoCreateDeal: data?.auto_create_deal ?? true,
+            autoRegisterHistory: data?.auto_register_history ?? true,
+            autoCreateActivity: data?.auto_create_activity ?? true,
+            autoStartCadence: data?.auto_start_cadence ?? true,
+            capiEnabled: data?.capi_enabled ?? false,
+            capiPixelId: data?.capi_pixel_id || '',
+            capiAccessToken: data?.capi_access_token ? decrypt(data.capi_access_token) : ''
+        });
+    } catch (err) {
+        return res.json({
+            defaultPipelineId: 'sales',
+            defaultStageId: 'new',
+            autoCreateContact: true,
+            autoCreateCompany: true,
+            autoCreateDeal: true,
+            autoRegisterHistory: true,
+            autoCreateActivity: true,
+            autoStartCadence: true,
+            capiEnabled: false,
+            capiPixelId: '',
+            capiAccessToken: ''
+        });
+    }
+});
+
+/**
+ * AUTHENTICATED: Save Settings
+ */
+app.put('/api/meta/settings', authenticate, async (req, res) => {
+    const s = req.body;
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        const dbSettings = {
+            user_id: req.user.sub,
+            updated_at: new Date().toISOString()
+        };
+
+        if (s.defaultPipelineId !== undefined) dbSettings.default_pipeline_id = s.defaultPipelineId;
+        if (s.defaultStageId !== undefined) dbSettings.default_stage_id = s.defaultStageId;
+        if (s.autoCreateContact !== undefined) dbSettings.auto_create_contact = s.autoCreateContact;
+        if (s.autoCreateCompany !== undefined) dbSettings.auto_create_company = s.autoCreateCompany;
+        if (s.autoCreateDeal !== undefined) dbSettings.auto_create_deal = s.autoCreateDeal;
+        if (s.autoRegisterHistory !== undefined) dbSettings.auto_register_history = s.autoRegisterHistory;
+        if (s.autoCreateActivity !== undefined) dbSettings.auto_create_activity = s.autoCreateActivity;
+        if (s.autoStartCadence !== undefined) dbSettings.auto_start_cadence = s.autoStartCadence;
+        if (s.capiEnabled !== undefined) dbSettings.capi_enabled = s.capiEnabled;
+        if (s.capiPixelId !== undefined) dbSettings.capi_pixel_id = s.capiPixelId;
+        if (s.capiAccessToken !== undefined) {
+            dbSettings.capi_access_token = s.capiAccessToken ? encrypt(s.capiAccessToken) : null;
+        }
+
+        const { error } = await supabase
+            .from('meta_lead_ads_settings')
+            .upsert(dbSettings, { onConflict: 'user_id' });
+
+        if (error) throw error;
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Trigger Conversions API Event
+ */
+app.post('/api/meta/capi-event', authenticate, async (req, res) => {
+    const { dealId, stageId, status } = req.body;
+    const userId = req.user.sub;
+
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        // 1. Resolve event name
+        let eventName = 'Lead';
+        if (status === 'won') {
+            eventName = 'Deal Won';
+        } else if (status === 'lost') {
+            eventName = 'Deal Lost';
+        } else if (stageId) {
+            // Get stage name from DB
+            const { data: stage } = await supabase
+                .from('stages')
+                .select('name')
+                .eq('id', stageId)
+                .single();
+            if (stage) {
+                eventName = stage.name;
+            }
+        }
+
+        // 2. Call sendMetaCAPIEvent helper
+        const result = await sendMetaCAPIEvent(supabase, userId, dealId, eventName);
+        return res.json(result);
+    } catch (err) {
+        logToFile(`❌ [CAPI Route Error] ${err.message}`);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Logs List
+ */
+app.get('/api/meta/logs', authenticate, async (req, res) => {
+    const { event_type, limit = 50, offset = 0 } = req.query;
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        let query = supabase
+            .from('meta_integration_logs')
+            .select('*', { count: 'exact' })
+            .eq('user_id', req.user.sub)
+            .order('created_at', { ascending: false })
+            .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+        if (event_type) {
+            query = query.eq('event_type', event_type);
+        }
+
+        const { data, count, error } = await query;
+        if (error) throw error;
+
+        const logs = (data || []).map(l => ({
+            id: l.id,
+            eventType: l.event_type,
+            status: l.status,
+            message: l.message,
+            payload: l.payload,
+            pageId: l.page_id,
+            createdAt: l.created_at
+        }));
+
+        return res.json({ logs, total: count || 0 });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AUTHENTICATED: Diagnostic Test Endpoint
+ */
+app.post('/api/meta/test', authenticate, async (req, res) => {
+    console.log("[1] Recebeu requisição");
+    const { testEventCode } = req.body;
+    const startTime = Date.now();
+    const steps = [];
+    const userId = req.user.sub;
+
+    try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+        });
+
+        // Step 1: Check Connection
+        const { data: connArr } = await supabase
+            .from('meta_connections')
+            .select('*')
+            .eq('user_id', userId)
+            .limit(1);
+
+        const conn = connArr?.[0] || null;
+
+        if (conn && conn.status === 'active') {
+            steps.push({ name: 'Conexão Meta', status: 'success', message: `Conectado como ${conn.meta_user_name}` });
+        } else {
+            steps.push({ name: 'Conexão Meta', status: 'error', message: 'Nenhuma conta Meta ativa encontrada' });
+        }
+
+        // Step 2: Check Pages
+        const { data: pages } = await supabase
+            .from('meta_pages')
+            .select('*')
+            .eq('user_id', userId);
+
+        const activePages = (pages || []).filter(p => p.is_subscribed);
+        if (pages && pages.length > 0) {
+            steps.push({
+                name: 'Páginas do Facebook',
+                status: 'success',
+                message: `${pages.length} página(s) conectada(s), ${activePages.length} com webhook ativo`
+            });
+        } else {
+            steps.push({ name: 'Páginas do Facebook', status: 'error', message: 'Nenhuma página sincronizada' });
+        }
+
+        // Step 3: Check Settings
+        const processor = new LeadProcessor(supabase, userId);
+        const settings = await processor.loadSettings();
+
+        steps.push({
+            name: 'Configurações de Negócio',
+            status: 'success',
+            message: `Pipeline: ${settings.default_pipeline_id}, Etapa: ${settings.default_stage_id}`
+        });
+
+        // Run isolated connection test (Checklist 9)
+        const testConnResult = await testMetaConnection(supabase, userId, testEventCode);
+        steps.push({
+            name: 'API de Conversões (Teste de Conexão Direta CAPI)',
+            status: testConnResult.success ? 'success' : 'error',
+            message: testConnResult.success 
+                ? `Conexão bem-sucedida! Events received: ${testConnResult.data?.events_received || 0}, fbtrace_id: ${testConnResult.data?.fbtrace_id || 'N/A'}`
+                : `Erro de conexão direta: ${testConnResult.reason || testConnResult.error || JSON.stringify(testConnResult.data)}`
+        });
+
+        // Step 4: Run Test Lead Processing
+        const mockLeadgenId = `test_lead_${Date.now()}`;
+        const mockTestLead = {
+            source: 'Meta Lead Ads (Teste)',
+            leadgenId: mockLeadgenId,
+            pageId: pages?.[0]?.page_id || 'test_page_123',
+            formId: 'test_form_456',
+            name: 'Lead de Teste Diagnóstico',
+            email: `teste_${Date.now()}@exemplo.com`,
+            phone: '+5511999999999',
+            companyName: 'Empresa Teste Ltda',
+            formName: 'Formulário Diagnóstico',
+            campaignName: 'Campanha de Diagnóstico',
+            adsetName: 'Conjunto Diagnóstico',
+            adName: 'Anúncio Teste',
+            utmSource: 'meta_ads',
+            utmMedium: 'cpc',
+            utmCampaign: 'diagnostico_teste',
+            utmContent: 'banner_teste',
+            utmTerm: 'teste',
+            createdTime: new Date().toISOString(),
+            testEventCode: testEventCode || null
+        };
+
+        const processingResult = await processor.processLead(mockTestLead);
+
+        if (processingResult.success) {
+            steps.push({ name: 'Lead encontrado', status: 'success', message: 'Lead de teste gerado' });
+            steps.push({
+                name: 'Pessoa criada ou localizada',
+                status: 'success',
+                message: `ID: ${processingResult.contactId} (${processingResult.contactCreated ? 'Criada' : 'Localizada'})`
+            });
+            steps.push({
+                name: 'Organização criada ou localizada',
+                status: processingResult.companyId ? 'success' : 'skipped',
+                message: processingResult.companyId ? `ID: ${processingResult.companyId}` : 'Não aplicável'
+            });
+            steps.push({
+                name: 'Negócio criado ou localizado',
+                status: processingResult.dealId ? 'success' : 'skipped',
+                message: processingResult.dealId ? `ID: ${processingResult.dealId}` : 'Sem negócio'
+            });
+            steps.push({
+                name: 'Histórico registrado',
+                status: processingResult.historyRegistered ? 'success' : 'skipped',
+                message: processingResult.historyRegistered ? 'Registrado em deal_logs' : 'Desativado'
+            });
+            steps.push({
+                name: 'Primeira atividade criada',
+                status: processingResult.activityCreated ? 'success' : 'skipped',
+                message: processingResult.activityCreated ? 'Tarefa agendada' : 'Desativada'
+            });
+            steps.push({
+                name: 'Cadência iniciada',
+                status: processingResult.cadenceStarted ? 'success' : 'skipped',
+                message: processingResult.cadenceStarted ? 'Iniciada via DB Trigger' : 'Não iniciada'
+            });
+
+            if (processingResult.capiResult) {
+                steps.push({
+                    name: 'API de Conversões (CAPI)',
+                    status: processingResult.capiResult.success ? 'success' : 'error',
+                    message: processingResult.capiResult.success 
+                        ? 'Evento de teste enviado com sucesso para a Meta!' 
+                        : `Erro CAPI: ${processingResult.capiResult.reason || processingResult.capiResult.error || 'Erro de conexão/credenciais'}`
+                });
+            } else {
+                steps.push({
+                    name: 'API de Conversões (CAPI)',
+                    status: 'skipped',
+                    message: 'CAPI desativada ou não configurada'
+                });
+            }
+
+            // Log test execution
+            await supabase.from('meta_integration_logs').insert({
+                user_id: userId,
+                event_type: 'test',
+                status: 'success',
+                message: 'Teste diagnóstico executado com sucesso'
+            });
+        } else {
+            steps.push({
+                name: 'Processamento de Lead',
+                status: 'error',
+                message: processingResult.error || 'Falha ao processar lead de teste'
+            });
+
+            await supabase.from('meta_integration_logs').insert({
+                user_id: userId,
+                event_type: 'test',
+                status: 'error',
+                message: `Teste diagnóstico falhou: ${processingResult.error}`
+            });
+        }
+
+        console.log("[7] Montando resposta");
+        console.log("[8] Retornando HTTP");
+
+        const totalTimeMs = Date.now() - startTime;
+        return res.json({
+            success: processingResult.success || (typeof testConnResult !== 'undefined' && testConnResult.success),
+            steps,
+            processingResult,
+            totalTimeMs
+        });
+    } catch (err) {
+        console.error("❌ [EXCEÇÃO CAPI TESTE]:", err.stack || err);
+        const totalTimeMs = Date.now() - startTime;
+        steps.push({ 
+            name: 'Execução do Teste (Exceção)', 
+            status: 'error', 
+            message: `Erro interno no servidor: ${err.message}. Stack: ${err.stack?.split('\n')?.[1] || 'N/A'}` 
+        });
+        
+        console.log("[8] Retornando HTTP (Erro 500)");
+        
+        return res.status(500).json({
+            success: false,
+            error: err.message,
+            stack: err.stack,
+            steps,
+            totalTimeMs
+        });
     }
 });
 
