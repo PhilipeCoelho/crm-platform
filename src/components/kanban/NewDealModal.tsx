@@ -5,7 +5,7 @@ import { useCRM } from '@/contexts/CRMContext';
 
 interface NewDealModalProps { currency?: string; }
 
-const SOURCES = ['Google Maps', 'Indicação', 'Website', 'LinkedIn', 'Instagram', 'Cold Call', 'Eventos', 'Outros'];
+const SOURCES = ['Google Maps', 'Indicação', 'Website', 'LinkedIn', 'Instagram', 'Cold Call', 'Eventos', 'Meta Lead Ads', 'Google Ads', 'Landing Page', 'Brevo', 'Importação', 'Outros'];
 const LABELS = [
     { id: '1', name: 'Quente', color: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900' },
     { id: '2', name: 'Morno', color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900' },

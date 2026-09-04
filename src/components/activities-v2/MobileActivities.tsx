@@ -5,7 +5,7 @@ import { filterRealActivities } from '@/utils/activityHelpers';
 import { Icons } from '@/components/activities-v2/Icons';
 import { differenceInDays, parseISO, startOfDay } from 'date-fns';
 import { isMobileNumber, getWhatsAppUrl, getCleanedPhoneLink } from '@/utils/phoneHelpers';
-import CompleteActivityModal from '@/components/activities/CompleteActivityModal';
+import CompleteActivityModal from '@/components/activities-v2/CompleteActivityModal';
 import { Activity } from '@/types/schema';
 import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
 import { VoiceMicButton } from '@/components/shared/VoiceMicButton';

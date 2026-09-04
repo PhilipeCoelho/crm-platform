@@ -218,3 +218,45 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Screenshot Mode styling */
+body.screenshot-mode,
+body.screenshot-mode html,
+body.screenshot-mode #root {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+body.screenshot-mode .flex.h-full.w-full {
+  height: auto !important;
+  min-height: 100vh;
+  overflow: visible !important;
+}
+
+body.screenshot-mode aside {
+  position: sticky !important;
+  top: 0 !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+body.screenshot-mode main,
+body.screenshot-mode main > div,
+body.screenshot-mode main > div > div,
+body.screenshot-mode main .overflow-y-auto,
+body.screenshot-mode main .overflow-auto {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Hide scrollbars during screenshot mode for cleaner shots */
+body.screenshot-mode::-webkit-scrollbar,
+body.screenshot-mode *::-webkit-scrollbar {
+  display: none !important;
+}
+body.screenshot-mode {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}

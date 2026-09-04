@@ -4,8 +4,8 @@ import { useCRM } from '@/contexts/CRMContext';
 import { ArrowLeft, Building, Globe, FileText, Trash2, Tag, Calendar, Phone, Mail, ExternalLink, MessageSquare, Plus, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import ActivityList from '@/components/activities/ActivityList';
-import NewActivityModal from '@/components/activities/NewActivityModal';
+import ActivityList from '@/components/activities-v2/ActivityList';
+import NewActivityModal from '@/components/activities-v2/NewActivityModal';
 
 interface Props {
     companyId?: string;

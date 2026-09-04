@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Users, CheckSquare, LogOut,
     ChevronRight, ChevronLeft, Loader2, Moon,
     Sun, Laptop as Monitor, Menu, X, CalendarDays, BarChart3,
-    Zap, DollarSign, Check, Mail, Eye, Inbox, Brain
+    Zap, DollarSign, Check, Mail, Eye, Inbox, Brain, Camera
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
@@ -36,7 +36,9 @@ import CampaignWizard from '@/pages/campaigns/CampaignWizard';
 import AlertsAndTips from './pages/campaigns/AlertsAndTips';
 import EmailInbox from './pages/email/EmailInbox';
 import CadenceSettings from '@/pages/settings/CadenceSettings';
-import ActivitySuggestionModal from '@/components/activities/ActivitySuggestionModal';
+import MetaLeadAdsSettings from '@/pages/settings/MetaLeadAdsSettings';
+import { Share2 } from 'lucide-react';
+import ActivitySuggestionModal from '@/components/activities-v2/ActivitySuggestionModal';
 
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
@@ -53,6 +55,20 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     const isMobile = useIsMobile();
 
     const [dashboardType, setDashboardType] = useState<'sales' | 'marketing'>('sales');
+    const [isScreenshotMode, setIsScreenshotMode] = useState(false);
+    const [showScreenshotBanner, setShowScreenshotBanner] = useState(true);
+
+    useEffect(() => {
+        if (isScreenshotMode) {
+            document.body.classList.add('screenshot-mode');
+            setShowScreenshotBanner(true);
+        } else {
+            document.body.classList.remove('screenshot-mode');
+        }
+        return () => {
+            document.body.classList.remove('screenshot-mode');
+        };
+    }, [isScreenshotMode]);
 
     const navItems = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -386,6 +402,21 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                             </button>
                                         </div>
 
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setIsScreenshotMode(!isScreenshotMode)}
+                                                className={`w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Camera size={14} />
+                                                    <span>Modo Print/Captura</span>
+                                                </div>
+                                                <div className={`w-8 h-4 rounded-full relative transition-colors ${isScreenshotMode ? 'bg-primary' : 'bg-muted dark:bg-muted/30'}`}>
+                                                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${isScreenshotMode ? 'right-0.5' : 'left-0.5'}`} />
+                                                </div>
+                                            </button>
+                                        </div>
+
                                         {/* Cadência Switch */}
                                         <div className="relative">
                                             <NavLink
@@ -396,6 +427,21 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                                 <div className="flex items-center gap-2">
                                                     <Zap size={14} className="text-primary" />
                                                     <span>Cadência Automática</span>
+                                                </div>
+                                                <ChevronRight size={14} />
+                                            </NavLink>
+                                        </div>
+
+                                        {/* Meta Lead Ads */}
+                                        <div className="relative">
+                                            <NavLink
+                                                to="/settings/meta-lead-ads"
+                                                onClick={() => setIsSettingsOpen(false)}
+                                                className="w-full flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md transition-colors hover:bg-muted dark:hover:bg-muted/10 text-muted-foreground hover:text-foreground"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Share2 size={14} className="text-primary" />
+                                                    <span>Meta Lead Ads</span>
                                                 </div>
                                                 <ChevronRight size={14} />
                                             </NavLink>
@@ -528,6 +574,32 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
 
                 <ActivitySuggestionModal />
                 <PrivacyBanner />
+
+                {isScreenshotMode && showScreenshotBanner && (
+                    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-primary text-primary-foreground px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-top-4 duration-300 border border-primary-foreground/20">
+                        <div className="flex items-center gap-2">
+                            <Camera size={16} className="animate-pulse" />
+                            <span className="text-xs font-semibold">
+                                Modo de Captura Ativo: Use sua extensão para tirar o print de página inteira.
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowScreenshotBanner(false)}
+                                className="hover:bg-primary-foreground/10 text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-md transition-colors"
+                                title="Ocultar esta barra para que o print fique limpo"
+                            >
+                                Ocultar Aviso
+                            </button>
+                            <button
+                                onClick={() => setIsScreenshotMode(false)}
+                                className="bg-primary-foreground text-primary text-[10px] font-bold px-2.5 py-1 rounded-md transition-colors"
+                            >
+                                Desativar
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div >
         </TooltipProvider >
     );
@@ -594,6 +666,7 @@ function App() {
                         <Route path="/insights" element={<Insights />} />
                         <Route path="/knowledge-base" element={<KnowledgeBase />} />
                         <Route path="/settings/cadence" element={<CadenceSettings />} />
+                        <Route path="/settings/meta-lead-ads" element={<MetaLeadAdsSettings />} />
                         <Route path="/deals/:id" element={<DealDetails currency={selectedCurrency} />} />
                         <Route path="/companies/:id" element={<CompanyDetails />} />
                         <Route path="/contacts/:id" element={<ContactDetails />} />

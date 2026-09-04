@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useCRM } from "@/contexts/CRMContext";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +59,7 @@ export function PrivacyMask({
 }
 
 // Specialized masks for common types
-export function PrivacyText({ text, type = 'text', className }: { text: string; type?: 'name' | 'email' | 'phone' | 'company' | 'text'; className?: string }) {
+export const PrivacyText = memo(function PrivacyText({ text, type = 'text', className }: { text: string; type?: 'name' | 'email' | 'phone' | 'company' | 'text'; className?: string }) {
     const { isPrivacyMode } = useCRM();
 
     if (!isPrivacyMode) return <span className={className}>{text}</span>;
@@ -85,4 +86,4 @@ export function PrivacyText({ text, type = 'text', className }: { text: string; 
             {masked}
         </span>
     );
-}
+});

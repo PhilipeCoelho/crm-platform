@@ -4,7 +4,7 @@ import {
     ArrowUpRight, ArrowDownRight, Minus, 
     TrendingUp, ShieldAlert, CheckCircle2, 
     ChevronRight, Tag, Layers, MessageSquare, Flame, Sparkles,
-    Trash2, Settings
+    Trash2, Settings, Copy, Check
 } from 'lucide-react';
 import { 
     fetchPendingReviews, 
@@ -19,7 +19,7 @@ import { InsightComercial } from '@/types/schema';
 import { Link } from 'react-router-dom';
 
 export default function KnowledgeBase() {
-    const [period, setPeriod] = useState<'today' | '7' | '30' | '60' | '90' | 'all' | 'custom'>('30');
+    const [period, setPeriod] = useState<'today' | '7' | '30' | '60' | '90' | 'all' | 'custom'>('today');
     const [customStart, setCustomStart] = useState<string>(() => {
         const d = new Date();
         d.setDate(d.getDate() - 30);
@@ -46,6 +46,156 @@ export default function KnowledgeBase() {
     // Backfill state
     const [isBackfilling, setIsBackfilling] = useState<boolean>(false);
     const [backfillResult, setBackfillResult] = useState<BackfillResult | null>(null);
+
+    const [isCopied, setIsCopied] = useState<boolean>(false);
+
+    const handleCopyToClipboard = async () => {
+        let periodText = '';
+        switch (period) {
+            case 'today': periodText = 'Hoje'; break;
+            case '7': periodText = 'Últimos 7 dias'; break;
+            case '30': periodText = 'Últimos 30 dias'; break;
+            case '60': periodText = 'Últimos 60 dias'; break;
+            case '90': periodText = 'Últimos 90 dias'; break;
+            case 'all': periodText = 'Todo o período'; break;
+            case 'custom': periodText = `Período Personalizado (${customStart} a ${customEnd})`; break;
+            default: periodText = period;
+        }
+
+        let text = `# RELATÓRIO DE INTELIGÊNCIA COMERCIAL E CONTEÚDO\n`;
+        text += `**Período:** ${periodText}\n`;
+        text += `**Gerado em:** ${new Date().toLocaleString()}\n\n`;
+        text += `Este relatório consolida as principais tendências comerciais (dores, objeções, barreiras e motivos de ganho/perda) e as teses de inteligência de conteúdo geradas automaticamente a partir dos feedbacks reais dos leads no CRM. Use este material no Claude como contexto e voz do cliente para produzir conteúdos e direcionamentos reais.\n\n`;
+        text += `---\n\n`;
+
+        // 1. TENDÊNCIAS GERAIS
+        text += `## 1. TENDÊNCIAS COMERCIAIS GERAIS\n\n`;
+        
+        const topDor = trends?.top_subcategories?.dor?.[0];
+        const topBarreira = trends?.top_subcategories?.barreira_acesso?.[0];
+        const topObjecao = trends?.top_subcategories?.objecao?.[0];
+
+        text += `- **Dor mais Comum:** ${topDor ? `${formatSnakeCase(topDor.subcategoria)} (${topDor.total} ocorrências)` : 'Nenhuma dor registrada no período'}\n`;
+        text += `- **Principal Barreira de Acesso:** ${topBarreira ? `${formatSnakeCase(topBarreira.subcategoria)} (${topBarreira.total} bloqueios)` : 'Nenhuma barreira registrada no período'}\n`;
+        text += `- **Maior Objeção de Venda:** ${topObjecao ? `${formatSnakeCase(topObjecao.subcategoria)} (${topObjecao.total} menções)` : 'Nenhuma objeção registrada no período'}\n\n`;
+        text += `---\n\n`;
+
+        // 2. DETALHAMENTO DOS EIXOS
+        text += `## 2. DETALHAMENTO DAS TENDÊNCIAS POR EIXO\n\n`;
+
+        // Dores
+        text += `### DORES DO LEAD (TOP 5)\n`;
+        const dores = trends?.top_subcategories?.dor || [];
+        if (dores.length > 0) {
+            dores.slice(0, 5).forEach((d, idx) => {
+                text += `${idx + 1}. ${formatSnakeCase(d.subcategoria)}: ${d.total} ocorrências\n`;
+            });
+        } else {
+            text += `Nenhuma dor catalogada no período.\n`;
+        }
+        text += `\n`;
+
+        // Barreiras
+        text += `### BARREIRAS DE ACESSO (TOP 5)\n`;
+        const barreiras = trends?.top_subcategories?.barreira_acesso || [];
+        if (barreiras.length > 0) {
+            barreiras.slice(0, 5).forEach((b, idx) => {
+                text += `${idx + 1}. ${formatSnakeCase(b.subcategoria)}: ${b.total} bloqueios\n`;
+            });
+        } else {
+            text += `Nenhuma barreira de acesso catalogada no período.\n`;
+        }
+        text += `\n`;
+
+        // Objeções
+        text += `### OBJEÇÕES DE VENDA (TOP 5)\n`;
+        const objecoes = trends?.top_subcategories?.objecao || [];
+        if (objecoes.length > 0) {
+            objecoes.slice(0, 5).forEach((o, idx) => {
+                text += `${idx + 1}. ${formatSnakeCase(o.subcategoria)}: ${o.total} menções\n`;
+            });
+        } else {
+            text += `Nenhuma objeção de venda catalogada no período.\n`;
+        }
+        text += `\n`;
+        text += `---\n\n`;
+
+        // 3. ASSUNTOS MAIS CITADOS (EIXO 2)
+        text += `## 3. ASSUNTOS MAIS CITADOS (EIXO 2 / TAGS)\n\n`;
+        const tagCounts = trends?.tag_counts || [];
+        if (tagCounts.length > 0) {
+            tagCounts.slice(0, 10).forEach(t => {
+                const diff = t.current_total - t.prev_total;
+                const pctChange = t.prev_total === 0 ? (t.current_total > 0 ? 100 : 0) : (diff / t.prev_total) * 100;
+                const pctSign = pctChange > 0 ? `+${pctChange.toFixed(0)}%` : `${pctChange.toFixed(0)}%`;
+                text += `- **${formatSnakeCase(t.tag)}**: ${t.current_total} menções (Variação: ${pctSign})\n`;
+            });
+        } else {
+            text += `Nenhum assunto temático registrado no período.\n`;
+        }
+        text += `\n`;
+        text += `---\n\n`;
+
+        // 4. HISTÓRICO DE GANHOS E PERDAS
+        text += `## 4. HISTÓRICO DE NEGÓCIOS (MOTIVOS DE GANHO / PERDA)\n\n`;
+        
+        text += `### TOP MOTIVOS DE GANHO\n`;
+        const motivosGanho = trends?.win_loss_reasons?.motivo_ganho || [];
+        if (motivosGanho.length > 0) {
+            motivosGanho.slice(0, 3).forEach(reason => {
+                text += `- ${formatSnakeCase(reason.subcategoria)}: ${reason.total} menções\n`;
+            });
+        } else {
+            text += `Sem registros de ganho no período.\n`;
+        }
+        text += `\n`;
+
+        text += `### TOP MOTIVOS DE PERDA\n`;
+        const motivosPerda = trends?.win_loss_reasons?.motivo_perda || [];
+        if (motivosPerda.length > 0) {
+            motivosPerda.slice(0, 3).forEach(reason => {
+                text += `- ${formatSnakeCase(reason.subcategoria)}: ${reason.total} menções\n`;
+            });
+        } else {
+            text += `Sem registros de perda no período.\n`;
+        }
+        text += `\n`;
+        text += `---\n\n`;
+
+        // 5. SINAIS DE CONTEÚDO ESTRATÉGICOS
+        text += `## 5. SINAIS DE CONTEÚDO ESTRATÉGICOS\n\n`;
+        if (contentSignals && contentSignals.length > 0) {
+            contentSignals.forEach((signal, idx) => {
+                const formattedCategory = formatSnakeCase(signal.common_categoria);
+                const formattedTags = signal.common_tags.map(formatSnakeCase).join(', ') || 'Nenhuma';
+                
+                text += `### Tema ${idx + 1}: "${signal.content_signal}"\n`;
+                text += `- **Eixo Principal:** ${formattedCategory}\n`;
+                text += `- **Assuntos Relacionados (Tags):** ${formattedTags}\n`;
+                text += `- **Ocorrências no Período:** ${signal.current_total}\n`;
+                text += `- **Feedbacks Reais do Lead (Matéria-Bruta):\n`;
+                if (signal.examples && signal.examples.length > 0) {
+                    signal.examples.forEach(example => {
+                        text += `  - "${example.trim()}"\n`;
+                    });
+                } else {
+                    text += `  - Sem exemplos adicionais registrados.\n`;
+                }
+                text += `\n`;
+            });
+        } else {
+            text += `Nenhum sinal de conteúdo gerado no período.\n`;
+        }
+
+        try {
+            await navigator.clipboard.writeText(text);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            console.error("Failed to copy text: ", err);
+            alert("Erro ao copiar para a área de transferência.");
+        }
+    };
 
     const loadData = async () => {
         setIsLoading(true);
@@ -265,6 +415,30 @@ export default function KnowledgeBase() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Botão Copiar para o Claude */}
+                        {!isLoading && (trends || contentSignals.length > 0) && (
+                            <button
+                                onClick={handleCopyToClipboard}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all border shrink-0
+                                    ${isCopied 
+                                        ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                                        : 'bg-amber-500 hover:bg-amber-600 text-white border-transparent hover:shadow-md hover:scale-[1.02]'
+                                    }`}
+                            >
+                                {isCopied ? (
+                                    <>
+                                        <Check size={14} />
+                                        <span>Copiado!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={14} />
+                                        <span>Copiar para o Claude</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
 
                         {/* Settings Popover Dropdown */}
                         <div className="relative">

@@ -3,10 +3,10 @@ import { isBefore, isToday, startOfToday, parseISO } from 'date-fns';
 import { Deal, Activity } from '@/types/schema';
 import { CheckSquare, FileText, Mail, File } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
-import Timeline from '../activities/Timeline';
-import ActivityList from '../activities/ActivityList';
-import EditActivityModal from '../activities/EditActivityModal';
-import CompleteActivityModal from '../activities/CompleteActivityModal';
+import Timeline from '../activities-v2/Timeline';
+import ActivityList from '../activities-v2/ActivityList';
+import EditActivityModal from '../activities-v2/EditActivityModal';
+import CompleteActivityModal from '../activities-v2/CompleteActivityModal';
 
 // Tab Components
 import ActivityTab from './tabs/ActivityTab';

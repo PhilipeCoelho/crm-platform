@@ -24,4 +24,8 @@ export interface Contact {
     companyName?: string;
     lastActivity?: string; // Date string
     status: 'active' | 'inactive' | 'lead';
+    brevoStatus?: boolean;
+    brevoLastSyncAt?: string;
+    exportBatchId?: string;
+    brevoSyncStatus?: 'sincronizado' | 'nao_sincronizado' | 'nao_elegivel';
 }

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
-    Campaign, EmailTemplate, CampaignSender, CadenceTemplate, CadenceStage, ActivityType
+    Campaign, EmailTemplate, CampaignSender, CadenceTemplate, CadenceStage
 } from '../types/schema';
 import { supabase } from '@/lib/supabase';
 import { perfMonitor } from '@/utils/perfMonitor';
+import { sendCapiEvent } from './metaLeadAds';
 
 
 // --- Types ---
@@ -109,6 +110,14 @@ export interface CRMStore {
     updateCadenceTemplate: (id: string, updates: Partial<CadenceTemplate>) => Promise<void>;
     addCadenceTemplate: (template: Omit<CadenceTemplate, "id">) => Promise<CadenceTemplate>;
     deleteCadenceTemplate: (id: string) => Promise<void>;
+
+    // Brevo Integration
+    updateBrevoStatus: (emails: string[]) => Promise<{ totalCRM: number; found: number; notFound: number }>;
+    confirmBrevoSync: (contactIds: string[], batchId: string) => Promise<void>;
+    fetchBrevoConfig: () => Promise<{ hasKey: boolean; apiKey: string; lastSyncAt: string | null }>;
+    connectBrevo: (apiKey: string) => Promise<{ success: boolean; totalContacts: number }>;
+    syncBrevo: () => Promise<{ success: boolean; totalCRM: number; totalWithEmail: number; foundInBrevo: number; notFoundInBrevo: number; withoutEmail: number; syncedCount: number; notSyncedCount: number; ignoredCount: number; totalBrevoContacts: number; durationMs: number; lastSyncAt: string; log: any }>;
+    sendToBrevo: () => Promise<{ success: boolean; count: number; lastSyncAt: string }>;
 
     setPipelines: React.Dispatch<React.SetStateAction<Record<string, Pipeline>>>;
 }
@@ -292,13 +301,35 @@ export function useCRMStore(): CRMStore {
 
             // 2. Map & Set Contacts
             if (contactsData) {
-                setContacts(contactsData.map((c: any) => ({
-                    ...c,
-                    userId: c.user_id,
-                    companyId: c.company_id,
-                    marketingStatus: c.marketing_status || 'subscribed',
-                    createdAt: c.created_at
-                })));
+                const cleanEmail = (email: string) => {
+                    if (!email) return '';
+                    const parts = email.split(/[\s,;|/]+/);
+                    const firstValid = parts.find(p => p.includes('@'));
+                    return firstValid ? firstValid.trim().toLowerCase() : '';
+                };
+
+                setContacts(contactsData.map((c: any) => {
+                    const cleanedEmail = cleanEmail(c.email);
+                    const isEligible = cleanedEmail.length > 0;
+
+                    let syncStatus = c.brevo_sync_status;
+                    if (syncStatus === 'sincronizado') {
+                        if (!isEligible) syncStatus = 'nao_elegivel';
+                    } else {
+                        syncStatus = isEligible ? 'nao_sincronizado' : 'nao_elegivel';
+                    }
+                    return {
+                        ...c,
+                        userId: c.user_id,
+                        companyId: c.company_id,
+                        marketingStatus: c.marketing_status || 'subscribed',
+                        brevoStatus: c.brevo_status || false,
+                        brevoLastSyncAt: c.brevo_last_sync_at,
+                        exportBatchId: c.export_batch_id,
+                        brevoSyncStatus: syncStatus,
+                        createdAt: c.created_at
+                    };
+                }));
             }
 
             // 3. Map & Set Activities (Merging Optimistic)
@@ -926,8 +957,13 @@ export function useCRMStore(): CRMStore {
             // Revert
             setDeals((prev: any[]) => prev.filter((status_d: any) => status_d.id !== tempId));
         } else {
-            // Trigger Cadence for the initial stage
-            triggerStageCadence(tempId, data.stageId);
+            // Trigger Cadence for the initial stage is handled by Database Triggers
+            console.log('📡 Deal created. Database trigger will handle cadence.');
+            
+            // Send Meta CAPI event for new deal
+            sendCapiEvent(tempId, data.stageId).catch(err => {
+                console.error('⚠️ [CAPI] Error triggering CAPI event on deal creation:', err);
+            });
         }
     };
 
@@ -1002,6 +1038,15 @@ export function useCRMStore(): CRMStore {
                 setDeals((prev: any[]) => prev.map((d: any) => d.id === id ? originalDeal : d));
             } else {
                 console.log('✅ Update successful for:', id);
+
+                // Send Meta CAPI event if stage or status was updated
+                const stageChanged = updates.stageId && updates.stageId !== originalDeal.stageId;
+                const statusChanged = updates.status && updates.status !== originalDeal.status;
+                if (stageChanged || statusChanged) {
+                    sendCapiEvent(id, updates.stageId, updates.status).catch(err => {
+                        console.error('⚠️ [CAPI] Error triggering CAPI event on update:', err);
+                    });
+                }
 
                 // Extra safety: Sync deal_analytics status if status was changed
                 if (dbUpdates.status) {
@@ -1145,104 +1190,18 @@ export function useCRMStore(): CRMStore {
                 } : d));
             }
         } else {
-            // Success: Trigger Cadence for the NEW stage
-            triggerStageCadence(id, stageId);
-        }
-    };
-
-    /**
-     * Helper to cleanup old automatic activities and create the first step of the cadence
-     * for a given stage matched by tag.
-     */
-    const triggerStageCadence = async (dealId: string, stageId: string) => {
-        // 1. OPTIMISTIC CLEANUP (Remove ALL pending automatic activities to prevent duplicates/ghosts)
-        console.log('🧹 Cleanup: Removing old automatic activities for deal', dealId);
-        
-        // Local state cleanup
-        setActivities((prev: any[]) => prev.filter((a: any) => {
-            const isDealActivity = a.dealId === dealId;
-            const isAutomatic = a.isAutomatic === true || (a as any).is_automatic === true;
-            const isPending = a.status === 'pending' || !a.status || !a.completed;
-            return !(isDealActivity && isAutomatic && isPending);
-        }));
-
-        // Database cleanup (Fire and forget, but logged)
-        supabase.from('activities')
-            .delete()
-            .eq('deal_id', dealId)
-            .eq('completed', false)
-            .eq('is_automatic', true)
-            .then(({ error }) => {
-                if (error) console.error('❌ Error cleaning up activities in DB:', error);
+            // Success: Trigger Cadence for the NEW stage is handled by Database Triggers
+            console.log('📡 Deal moved. Database trigger will handle cadence.');
+            
+            // Send Meta CAPI event for moved deal
+            sendCapiEvent(id, stageId).catch(err => {
+                console.error('⚠️ [CAPI] Error triggering CAPI event on move:', err);
             });
-
-        // 2. Cadence V2: AUTOMATICALLY create the FIRST step of the cadence for this stage
-        const stages = Object.values(pipelines).flatMap((p: any) => p.stages || []);
-        const currentStage = stages.find((s: any) => s.id === stageId);
-        const stageTitle = currentStage?.title?.toUpperCase() || '';
-        
-        console.log('🎯 Triggering cadence for stage:', stageTitle);
-
-        // Improved Tag Matching Logic
-        let tag: string | null = null;
-        
-        // Priority 1: Specific keywords (Order matters! More specific first)
-        if (stageTitle.includes('ENGAJADO')) {
-            tag = 'ENGAJADO';
-        } else if (stageTitle.includes('DIAGN') || stageTitle.includes('REUNI') || stageTitle.includes('AGENDA')) {
-            tag = 'DIAGNOSTICO';
-        } else if (stageTitle.includes('FECHAMENTO') || stageTitle.includes('PROPOSTA')) {
-            tag = 'FECHAMENTO';
-        } else if (stageTitle.includes('LEAD')) {
-            tag = 'LEAD';
         }
-        
-        // Priority 2: Generic match with cadenceStages names if no specific keyword matched
-        if (!tag) {
-            const matched = cadenceStages.find((cs: any) => 
-                stageTitle.includes(cs.name.toUpperCase()) || 
-                cs.name.toUpperCase().includes(stageTitle) ||
-                stageTitle.includes(cs.id.toUpperCase())
-            );
-            tag = matched?.id || null;
-        }
-
-        // Priority 3: Default for explicitly 'new' deals only
-        if (!tag && stageId === 'new') {
-            tag = 'LEAD';
-        }
-
-        console.log('🔖 Matched Tag for Cadence:', tag);
-
-        if (tag) {
-            // Find Step 1 for this tag
-            const firstStep = cadenceTemplates.find((t: any) => t.tag === tag && t.step === 1 && t.isActive);
-            if (firstStep) {
-                console.log('✨ Creating first step for cadence:', firstStep.title);
-                const dueDate = new Date();
-                dueDate.setDate(dueDate.getDate() + firstStep.days);
-
-                addActivity({
-                    dealId: dealId,
-                    type: firstStep.type as ActivityType,
-                    title: firstStep.title,
-                    description: firstStep.description,
-                    tooltipScript: firstStep.script,
-                    status: 'pending',
-                    completed: false,
-                    dueDate: dueDate.toISOString(),
-                    sequenceStep: firstStep.step,
-                    suggestedDelay: firstStep.days,
-                    originStage: firstStep.tag,
-                    isAutomatic: true
-                });
-            } else {
-                console.log('⚠️ No Step 1 found for tag:', tag);
-            }
-        }
-        
-        console.log('📦 Cadence V2: Automatic first step logic executed.');
     };
+
+    // Note: Cadence automatic triggers are now fully handled by the Supabase database trigger 'tr_deal_cadence_init_unified'.
+    // The frontend no longer runs triggerStageCadence local logic to prevent duplicate task creations.
 
     const deleteDeal = async (id: string) => {
         // const dealToDelete = deals.find(d => d.id === id);
@@ -1315,6 +1274,10 @@ export function useCRMStore(): CRMStore {
         if (updates.role !== undefined) dbUpdates.role = updates.role;
         if (updates.companyId !== undefined) dbUpdates.company_id = updates.companyId;
         if (updates.marketingStatus !== undefined) dbUpdates.marketing_status = updates.marketingStatus;
+        if (updates.brevoStatus !== undefined) dbUpdates.brevo_status = updates.brevoStatus;
+        if (updates.brevoLastSyncAt !== undefined) dbUpdates.brevo_last_sync_at = updates.brevoLastSyncAt;
+        if (updates.exportBatchId !== undefined) dbUpdates.export_batch_id = updates.exportBatchId;
+        if (updates.brevoSyncStatus !== undefined) dbUpdates.brevo_sync_status = updates.brevoSyncStatus;
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('contacts').update(dbUpdates).eq('id', id);
@@ -1350,9 +1313,43 @@ export function useCRMStore(): CRMStore {
         if (deleteDealsError) {
             console.error('Error deleting deals:', deleteDealsError);
             // Partial failure — reload only contacts
-            const { data: freshContacts } = await supabase.from('contacts').select('*');
-            if (freshContacts) setContacts(freshContacts.map((c: any) => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, role: c.role, userId: c.user_id, companyId: c.company_id, createdAt: c.created_at, marketingStatus: c.marketing_status, status: c.status || 'active' } as Contact)));
-            return;
+             const { data: freshContacts } = await supabase.from('contacts').select('*');
+             if (freshContacts) {
+                 const cleanEmail = (email: string) => {
+                     if (!email) return '';
+                     const parts = email.split(/[\s,;|/]+/);
+                     const firstValid = parts.find(p => p.includes('@'));
+                     return firstValid ? firstValid.trim().toLowerCase() : '';
+                 };
+                 setContacts(freshContacts.map((c: any) => {
+                      const cleanedEmail = cleanEmail(c.email);
+                      const isEligible = cleanedEmail.length > 0;
+
+                      let syncStatus = c.brevo_sync_status;
+                      if (syncStatus === 'sincronizado') {
+                          if (!isEligible) syncStatus = 'nao_elegivel';
+                      } else {
+                          syncStatus = isEligible ? 'nao_sincronizado' : 'nao_elegivel';
+                      }
+                    return {
+                        id: c.id,
+                        name: c.name,
+                        email: c.email,
+                        phone: c.phone,
+                        role: c.role,
+                        userId: c.user_id,
+                        companyId: c.company_id,
+                        createdAt: c.created_at,
+                        marketingStatus: c.marketing_status,
+                        brevoStatus: c.brevo_status || false,
+                        brevoLastSyncAt: c.brevo_last_sync_at,
+                        exportBatchId: c.export_batch_id,
+                        brevoSyncStatus: syncStatus,
+                        status: c.status || 'active'
+                    } as Contact;
+                 }));
+             }
+             return;
         }
 
         const { error } = await supabase.from('contacts').delete().eq('id', id);
@@ -1926,6 +1923,177 @@ export function useCRMStore(): CRMStore {
         if (error) console.error('Error deleting cadence stage:', error);
     };
 
+    const updateBrevoStatus = async (emails: string[]) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("No user authenticated");
+
+        // 1. Reset all contacts' brevo_status to FALSE for this user
+        const { error: resetError } = await supabase
+            .from('contacts')
+            .update({ brevo_status: false })
+            .eq('user_id', user.id);
+
+        if (resetError) {
+            console.error('Error resetting brevo_status:', resetError);
+            throw resetError;
+        }
+
+        // 2. If we have emails to check, fetch contacts' emails and IDs, match them, and update to TRUE
+        if (emails.length > 0) {
+            const { data: dbContacts, error: selectError } = await supabase
+                .from('contacts')
+                .select('id, email')
+                .eq('user_id', user.id);
+
+            if (selectError) {
+                console.error('Error selecting contacts for Brevo match:', selectError);
+                throw selectError;
+            }
+
+            if (dbContacts && dbContacts.length > 0) {
+                const csvSet = new Set(emails.map(e => e.trim().toLowerCase()));
+                const matchingIds = dbContacts
+                    .filter((c: any) => c.email && csvSet.has(c.email.trim().toLowerCase()))
+                    .map((c: any) => c.id);
+
+                if (matchingIds.length > 0) {
+                    // Update in chunks of 500
+                    for (let i = 0; i < matchingIds.length; i += 500) {
+                        const chunk = matchingIds.slice(i, i + 500);
+                        const { error: updateError } = await supabase
+                            .from('contacts')
+                            .update({ brevo_status: true })
+                            .in('id', chunk);
+
+                        if (updateError) {
+                            console.error('Error updating brevo_status to true:', updateError);
+                            throw updateError;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Reload everything in local state
+        await fetchAll();
+
+        // 4. Return new counts
+        const { data: countData } = await supabase
+            .from('contacts')
+            .select('id, brevo_status')
+            .eq('user_id', user.id);
+
+        const totalCRM = countData ? countData.length : 0;
+        const found = countData ? countData.filter((c: any) => c.brevo_status === true).length : 0;
+        const notFound = totalCRM - found;
+
+        return { totalCRM, found, notFound };
+    };
+
+    const confirmBrevoSync = async (contactIds: string[], batchId: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("No user authenticated");
+
+        const now = new Date().toISOString();
+
+        // 1. Update contacts in chunks of 500
+        for (let i = 0; i < contactIds.length; i += 500) {
+            const chunk = contactIds.slice(i, i + 500);
+            const { error: updateError } = await supabase
+                .from('contacts')
+                .update({
+                    brevo_status: true,
+                    brevo_last_sync_at: now,
+                    export_batch_id: batchId
+                })
+                .in('id', chunk);
+
+            if (updateError) {
+                console.error('Error updating contacts sync status:', updateError);
+                throw updateError;
+            }
+        }
+
+        // 2. Insert into deal_logs as a system log entry
+        const { error: logError } = await supabase
+            .from('deal_logs')
+            .insert({
+                content: `${contactIds.length} contatos marcados como sincronizados com o Brevo após confirmação da exportação.`,
+                log_type: 'system',
+                created_by: user.id
+            });
+
+        if (logError) {
+            console.error('Error creating system sync log:', logError);
+        }
+
+        // 3. Reload everything in local state
+        await fetchAll();
+    };
+
+    const getBrevoAuthHeaders = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        return {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+    };
+
+    const fetchBrevoConfig = async () => {
+        const headers = await getBrevoAuthHeaders();
+        const res = await fetch('/api/brevo/config', { headers });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to fetch Brevo config');
+        }
+        return res.json();
+    };
+
+    const connectBrevo = async (apiKey: string) => {
+        const headers = await getBrevoAuthHeaders();
+        const res = await fetch('/api/brevo/config', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ apiKey })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to connect to Brevo');
+        }
+        return res.json();
+    };
+
+    const syncBrevo = async () => {
+        const headers = await getBrevoAuthHeaders();
+        const res = await fetch('/api/brevo/sync', {
+            method: 'POST',
+            headers
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to synchronize with Brevo');
+        }
+        const data = await res.json();
+        await fetchAll();
+        return data;
+    };
+
+    const sendToBrevo = async () => {
+        const headers = await getBrevoAuthHeaders();
+        const res = await fetch('/api/brevo/send', {
+            method: 'POST',
+            headers
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to send contacts to Brevo');
+        }
+        const data = await res.json();
+        await fetchAll();
+        return data;
+    };
+
     return {
         users: [],
         companies,
@@ -1988,6 +2156,12 @@ export function useCRMStore(): CRMStore {
         updateCadenceTemplate,
         addCadenceTemplate,
         deleteCadenceTemplate,
+        updateBrevoStatus,
+        confirmBrevoSync,
+        fetchBrevoConfig,
+        connectBrevo,
+        syncBrevo,
+        sendToBrevo,
         setPipelines
     };
 }

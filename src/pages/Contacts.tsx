@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Users, Building2, Clock, GitMerge } from 'lucide-react';
+import { Users, Building2, Clock, GitMerge, Mail } from 'lucide-react';
 import PeopleView from '@/components/contacts/PeopleView';
 import OrganizationsView from '@/components/contacts/OrganizationsView';
 import TimelineView from '@/components/contacts/TimelineView';
 import MergeDuplicatesView from '@/components/contacts/MergeDuplicatesView';
+import BrevoSettings from '@/pages/settings/BrevoSettings';
 
-type ContactsSubmenu = 'people' | 'organizations' | 'timeline' | 'merge';
+type ContactsSubmenu = 'people' | 'organizations' | 'timeline' | 'merge' | 'brevo';
 
 export default function Contacts() {
     const [activeSubmenu, setActiveSubmenu] = useState<ContactsSubmenu>('people');
@@ -15,6 +16,7 @@ export default function Contacts() {
         { id: 'organizations' as ContactsSubmenu, label: 'Organizações', icon: Building2 },
         { id: 'timeline' as ContactsSubmenu, label: 'Linha do Tempo', icon: Clock },
         { id: 'merge' as ContactsSubmenu, label: 'Mesclar Duplicatas', icon: GitMerge },
+        { id: 'brevo' as ContactsSubmenu, label: 'Integração Brevo', icon: Mail },
     ];
 
     return (
@@ -64,6 +66,7 @@ export default function Contacts() {
                 {activeSubmenu === 'organizations' && <OrganizationsView />}
                 {activeSubmenu === 'timeline' && <TimelineView />}
                 {activeSubmenu === 'merge' && <MergeDuplicatesView />}
+                {activeSubmenu === 'brevo' && <BrevoSettings />}
             </div>
         </div>
     );

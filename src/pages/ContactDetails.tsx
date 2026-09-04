@@ -6,8 +6,8 @@ import { ArrowLeft, User, Building, Mail, Phone, Briefcase, Calendar, Pencil, Ta
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NewContactModal from '@/components/contacts/NewContactModal';
-import ActivityList from '@/components/activities/ActivityList';
-import NewActivityModal from '@/components/activities/NewActivityModal';
+import ActivityList from '@/components/activities-v2/ActivityList';
+import NewActivityModal from '@/components/activities-v2/NewActivityModal';
 import { isMobileNumber, getCleanedWhatsAppLink } from '@/utils/phoneHelpers';
 
 interface Props {

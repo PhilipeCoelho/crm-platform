@@ -1,6 +1,6 @@
 import { useCRM } from '@/contexts/CRMContext';
 import { Deal } from '@/types/schema';
-import ActivityForm from '@/components/activities/ActivityForm';
+import ActivityForm from '@/components/activities-v2/ActivityForm';
 
 interface ActivityTabProps {
     deal: Deal;

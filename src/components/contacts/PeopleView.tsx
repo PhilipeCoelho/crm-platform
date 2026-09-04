@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
-import { Search, Filter, Plus, MoreHorizontal, Mail, Phone, Edit, Trash2, Columns, ArrowUpDown, Users, MessageCircle } from 'lucide-react';
+import { Search, Filter, Plus, Columns, ArrowUpDown, Users } from 'lucide-react';
 import NewContactModal from './NewContactModal';
 import { Contact } from '@/types/schema';
-import { PrivacyText } from '../ui/PrivacyMask';
-import { isMobileNumber, getCleanedWhatsAppLink, getCleanedPhoneLink } from '@/utils/phoneHelpers';
+import { List } from 'react-window';
+import { ContactRow } from './ContactRow';
 
-type ColumnId = 'name' | 'organization' | 'email' | 'phone' | 'marketingStatus' | 'openDeals' | 'closedDeals' | 'nextActivity';
+type ColumnId = 'name' | 'organization' | 'email' | 'phone' | 'brevoStatus' | 'marketingStatus' | 'openDeals' | 'closedDeals' | 'nextActivity';
 
 interface Column {
     id: ColumnId;
@@ -15,11 +15,27 @@ interface Column {
     sortable: boolean;
 }
 
+const getColumnClass = (id: ColumnId) => {
+    switch (id) {
+        case 'name': return 'flex-[2] min-w-[150px]';
+        case 'organization': return 'flex-[1.5] min-w-[120px]';
+        case 'email': return 'flex-[2] min-w-[180px]';
+        case 'phone': return 'flex-[1.2] min-w-[120px]';
+        case 'brevoStatus': return 'w-36 shrink-0';
+        case 'marketingStatus': return 'w-28 shrink-0';
+        case 'openDeals': return 'w-28 shrink-0';
+        case 'closedDeals': return 'w-28 shrink-0';
+        case 'nextActivity': return 'flex-[1.5] min-w-[140px]';
+        default: return 'flex-1';
+    }
+};
+
 export default function PeopleView() {
     const { contacts, companies, activities, deals, deleteContact, openFocusContact } = useCRM();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
+
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
     const [showColumnPicker, setShowColumnPicker] = useState(false);
@@ -27,6 +43,13 @@ export default function PeopleView() {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [selectedView, setSelectedView] = useState('Todos');
     const [showViewSelector, setShowViewSelector] = useState(false);
+    
+    // Brevo Filter States
+    const [selectedBrevoFilter, setSelectedBrevoFilter] = useState<'Todos' | 'Sincronizado' | 'Não sincronizado' | 'Não elegível'>('Todos');
+    const [showBrevoFilterSelector, setShowBrevoFilterSelector] = useState(false);
+
+
+
     const [selectedDataFilter, setSelectedDataFilter] = useState('Todos os Contatos');
     const [showDataFilterSelector, setShowDataFilterSelector] = useState(false);
     const [lastExportDate, setLastExportDate] = useState<string | null>(null);
@@ -37,6 +60,7 @@ export default function PeopleView() {
         { id: 'organization', label: 'Organização', visible: true, sortable: true },
         { id: 'email', label: 'E-mail', visible: true, sortable: true },
         { id: 'phone', label: 'Telefone', visible: true, sortable: false },
+        { id: 'brevoStatus', label: 'Brevo', visible: true, sortable: true },
         { id: 'marketingStatus', label: 'Marketing', visible: false, sortable: true },
         { id: 'openDeals', label: 'Negócios em Aberto', visible: true, sortable: true },
         { id: 'closedDeals', label: 'Negócios Fechados', visible: true, sortable: true },
@@ -49,6 +73,7 @@ export default function PeopleView() {
             setShowColumnPicker(false);
             setShowViewSelector(false);
             setShowDataFilterSelector(false);
+            setShowBrevoFilterSelector(false);
             setShowExportMenu(false);
         };
         const savedDate = localStorage.getItem('lastContactsExportDate');
@@ -74,34 +99,99 @@ export default function PeopleView() {
         }
     };
 
-    const getCompanyName = (id?: string) => {
-        if (!id) return '-';
-        return companies.find(c => c.id === id)?.name || '-';
-    };
+    // Precomputed O(1) Maps for rendering optimization
+    const companyMap = useMemo(() => {
+        const map = new Map<string, any>();
+        companies.forEach(c => map.set(c.id, c));
+        return map;
+    }, [companies]);
 
-    const getNextActivity = (contactId: string) => {
-        return activities
-            .filter(a => a.contactId === contactId && !a.completed)
-            .sort((a, b) => {
+    const nextActivityMap = useMemo(() => {
+        const map = new Map<string, any>();
+        const activitiesByContact = new Map<string, any[]>();
+        activities.forEach(a => {
+            if (a.contactId && !a.completed) {
+                if (!activitiesByContact.has(a.contactId)) {
+                    activitiesByContact.set(a.contactId, []);
+                }
+                activitiesByContact.get(a.contactId)!.push(a);
+            }
+        });
+
+        activitiesByContact.forEach((acts, contactId) => {
+            const sorted = acts.sort((a, b) => {
                 if (!a.dueDate) return 1;
                 if (!b.dueDate) return -1;
                 return a.dueDate.localeCompare(b.dueDate);
-            })[0];
-    };
+            });
+            map.set(contactId, sorted[0]);
+        });
 
-    const getOpenDealsCount = (contactId: string) => {
-        return deals.filter(d => d.contactId === contactId && d.status === 'open').length;
-    };
+        return map;
+    }, [activities]);
 
-    const getClosedDealsCount = (contactId: string) => {
-        return deals.filter(d => d.contactId === contactId && (d.status === 'won' || d.status === 'lost')).length;
-    };
+    const contactDealsMap = useMemo(() => {
+        const map = new Map<string, { open: number; closed: number }>();
+        contacts.forEach(c => map.set(c.id, { open: 0, closed: 0 }));
+        
+        deals.forEach(d => {
+            if (d.contactId) {
+                const entry = map.get(d.contactId) || { open: 0, closed: 0 };
+                if (d.status === 'open') {
+                    entry.open++;
+                } else if (d.status === 'won' || d.status === 'lost') {
+                    entry.closed++;
+                }
+                map.set(d.contactId, entry);
+            }
+        });
+        return map;
+    }, [deals, contacts]);
+
+    const contactStatusSummaryMap = useMemo(() => {
+        const map = new Map<string, { isLost: boolean; isDisqualified: boolean; isWon: boolean }>();
+        const dealsByContact = new Map<string, any[]>();
+        deals.forEach(d => {
+            if (d.contactId) {
+                if (!dealsByContact.has(d.contactId)) {
+                    dealsByContact.set(d.contactId, []);
+                }
+                dealsByContact.get(d.contactId)!.push(d);
+            }
+        });
+
+        contacts.forEach(c => {
+            const contactDeals = dealsByContact.get(c.id) || [];
+            const isLost = contactDeals.length > 0 && contactDeals.every(d => d.status === 'lost');
+            const isDisqualified = contactDeals.length > 0 && contactDeals.every(d => d.status === 'desqualificado');
+            const isWon = contactDeals.length > 0 && contactDeals.every(d => d.status === 'won');
+            map.set(c.id, { isLost, isDisqualified, isWon });
+        });
+
+        return map;
+    }, [deals, contacts]);
+
+    const getCompanyName = useCallback((id?: string) => {
+        if (!id) return '-';
+        return companyMap.get(id)?.name || '-';
+    }, [companyMap]);
+
+    const getNextActivity = useCallback((contactId: string) => {
+        return nextActivityMap.get(contactId);
+    }, [nextActivityMap]);
+
+    const getOpenDealsCount = useCallback((contactId: string) => {
+        return contactDealsMap.get(contactId)?.open || 0;
+    }, [contactDealsMap]);
+
+    const getClosedDealsCount = useCallback((contactId: string) => {
+        return contactDealsMap.get(contactId)?.closed || 0;
+    }, [contactDealsMap]);
 
     const filteredAndSortedContacts = useMemo(() => {
         let result = contacts.filter(contact => {
             const companyId = contact.companyId || (contact as any).company_id;
-            const company = companies.find(c => c.id === companyId);
-            const companyName = company?.name || '';
+            const companyName = companyId ? (companyMap.get(companyId)?.name || '') : '';
             const searchLower = searchTerm.toLowerCase();
 
             const matchesSearch = (
@@ -113,11 +203,11 @@ export default function PeopleView() {
 
             if (!matchesSearch) return false;
 
-            // Deal-based status filtering
-            const contactDeals = deals.filter(d => d.contactId === contact.id);
-            const isLost = contactDeals.length > 0 && contactDeals.every(d => d.status === 'lost');
-            const isDisqualified = contactDeals.length > 0 && contactDeals.every(d => d.status === 'desqualificado');
-            const isWon = contactDeals.length > 0 && contactDeals.every(d => d.status === 'won');
+            // Deal-based status filtering using O(1) precomputed status summary
+            const summary = contactStatusSummaryMap.get(contact.id) || { isLost: false, isDisqualified: false, isWon: false };
+            const isLost = summary.isLost;
+            const isDisqualified = summary.isDisqualified;
+            const isWon = summary.isWon;
 
             let passViewFilter = true;
             if (selectedView === 'Perdidos') passViewFilter = isLost || isDisqualified;
@@ -131,6 +221,14 @@ export default function PeopleView() {
             if (selectedDataFilter === 'Com Telefone' && !contact.phone) return false;
             if (selectedDataFilter === 'Com E-mail' && !contact.email) return false;
             if (selectedDataFilter === 'Com Nome, Tel e E-mail' && (!contact.name || !contact.phone || !contact.email)) return false;
+
+            // Brevo status filtering
+            if (selectedBrevoFilter !== 'Todos') {
+                const syncStatus = contact.brevoSyncStatus || 'nao_sincronizado';
+                if (selectedBrevoFilter === 'Sincronizado' && syncStatus !== 'sincronizado') return false;
+                if (selectedBrevoFilter === 'Não sincronizado' && syncStatus !== 'nao_sincronizado') return false;
+                if (selectedBrevoFilter === 'Não elegível' && syncStatus !== 'nao_elegivel') return false;
+            }
 
             return true;
         });
@@ -153,6 +251,10 @@ export default function PeopleView() {
                     case 'email':
                         aVal = a.email.toLowerCase();
                         bVal = b.email.toLowerCase();
+                        break;
+                    case 'brevoStatus':
+                        aVal = a.brevoStatus ? 1 : 0;
+                        bVal = b.brevoStatus ? 1 : 0;
                         break;
                     case 'marketingStatus':
                         aVal = a.marketingStatus || 'z'; // 'z' to put undefined at the end
@@ -183,29 +285,29 @@ export default function PeopleView() {
         }
 
         return result;
-    }, [contacts, companies, searchTerm, sortColumn, sortDirection, deals, activities, selectedView, selectedDataFilter]);
+    }, [contacts, companyMap, searchTerm, sortColumn, sortDirection, contactDealsMap, nextActivityMap, contactStatusSummaryMap, selectedView, selectedDataFilter, selectedBrevoFilter, getCompanyName, getNextActivity, getOpenDealsCount, getClosedDealsCount]);
 
-    const handleEditClick = (contact: Contact, e: React.MouseEvent) => {
+    const handleEditClick = useCallback((contact: Contact, e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingContact(contact);
         setIsModalOpen(true);
         setOpenMenuId(null);
-    };
+    }, []);
 
     const handleCreateClick = () => {
         setEditingContact(undefined);
         setIsModalOpen(true);
     };
 
-    const toggleSelectAll = () => {
+    const toggleSelectAll = useCallback(() => {
         if (selectedContacts.size === filteredAndSortedContacts.length) {
             setSelectedContacts(new Set());
         } else {
             setSelectedContacts(new Set(filteredAndSortedContacts.map(c => c.id)));
         }
-    };
+    }, [selectedContacts, filteredAndSortedContacts]);
 
-    const toggleSelectContact = (contactId: string) => {
+    const toggleSelectContact = useCallback((contactId: string) => {
         const newSet = new Set(selectedContacts);
         if (newSet.has(contactId)) {
             newSet.delete(contactId);
@@ -213,7 +315,7 @@ export default function PeopleView() {
             newSet.add(contactId);
         }
         setSelectedContacts(newSet);
-    };
+    }, [selectedContacts]);
 
     const visibleColumns = columns.filter(col => col.visible);
 
@@ -308,14 +410,14 @@ export default function PeopleView() {
         setShowExportMenu(false);
     };
 
-    const handleDeleteSelected = async () => {
+    const handleDeleteSelected = useCallback(async () => {
         if (window.confirm(`Tem certeza que deseja excluir ${selectedContacts.size} ${selectedContacts.size === 1 ? 'pessoa' : 'pessoas'}?`)) {
             for (const id of Array.from(selectedContacts)) {
                 await deleteContact(id);
             }
             setSelectedContacts(new Set());
         }
-    };
+    }, [selectedContacts, deleteContact]);
 
     return (
         <div className="h-full flex flex-col">
@@ -328,13 +430,15 @@ export default function PeopleView() {
                             {filteredAndSortedContacts.length} {filteredAndSortedContacts.length === 1 ? 'pessoa' : 'pessoas'}
                         </p>
                     </div>
-                    <button
-                        onClick={handleCreateClick}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all shadow-sm hover:shadow"
-                    >
-                        <Plus size={16} strokeWidth={2.5} />
-                        Pessoa
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleCreateClick}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all shadow-sm hover:shadow"
+                        >
+                            <Plus size={16} strokeWidth={2.5} />
+                            Pessoa
+                        </button>
+                    </div>
                 </div>
 
                 {/* Search and Filters */}
@@ -357,11 +461,12 @@ export default function PeopleView() {
                                 e.stopPropagation();
                                 setShowViewSelector(!showViewSelector);
                                 setShowDataFilterSelector(false);
+                                setShowBrevoFilterSelector(false);
                             }}
                             className="flex items-center gap-2 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium"
                         >
                             <Filter size={16} />
-                            <span>{selectedView}</span>
+                            <span>Negócios: {selectedView}</span>
                         </button>
                         {showViewSelector && (
                             <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
@@ -389,6 +494,7 @@ export default function PeopleView() {
                                 e.stopPropagation();
                                 setShowDataFilterSelector(!showDataFilterSelector);
                                 setShowViewSelector(false);
+                                setShowBrevoFilterSelector(false);
                             }}
                             className="flex items-center gap-2 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium"
                             title="Filtrar por preenchimento de dados"
@@ -409,6 +515,39 @@ export default function PeopleView() {
                                         className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${selectedDataFilter === filter ? 'bg-muted font-medium' : ''}`}
                                     >
                                         {filter}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Brevo Filter */}
+                    <div className="relative">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowBrevoFilterSelector(!showBrevoFilterSelector);
+                                setShowViewSelector(false);
+                                setShowDataFilterSelector(false);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+                        >
+                            <Filter size={16} />
+                            <span>Brevo: {selectedBrevoFilter}</span>
+                        </button>
+                        {showBrevoFilterSelector && (
+                            <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                                {['Todos', 'Sincronizado', 'Não sincronizado', 'Não elegível'].map((opt) => (
+                                    <button
+                                        key={opt}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedBrevoFilter(opt as any);
+                                            setShowBrevoFilterSelector(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${selectedBrevoFilter === opt ? 'bg-muted font-medium' : ''}`}
+                                    >
+                                        {opt}
                                     </button>
                                 ))}
                             </div>
@@ -537,249 +676,90 @@ export default function PeopleView() {
             </div>
 
             {/* Table */}
-            <div className="flex-1 overflow-auto px-6 pb-6">
-                <div className="bg-card rounded-lg border border-border overflow-hidden">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 text-muted-foreground font-medium text-xs border-b border-border sticky top-0">
-                            <tr>
-                                <th className="px-4 py-3 w-12">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedContacts.size === filteredAndSortedContacts.length && filteredAndSortedContacts.length > 0}
-                                        onChange={toggleSelectAll}
-                                        className="w-4 h-4 rounded border-input cursor-pointer"
-                                    />
-                                </th>
-                                {visibleColumns.map((col) => (
-                                    <th key={col.id} className="px-4 py-3 text-left">
-                                        {col.sortable ? (
-                                            <button
-                                                onClick={() => handleSort(col.id)}
-                                                className="flex items-center gap-1 hover:text-foreground transition-colors group"
-                                            >
-                                                {col.label}
-                                                <ArrowUpDown
-                                                    size={12}
-                                                    className={`transition-all ${sortColumn === col.id ? 'text-primary' : 'opacity-0 group-hover:opacity-100'}`}
-                                                />
-                                            </button>
-                                        ) : (
-                                            col.label
-                                        )}
-                                    </th>
-                                ))}
-                                <th className="px-4 py-3 w-20"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                            {filteredAndSortedContacts.length === 0 ? (
-                                <tr>
-                                    <td colSpan={visibleColumns.length + 2} className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Users size={48} className="text-muted-foreground/30" />
-                                            <p className="text-muted-foreground font-medium">Nenhuma pessoa encontrada</p>
-                                            {contacts.length === 0 && (
-                                                <p className="text-sm text-muted-foreground">Crie sua primeira pessoa!</p>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                filteredAndSortedContacts.map((contact) => (
-                                    <tr
-                                        key={contact.id}
-                                        className="hover:bg-muted/30 transition-colors group cursor-pointer"
-                                        onClick={() => openFocusContact(contact.id)}
+            <div className="flex-1 overflow-hidden px-6 pb-6 flex flex-col">
+                <div className="bg-card rounded-lg border border-border overflow-hidden flex flex-col flex-1 min-h-[300px]">
+                    {/* Header */}
+                    <div className="bg-muted/50 text-muted-foreground font-medium text-xs border-b border-border flex items-center shrink-0 py-3 pr-2 select-none">
+                        <div className="px-4 w-12 shrink-0 flex items-center justify-center">
+                            <input
+                                type="checkbox"
+                                checked={selectedContacts.size === filteredAndSortedContacts.length && filteredAndSortedContacts.length > 0}
+                                onChange={toggleSelectAll}
+                                className="w-4 h-4 rounded border-input cursor-pointer"
+                            />
+                        </div>
+                        {visibleColumns.map((col) => (
+                            <div key={col.id} className={`px-4 text-left font-semibold flex items-center ${getColumnClass(col.id)}`}>
+                                {col.sortable ? (
+                                    <button
+                                        onClick={() => handleSort(col.id)}
+                                        className="flex items-center gap-1 hover:text-foreground transition-colors group"
                                     >
-                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedContacts.has(contact.id)}
-                                                onChange={() => toggleSelectContact(contact.id)}
-                                                className="w-4 h-4 rounded border-input cursor-pointer"
-                                            />
-                                        </td>
-                                        {visibleColumns.map((col) => {
-                                            switch (col.id) {
-                                                case 'name':
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                                                                    {contact.name.charAt(0).toUpperCase()}
-                                                                </div>
-                                                                <span className="font-medium text-foreground">
-                                                                    <PrivacyText text={contact.name} type="name" />
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                    );
-                                                case 'organization':
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-foreground">
-                                                                    <PrivacyText text={getCompanyName(contact.companyId || (contact as any).company_id)} type="company" />
-                                                                </span>
-                                                                {contact.role && (
-                                                                    <span className="text-xs text-muted-foreground">{contact.role}</span>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    );
-                                                case 'email':
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <PrivacyText text={contact.email} type="email" />
-                                                        </td>
-                                                    );
-                                                case 'phone':
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <a
-                                                                    href={getCleanedPhoneLink(contact.phone || '')}
-                                                                    className="hover:text-primary transition-colors"
-                                                                    onClick={e => e.stopPropagation()}
-                                                                >
-                                                                    <PrivacyText text={contact.phone || '-'} type="phone" />
-                                                                </a>
-                                                                {contact.phone && isMobileNumber(contact.phone) && (
-                                                                    <a
-                                                                        href={getCleanedWhatsAppLink(contact.phone)}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="text-emerald-500 hover:text-emerald-600 transition-colors p-1 hover:bg-emerald-500/10 rounded"
-                                                                        onClick={e => e.stopPropagation()}
-                                                                        title="WhatsApp"
-                                                                    >
-                                                                        <MessageCircle size={14} />
-                                                                    </a>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    );
-                                                case 'marketingStatus':
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${contact.marketingStatus === 'subscribed'
-                                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                                                : contact.marketingStatus === 'unsubscribed'
-                                                                    ? 'bg-slate-50 text-slate-500 border border-slate-200'
-                                                                    : 'bg-slate-50 text-slate-400 border border-slate-100'
-                                                                }`}>
-                                                                {contact.marketingStatus === 'subscribed' ? 'Inscrito' :
-                                                                    contact.marketingStatus === 'unsubscribed' ? 'Não Inscrito' : 'Não Inscrito'}
-                                                            </span>
-                                                        </td>
-                                                    );
-                                                case 'openDeals':
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold">
-                                                                {getOpenDealsCount(contact.id)}
-                                                            </span>
-                                                        </td>
-                                                    );
-                                                case 'closedDeals':
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold">
-                                                                {getClosedDealsCount(contact.id)}
-                                                            </span>
-                                                        </td>
-                                                    );
-                                                case 'nextActivity':
-                                                    const nextAct = getNextActivity(contact.id);
-                                                    if (!nextAct) {
-                                                        return (
-                                                            <td key={col.id} className="px-4 py-3">
-                                                                <span className="text-muted-foreground text-xs">-</span>
-                                                            </td>
-                                                        );
-                                                    }
-                                                    const isOverdue = nextAct.dueDate && nextAct.dueDate < new Date().toISOString().split('T')[0];
-                                                    return (
-                                                        <td key={col.id} className="px-4 py-3">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-medium text-foreground truncate max-w-[150px]" title={nextAct.title}>
-                                                                    <PrivacyText text={nextAct.title} type="text" />
-                                                                </span>
-                                                                <span className={`text-[11px] ${isOverdue ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
-                                                                    {nextAct.dueDate ? new Date(nextAct.dueDate).toLocaleDateString('pt-BR') : 'Sem data'}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                    );
-                                                default:
-                                                    return null;
-                                            }
-                                        })}
-                                        <td className="px-4 py-3 text-right relative">
-                                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                                                <button className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-primary transition-colors" title="Enviar Email">
-                                                    <Mail size={14} />
-                                                </button>
-                                                <a
-                                                    href={getCleanedPhoneLink(contact.phone || '')}
-                                                    className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-primary transition-colors"
-                                                    title="Ligar"
-                                                >
-                                                    <Phone size={14} />
-                                                </a>
-                                                {contact.phone && isMobileNumber(contact.phone) && (
-                                                    <a
-                                                        href={getCleanedWhatsAppLink(contact.phone)}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-emerald-500 transition-colors"
-                                                        title="WhatsApp"
-                                                    >
-                                                        <MessageCircle size={14} />
-                                                    </a>
-                                                )}
-                                                <div className="relative">
-                                                    <button
-                                                        className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setOpenMenuId(openMenuId === contact.id ? null : contact.id);
-                                                        }}
-                                                    >
-                                                        <MoreHorizontal size={14} />
-                                                    </button>
-                                                    {openMenuId === contact.id && (
-                                                        <div className="absolute right-0 mt-2 w-36 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
-                                                            <button
-                                                                onClick={(e) => handleEditClick(contact, e)}
-                                                                className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2 transition-colors"
-                                                            >
-                                                                <Edit size={14} />
-                                                                Editar
-                                                            </button>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    if (window.confirm('Tem certeza que deseja excluir esta pessoa?')) {
-                                                                        deleteContact(contact.id);
-                                                                        setOpenMenuId(null);
-                                                                    }
-                                                                }}
-                                                                className="w-full text-left px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 flex items-center gap-2 transition-colors"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                                Excluir
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                        {col.label}
+                                        <ArrowUpDown
+                                            size={12}
+                                            className={`transition-all ${sortColumn === col.id ? 'text-primary' : 'opacity-0 group-hover:opacity-100'}`}
+                                        />
+                                    </button>
+                                ) : (
+                                    col.label
+                                )}
+                            </div>
+                        ))}
+                        <div className="px-4 w-20 shrink-0"></div>
+                    </div>
+
+                    {/* Virtualized Body */}
+                    <div className="flex-1 relative overflow-hidden bg-background/50">
+                        {filteredAndSortedContacts.length === 0 ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                                <Users size={48} className="text-muted-foreground/30" />
+                                <p className="text-muted-foreground font-medium">Nenhuma pessoa encontrada</p>
+                                {contacts.length === 0 && (
+                                    <p className="text-sm text-muted-foreground">Crie sua primeira pessoa!</p>
+                                )}
+                            </div>
+                        ) : (
+                            <List<{}>
+                                rowCount={filteredAndSortedContacts.length}
+                                rowHeight={56}
+                                rowProps={{}}
+                                rowComponent={({ index, style }: { index: number; style: React.CSSProperties }) => {
+                                    const contact = filteredAndSortedContacts[index];
+                                    const isSelected = selectedContacts.has(contact.id);
+                                    const isMenuOpen = openMenuId === contact.id;
+
+                                    return (
+                                        <ContactRow
+                                            key={contact.id}
+                                            contact={contact}
+                                            style={style}
+                                            isSelected={isSelected}
+                                            onSelect={() => toggleSelectContact(contact.id)}
+                                            onEdit={handleEditClick}
+                                            onDelete={(id) => {
+                                                if (window.confirm('Tem certeza que deseja excluir esta pessoa?')) {
+                                                    deleteContact(id);
+                                                    setOpenMenuId(null);
+                                                }
+                                            }}
+                                            onClick={() => openFocusContact(contact.id)}
+                                            companyName={getCompanyName(contact.companyId || (contact as any).company_id)}
+                                            openDealsCount={getOpenDealsCount(contact.id)}
+                                            closedDealsCount={getClosedDealsCount(contact.id)}
+                                            nextActivity={getNextActivity(contact.id)}
+                                            visibleColumns={visibleColumns}
+                                            isMenuOpen={isMenuOpen}
+                                            onToggleMenu={(e) => {
+                                                e.stopPropagation();
+                                                setOpenMenuId(openMenuId === contact.id ? null : contact.id);
+                                            }}
+                                        />
+                                    );
+                                }}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -788,6 +768,7 @@ export default function PeopleView() {
                 onClose={() => setIsModalOpen(false)}
                 contactToEdit={editingContact}
             />
+
         </div>
     );
 }

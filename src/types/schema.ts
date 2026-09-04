@@ -28,6 +28,10 @@ export interface Contact {
     lastActivity?: string;
     status: 'active' | 'inactive' | 'lead';
     marketingStatus?: 'subscribed' | 'unsubscribed' | 'cleaned' | 'archived';
+    brevoStatus?: boolean;
+    brevoLastSyncAt?: string;
+    exportBatchId?: string;
+    brevoSyncStatus?: 'sincronizado' | 'nao_sincronizado' | 'nao_elegivel';
     createdAt: string;
 }
 
@@ -68,6 +72,13 @@ export interface Deal {
     // External Links
     instagramUrl?: string;
     adLibraryUrl?: string;
+
+    // UTM Attribution
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmContent?: string;
+    utmTerm?: string;
 }
 
 // Tipos de atividades REAIS (aparecem no módulo Atividades)
@@ -192,7 +203,7 @@ export interface Pipeline {
 }
 
 // Log do Negócio (Execução/Timeline)
-export type LogType = 'activity_note' | 'system' | 'manual_note';
+export type LogType = 'activity_note' | 'system' | 'manual_note' | 'brevo_campaign' | 'meta_lead';
 
 export interface DealLog {
     id: Id;
@@ -291,5 +302,15 @@ export interface InsightComercial {
     erroClassificacao?: string | null;
     contentSignal?: string | null;
     criadoEm: string;
+}
+
+export interface BrevoSyncLog {
+    id: string;
+    user_id: string;
+    sync_at: string;
+    synced_count: number;
+    not_synced_count: number;
+    ignored_count: number;
+    duration_ms: number;
 }
 

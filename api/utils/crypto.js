@@ -35,3 +35,16 @@ export function decrypt(encryptedData) {
 
     return decrypted;
 }
+
+export function hashSHA256(text) {
+    if (!text) return null;
+    return crypto.createHash('sha256').update(text.trim().toLowerCase()).digest('hex');
+}
+
+export function formatPhoneForHash(phone) {
+    if (!phone) return null;
+    // Remove all non-digits
+    const cleaned = phone.replace(/\D/g, '');
+    return cleaned || null;
+}
+

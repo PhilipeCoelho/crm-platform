@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Activity, Deal } from '@/types/schema';
 import { Currency } from '@/data/currencies';
 import { AlertTriangle, CalendarDays, ArrowRight, Target, CheckCircle2 } from 'lucide-react';
-import ActivityList from '@/components/activities/ActivityList';
+import ActivityList from '@/components/activities-v2/ActivityList';
 import { StrategicRecommendation } from '@/services/recommendations';
 import { WIDGET_DEFINITIONS } from '@/data/widgetDefinitions';
 import { InsightsData } from '@/services/insights';

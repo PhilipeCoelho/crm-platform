@@ -9,8 +9,8 @@ import { filterRealActivities } from '@/utils/activityHelpers';
 import { Icons } from '@/components/activities-v2/Icons';
 import { differenceInDays, parseISO, startOfDay } from 'date-fns';
 import DetailPanelReal from '@/components/activities-v2/DetailPanelReal';
-import CompleteActivityModal from '@/components/activities/CompleteActivityModal';
-import NewActivityModal from '@/components/activities/NewActivityModal';
+import CompleteActivityModal from '@/components/activities-v2/CompleteActivityModal';
+import NewActivityModal from '@/components/activities-v2/NewActivityModal';
 import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
 import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
 
