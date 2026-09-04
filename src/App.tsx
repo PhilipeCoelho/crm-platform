@@ -37,8 +37,17 @@ import AlertsAndTips from './pages/campaigns/AlertsAndTips';
 import EmailInbox from './pages/email/EmailInbox';
 import CadenceSettings from '@/pages/settings/CadenceSettings';
 import MetaLeadAdsSettings from '@/pages/settings/MetaLeadAdsSettings';
-import { Share2 } from 'lucide-react';
+import { Share2, PenTool } from 'lucide-react';
 import ActivitySuggestionModal from '@/components/activities-v2/ActivitySuggestionModal';
+import ContentLayout from '@/components/content/ContentLayout';
+import ContentHome from '@/components/content/ContentHome';
+import ContentToday from '@/pages/content/ContentToday';
+import ContentOpportunities from '@/pages/content/ContentOpportunities';
+import ContentIdeas from '@/pages/content/ContentIdeas';
+import ContentProduction from '@/pages/content/ContentProduction';
+import ContentReferences from '@/pages/content/ContentReferences';
+import ContentPublications from '@/pages/content/ContentPublications';
+import ContentIntelligence from '@/pages/content/ContentIntelligence';
 
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
@@ -77,6 +86,7 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
         { path: '/contacts', label: 'Contatos', icon: Users },
         { path: '/insights', label: 'Insights', icon: BarChart3 },
         { path: '/knowledge-base', label: 'Inteligência Comercial', icon: Brain },
+        { path: '/content', label: 'Conteúdo', icon: PenTool },
     ];
 
     // Sidebar States: Pinned and Hovered
@@ -684,6 +694,23 @@ function App() {
                                     <Route path="*" element={<Navigate to="" replace />} />
                                 </Routes>
                             </CampaignsLayout>
+                        } />
+
+                        {/* Content Intelligence Module Routes */}
+                        <Route path="/content/*" element={
+                            <ContentLayout>
+                                <Routes>
+                                    <Route index element={<ContentHome />} />
+                                    <Route path="today" element={<ContentToday />} />
+                                    <Route path="opportunities" element={<ContentOpportunities />} />
+                                    <Route path="ideas" element={<ContentIdeas />} />
+                                    <Route path="production" element={<ContentProduction />} />
+                                    <Route path="references" element={<ContentReferences />} />
+                                    <Route path="publications" element={<ContentPublications />} />
+                                    <Route path="intelligence" element={<ContentIntelligence />} />
+                                    <Route path="*" element={<Navigate to="" replace />} />
+                                </Routes>
+                            </ContentLayout>
                         } />
                     </Routes>
                 </Layout>
