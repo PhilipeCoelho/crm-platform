@@ -56,13 +56,14 @@ export interface ContentIdea {
   userId: string;
   title: string;
   description: string;
-  format: 'carrossel' | 'reel' | 'post' | 'story' | 'artigo';
+  format?: 'reel' | 'carrossel' | 'post' | 'story' | 'artigo' | null;
   status: 'capturada' | 'validada' | 'em_producao' | 'descartada';
-  priority: number;
-  sourceType: 'daily' | 'crm_signal' | 'reference' | 'manual' | 'ai_suggestion';
-  sourceId?: string;
+  priority: number; // 1 to 5
+  sourceType: 'manual' | 'daily' | 'crm_signal' | 'reference' | 'ai_suggestion';
+  sourceId?: string | null;
   tags: string[];
   insightIds: string[];
+  isLocalOnly?: boolean;
   createdAt: string;
   updatedAt: string;
 }

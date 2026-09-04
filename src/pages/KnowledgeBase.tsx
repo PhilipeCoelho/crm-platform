@@ -4,7 +4,7 @@ import {
     ArrowUpRight, ArrowDownRight, Minus, 
     TrendingUp, ShieldAlert, CheckCircle2, 
     ChevronRight, Tag, Layers, MessageSquare, Flame, Sparkles,
-    Trash2, Settings, Copy, Check
+    Trash2, Settings, Copy, Check, Lightbulb
 } from 'lucide-react';
 import { 
     fetchPendingReviews, 
@@ -14,6 +14,7 @@ import {
     TrendData, RelatedDeal, ContentSignalTrend, BackfillResult,
     fetchTrendsAndSignalsClient
 } from '@/services/knowledgeBase';
+import { createIdeaFromCRMSignal } from '@/services/contentIdeasService';
 import { supabase } from '@/lib/supabase';
 import { InsightComercial } from '@/types/schema';
 import { Link } from 'react-router-dom';
@@ -34,6 +35,7 @@ export default function KnowledgeBase() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [activeSection, setActiveSection] = useState<'dashboard' | 'review' | 'content'>('dashboard');
     const [expandedSignals, setExpandedSignals] = useState<Record<string, boolean>>({});
+    const [savedCrmIdeaSignal, setSavedCrmIdeaSignal] = useState<string | null>(null);
 
     // Details Modal
     const [selectedFilter, setSelectedFilter] = useState<{ category?: string; subcategory?: string; tag?: string } | null>(null);
@@ -941,6 +943,22 @@ export default function KnowledgeBase() {
                                                                 </div>
                                                             ))}
                                                         </div>
+                                                    </div>
+
+                                                    <div className="pt-2 flex justify-end">
+                                                        <button
+                                                            type="button"
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                await createIdeaFromCRMSignal(signal.content_signal, undefined, signal.examples?.[0]);
+                                                                setSavedCrmIdeaSignal(signal.content_signal);
+                                                                setTimeout(() => setSavedCrmIdeaSignal(null), 3500);
+                                                            }}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white text-xs font-semibold transition-all border border-amber-500/20 active:scale-95"
+                                                        >
+                                                            <Lightbulb size={13} />
+                                                            <span>{savedCrmIdeaSignal === signal.content_signal ? 'Ideia Salva no Banco de Ideias!' : 'Salvar como Ideia'}</span>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             )}

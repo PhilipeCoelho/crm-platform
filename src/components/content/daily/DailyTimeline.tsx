@@ -23,12 +23,14 @@ import {
 interface DailyTimelineProps {
   entries: ContentDailyEntry[];
   onDeleteEntry: (id: string) => Promise<void>;
+  onCreateIdea?: (data: { title: string; description: string; sourceType: 'daily'; sourceId: string }) => void;
   isLoading?: boolean;
 }
 
 export default function DailyTimeline({
   entries,
   onDeleteEntry,
+  onCreateIdea,
   isLoading = false,
 }: DailyTimelineProps) {
   const [entryToDelete, setEntryToDelete] = useState<ContentDailyEntry | null>(null);
@@ -157,12 +159,28 @@ export default function DailyTimeline({
                     {hasContentSignals && signals!.sinais_conteudo!.map((sinal, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-1.5 text-xs text-primary bg-primary/5 border border-primary/15 rounded-lg px-2.5 py-1.5"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-primary bg-primary/5 border border-primary/15 rounded-lg p-2.5"
                       >
-                        <Lightbulb size={13} className="shrink-0 mt-0.5 text-primary" />
-                        <span className="leading-snug">
-                          <strong className="font-semibold">Sinal de Conteúdo:</strong> &ldquo;{sinal}&rdquo;
-                        </span>
+                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
+                          <Lightbulb size={13} className="shrink-0 mt-0.5 text-primary" />
+                          <span className="leading-snug">
+                            <strong className="font-semibold">Sinal de Conteúdo:</strong> &ldquo;{sinal}&rdquo;
+                          </span>
+                        </div>
+                        {onCreateIdea && (
+                          <button
+                            type="button"
+                            onClick={() => onCreateIdea({
+                              title: sinal,
+                              description: `Originado do Daily em ${entry.entryDate} (${formatTime(entry.entryTime)}):\n"${entry.rawContent}"`,
+                              sourceType: 'daily',
+                              sourceId: entry.id
+                            })}
+                            className="shrink-0 self-end sm:self-auto text-[11px] font-semibold bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary px-2.5 py-1 rounded-md transition-all active:scale-95"
+                          >
+                            Transformar em ideia
+                          </button>
+                        )}
                       </div>
                     ))}
 
@@ -180,6 +198,25 @@ export default function DailyTimeline({
                         {signals.emocao_contexto}
                       </span>
                     )}
+                  </div>
+                )}
+
+                {/* Ação manual de transformar nota simples em ideia */}
+                {!hasContentSignals && onCreateIdea && (
+                  <div className="mt-2.5 pt-2 border-t border-border/40 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => onCreateIdea({
+                        title: entry.rawContent.length > 70 ? `${entry.rawContent.substring(0, 70)}...` : entry.rawContent,
+                        description: `Originado do Daily em ${entry.entryDate} (${formatTime(entry.entryTime)}):\n"${entry.rawContent}"`,
+                        sourceType: 'daily',
+                        sourceId: entry.id
+                      })}
+                      className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 font-medium"
+                    >
+                      <Lightbulb size={11} />
+                      <span>Criar ideia desta anotação</span>
+                    </button>
                   </div>
                 )}
               </div>
