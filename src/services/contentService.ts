@@ -46,6 +46,7 @@ export interface ContentDailyEntry {
     aprendizado?: string | null;
     sinais_conteudo?: string[];
   } | null;
+  isLocalOnly?: boolean;
   createdAt: string;
   updatedAt: string;
 }

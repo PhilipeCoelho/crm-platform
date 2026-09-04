@@ -2068,26 +2068,54 @@ Retorne EXCLUSIVAMENTE neste formato JSON, sem nenhum texto antes ou depois:
 // ==========================================
 // CONTENT INTELLIGENCE — DAILY ANALYSIS
 // ==========================================
-app.post('/api/content/daily/analyze', async (req, res) => {
-    const { entryId, rawContent, userId } = req.body;
+app.post('/api/content/daily/analyze', authenticate, async (req, res) => {
+    const { entryId } = req.body;
+    const authenticatedUserId = req.user?.sub;
 
-    if (!rawContent || !rawContent.trim()) {
-        return res.status(400).json({ error: 'rawContent is required' });
+    if (!entryId) {
+        return res.status(400).json({ error: 'entryId is required' });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-        logToFile('ℹ️ [Daily AI] ANTHROPIC_API_KEY missing, skipping Daily analysis');
-        return res.json({ success: false, reason: 'ANTHROPIC_API_KEY not set' });
+    if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
     }
 
-    // Acknowledge immediately to avoid blocking client
-    res.status(200).json({ success: true, status: 'processing_async' });
+    // Validate that the entry exists and strictly belongs to the authenticated user
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+    });
 
-    // Process asynchronously
-    (async () => {
-        try {
-            const systemPrompt = `Você é um analisador de memória diária de um profissional de negócios, vendas e marketing.
+    try {
+        const { data: entry, error: fetchErr } = await userSupabase
+            .from('content_daily_entries')
+            .select('id, user_id, raw_content')
+            .eq('id', entryId)
+            .eq('user_id', authenticatedUserId)
+            .single();
+
+        if (fetchErr || !entry) {
+            logToFile(`⛔ [Daily AI] Access denied or entry not found: entryId=${entryId}, user=${authenticatedUserId}`);
+            return res.status(403).json({ error: 'Entry not found or access denied' });
+        }
+
+        const rawContent = entry.raw_content;
+        if (!rawContent || !rawContent.trim()) {
+            return res.status(400).json({ error: 'Entry has no text content to analyze' });
+        }
+
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            logToFile('ℹ️ [Daily AI] ANTHROPIC_API_KEY missing, skipping Daily analysis');
+            return res.json({ success: false, reason: 'ANTHROPIC_API_KEY not set' });
+        }
+
+        // Acknowledge immediately to avoid blocking client
+        res.status(200).json({ success: true, status: 'processing_async' });
+
+        // Process asynchronously
+        (async () => {
+            try {
+                const systemPrompt = `Você é um analisador de memória diária de um profissional de negócios, vendas e marketing.
 Você vai receber o relato de um acontecimento do dia a dia (reunião, fechamento, frustração, problema técnico, reflexão de rotina).
 
 Sua tarefa:
@@ -2104,44 +2132,54 @@ Retorne EXCLUSIVAMENTE em formato JSON sem markdown:
   "sinais_conteudo": ["tese de conteúdo 1"]
 }`;
 
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01',
-                    'content-type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-6',
-                    max_tokens: 800,
-                    system: systemPrompt,
-                    messages: [
-                        { role: 'user', content: rawContent }
-                    ]
-                })
-            });
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-6',
+                        max_tokens: 800,
+                        system: systemPrompt,
+                        messages: [
+                            { role: 'user', content: rawContent }
+                        ]
+                    })
+                });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                logToFile(`❌ [Daily AI] Anthropic error: ${response.status} - ${errText}`);
-                return;
-            }
+                if (!response.ok) {
+                    const errText = await response.text();
+                    logToFile(`❌ [Daily AI] Anthropic error: ${response.status} - ${errText}`);
+                    await userSupabase
+                        .from('content_daily_entries')
+                        .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
+                        .eq('id', entryId)
+                        .eq('user_id', authenticatedUserId);
+                    return;
+                }
 
-            const data = await response.json();
-            const text = data?.content?.[0]?.text;
-            if (!text) return;
+                const data = await response.json();
+                const text = data?.content?.[0]?.text;
+                if (!text) {
+                    await userSupabase
+                        .from('content_daily_entries')
+                        .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
+                        .eq('id', entryId)
+                        .eq('user_id', authenticatedUserId);
+                    return;
+                }
 
-            let cleaned = text.trim();
-            if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
-            if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
-            if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
-            cleaned = cleaned.trim();
+                let cleaned = text.trim();
+                if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+                if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+                if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+                cleaned = cleaned.trim();
 
-            const parsed = JSON.parse(cleaned);
+                const parsed = JSON.parse(cleaned);
 
-            if (entryId) {
-                const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                await supabase
+                await userSupabase
                     .from('content_daily_entries')
                     .update({
                         ai_status: 'processed',
@@ -2149,13 +2187,27 @@ Retorne EXCLUSIVAMENTE em formato JSON sem markdown:
                         ai_signals: parsed,
                         updated_at: new Date().toISOString()
                     })
-                    .eq('id', entryId);
-                logToFile(`✅ [Daily AI] Entry ${entryId} analyzed successfully.`);
+                    .eq('id', entryId)
+                    .eq('user_id', authenticatedUserId);
+
+                logToFile(`✅ [Daily AI] Entry ${entryId} analyzed and saved successfully for user ${authenticatedUserId}`);
+            } catch (err) {
+                logToFile(`❌ [Daily AI] Exception analyzing entry ${entryId}: ${err.message}`);
+                try {
+                    await userSupabase
+                        .from('content_daily_entries')
+                        .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
+                        .eq('id', entryId)
+                        .eq('user_id', authenticatedUserId);
+                } catch (updateErr) {
+                    logToFile(`❌ [Daily AI] Failed to set status=failed: ${updateErr.message}`);
+                }
             }
-        } catch (err) {
-            logToFile(`❌ [Daily AI] Exception analyzing entry ${entryId}: ${err.message}`);
-        }
-    })();
+        })();
+    } catch (e) {
+        logToFile(`❌ [Daily AI] Validation exception: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
 });
 
 

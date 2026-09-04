@@ -17,7 +17,11 @@ function getLocalFallback(date: string): ContentDailyEntry[] {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(e => e.entryDate === date) : [];
+    return Array.isArray(parsed) 
+      ? parsed
+          .filter(e => e.entryDate === date)
+          .map(e => ({ ...e, isLocalOnly: true }))
+      : [];
   } catch {
     return [];
   }
@@ -62,6 +66,7 @@ function mapRowToEntry(row: any): ContentDailyEntry {
     aiStatus: row.ai_status,
     aiSummary: row.ai_summary,
     aiSignals: row.ai_signals,
+    isLocalOnly: false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -124,6 +129,7 @@ export async function createDailyEntry(input: CreateDailyEntryInput): Promise<Co
     aiStatus: 'pending',
     aiSummary: null,
     aiSignals: null,
+    isLocalOnly: true,
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
   };
@@ -277,17 +283,20 @@ export async function triggerDailyAnalysis(entry: ContentDailyEntry): Promise<vo
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
 
+  if (!token) {
+    console.debug('Cannot trigger daily AI analysis: No active auth session');
+    return;
+  }
+
   try {
     fetch('/api/content/daily/analyze', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         entryId: entry.id,
-        rawContent: entry.rawContent,
-        userId: entry.userId
       })
     }).catch(err => console.debug('Daily AI analyze fetch error (quiet):', err));
   } catch (err) {
