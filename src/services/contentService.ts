@@ -32,11 +32,22 @@ import { supabase } from '@/lib/supabase';
 export interface ContentDailyEntry {
   id: string;
   userId: string;
-  content: string;
-  mood?: string;
-  tags: string[];
-  sourceType: 'manual' | 'voice' | 'quick_note';
+  entryDate: string; // YYYY-MM-DD
+  entryTime: string; // HH:MM:SS
+  rawContent: string;
+  sourceType: 'text' | 'voice' | 'crm_sync' | 'file';
+  activityId?: string | null;
+  dealId?: string | null;
+  aiStatus: 'pending' | 'processed' | 'failed' | 'skipped';
+  aiSummary?: string | null;
+  aiSignals?: {
+    fatos?: string[];
+    emocao_contexto?: string | null;
+    aprendizado?: string | null;
+    sinais_conteudo?: string[];
+  } | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ContentIdea {

@@ -2065,6 +2065,99 @@ Retorne EXCLUSIVAMENTE neste formato JSON, sem nenhum texto antes ou depois:
     }
 });
 
+// ==========================================
+// CONTENT INTELLIGENCE — DAILY ANALYSIS
+// ==========================================
+app.post('/api/content/daily/analyze', async (req, res) => {
+    const { entryId, rawContent, userId } = req.body;
+
+    if (!rawContent || !rawContent.trim()) {
+        return res.status(400).json({ error: 'rawContent is required' });
+    }
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+        logToFile('ℹ️ [Daily AI] ANTHROPIC_API_KEY missing, skipping Daily analysis');
+        return res.json({ success: false, reason: 'ANTHROPIC_API_KEY not set' });
+    }
+
+    // Acknowledge immediately to avoid blocking client
+    res.status(200).json({ success: true, status: 'processing_async' });
+
+    // Process asynchronously
+    (async () => {
+        try {
+            const systemPrompt = `Você é um analisador de memória diária de um profissional de negócios, vendas e marketing.
+Você vai receber o relato de um acontecimento do dia a dia (reunião, fechamento, frustração, problema técnico, reflexão de rotina).
+
+Sua tarefa:
+1. Extrair os fatos objetivos que aconteceram.
+2. Identificar o estado/contexto predominante (ex: "Vitória comercial", "Gargalo de tempo", "Objeção de preço", "Sobrecarga operacional").
+3. Identificar um possível aprendizado prático (se houver; se for nota neutra, null).
+4. Gerar sinais de conteúdo: teses ou crenças de mercado de até 15 palavras que podem virar Reels, carrosséis ou anúncios autênticos a partir dessa vivência real.
+
+Retorne EXCLUSIVAMENTE em formato JSON sem markdown:
+{
+  "fatos": ["fato 1", "fato 2"],
+  "emocao_contexto": "string ou null",
+  "aprendizado": "string ou null",
+  "sinais_conteudo": ["tese de conteúdo 1"]
+}`;
+
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-6',
+                    max_tokens: 800,
+                    system: systemPrompt,
+                    messages: [
+                        { role: 'user', content: rawContent }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                logToFile(`❌ [Daily AI] Anthropic error: ${response.status} - ${errText}`);
+                return;
+            }
+
+            const data = await response.json();
+            const text = data?.content?.[0]?.text;
+            if (!text) return;
+
+            let cleaned = text.trim();
+            if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+            if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+            if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+            cleaned = cleaned.trim();
+
+            const parsed = JSON.parse(cleaned);
+
+            if (entryId) {
+                const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                await supabase
+                    .from('content_daily_entries')
+                    .update({
+                        ai_status: 'processed',
+                        ai_summary: parsed.aprendizado || (parsed.fatos && parsed.fatos[0]) || null,
+                        ai_signals: parsed,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', entryId);
+                logToFile(`✅ [Daily AI] Entry ${entryId} analyzed successfully.`);
+            }
+        } catch (err) {
+            logToFile(`❌ [Daily AI] Exception analyzing entry ${entryId}: ${err.message}`);
+        }
+    })();
+});
+
 
 // ==========================================
 // BREVO INTEGRATION ENDPOINTS
