@@ -2227,7 +2227,34 @@ app.post('/api/content/opportunities/generate', authenticate, async (req, res) =
     try {
         logToFile(`🧠 [Opportunities Engine] Starting connection analysis for user ${authenticatedUserId}`);
 
-        // 1. Fetch user's recent daily entries
+        // 1. Fetch open opportunities already active (nova, vista, aceita)
+        const { data: openOpps, error: oppsErr } = await userSupabase
+            .from('content_opportunities')
+            .select('id, title, description, why_now, status, connected_idea_id')
+            .eq('user_id', authenticatedUserId)
+            .in('status', ['nova', 'vista', 'aceita'])
+            .order('created_at', { ascending: false });
+
+        if (oppsErr) {
+            logToFile(`⚠️ [Opportunities Engine] Open opps fetch warning: ${oppsErr.message}`);
+        }
+
+        const validOpenOpps = openOpps || [];
+        const MAX_ACTIVE_OPPORTUNITIES = 3;
+        const availableSlots = Math.max(0, MAX_ACTIVE_OPPORTUNITIES - validOpenOpps.length);
+
+        // Backend rule: prevent accumulation of active opportunities beyond 3
+        if (availableSlots === 0) {
+            logToFile(`ℹ️ [Opportunities Engine] User already has ${validOpenOpps.length} active opportunities. Generation blocked to avoid accumulation.`);
+            return res.json({
+                success: true,
+                count: 0,
+                opportunities: [],
+                message: 'Você já possui 3 oportunidades ativas abertas. Decida sobre as atuais (crie conteúdo ou descarte) antes de gerar novas conexões.'
+            });
+        }
+
+        // 2. Fetch user's recent daily entries
         const { data: dailyEntries, error: dailyErr } = await userSupabase
             .from('content_daily_entries')
             .select('id, raw_content, occurred_at, ai_signals, ai_summary')
@@ -2239,10 +2266,10 @@ app.post('/api/content/opportunities/generate', authenticate, async (req, res) =
             logToFile(`⚠️ [Opportunities Engine] Daily entries fetch warning: ${dailyErr.message}`);
         }
 
-        // 2. Fetch user's commercial insights
+        // 3. Fetch user's commercial insights (using real schema safely)
         const { data: crmInsights, error: crmErr } = await userSupabase
             .from('insights_comerciais')
-            .select('id, texto_origem, categoria, subcategoria, resumo, content_signal, tags_tematicas, confianca')
+            .select('*')
             .eq('user_id', authenticatedUserId)
             .order('criado_em', { ascending: false })
             .limit(25);
@@ -2251,7 +2278,7 @@ app.post('/api/content/opportunities/generate', authenticate, async (req, res) =
             logToFile(`⚠️ [Opportunities Engine] CRM insights fetch warning: ${crmErr.message}`);
         }
 
-        // 3. Fetch user's existing ideas (to avoid duplicates / enable connecting to them)
+        // 4. Fetch user's existing ideas (to avoid duplicates / enable connecting to them)
         const { data: existingIdeas, error: ideasErr } = await userSupabase
             .from('content_ideas')
             .select('id, title, description, status, priority')
@@ -2263,22 +2290,9 @@ app.post('/api/content/opportunities/generate', authenticate, async (req, res) =
             logToFile(`⚠️ [Opportunities Engine] Ideas fetch warning: ${ideasErr.message}`);
         }
 
-        // 4. Fetch open opportunities already generated (to avoid duplicate opportunities)
-        const { data: openOpps, error: oppsErr } = await userSupabase
-            .from('content_opportunities')
-            .select('id, title, description, why_now, status')
-            .eq('user_id', authenticatedUserId)
-            .in('status', ['nova', 'vista', 'aceita'])
-            .limit(10);
-
-        if (oppsErr) {
-            logToFile(`⚠️ [Opportunities Engine] Open opps fetch warning: ${oppsErr.message}`);
-        }
-
         const validDaily = dailyEntries || [];
         const validCrm = crmInsights || [];
         const validIdeas = existingIdeas || [];
-        const validOpenOpps = openOpps || [];
 
         if (validDaily.length === 0 && validCrm.length === 0) {
             return res.json({
@@ -2301,26 +2315,32 @@ Sua missão é transformar acontecimentos reais e inteligência de vendas em pou
 Princípios inegociáveis:
 1. "MENOS PENSAR NO QUE PRODUZIR. MAIS PRODUZIR."
 2. "A IA SUGERE. O PHIL DECIDE."
-3. "A IA NÃO inventa experiências nem fatos." Nunca atribua ao usuário algo que ele não tenha vivido ou registrado. Se faltar certeza, formule como ângulo de hipótese.
-4. "MÁXIMO DE 3 OPORTUNIDADES PRINCIPAIS." Não gere mais de 3. Escolha apenas as conexões de maior impacto.
-5. "DEDUPLICAÇÃO E REAPROVEITAMENTO." Se um sinal ou vivência corresponder a uma ideia que já existe na lista de ideias do usuário, NÃO crie uma nova ideia do zero. Defina o campo "connected_idea_id" com o UUID da ideia correspondente e formule a oportunidade como alavanca daquela ideia. Da mesma forma, se já houver uma oportunidade aberta muito parecida, não a repita.
+3. "NUNCA INVENTAR EXPERIÊNCIAS NEM FATOS."
+   - Preservar rigidamente a distinção entre: FATO (relatado no Daily ou CRM) vs. HIPÓTESE vs. INTERPRETAÇÃO DA IA.
+   - Nunca afirme categoricamente "Seus clientes estão fazendo X" se o relato do CRM não comprovar explicitamente.
+   - Se for apenas uma tese ou ângulo a explorar, formule como hipótese ("Existe a oportunidade de explorar...", "Tese recomendada: ...").
+4. "MÁXIMO DE ${availableSlots} OPORTUNIDADE(S) DISPONÍVEL(IS)."
+   - O usuário só pode receber no máximo ${availableSlots} nova(s) oportunidade(s) agora para não exceder o limite de 3 oportunidades ativas simultâneas.
+5. "FILTRO DE RELEVÂNCIA RÍGIDO — NÃO TRANSFORMAR TUDO EM CONTEÚDO."
+   - Se o Daily contiver apenas notas corriqueiras/triviais (ex: "fui ao mercado", "almocei", "reagendei reunião") sem reflexão prática de negócios e sem cruzamento com dores reais do CRM:
+     RETORNE UM ARRAY VAZIO [].
+   - Cada oportunidade DEVE atingir nota mínima de 60/100 com base em: relevância para audiência, vivência real comprovada, conexão com dor comercial real e autoridade.
+   - Oportunidades com score abaixo de 60 NÃO devem ser incluídas.
+6. "DEDUPLICAÇÃO E REAPROVEITAMENTO."
+   - Se um sinal ou vivência corresponder a uma ideia já presente na lista "existing_ideas", NÃO invente uma nova ideia. Defina o campo "connected_idea_id" com o UUID exato da ideia correspondente.
+   - Se já houver uma oportunidade aberta muito parecida na lista "open_opportunities", NÃO gere repetições.
 
-Tipos de Conexões a Buscar:
-- Daily + CRM: Uma vivência pessoal (reunião, atendimento, fechamento, frustração) que ilustra na prática uma dor ou objeção recorrente registrada no CRM.
+Tipos de Conexões Válidas:
+- Daily + CRM: Uma vivência pessoal que ilustra na prática uma dor ou objeção recorrente registrada no CRM.
 - Daily/CRM + Ideia Existente: Uma vivência ou sinal comercial que valida, enriquece ou dá timing a uma ideia que o usuário já havia anotado.
-- Daily Isolado de Alto Impacto: Experiência pessoal rica com reflexão/aprendizado prático que merece ser compartilhada mesmo sem dado de CRM direto.
+- Daily Isolado de Alto Impacto: Experiência pessoal rica com aprendizado prático que merece ser compartilhada mesmo sem dado de CRM direto.
 
-Critérios de Relevância (Score de 0 a 100):
-- 80 a 100: Alta oportunidade (conecta dor real de mercado + experiência autêntica, forte autoridade/aquisição).
-- 60 a 79: Boa oportunidade.
-- Menos de 60: Ignore, não retorne.
-
-Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em volta, no seguinte formato:
+Retorne EXCLUSIVAMENTE um array JSON válido sem markdown em volta:
 [
   {
     "title": "Título/tese forte, provocativo e direto (até 15 palavras)",
     "description": "Explicação concisa do ângulo prático e formato recomendado",
-    "why_now": "Explicação de 1 linha de por que apareceu agora (ex: 'Daily de ontem + objeção recorrente no CRM sobre falta de tempo')",
+    "why_now": "Explicação de 1 linha de por que apareceu agora (ex: 'Daily de ontem + dor recorrente no CRM sobre falta de tempo')",
     "opportunity_type": "experiencia" | "dor_comercial" | "insight" | "opiniao" | "educacional" | "tendencia" | "conexao",
     "priority": 1 ou 2,
     "score": número entre 60 e 100,
@@ -2329,7 +2349,7 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em vol
       {
         "source_type": "daily" | "crm_signal" | "content_idea",
         "source_id": "UUID_DO_REGISTRO ou null",
-        "source_context": "Breve trecho ou resumo da fonte que fundamentou esta oportunidade"
+        "source_context": "Breve trecho ou resumo da fonte real que fundamentou esta oportunidade"
       }
     ]
   }
@@ -2347,9 +2367,10 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em vol
                 id: c.id,
                 categoria: c.categoria,
                 subcategoria: c.subcategoria,
-                content_signal: c.content_signal,
                 resumo: c.resumo,
-                texto_origem: c.texto_origem
+                texto_origem: c.texto_origem,
+                tags_tematicas: Array.isArray(c.tags_tematicas) ? c.tags_tematicas : [],
+                content_signal: c.content_signal || null
             })),
             existing_ideas: validIdeas.map(i => ({
                 id: i.id,
@@ -2360,7 +2381,8 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em vol
             open_opportunities: validOpenOpps.map(o => ({
                 id: o.id,
                 title: o.title,
-                why_now: o.why_now
+                why_now: o.why_now,
+                connected_idea_id: o.connected_idea_id
             }))
         };
 
@@ -2412,13 +2434,64 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em vol
             generatedItems = [generatedItems];
         }
 
-        // Limit strictly to 3
-        const topItems = generatedItems.slice(0, 3);
+        // Programmatic Deduplication & Quality Filtering before persistence
+        const normalize = (str) => String(str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, "").trim();
+
+        const openTitles = new Set(validOpenOpps.map(o => normalize(o.title)));
+        const openIdeaConnections = new Set(validOpenOpps.map(o => o.connected_idea_id).filter(Boolean));
+        const validIdeaMap = new Map(validIdeas.map(i => [i.id, i]));
+        const validIdeaTitles = validIdeas.map(i => ({ id: i.id, normTitle: normalize(i.title) }));
+
+        const filteredCandidates = [];
+
+        for (const item of generatedItems) {
+            if (!item || !item.title) continue;
+
+            const score = typeof item.score === 'number' ? Math.max(0, Math.min(100, Math.round(item.score))) : 75;
+            // 1. Strict relevance filter: discard if score < 60
+            if (score < 60) {
+                logToFile(`ℹ️ [Opportunities Engine] Discarding item "${item.title}" due to low relevance score: ${score}`);
+                continue;
+            }
+
+            const itemNormTitle = normalize(item.title);
+
+            // 2. Avoid duplicating active open opportunities
+            if (openTitles.has(itemNormTitle)) {
+                logToFile(`ℹ️ [Opportunities Engine] Skipping duplicate open opportunity: "${item.title}"`);
+                continue;
+            }
+
+            // 3. Deduplication against ideas
+            let matchedIdeaId = null;
+            if (item.connected_idea_id && validIdeaMap.has(item.connected_idea_id)) {
+                matchedIdeaId = item.connected_idea_id;
+            } else {
+                // Programmatic semantic fallback: check if idea title is contained or very close
+                const foundIdea = validIdeaTitles.find(it => it.normTitle === itemNormTitle || itemNormTitle.includes(it.normTitle) || it.normTitle.includes(itemNormTitle));
+                if (foundIdea) {
+                    matchedIdeaId = foundIdea.id;
+                }
+            }
+
+            // If an active opportunity is already connected to this same idea, skip to avoid duplicate opportunity
+            if (matchedIdeaId && openIdeaConnections.has(matchedIdeaId)) {
+                logToFile(`ℹ️ [Opportunities Engine] Skipping opportunity as idea ${matchedIdeaId} already has an active opportunity`);
+                continue;
+            }
+
+            filteredCandidates.push({
+                ...item,
+                score,
+                connected_idea_id: matchedIdeaId
+            });
+        }
+
+        // Limit strictly to availableSlots (never exceeds 3 total active)
+        const toPersist = filteredCandidates.slice(0, availableSlots);
         const persistedOpps = [];
 
-        for (const item of topItems) {
-            if (!item.title) continue;
-
+        for (const item of toPersist) {
             const oppRow = {
                 user_id: authenticatedUserId,
                 title: String(item.title).trim(),
@@ -2429,7 +2502,7 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em vol
                     : 'conexao',
                 status: 'nova',
                 priority: item.priority === 1 ? 1 : 2,
-                score: typeof item.score === 'number' ? Math.max(0, Math.min(100, Math.round(item.score))) : 75,
+                score: item.score,
                 connected_idea_id: item.connected_idea_id || null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
@@ -2484,7 +2557,8 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em vol
         return res.json({
             success: true,
             count: persistedOpps.length,
-            opportunities: persistedOpps
+            opportunities: persistedOpps,
+            message: persistedOpps.length === 0 ? 'Nenhuma oportunidade com relevância mínima encontrada nas anotações atuais.' : undefined
         });
 
     } catch (e) {

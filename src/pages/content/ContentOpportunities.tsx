@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   RefreshCw, 
@@ -10,10 +10,12 @@ import {
   X
 } from 'lucide-react';
 import { useContentOpportunities } from '@/hooks/content/useContentOpportunities';
-import { ContentOpportunity } from '@/services/contentService';
+import { ContentOpportunity, ContentIdea } from '@/services/contentService';
+import { fetchContentIdeas } from '@/services/contentIdeasService';
 import OpportunityCard from '@/components/content/opportunities/OpportunityCard';
 import OpportunityConnectionDialog from '@/components/content/opportunities/OpportunityConnectionDialog';
 import OpportunityCreateIdeaDialog from '@/components/content/opportunities/OpportunityCreateIdeaDialog';
+import IdeaDetailDialog from '@/components/content/ideas/IdeaDetailDialog';
 import { useNavigate } from 'react-router-dom';
 
 export default function ContentOpportunities() {
@@ -35,6 +37,23 @@ export default function ContentOpportunities() {
   const [activeTab, setActiveTab] = useState<'principais' | 'historico'>('principais');
   const [selectedForConnection, setSelectedForConnection] = useState<ContentOpportunity | null>(null);
   const [selectedForCreate, setSelectedForCreate] = useState<ContentOpportunity | null>(null);
+  const [selectedIdeaForDetail, setSelectedIdeaForDetail] = useState<ContentIdea | null>(null);
+  const [ideasMap, setIdeasMap] = useState<Record<string, ContentIdea>>({});
+
+  const loadIdeas = async () => {
+    try {
+      const ideas = await fetchContentIdeas();
+      const map: Record<string, ContentIdea> = {};
+      ideas.forEach(i => { map[i.id] = i; });
+      setIdeasMap(map);
+    } catch {
+      // Non-blocking
+    }
+  };
+
+  useEffect(() => {
+    loadIdeas();
+  }, [topOpportunities]);
 
   const handleCreateContent = (opp: ContentOpportunity) => {
     setSelectedForCreate(opp);
@@ -42,6 +61,10 @@ export default function ContentOpportunities() {
 
   const handleViewConnection = (opp: ContentOpportunity) => {
     setSelectedForConnection(opp);
+  };
+
+  const handleOpenIdea = (idea: ContentIdea) => {
+    setSelectedIdeaForDetail(idea);
   };
 
   return (
@@ -92,7 +115,10 @@ export default function ContentOpportunities() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={refreshOpportunities}
+            onClick={async () => {
+              await refreshOpportunities();
+              await loadIdeas();
+            }}
             disabled={isLoading || isGenerating}
             title="Atualizar lista"
             className="h-9 px-3 rounded-xl border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 inline-flex items-center justify-center"
@@ -102,7 +128,10 @@ export default function ContentOpportunities() {
 
           <button
             type="button"
-            onClick={generateOpportunities}
+            onClick={async () => {
+              await generateOpportunities();
+              await loadIdeas();
+            }}
             disabled={isGenerating || isLoading}
             className="h-9 px-4 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs shadow-xs transition-all active:scale-95 disabled:opacity-50 inline-flex items-center gap-2"
           >
@@ -202,7 +231,10 @@ export default function ContentOpportunities() {
               <div className="flex flex-wrap justify-center gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={generateOpportunities}
+                  onClick={async () => {
+                    await generateOpportunities();
+                    await loadIdeas();
+                  }}
                   disabled={isGenerating}
                   className="px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs transition-all active:scale-95 disabled:opacity-50"
                 >
@@ -238,9 +270,11 @@ export default function ContentOpportunities() {
                     key={opp.id}
                     opportunity={opp}
                     index={idx}
+                    connectedIdea={opp.connectedIdeaId ? ideasMap[opp.connectedIdeaId] : undefined}
                     onActionCreate={handleCreateContent}
                     onActionViewConnection={handleViewConnection}
                     onActionDismiss={dismissOpportunity}
+                    onActionOpenIdea={handleOpenIdea}
                   />
                 ))}
               </div>
@@ -263,9 +297,11 @@ export default function ContentOpportunities() {
                   key={opp.id}
                   opportunity={opp}
                   index={idx}
+                  connectedIdea={opp.connectedIdeaId ? ideasMap[opp.connectedIdeaId] : undefined}
                   onActionCreate={handleCreateContent}
                   onActionViewConnection={handleViewConnection}
                   onActionDismiss={dismissOpportunity}
+                  onActionOpenIdea={handleOpenIdea}
                 />
               ))}
             </div>
@@ -286,6 +322,17 @@ export default function ContentOpportunities() {
         isOpen={!!selectedForCreate}
         onClose={() => setSelectedForCreate(null)}
         onConfirm={convertToIdea}
+      />
+
+      {/* Idea Detail Dialog (when clicking "Usar ideia existente") */}
+      <IdeaDetailDialog
+        idea={selectedIdeaForDetail}
+        isOpen={!!selectedIdeaForDetail}
+        onClose={() => setSelectedIdeaForDetail(null)}
+        onEdit={() => {
+          setSelectedIdeaForDetail(null);
+          navigate('/content/ideas');
+        }}
       />
     </div>
   );

@@ -273,9 +273,12 @@ export async function dismissOpportunity(id: string): Promise<boolean> {
 }
 
 /**
- * Converts an opportunity into a content idea:
- * 1. Creates a content_idea with source_type = 'opportunity' and source_id = opportunity.id
- * 2. Marks the opportunity as 'convertida' (never deletes it)
+ * Converts an opportunity into a content idea (IDEMPOTENT):
+ * 1. Checks if a content_idea already exists for this opportunity (prevents duplicate creations on double clicks)
+ * 2. If it already exists, ensures status is 'convertida' and returns existing idea id
+ * 3. Otherwise, creates a content_idea with source_type = 'opportunity', source_id = opportunity.id,
+ *    and maps related CRM insight IDs for full traceability
+ * 4. Marks the opportunity as 'convertida' (never deletes it or its sources)
  */
 export async function convertOpportunityToIdea(
   opportunityId: string, 
@@ -285,10 +288,44 @@ export async function convertOpportunityToIdea(
     format?: 'reel' | 'carrossel' | 'post' | 'story' | 'artigo' | null;
     priority?: number;
     tags?: string[];
+    insightIds?: string[];
   }
 ): Promise<{ success: boolean; ideaId?: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+
   try {
-    // 1. Create content idea
+    // 1. Idempotency Check: check if idea already created for this opportunity
+    if (user) {
+      const { data: existingIdea } = await supabase
+        .from('content_ideas')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('source_type', 'opportunity')
+        .eq('source_id', opportunityId)
+        .maybeSingle();
+
+      if (existingIdea) {
+        await updateOpportunityStatus(opportunityId, 'convertida');
+        return { success: true, ideaId: existingIdea.id };
+      }
+    }
+
+    // 2. Query sources of this opportunity to forward CRM insight IDs for full traceability
+    let linkedInsightIds: string[] = ideaData.insightIds || [];
+    if (linkedInsightIds.length === 0 && user) {
+      const { data: oppSources } = await supabase
+        .from('content_opportunity_sources')
+        .select('source_type, source_id')
+        .eq('opportunity_id', opportunityId);
+
+      if (oppSources) {
+        linkedInsightIds = oppSources
+          .filter(s => s.source_type === 'crm_signal' && s.source_id)
+          .map(s => s.source_id as string);
+      }
+    }
+
+    // 3. Create content idea
     const newIdea = await createContentIdea({
       title: ideaData.title,
       description: ideaData.description,
@@ -297,9 +334,10 @@ export async function convertOpportunityToIdea(
       sourceType: 'opportunity',
       sourceId: opportunityId,
       tags: ideaData.tags || [],
+      insightIds: linkedInsightIds,
     });
 
-    // 2. Mark opportunity as converted
+    // 4. Mark opportunity as converted
     await updateOpportunityStatus(opportunityId, 'convertida');
 
     return { success: true, ideaId: newIdea.id };

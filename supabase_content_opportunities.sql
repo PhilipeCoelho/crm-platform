@@ -43,6 +43,11 @@ ALTER TABLE public.content_ideas DROP CONSTRAINT IF EXISTS content_ideas_source_
 ALTER TABLE public.content_ideas ADD CONSTRAINT content_ideas_source_type_check 
     CHECK (source_type IN ('manual', 'daily', 'crm_signal', 'reference', 'ai_suggestion', 'opportunity'));
 
+-- Garantir idempotência na conversão oportunidade -> ideia
+CREATE UNIQUE INDEX IF NOT EXISTS uq_content_ideas_opportunity 
+    ON public.content_ideas (source_id) 
+    WHERE source_type = 'opportunity';
+
 -- 5. Row Level Security (RLS)
 ALTER TABLE public.content_opportunities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.content_opportunity_sources ENABLE ROW LEVEL SECURITY;

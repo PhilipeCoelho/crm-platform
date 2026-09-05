@@ -9,23 +9,27 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
-import { ContentOpportunity } from '@/services/contentService';
+import { ContentOpportunity, ContentIdea } from '@/services/contentService';
 import { useNavigate } from 'react-router-dom';
 
 interface OpportunityCardProps {
   opportunity: ContentOpportunity;
   index: number;
+  connectedIdea?: ContentIdea | null;
   onActionCreate: (opp: ContentOpportunity) => void;
   onActionViewConnection: (opp: ContentOpportunity) => void;
   onActionDismiss: (id: string) => void;
+  onActionOpenIdea?: (idea: ContentIdea) => void;
 }
 
 export default function OpportunityCard({
   opportunity,
   index,
+  connectedIdea,
   onActionCreate,
   onActionViewConnection,
   onActionDismiss,
+  onActionOpenIdea,
 }: OpportunityCardProps) {
   const navigate = useNavigate();
   const [isDismissing, setIsDismissing] = useState(false);
@@ -133,6 +137,21 @@ export default function OpportunityCard({
         </p>
       )}
 
+      {/* Connected Idea Callout */}
+      {opportunity.connectedIdeaId && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl mb-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+            <Lightbulb size={14} className="text-amber-500" />
+            <span>Já existe uma ideia relacionada no seu Banco de Ideias</span>
+          </div>
+          {connectedIdea && (
+            <p className="text-xs font-semibold text-foreground italic line-clamp-2">
+              &ldquo;{connectedIdea.title}&rdquo;
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Por que apareceu Box */}
       {opportunity.whyNow && (
         <div className="p-3 bg-muted/40 rounded-xl border border-border/50 mb-4 flex items-start gap-2 text-xs">
@@ -176,10 +195,17 @@ export default function OpportunityCard({
           {opportunity.connectedIdeaId ? (
             <button
               type="button"
-              onClick={() => navigate('/content/ideas')}
-              className="text-xs font-semibold inline-flex items-center gap-1.5 h-8 px-3 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/50 transition-colors shadow-xs"
+              onClick={() => {
+                if (connectedIdea && onActionOpenIdea) {
+                  onActionOpenIdea(connectedIdea);
+                } else {
+                  navigate(`/content/ideas?highlight=${opportunity.connectedIdeaId}`);
+                }
+              }}
+              className="text-xs font-semibold inline-flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-xs"
+              title="Abrir detalhes da ideia existente diretamente"
             >
-              <Lightbulb size={13} className="text-amber-500" />
+              <Lightbulb size={13} />
               <span>Usar ideia existente</span>
               <ArrowRight size={13} />
             </button>
