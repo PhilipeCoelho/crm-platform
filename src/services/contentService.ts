@@ -270,6 +270,46 @@ export interface HistoricalComparison {
   engagementVsMedianPercent: number | null;
 }
 
+// --- Etapa 8: Intelligence Orchestration & Next Best Action ---
+
+export type ContentActionType = 
+  | 'analisar_performance'
+  | 'registrar_metricas'
+  | 'analisar_referencia'
+  | 'usar_oportunidade'
+  | 'continuar_producao'
+  | 'criar_ideia'
+  | 'aplicar_aprendizado'
+  | 'revisar_aprendizado';
+
+export type ContentActionStatus = 'suggested' | 'accepted' | 'completed' | 'dismissed';
+
+export type ContentActionSourceType = 
+  | 'content_idea'
+  | 'content_opportunity'
+  | 'content_reference'
+  | 'content_learning'
+  | 'daily'
+  | 'crm_signal';
+
+export interface ContentAction {
+  id: string;
+  userId: string;
+  actionType: ContentActionType;
+  title: string;
+  description?: string | null;
+  priority: number;
+  score?: number | null;
+  status: ContentActionStatus;
+  sourceType: ContentActionSourceType;
+  sourceId?: string | null;
+  reason: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string | null;
+  isLocalOnly?: boolean;
+}
+
 // ============================================
 // Service stubs (no-op until tables are created)
 // ============================================

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Brain, 
   Sparkles, 
@@ -12,10 +13,13 @@ import {
 } from 'lucide-react';
 import { useContentPerformance } from '@/hooks/content/useContentPerformance';
 import { useContentLearnings } from '@/hooks/content/useContentLearnings';
-import { ContentIdea } from '@/services/contentService';
+import type { ContentIdea, ContentAction } from '@/services/contentService';
 import { PerformanceMetricCard } from '@/components/content/performance/PerformanceMetricCard';
 import { PerformanceAnalysisModal } from '@/components/content/performance/PerformanceAnalysisModal';
 import { LearningCard } from '@/components/content/performance/LearningCard';
+import { NextBestActionSection } from '@/components/content/orchestration/NextBestActionSection';
+import { MetricsModal } from '@/components/content/production/MetricsModal';
+import { recordMetrics } from '@/services/contentProductionService';
 import { calculateDerivedMetrics } from '@/services/contentMetricsCalculation';
 
 export default function ContentIntelligence() {
@@ -37,7 +41,9 @@ export default function ContentIntelligence() {
     isLoading: isLearningsLoading,
   } = useContentLearnings();
 
+  const navigate = useNavigate();
   const [selectedIdeaForModal, setSelectedIdeaForModal] = useState<ContentIdea | null>(null);
+  const [selectedIdeaForMetrics, setSelectedIdeaForMetrics] = useState<ContentIdea | null>(null);
   const [learningTypeFilter, setLearningTypeFilter] = useState<string>('all');
   const [processingLearningId, setProcessingLearningId] = useState<string | null>(null);
 
@@ -68,6 +74,44 @@ export default function ContentIntelligence() {
       }
     } catch (err) {
       // Error handled inside hook
+    }
+  };
+
+  const handleExecuteAction = async (action: ContentAction) => {
+    switch (action.actionType) {
+      case 'analisar_performance': {
+        const idea = publishedIdeas.find(i => i.id === action.sourceId);
+        if (idea) {
+          setSelectedIdeaForModal(idea);
+        } else {
+          navigate('/content/ideas');
+        }
+        break;
+      }
+      case 'registrar_metricas': {
+        const idea = publishedIdeas.find(i => i.id === action.sourceId);
+        if (idea) {
+          setSelectedIdeaForMetrics(idea);
+        } else {
+          navigate('/content/production');
+        }
+        break;
+      }
+      case 'usar_oportunidade':
+        navigate('/content/opportunities');
+        break;
+      case 'analisar_referencia':
+        navigate('/content/references');
+        break;
+      case 'continuar_producao':
+        navigate('/content/production');
+        break;
+      case 'aplicar_aprendizado':
+        navigate('/content/ideas');
+        break;
+      default:
+        navigate('/content/ideas');
+        break;
     }
   };
 
@@ -107,6 +151,9 @@ export default function ContentIntelligence() {
           </div>
         </div>
       </div>
+
+      {/* 2. Próximo Movimento (Next Best Action) */}
+      <NextBestActionSection onExecuteAction={handleExecuteAction} />
 
       {isLoading ? (
         <div className="space-y-4">
@@ -327,6 +374,19 @@ export default function ContentIntelligence() {
             await analyzeContent(id);
           }}
           isAnalyzing={isAnalyzingId === selectedIdeaForModal.id}
+        />
+      )}
+
+      {/* Modal para Registro de Métricas */}
+      {selectedIdeaForMetrics && (
+        <MetricsModal
+          idea={selectedIdeaForMetrics}
+          isOpen={Boolean(selectedIdeaForMetrics)}
+          onClose={() => setSelectedIdeaForMetrics(null)}
+          onRecordMetrics={async (ideaId, metricsData) => {
+            await recordMetrics(ideaId, metricsData);
+            setSelectedIdeaForMetrics(null);
+          }}
         />
       )}
     </div>

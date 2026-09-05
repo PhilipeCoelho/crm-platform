@@ -3285,6 +3285,347 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no fo
 });
 
 // ==========================================
+// CONTENT INTELLIGENCE — ACTIONS ORCHESTRATION (NEXT BEST ACTION)
+// ==========================================
+app.post('/api/content/actions/generate', authenticate, async (req, res) => {
+    const authenticatedUserId = req.user?.sub;
+
+    if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
+    }
+
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+    });
+
+    try {
+        logToFile(`🎯 [Orchestration AI] Generating Next Best Actions for user ${authenticatedUserId}`);
+
+        // 1. Parallel fetch of all intelligence context
+        const [
+            ideasRes,
+            oppsRes,
+            refsRes,
+            learningsRes,
+            analysesRes,
+            insightsRes,
+            existingActionsRes
+        ] = await Promise.all([
+            userSupabase.from('content_ideas').select('*').eq('user_id', authenticatedUserId),
+            userSupabase.from('content_opportunities').select('*').eq('user_id', authenticatedUserId),
+            userSupabase.from('content_references').select('*').eq('user_id', authenticatedUserId),
+            userSupabase.from('content_learnings').select('*').eq('user_id', authenticatedUserId).eq('status', 'confirmed'),
+            userSupabase.from('content_performance_analyses').select('*').eq('user_id', authenticatedUserId).eq('status', 'analyzed'),
+            userSupabase.from('insights_comerciais').select('*').limit(20),
+            userSupabase.from('content_actions').select('*').eq('user_id', authenticatedUserId).in('status', ['suggested', 'accepted'])
+        ]);
+
+        const ideas = ideasRes.data || [];
+        const opps = oppsRes.data || [];
+        const refs = refsRes.data || [];
+        const learnings = learningsRes.data || [];
+        const analyses = analysesRes.data || [];
+        const commercialInsights = insightsRes.data || [];
+        const existingActions = existingActionsRes.data || [];
+
+        const analyzedIdeaIds = new Set(analyses.map(a => a.content_idea_id));
+        const now = Date.now();
+
+        // 2. Deterministic Candidates Evaluation
+        const candidates = [];
+
+        // Rule A: Conteúdo publicado + métricas registradas + ainda não analisado
+        for (const idea of ideas) {
+            const isPublished = idea.execution_stage === 'publicado' || Boolean(idea.published_at);
+            const m = idea.metrics || {};
+            const hasMetrics = Object.keys(m).length > 0 && (
+                (m.views && Number(m.views) > 0) ||
+                (m.reach && Number(m.reach) > 0) ||
+                (m.likes && Number(m.likes) > 0) ||
+                (m.leads && Number(m.leads) > 0)
+            );
+
+            if (isPublished && hasMetrics && !analyzedIdeaIds.has(idea.id)) {
+                candidates.push({
+                    actionType: 'analisar_performance',
+                    title: `Analisar desempenho: "${idea.title}"`,
+                    description: 'Conteúdo com métricas registradas pronto para diagnóstico.',
+                    priority: 1,
+                    score: 95,
+                    sourceType: 'content_idea',
+                    sourceId: idea.id,
+                    reason: 'Este conteúdo já possui métricas registradas e ainda não foi analisado. A análise pode gerar um aprendizado antes da próxima produção.',
+                });
+            }
+        }
+
+        // Rule B: Conteúdo publicado + sem métricas + mais de 24h
+        for (const idea of ideas) {
+            const isPublished = idea.execution_stage === 'publicado' || Boolean(idea.published_at);
+            const m = idea.metrics || {};
+            const hasMetrics = Object.keys(m).length > 0 && (
+                (m.views && Number(m.views) > 0) ||
+                (m.reach && Number(m.reach) > 0) ||
+                (m.likes && Number(m.likes) > 0)
+            );
+
+            if (isPublished && !hasMetrics && idea.published_at) {
+                const publishedTime = new Date(idea.published_at).getTime();
+                const hoursSincePublish = (now - publishedTime) / (1000 * 60 * 60);
+
+                if (hoursSincePublish >= 24) {
+                    candidates.push({
+                        actionType: 'registrar_metricas',
+                        title: `Registrar métricas: "${idea.title}"`,
+                        description: `Publicado há mais de ${Math.floor(hoursSincePublish)}h sem métricas registradas.`,
+                        priority: 1,
+                        score: 90,
+                        sourceType: 'content_idea',
+                        sourceId: idea.id,
+                        reason: 'Conteúdo publicado há mais de 24h sem métricas registradas. Registrar os dados permite diagnosticar o que funcionou.',
+                    });
+                }
+            }
+        }
+
+        // Rule C: Oportunidade aceita ainda não convertida em ideia
+        for (const opp of opps) {
+            if (opp.status === 'aceita' && !opp.connected_idea_id) {
+                candidates.push({
+                    actionType: 'usar_oportunidade',
+                    title: `Usar oportunidade: "${opp.title}"`,
+                    description: opp.why_now || 'Oportunidade aceita pronta para produção.',
+                    priority: 2,
+                    score: 85,
+                    sourceType: 'content_opportunity',
+                    sourceId: opp.id,
+                    reason: 'Existe uma oportunidade aceita relacionada a um momento ou objeção comercial e ela ainda não foi transformada em roteiro ou ideia.',
+                });
+            }
+        }
+
+        // Rule D: Aprendizado confirmado pronto para aplicação prática
+        for (const learning of learnings) {
+            candidates.push({
+                actionType: 'aplicar_aprendizado',
+                title: `Aplicar aprendizado: "${learning.learning}"`,
+                description: learning.application || 'Princípio confirmado baseado no seu histórico.',
+                priority: 2,
+                score: 80,
+                sourceType: 'content_learning',
+                sourceId: learning.id,
+                reason: `Você confirmou que "${learning.learning}". Vale aplicar este princípio prático na criação do próximo conteúdo.`,
+            });
+        }
+
+        // Rule E: Referência salva há mais de 3 dias sem análise
+        for (const ref of refs) {
+            if (ref.status === 'salva') {
+                const createdTime = new Date(ref.created_at).getTime();
+                const daysSinceCreated = (now - createdTime) / (1000 * 60 * 60 * 24);
+
+                candidates.push({
+                    actionType: 'analisar_referencia',
+                    title: `Analisar referência: "${ref.title || ref.url}"`,
+                    description: ref.notes || 'Referência externa aguardando diagnóstico.',
+                    priority: 2,
+                    score: daysSinceCreated >= 3 ? 75 : 70,
+                    sourceType: 'content_reference',
+                    sourceId: ref.id,
+                    reason: 'Referência salva aguardando análise de princípios estruturais para alimentar futuros conteúdos sem cópia superficial.',
+                });
+            }
+        }
+
+        // Rule F: Ideia em produção parada há mais de 5 dias
+        for (const idea of ideas) {
+            const inProduction = idea.execution_stage === 'producao' || idea.execution_stage === 'gravado';
+            if (inProduction && idea.updated_at) {
+                const updatedTime = new Date(idea.updated_at).getTime();
+                const daysSinceUpdate = (now - updatedTime) / (1000 * 60 * 60 * 24);
+
+                if (daysSinceUpdate >= 5) {
+                    candidates.push({
+                        actionType: 'continuar_producao',
+                        title: `Continuar produção: "${idea.title}"`,
+                        description: `Parado no estágio ${idea.execution_stage} há ${Math.floor(daysSinceUpdate)} dias.`,
+                        priority: 3,
+                        score: 65,
+                        sourceType: 'content_idea',
+                        sourceId: idea.id,
+                        reason: 'Conteúdo em produção parado há mais de 5 dias. Vale concluir o roteiro ou avançar de etapa.',
+                    });
+                }
+            }
+        }
+
+        // Ordenação determinística e corte em no máximo 3 ações
+        candidates.sort((a, b) => b.score - a.score || a.priority - b.priority);
+        const topCandidates = candidates.slice(0, 3);
+
+        // 3. Optional Claude AI enrichment for refined reason
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (apiKey && topCandidates.length > 0) {
+            try {
+                const systemPrompt = `Você é o Orquestrador Estratégico de Conteúdo de Phil no Vamus Pipeline.
+Phil é especialista em vendas consultivas B2B, CRM e inteligência comercial para a área da saúde.
+
+Sua missão é refinar a justificativa ("reason") de até 3 ações prioritárias já selecionadas deterministicamente.
+
+Princípios inegociáveis:
+1. "A IA SUGERE. O PHIL DECIDE."
+2. "MENOS PENSAR NO QUE PRODUZIR. MAIS PRODUZIR."
+3. NÃO altere o tipo nem o objeto das ações. Apenas responda com clareza a "POR QUE AGORA?".
+4. Conecte de forma prática com aprendizados confirmados ou dores comerciais quando fizer sentido.
+5. Seja direto, conciso (máximo 2 frases por ação) e persuasivo.
+
+Retorne EXCLUSIVAMENTE um array JSON de objetos no formato:
+[
+  {
+    "sourceId": "uuid do objeto",
+    "refinedReason": "Justificativa direta e estratégica de por que fazer isso agora"
+  }
+]`;
+
+                const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-6',
+                        max_tokens: 800,
+                        system: systemPrompt,
+                        messages: [
+                            { role: 'user', content: `Refine as justificativas para estas ações:\n${JSON.stringify(topCandidates, null, 2)}` }
+                        ]
+                    })
+                });
+
+                if (aiResponse.ok) {
+                    const aiData = await aiResponse.json();
+                    let text = aiData?.content?.[0]?.text?.trim() || '';
+                    if (text.startsWith('```json')) text = text.substring(7);
+                    if (text.startsWith('```')) text = text.substring(3);
+                    if (text.endsWith('```')) text = text.substring(0, text.length - 3);
+                    text = text.trim();
+
+                    const refinedList = JSON.parse(text);
+                    if (Array.isArray(refinedList)) {
+                        for (const ref of refinedList) {
+                            const match = topCandidates.find(c => c.sourceId === ref.sourceId);
+                            if (match && ref.refinedReason) {
+                                match.reason = ref.refinedReason;
+                            }
+                        }
+                    }
+                }
+            } catch (aiErr) {
+                logToFile(`ℹ️ [Orchestration AI] AI enrichment skipped: ${aiErr.message}`);
+            }
+        }
+
+        // 4. Idempotent storage in content_actions table
+        const isoNow = new Date().toISOString();
+        const finalActions = [];
+
+        for (const candidate of topCandidates) {
+            // Check if existing action for this source and action type already exists
+            const existing = existingActions.find(a => 
+                a.action_type === candidate.actionType && 
+                a.source_id === candidate.sourceId
+            );
+
+            if (existing) {
+                const { data: updated } = await userSupabase
+                    .from('content_actions')
+                    .update({
+                        title: candidate.title,
+                        description: candidate.description,
+                        priority: candidate.priority,
+                        score: candidate.score,
+                        reason: candidate.reason,
+                        updated_at: isoNow,
+                    })
+                    .eq('id', existing.id)
+                    .select()
+                    .single();
+
+                if (updated) {
+                    finalActions.push({
+                        id: updated.id,
+                        userId: updated.user_id,
+                        actionType: updated.action_type,
+                        title: updated.title,
+                        description: updated.description,
+                        priority: updated.priority,
+                        score: updated.score ? Number(updated.score) : null,
+                        status: updated.status,
+                        sourceType: updated.source_type,
+                        sourceId: updated.source_id,
+                        reason: updated.reason,
+                        createdAt: updated.created_at,
+                        updatedAt: updated.updated_at,
+                        completedAt: updated.completed_at,
+                    });
+                }
+            } else {
+                const { data: inserted } = await userSupabase
+                    .from('content_actions')
+                    .insert({
+                        user_id: authenticatedUserId,
+                        action_type: candidate.actionType,
+                        title: candidate.title,
+                        description: candidate.description,
+                        priority: candidate.priority,
+                        score: candidate.score,
+                        status: 'suggested',
+                        source_type: candidate.sourceType,
+                        source_id: candidate.sourceId,
+                        reason: candidate.reason,
+                        created_at: isoNow,
+                        updated_at: isoNow,
+                    })
+                    .select()
+                    .single();
+
+                if (inserted) {
+                    finalActions.push({
+                        id: inserted.id,
+                        userId: inserted.user_id,
+                        actionType: inserted.action_type,
+                        title: inserted.title,
+                        description: inserted.description,
+                        priority: inserted.priority,
+                        score: inserted.score ? Number(inserted.score) : null,
+                        status: inserted.status,
+                        sourceType: inserted.source_type,
+                        sourceId: inserted.source_id,
+                        reason: inserted.reason,
+                        createdAt: inserted.created_at,
+                        updatedAt: inserted.updated_at,
+                        completedAt: inserted.completed_at,
+                    });
+                }
+            }
+        }
+
+        logToFile(`✅ [Orchestration AI] Successfully returned ${finalActions.length} Next Best Actions`);
+
+        return res.json({
+            success: true,
+            actions: finalActions,
+        });
+
+    } catch (e) {
+        logToFile(`❌ [Orchestration AI] Critical error: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// ==========================================
 // BREVO INTEGRATION ENDPOINTS
 // ==========================================
 
