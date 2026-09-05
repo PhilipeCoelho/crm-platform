@@ -13,9 +13,11 @@ import {
   Star, 
   Edit3, 
   Clock,
-  ArrowRight
+  ArrowRight,
+  Flame
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { sendIdeaToProduction } from '@/services/contentProductionService';
 
 interface IdeaDetailDialogProps {
   idea: ContentIdea | null;
@@ -30,6 +32,8 @@ export default function IdeaDetailDialog({
   onClose,
   onEdit,
 }: IdeaDetailDialogProps) {
+  const navigate = useNavigate();
+
   if (!idea) return null;
 
   const formatDate = (isoString?: string) => {
@@ -167,7 +171,7 @@ export default function IdeaDetailDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex gap-2 sm:justify-end border-t border-border pt-3">
+        <DialogFooter className="flex flex-wrap gap-2 sm:justify-end border-t border-border pt-3">
           <button
             type="button"
             onClick={onClose}
@@ -181,10 +185,24 @@ export default function IdeaDetailDialog({
               onClose();
               onEdit(idea);
             }}
-            className="px-3.5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-all flex items-center gap-1.5 shadow-sm"
+            className="px-3.5 py-2 rounded-xl border border-border text-xs font-medium hover:bg-muted/60 transition-all flex items-center gap-1.5"
           >
             <Edit3 size={13} />
             <span>Editar Ideia</span>
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              if (!idea.executionStage) {
+                await sendIdeaToProduction(idea.id);
+              }
+              onClose();
+              navigate('/content/production');
+            }}
+            className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+          >
+            <Flame size={13} />
+            <span>{idea.executionStage ? 'Ver na Produção' : 'Mover para Produção'}</span>
           </button>
         </DialogFooter>
       </DialogContent>

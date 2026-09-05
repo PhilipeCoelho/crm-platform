@@ -2567,6 +2567,174 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem markdown em volta:
     }
 });
 
+// ==========================================
+// CONTENT INTELLIGENCE — PRODUCTION AI STRUCTURING
+// ==========================================
+app.post('/api/content/production/structure', authenticate, async (req, res) => {
+    const authenticatedUserId = req.user?.sub;
+
+    if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
+    }
+
+    const { ideaId, title: bodyTitle, description: bodyDesc, format: bodyFormat, currentWorkspace } = req.body || {};
+
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+    });
+
+    try {
+        logToFile(`🎬 [Production AI] Structuring content for user ${authenticatedUserId}`);
+
+        let idea = null;
+        let relatedDaily = null;
+        let relatedSignals = [];
+        let relatedOpportunity = null;
+
+        if (ideaId) {
+            const { data: fetchedIdea } = await userSupabase
+                .from('content_ideas')
+                .select('*')
+                .eq('id', ideaId)
+                .eq('user_id', authenticatedUserId)
+                .maybeSingle();
+
+            if (fetchedIdea) {
+                idea = fetchedIdea;
+
+                // Check source context
+                if (idea.source_type === 'daily' && idea.source_id) {
+                    const { data: d } = await userSupabase
+                        .from('content_daily_entries')
+                        .select('raw_content, ai_summary')
+                        .eq('id', idea.source_id)
+                        .maybeSingle();
+                    relatedDaily = d;
+                } else if (idea.source_type === 'opportunity' && idea.source_id) {
+                    const { data: opp } = await userSupabase
+                        .from('content_opportunities')
+                        .select('title, description, why_now')
+                        .eq('id', idea.source_id)
+                        .maybeSingle();
+                    relatedOpportunity = opp;
+                }
+
+                if (idea.insight_ids && Array.isArray(idea.insight_ids) && idea.insight_ids.length > 0) {
+                    const { data: sigs } = await userSupabase
+                        .from('insights_comerciais')
+                        .select('*')
+                        .in('id', idea.insight_ids);
+                    relatedSignals = sigs || [];
+                }
+            }
+        }
+
+        const title = bodyTitle || idea?.title || 'Conteúdo Estratégico';
+        const description = bodyDesc || idea?.description || '';
+        const format = bodyFormat || idea?.format || 'reel';
+
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            logToFile('ℹ️ [Production AI] ANTHROPIC_API_KEY missing');
+            return res.status(503).json({ error: 'ANTHROPIC_API_KEY is not configured on server' });
+        }
+
+        const systemPrompt = `Você é o Diretor de Conteúdo e Roteirista Executivo de Phil no Vamus Pipeline.
+O Phil é fundador e especialista em vendas consultivas B2B, CRM e inteligência comercial.
+Sua missão é transformar uma ideia/oportunidade de conteúdo em um roteiro executável, altamente persuasivo e pronto para gravação ou redação.
+
+Princípios inegociáveis:
+1. "MENOS PENSAR NO QUE PRODUZIR. MAIS PRODUZIR."
+2. "A IA SUGERE. O PHIL DECIDE."
+3. Tom autêntico, pragmático, seguro e focado na prática real de vendas e liderança. Evite jargões vazios de autoajuda ou marketing genérico.
+4. O formato do conteúdo é: "${format}".
+   - Se 'reel' ou 'video': gancho nos primeiros 3 segundos, 3 a 5 pontos de raciocínio dinâmicos, ritmo ágil, CTA concisa.
+   - Se 'carrossel': Slide 1 (gancho visual e promessa clara), Slides 2-5 (desenvolvimento progressivo com densidade), Slide final (CTA e síntese).
+   - Se 'post' ou 'artigo': Linha 1 de quebra de padrão, parágrafos fluidos de 1 a 2 linhas, lição de trincheira, CTA conversacional.
+   - Se 'story': Sequência de 3 a 5 stories rápidos contextualizando e engajando.
+
+Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no formato:
+{
+  "hook": "Gancho forte de abertura (1 a 2 frases diretas para prender atenção imediata)",
+  "angle": "Ângulo ou perspectiva central (a tese central ou contra-intuitiva)",
+  "body_script": "Roteiro ou estrutura completa do corpo dividida em tópicos claros e objetivos",
+  "cta": "Chamada para ação natural e alinhada ao objetivo comercial ou de relacionamento",
+  "notes": "Dicas de gravação, ritmo, elementos visuais ou tom de voz"
+}`;
+
+        const userPayload = {
+            title,
+            description,
+            format,
+            origin_context: {
+                daily_raw: relatedDaily?.raw_content,
+                opportunity_why_now: relatedOpportunity?.why_now,
+                crm_insights: relatedSignals.map(s => s.insight || s.descricao || s.tipo)
+            },
+            current_draft: currentWorkspace || null
+        };
+
+        const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 1500,
+                system: systemPrompt,
+                messages: [
+                    { role: 'user', content: JSON.stringify(userPayload) }
+                ]
+            })
+        });
+
+        if (!aiResponse.ok) {
+            const errText = await aiResponse.text();
+            logToFile(`❌ [Production AI] Anthropic error: ${aiResponse.status} - ${errText}`);
+            return res.status(502).json({ error: `Anthropic API error: ${aiResponse.status}` });
+        }
+
+        const data = await aiResponse.json();
+        const text = data?.content?.[0]?.text;
+        if (!text) {
+            logToFile('❌ [Production AI] Anthropic returned empty text');
+            return res.status(502).json({ error: 'AI returned empty response' });
+        }
+
+        let cleaned = text.trim();
+        if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+        if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+        if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+        cleaned = cleaned.trim();
+
+        let structure;
+        try {
+            structure = JSON.parse(cleaned);
+        } catch (parseErr) {
+            logToFile(`❌ [Production AI] Failed to parse JSON: ${cleaned}`);
+            return res.status(500).json({ error: 'Failed to parse AI structure', raw: cleaned });
+        }
+
+        logToFile(`✅ [Production AI] Successfully generated structure for "${title}"`);
+        return res.json({
+            success: true,
+            structure: {
+                hook: structure.hook || '',
+                angle: structure.angle || '',
+                body_script: structure.body_script || '',
+                cta: structure.cta || '',
+                notes: structure.notes || ''
+            }
+        });
+
+    } catch (e) {
+        logToFile(`❌ [Production AI] Critical error: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
+});
 
 // ==========================================
 // BREVO INTEGRATION ENDPOINTS

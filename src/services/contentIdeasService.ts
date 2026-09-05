@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { ContentIdea } from './contentService';
+import { ContentIdea, ExecutionStage } from './contentService';
 
 export interface CreateContentIdeaInput {
   title: string;
@@ -11,6 +11,8 @@ export interface CreateContentIdeaInput {
   sourceId?: string | null;
   tags?: string[];
   insightIds?: string[];
+  executionStage?: ExecutionStage | null;
+  nextAction?: string | null;
 }
 
 export interface IdeaFilterOptions {
@@ -73,6 +75,19 @@ function mapRowToIdea(row: any): ContentIdea {
     sourceId: row.source_id || null,
     tags: Array.isArray(row.tags) ? row.tags : [],
     insightIds: Array.isArray(row.insight_ids) ? row.insight_ids : [],
+    executionStage: row.execution_stage || null,
+    nextAction: row.next_action || null,
+    hook: row.hook || '',
+    angle: row.angle || '',
+    bodyScript: row.body_script || '',
+    cta: row.cta || '',
+    notes: row.notes || '',
+    publishedAt: row.published_at || null,
+    platform: row.platform || null,
+    publicationUrl: row.publication_url || null,
+    metrics: row.metrics || {},
+    metricsRecordedAt: row.metrics_recorded_at || null,
+    stageUpdatedAt: row.stage_updated_at || row.updated_at,
     isLocalOnly: false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -222,6 +237,8 @@ export async function createContentIdea(input: CreateContentIdeaInput): Promise<
     sourceId: input.sourceId || null,
     tags: input.tags || [],
     insightIds: input.insightIds || [],
+    executionStage: input.executionStage ?? (input.status === 'em_producao' ? 'producao' : null),
+    nextAction: input.nextAction || null,
     isLocalOnly: true,
     createdAt: now,
     updatedAt: now,
@@ -248,6 +265,8 @@ export async function createContentIdea(input: CreateContentIdeaInput): Promise<
         source_id: optimisticIdea.sourceId,
         tags: optimisticIdea.tags,
         insight_ids: optimisticIdea.insightIds,
+        execution_stage: optimisticIdea.executionStage,
+        next_action: optimisticIdea.nextAction,
       })
       .select()
       .single();

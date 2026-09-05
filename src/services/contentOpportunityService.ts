@@ -325,7 +325,7 @@ export async function convertOpportunityToIdea(
       }
     }
 
-    // 3. Create content idea
+    // 3. Create content idea (immediately moves to execution stage 'producao' in Execution Queue)
     const newIdea = await createContentIdea({
       title: ideaData.title,
       description: ideaData.description,
@@ -335,6 +335,9 @@ export async function convertOpportunityToIdea(
       sourceId: opportunityId,
       tags: ideaData.tags || [],
       insightIds: linkedInsightIds,
+      status: 'em_producao',
+      executionStage: 'producao',
+      nextAction: 'Estruturar roteiro',
     });
 
     // 4. Mark opportunity as converted

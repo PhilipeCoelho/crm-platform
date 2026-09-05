@@ -51,6 +51,21 @@ export interface ContentDailyEntry {
   updatedAt: string;
 }
 
+export type ExecutionStage = 'producao' | 'gravado' | 'publicado' | 'aguardando_metricas' | 'analisado';
+export type ContentPlatform = 'instagram' | 'linkedin' | 'youtube' | 'tiktok' | 'twitter' | 'blog' | 'outro';
+
+export interface ContentMetricsData {
+  views?: number;
+  reach?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  saves?: number;
+  clicks?: number;
+  leads?: number;
+  conversions?: number;
+}
+
 export interface ContentIdea {
   id: string;
   userId: string;
@@ -63,6 +78,19 @@ export interface ContentIdea {
   sourceId?: string | null;
   tags: string[];
   insightIds: string[];
+  executionStage?: ExecutionStage | null;
+  nextAction?: string | null;
+  hook?: string;
+  angle?: string;
+  bodyScript?: string;
+  cta?: string;
+  notes?: string;
+  publishedAt?: string | null;
+  platform?: ContentPlatform | null;
+  publicationUrl?: string | null;
+  metrics?: ContentMetricsData;
+  metricsRecordedAt?: string | null;
+  stageUpdatedAt?: string;
   isLocalOnly?: boolean;
   createdAt: string;
   updatedAt: string;

@@ -8,7 +8,8 @@ import {
   DialogFooter 
 } from '@/components/ui/dialog';
 import { ContentOpportunity } from '@/services/contentService';
-import { Sparkles, Check } from 'lucide-react';
+import { Flame } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface OpportunityCreateIdeaDialogProps {
   opportunity: ContentOpportunity | null;
@@ -32,22 +33,19 @@ export default function OpportunityCreateIdeaDialog({
   onClose,
   onConfirm,
 }: OpportunityCreateIdeaDialogProps) {
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [format, setFormat] = useState<'reel' | 'carrossel' | 'post' | 'story' | 'artigo' | null>('carrossel');
-  const [priority, setPriority] = useState<number>(2);
+  const [format, setFormat] = useState<'reel' | 'carrossel' | 'post' | 'story' | 'artigo' | null>('reel');
+  const [priority, setPriority] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (opportunity) {
       setTitle(opportunity.title || '');
-      
-      let initialDesc = opportunity.description || '';
-      if (opportunity.whyNow) {
-        initialDesc += `\n\nContexto da Conexão: ${opportunity.whyNow}`;
-      }
-      setDescription(initialDesc.trim());
-      setPriority(opportunity.priority === 1 ? 1 : 2);
+      setDescription(opportunity.description || '');
+      setPriority(opportunity.priority || 1);
+      setFormat('reel');
     }
   }, [opportunity]);
 
@@ -55,7 +53,7 @@ export default function OpportunityCreateIdeaDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -68,6 +66,7 @@ export default function OpportunityCreateIdeaDialog({
         tags,
       });
       onClose();
+      navigate('/content/production');
     } catch (err) {
       console.error('Error submitting idea from opportunity:', err);
     } finally {
@@ -81,18 +80,18 @@ export default function OpportunityCreateIdeaDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <div className="flex items-center gap-2 mb-1">
-              <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
-                <Sparkles size={16} />
+              <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
+                <Flame size={16} />
               </span>
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Transformar Oportunidade em Ideia
+                Enviar Oportunidade para Produção
               </span>
             </div>
             <DialogTitle className="text-lg font-bold">
-              Criar Conteúdo
+              Produzir Conteúdo Agora
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Esta oportunidade será convertida em uma ideia no Banco de Ideias, mantendo a rastreabilidade da origem.
+              Esta oportunidade será convertida e entrará diretamente na sua Fila de Execução em Produção.
             </DialogDescription>
           </DialogHeader>
 
@@ -193,14 +192,14 @@ export default function OpportunityCreateIdeaDialog({
             <button
               type="submit"
               disabled={isSubmitting || !title.trim()}
-              className="text-xs font-semibold inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50"
+              className="text-xs font-bold inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 text-zinc-950 hover:bg-amber-400 transition-all shadow-sm disabled:opacity-50"
             >
               {isSubmitting ? (
-                <span>Salvando...</span>
+                <span>Enviando para Produção...</span>
               ) : (
                 <>
-                  <Check size={14} />
-                  <span>Confirmar & Salvar Ideia</span>
+                  <Flame size={14} />
+                  <span>Confirmar & Enviar para Produção</span>
                 </>
               )}
             </button>

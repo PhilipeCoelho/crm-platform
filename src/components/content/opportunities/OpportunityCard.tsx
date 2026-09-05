@@ -7,7 +7,8 @@ import {
   ArrowRight,
   TrendingUp,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Flame
 } from 'lucide-react';
 import { ContentOpportunity, ContentIdea } from '@/services/contentService';
 import { useNavigate } from 'react-router-dom';
@@ -212,10 +213,11 @@ export default function OpportunityCard({
           ) : isConverted ? (
             <button
               type="button"
-              onClick={() => navigate('/content/ideas')}
-              className="text-xs font-medium inline-flex items-center gap-1.5 h-8 px-3 rounded-xl border border-border hover:bg-muted text-foreground transition-colors"
+              onClick={() => navigate('/content/production')}
+              className="text-xs font-semibold inline-flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-amber-500 text-zinc-950 hover:bg-amber-400 transition-all shadow-xs"
             >
-              <span>Ver no Banco de Ideias</span>
+              <Flame size={13} />
+              <span>Ver na Produção</span>
               <ArrowRight size={13} />
             </button>
           ) : (
