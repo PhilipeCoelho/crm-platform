@@ -6,10 +6,13 @@ import {
   CheckCircle2, 
   AlertCircle, 
   ArrowRight,
-  Loader2
+  Loader2,
+  BookMarked,
+  ExternalLink
 } from 'lucide-react';
-import { ContentIdea } from '@/services/contentService';
+import { ContentIdea, ContentReference } from '@/services/contentService';
 import { WorkspaceData, structureWithAI } from '@/services/contentProductionService';
+import { fetchReferenceById } from '@/services/contentReferenceService';
 
 interface ProductionWorkspaceModalProps {
   idea: ContentIdea;
@@ -39,6 +42,7 @@ export const ProductionWorkspaceModal: React.FC<ProductionWorkspaceModalProps> =
   const [saving, setSaving] = useState(false);
   const [structuring, setStructuring] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [referenceOrigin, setReferenceOrigin] = useState<ContentReference | null>(null);
 
   useEffect(() => {
     if (idea) {
@@ -52,6 +56,17 @@ export const ProductionWorkspaceModal: React.FC<ProductionWorkspaceModalProps> =
       setCta(idea.cta || '');
       setNotes(idea.notes || '');
       setFeedback(null);
+
+      // Fetch origin reference if applicable
+      if (idea.sourceType === 'reference' && idea.sourceId) {
+        fetchReferenceById(idea.sourceId).then(ref => {
+          setReferenceOrigin(ref);
+        }).catch(() => {
+          setReferenceOrigin(null);
+        });
+      } else {
+        setReferenceOrigin(null);
+      }
     }
   }, [idea]);
 
@@ -148,6 +163,28 @@ export const ProductionWorkspaceModal: React.FC<ProductionWorkspaceModalProps> =
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          {/* Reference Origin Banner */}
+          {idea.sourceType === 'reference' && (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs">
+              <div className="flex items-center gap-2">
+                <BookMarked className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                <span>
+                  Inspirado em referência externa {referenceOrigin?.title ? `("${referenceOrigin.title}")` : ''}
+                </span>
+              </div>
+              {referenceOrigin?.url && (
+                <a
+                  href={referenceOrigin.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
+                >
+                  Ver original <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+          )}
+
           {/* Metadata Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">

@@ -126,17 +126,38 @@ export interface ContentOpportunity {
   updatedAt: string;
 }
 
+export type ReferenceStatus = 'salva' | 'analisando' | 'analisada' | 'arquivada';
+export type ReferencePlatform = 'instagram' | 'youtube' | 'tiktok' | 'linkedin' | 'twitter' | 'facebook' | 'blog' | 'outro';
+
+export interface ReferenceAnalysis {
+  hook?: string;
+  angle?: string;
+  structure?: string;
+  attentionMechanism?: string;
+  cta?: string;
+  whyItWorks?: string;
+  whatToLearn?: string;
+  applicationToVamuss?: string;
+  adaptationIdea?: string;
+}
+
 export interface ContentReference {
   id: string;
   userId: string;
-  title: string;
-  url?: string;
-  type: 'link' | 'image' | 'video' | 'pdf' | 'screenshot';
-  notes?: string;
+  url: string;
+  platform?: ReferencePlatform | null;
+  title?: string | null;
+  author?: string | null;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  notes?: string | null;
+  status: ReferenceStatus;
+  analysis: ReferenceAnalysis;
   tags: string[];
-  ideaId?: string;
-  filePath?: string;
+  analyzedAt?: string | null;
+  isLocalOnly?: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ContentProduction {

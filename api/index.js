@@ -2590,6 +2590,7 @@ app.post('/api/content/production/structure', authenticate, async (req, res) => 
         let relatedDaily = null;
         let relatedSignals = [];
         let relatedOpportunity = null;
+        let relatedReference = null;
 
         if (ideaId) {
             const { data: fetchedIdea } = await userSupabase
@@ -2617,6 +2618,13 @@ app.post('/api/content/production/structure', authenticate, async (req, res) => 
                         .eq('id', idea.source_id)
                         .maybeSingle();
                     relatedOpportunity = opp;
+                } else if (idea.source_type === 'reference' && idea.source_id) {
+                    const { data: ref } = await userSupabase
+                        .from('content_references')
+                        .select('title, url, notes, analysis')
+                        .eq('id', idea.source_id)
+                        .maybeSingle();
+                    relatedReference = ref;
                 }
 
                 if (idea.insight_ids && Array.isArray(idea.insight_ids) && idea.insight_ids.length > 0) {
@@ -2669,6 +2677,12 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no fo
             origin_context: {
                 daily_raw: relatedDaily?.raw_content,
                 opportunity_why_now: relatedOpportunity?.why_now,
+                reference_context: relatedReference ? {
+                    url: relatedReference.url,
+                    title: relatedReference.title,
+                    notes: relatedReference.notes,
+                    analysis: relatedReference.analysis
+                } : null,
                 crm_insights: relatedSignals.map(s => s.insight || s.descricao || s.tipo)
             },
             current_draft: currentWorkspace || null
@@ -2732,6 +2746,218 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no fo
 
     } catch (e) {
         logToFile(`❌ [Production AI] Critical error: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// ==========================================
+// CONTENT INTELLIGENCE — REFERENCE ANALYSIS
+// ==========================================
+app.post('/api/content/references/analyze', authenticate, async (req, res) => {
+    const authenticatedUserId = req.user?.sub;
+
+    if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
+    }
+
+    const { referenceId } = req.body || {};
+
+    if (!referenceId) {
+        return res.status(400).json({ error: 'referenceId is required' });
+    }
+
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+    });
+
+    try {
+        logToFile(`📚 [Reference AI] Analyzing reference ${referenceId} for user ${authenticatedUserId}`);
+
+        // Fetch the reference
+        const { data: reference, error: fetchError } = await userSupabase
+            .from('content_references')
+            .select('*')
+            .eq('id', referenceId)
+            .eq('user_id', authenticatedUserId)
+            .single();
+
+        if (fetchError || !reference) {
+            logToFile(`❌ [Reference AI] Reference not found: ${referenceId}`);
+            return res.status(404).json({ error: 'Reference not found' });
+        }
+
+        // Check minimum info
+        const hasUrl = reference.url && reference.url.trim().length > 0;
+        const hasNotes = reference.notes && reference.notes.trim().length > 0;
+        const hasTitle = reference.title && reference.title.trim().length > 0;
+        const hasDescription = reference.description && reference.description.trim().length > 0;
+
+        if (!hasUrl && !hasNotes && !hasTitle && !hasDescription) {
+            return res.status(400).json({
+                success: false,
+                message: 'Não há informação suficiente para analisar. Adicione pelo menos uma observação, título ou descrição.'
+            });
+        }
+
+        // Update status to 'analisando'
+        await userSupabase
+            .from('content_references')
+            .update({ status: 'analisando', updated_at: new Date().toISOString() })
+            .eq('id', referenceId)
+            .eq('user_id', authenticatedUserId);
+
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            logToFile('ℹ️ [Reference AI] ANTHROPIC_API_KEY missing');
+            // Revert status
+            await userSupabase
+                .from('content_references')
+                .update({ status: 'salva', updated_at: new Date().toISOString() })
+                .eq('id', referenceId)
+                .eq('user_id', authenticatedUserId);
+            return res.status(503).json({ error: 'ANTHROPIC_API_KEY is not configured on server' });
+        }
+
+        const systemPrompt = `Você é o Estrategista de Conteúdo e Analista de Referências de Phil no Vamus Pipeline.
+Phil é fundador e especialista em vendas consultivas B2B, CRM e inteligência comercial.
+A Vamuss atende profissionais de saúde e clínicas em Portugal.
+
+Sua missão é analisar uma referência de conteúdo (link, post, vídeo, artigo) e extrair PRINCÍPIOS ESTRUTURAIS e APRENDIZADOS APLICÁVEIS.
+
+Princípios inegociáveis:
+1. "MENOS PENSAR NO QUE PRODUZIR. MAIS PRODUZIR."
+2. "A IA SUGERE. O PHIL DECIDE."
+3. NÃO sugira cópia textual. Identifique o PRINCÍPIO por trás do que funciona.
+4. Analise a ESTRUTURA e o MECANISMO, não o conteúdo superficial.
+5. Sempre conecte ao contexto do Phil: vendas B2B, CRM, liderança comercial, profissionais de saúde.
+
+Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no formato:
+{
+  "hook": "Qual é o gancho usado e por que funciona (princípio, não cópia)",
+  "angle": "Qual é o ângulo ou perspectiva central da referência",
+  "structure": "Como o conteúdo está estruturado (sequência, ritmo, progressão)",
+  "attention_mechanism": "Que mecanismo de atenção é usado (curiosidade, contraste, promessa, etc.)",
+  "cta": "Como é feita a chamada para ação (se aplicável)",
+  "why_it_works": "Por que esse conteúdo funciona? Qual o princípio subjacente?",
+  "what_to_learn": "O que Phil deve aprender com isso para seu próprio conteúdo?",
+  "application_to_vamuss": "Como esse princípio pode ser aplicado ao contexto Vamuss (vendas B2B, saúde, CRM)?",
+  "adaptation_idea": "Uma ideia concreta de conteúdo que Phil poderia criar inspirado nesse princípio"
+}`;
+
+        const referenceContext = {
+            url: reference.url,
+            platform: reference.platform || 'desconhecida',
+            title: reference.title || null,
+            author: reference.author || null,
+            description: reference.description || null,
+            phil_notes: reference.notes || null
+        };
+
+        const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 1500,
+                system: systemPrompt,
+                messages: [
+                    { role: 'user', content: `Analise esta referência de conteúdo:\n${JSON.stringify(referenceContext, null, 2)}` }
+                ]
+            })
+        });
+
+        if (!aiResponse.ok) {
+            const errText = await aiResponse.text();
+            logToFile(`❌ [Reference AI] Anthropic error: ${aiResponse.status} - ${errText}`);
+            // Revert status
+            await userSupabase
+                .from('content_references')
+                .update({ status: 'salva', updated_at: new Date().toISOString() })
+                .eq('id', referenceId)
+                .eq('user_id', authenticatedUserId);
+            return res.status(502).json({ error: `Anthropic API error: ${aiResponse.status}` });
+        }
+
+        const data = await aiResponse.json();
+        const text = data?.content?.[0]?.text;
+        if (!text) {
+            logToFile('❌ [Reference AI] Anthropic returned empty text');
+            await userSupabase
+                .from('content_references')
+                .update({ status: 'salva', updated_at: new Date().toISOString() })
+                .eq('id', referenceId)
+                .eq('user_id', authenticatedUserId);
+            return res.status(502).json({ error: 'AI returned empty response' });
+        }
+
+        let cleaned = text.trim();
+        if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+        if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+        if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+        cleaned = cleaned.trim();
+
+        let analysis;
+        try {
+            analysis = JSON.parse(cleaned);
+        } catch (parseErr) {
+            logToFile(`❌ [Reference AI] Failed to parse JSON: ${cleaned}`);
+            await userSupabase
+                .from('content_references')
+                .update({ status: 'salva', updated_at: new Date().toISOString() })
+                .eq('id', referenceId)
+                .eq('user_id', authenticatedUserId);
+            return res.status(500).json({ error: 'Failed to parse AI analysis', raw: cleaned });
+        }
+
+        const structuredAnalysis = {
+            hook: analysis.hook || '',
+            angle: analysis.angle || '',
+            structure: analysis.structure || '',
+            attention_mechanism: analysis.attention_mechanism || '',
+            cta: analysis.cta || '',
+            why_it_works: analysis.why_it_works || '',
+            what_to_learn: analysis.what_to_learn || '',
+            application_to_vamuss: analysis.application_to_vamuss || '',
+            adaptation_idea: analysis.adaptation_idea || ''
+        };
+
+        // Persist analysis to DB
+        const now = new Date().toISOString();
+        const { error: updateError } = await userSupabase
+            .from('content_references')
+            .update({
+                status: 'analisada',
+                analysis: structuredAnalysis,
+                analyzed_at: now,
+                updated_at: now
+            })
+            .eq('id', referenceId)
+            .eq('user_id', authenticatedUserId);
+
+        if (updateError) {
+            logToFile(`⚠️ [Reference AI] Analysis generated but failed to persist: ${updateError.message}`);
+        }
+
+        logToFile(`✅ [Reference AI] Successfully analyzed reference "${reference.title || reference.url}"`);
+        return res.json({
+            success: true,
+            analysis: structuredAnalysis
+        });
+
+    } catch (e) {
+        logToFile(`❌ [Reference AI] Critical error: ${e.message}`);
+        // Try to revert status
+        try {
+            await userSupabase
+                .from('content_references')
+                .update({ status: 'salva', updated_at: new Date().toISOString() })
+                .eq('id', referenceId)
+                .eq('user_id', authenticatedUserId);
+        } catch (_) {}
         return res.status(500).json({ error: e.message });
     }
 });
