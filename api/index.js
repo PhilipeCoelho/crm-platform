@@ -2963,6 +2963,328 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no fo
 });
 
 // ==========================================
+// CONTENT INTELLIGENCE — PERFORMANCE & LEARNING ANALYSIS
+// ==========================================
+app.post('/api/content/performance/analyze', authenticate, async (req, res) => {
+    const authenticatedUserId = req.user?.sub;
+
+    if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
+    }
+
+    const { contentIdeaId } = req.body || {};
+
+    if (!contentIdeaId) {
+        return res.status(400).json({ error: 'contentIdeaId is required' });
+    }
+
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+    });
+
+    try {
+        logToFile(`📊 [Performance AI] Analyzing performance for idea ${contentIdeaId} (user: ${authenticatedUserId})`);
+
+        // 1. Fetch current content idea
+        const { data: currentIdea, error: ideaError } = await userSupabase
+            .from('content_ideas')
+            .select('*')
+            .eq('id', contentIdeaId)
+            .eq('user_id', authenticatedUserId)
+            .maybeSingle();
+
+        if (ideaError || !currentIdea) {
+            logToFile(`❌ [Performance AI] Idea not found: ${contentIdeaId}`);
+            return res.status(404).json({ error: 'Content idea not found' });
+        }
+
+        const metrics = currentIdea.metrics || {};
+        const hasMetricData = Object.keys(metrics).length > 0 && (
+            (metrics.views && Number(metrics.views) > 0) ||
+            (metrics.reach && Number(metrics.reach) > 0) ||
+            (metrics.likes && Number(metrics.likes) > 0) ||
+            (metrics.comments && Number(metrics.comments) > 0) ||
+            (metrics.shares && Number(metrics.shares) > 0) ||
+            (metrics.saves && Number(metrics.saves) > 0) ||
+            (metrics.clicks && Number(metrics.clicks) > 0) ||
+            (metrics.leads && Number(metrics.leads) > 0)
+        );
+
+        if (!hasMetricData) {
+            logToFile(`ℹ️ [Performance AI] Insufficient metrics for idea: ${contentIdeaId}`);
+            return res.status(400).json({
+                error: 'INSUFFICIENT_METRICS',
+                message: 'Este conteúdo ainda não possui métricas suficientes para análise. Registre ao menos visualizações, alcance ou interações.'
+            });
+        }
+
+        // 2. Fetch historical comparable ideas (same user, published, has metrics, different id)
+        const { data: historicalIdeas } = await userSupabase
+            .from('content_ideas')
+            .select('id, title, format, hook, angle, cta, metrics, published_at, platform')
+            .eq('user_id', authenticatedUserId)
+            .neq('id', contentIdeaId)
+            .not('metrics', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(30);
+
+        const validHistorical = (historicalIdeas || []).filter(item => {
+            const m = item.metrics || {};
+            return (m.views && Number(m.views) > 0) || (m.reach && Number(m.reach) > 0) || (m.likes && Number(m.likes) > 0);
+        });
+
+        // 3. Helper calculations: interactions & rates
+        const calcInteractions = (m) => (Number(m?.likes) || 0) + (Number(m?.comments) || 0) + (Number(m?.shares) || 0) + (Number(m?.saves) || 0);
+        const currentInteractions = calcInteractions(metrics);
+        const currentViews = Number(metrics.views) || null;
+        const currentReach = Number(metrics.reach) || null;
+        const currentLeads = Number(metrics.leads) || null;
+
+        const currentEngRate = currentReach && currentReach > 0 
+            ? currentInteractions / currentReach 
+            : (currentViews && currentViews > 0 ? currentInteractions / currentViews : null);
+
+        const currentLeadRate = currentReach && currentReach > 0 && currentLeads !== null
+            ? currentLeads / currentReach
+            : (currentViews && currentViews > 0 && currentLeads !== null ? currentLeads / currentViews : null);
+
+        // Calculate sample size and confidence
+        const sampleSize = validHistorical.length;
+        let sampleConfidence = 'low';
+        if (sampleSize >= 10) sampleConfidence = 'high';
+        else if (sampleSize >= 5) sampleConfidence = 'medium';
+
+        // Historical median calculation
+        const getMedian = (arr) => {
+            if (!arr || arr.length === 0) return null;
+            const sorted = [...arr].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+        };
+
+        const histViews = validHistorical.map(i => Number(i.metrics?.views)).filter(v => v > 0);
+        const histReach = validHistorical.map(i => Number(i.metrics?.reach)).filter(r => r > 0);
+        const histEngRates = validHistorical.map(i => {
+            const inter = calcInteractions(i.metrics);
+            const r = Number(i.metrics?.reach);
+            const v = Number(i.metrics?.views);
+            return r > 0 ? inter / r : (v > 0 ? inter / v : null);
+        }).filter(e => e !== null);
+
+        const medianViews = getMedian(histViews);
+        const medianReach = getMedian(histReach);
+        const medianEngagement = getMedian(histEngRates);
+
+        const viewsDiffPercent = (currentViews && medianViews && medianViews > 0) 
+            ? ((currentViews - medianViews) / medianViews) * 100 
+            : null;
+
+        const engDiffPercent = (currentEngRate !== null && medianEngagement && medianEngagement > 0)
+            ? ((currentEngRate - medianEngagement) / medianEngagement) * 100
+            : null;
+
+        // 4. Call Claude AI
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            logToFile('ℹ️ [Performance AI] ANTHROPIC_API_KEY missing');
+            return res.status(503).json({ error: 'ANTHROPIC_API_KEY is not configured on server' });
+        }
+
+        const systemPrompt = `Você é o Analista Estratégico de Conteúdo de Phil no Vamus Pipeline.
+Phil é fundador e especialista em vendas consultivas B2B, CRM e inteligência comercial para profissionais de saúde e clínicas em Portugal.
+
+Sua missão é analisar o desempenho de um conteúdo publicado com base EXCLUSIVAMENTE nos dados fornecidos e no histórico disponível.
+
+Princípios inegociáveis:
+1. "MENOS PENSAR NO QUE PRODUZIR. MAIS PRODUZIR."
+2. "A IA SUGERE. O PHIL DECIDE."
+3. NUNCA invente métricas nem adivinhe causalidade mágica.
+4. Diferencie com rigor:
+   - DADO: O número exato real.
+   - OBSERVAÇÃO: A comparação factual com o histórico (ex: acima/abaixo da mediana).
+   - HIPÓTESE: O que pode ter gerado esse resultado (ex: gancho de contradição, tema de objeção).
+   - APRENDIZADO: O princípio a ser testado no próximo conteúdo.
+   - RECOMENDAÇÃO: Ação prática para o próximo roteiro.
+5. Quando a amostra histórica for pequena (< 5 conteúdos), declare confiança 'low' ("Sinal inicial").
+   Entre 5 e 9 conteúdos, confiança 'medium' ("Padrão emergente").
+   A partir de 10 conteúdos, confiança 'high' ("Padrão consistente").
+6. Evite chavões vazios ("crie conteúdo com valor", "poste mais", "engaje com seu público"). Fale de técnicas reais: gancho, ângulo, formato, estrutura, CTA, tema comercial.
+
+Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no formato:
+{
+  "summary": "Resumo executivo de 2 a 3 frases sobre o desempenho geral deste conteúdo e sua posição em relação ao histórico",
+  "observations": ["Observação 1 baseada em dados", "Observação 2"],
+  "strengths": ["Ponto forte 1 identificado nos números/reação", "Ponto forte 2"],
+  "weaknesses": ["Ponto a melhorar 1", "Ponto a melhorar 2"],
+  "hypotheses": ["Hipótese 1 sobre o porquê do resultado", "Hipótese 2"],
+  "recommendations": ["Recomendação prática 1 para próximos conteúdos", "Recomendação 2"],
+  "evidence": {
+    "sample_size": ${sampleSize},
+    "baseline_available": ${sampleSize > 0},
+    "confidence": "${sampleConfidence}"
+  },
+  "suggested_learnings": [
+    {
+      "learning": "Frase clara do aprendizado que vale levar para frente",
+      "type": "hook | angle | format | topic | cta | structure | audience | timing | general",
+      "evidence": "Resumo da evidência factual que apoia esse aprendizado",
+      "confidence": "low | medium | high",
+      "application": "Como aplicar concretamente este aprendizado no próximo conteúdo"
+    }
+  ]
+}`;
+
+        const payloadContext = {
+            current_content: {
+                title: currentIdea.title,
+                format: currentIdea.format,
+                hook: currentIdea.hook,
+                angle: currentIdea.angle,
+                body_script: currentIdea.body_script,
+                cta: currentIdea.cta,
+                notes: currentIdea.notes,
+                tags: currentIdea.tags,
+                source_type: currentIdea.source_type,
+                platform: currentIdea.platform,
+                published_at: currentIdea.published_at,
+                publication_url: currentIdea.publication_url,
+            },
+            current_metrics: {
+                raw: metrics,
+                total_interactions: currentInteractions,
+                engagement_rate: currentEngRate !== null ? Number((currentEngRate * 100).toFixed(2)) + '%' : null,
+                lead_rate: currentLeadRate !== null ? Number((currentLeadRate * 100).toFixed(2)) + '%' : null,
+            },
+            historical_baseline: {
+                sample_size: sampleSize,
+                median_views: medianViews,
+                median_reach: medianReach,
+                median_engagement_rate: medianEngagement !== null ? Number((medianEngagement * 100).toFixed(2)) + '%' : null,
+                views_vs_median: viewsDiffPercent !== null ? Number(viewsDiffPercent.toFixed(1)) + '%' : null,
+                engagement_vs_median: engDiffPercent !== null ? Number(engDiffPercent.toFixed(1)) + '%' : null,
+            }
+        };
+
+        const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 2000,
+                system: systemPrompt,
+                messages: [
+                    { role: 'user', content: `Analise a performance deste conteúdo:\n${JSON.stringify(payloadContext, null, 2)}` }
+                ]
+            })
+        });
+
+        if (!aiResponse.ok) {
+            const errText = await aiResponse.text();
+            logToFile(`❌ [Performance AI] Anthropic error: ${aiResponse.status} - ${errText}`);
+            return res.status(502).json({ error: `Anthropic API error: ${aiResponse.status}` });
+        }
+
+        const aiData = await aiResponse.json();
+        const text = aiData?.content?.[0]?.text;
+        if (!text) {
+            logToFile('❌ [Performance AI] Anthropic returned empty text');
+            return res.status(502).json({ error: 'AI returned empty response' });
+        }
+
+        let cleaned = text.trim();
+        if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+        if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+        if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+        cleaned = cleaned.trim();
+
+        let parsedAnalysis;
+        try {
+            parsedAnalysis = JSON.parse(cleaned);
+        } catch (parseErr) {
+            logToFile(`❌ [Performance AI] Failed to parse JSON: ${cleaned}`);
+            return res.status(500).json({ error: 'Failed to parse AI performance analysis', raw: cleaned });
+        }
+
+        const structuredAnalysis = {
+            summary: parsedAnalysis.summary || '',
+            observations: Array.isArray(parsedAnalysis.observations) ? parsedAnalysis.observations : [],
+            strengths: Array.isArray(parsedAnalysis.strengths) ? parsedAnalysis.strengths : [],
+            weaknesses: Array.isArray(parsedAnalysis.weaknesses) ? parsedAnalysis.weaknesses : [],
+            hypotheses: Array.isArray(parsedAnalysis.hypotheses) ? parsedAnalysis.hypotheses : [],
+            recommendations: Array.isArray(parsedAnalysis.recommendations) ? parsedAnalysis.recommendations : [],
+            evidence: {
+                sample_size: sampleSize,
+                baseline_available: sampleSize > 0,
+                confidence: parsedAnalysis.evidence?.confidence || sampleConfidence,
+            },
+            suggestedLearnings: Array.isArray(parsedAnalysis.suggested_learnings) ? parsedAnalysis.suggested_learnings.map(sl => ({
+                learning: sl.learning || '',
+                type: sl.type || 'general',
+                evidence: sl.evidence || '',
+                confidence: sl.confidence || sampleConfidence,
+                application: sl.application || '',
+            })) : [],
+        };
+
+        // 5. Persist or update analysis in content_performance_analyses
+        const now = new Date().toISOString();
+        const { data: existingAnalysis } = await userSupabase
+            .from('content_performance_analyses')
+            .select('id')
+            .eq('content_idea_id', contentIdeaId)
+            .eq('user_id', authenticatedUserId)
+            .maybeSingle();
+
+        let savedRecordId = existingAnalysis?.id;
+
+        if (existingAnalysis) {
+            await userSupabase
+                .from('content_performance_analyses')
+                .update({
+                    status: 'analyzed',
+                    analysis: structuredAnalysis,
+                    analyzed_at: now,
+                    updated_at: now,
+                })
+                .eq('id', existingAnalysis.id)
+                .eq('user_id', authenticatedUserId);
+        } else {
+            const { data: inserted } = await userSupabase
+                .from('content_performance_analyses')
+                .insert({
+                    user_id: authenticatedUserId,
+                    content_idea_id: contentIdeaId,
+                    status: 'analyzed',
+                    analysis: structuredAnalysis,
+                    analyzed_at: now,
+                    created_at: now,
+                    updated_at: now,
+                })
+                .select('id')
+                .single();
+            savedRecordId = inserted?.id;
+        }
+
+        logToFile(`✅ [Performance AI] Performance analysis saved for idea ${contentIdeaId}`);
+
+        return res.json({
+            success: true,
+            id: savedRecordId,
+            analysis: structuredAnalysis,
+            created_at: now,
+        });
+
+    } catch (e) {
+        logToFile(`❌ [Performance AI] Critical error: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// ==========================================
 // BREVO INTEGRATION ENDPOINTS
 // ==========================================
 

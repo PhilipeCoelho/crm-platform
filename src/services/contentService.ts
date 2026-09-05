@@ -192,6 +192,84 @@ export interface ContentMetrics {
   measuredAt: string;
 }
 
+// --- Etapa 7: Performance Intelligence & Learning Engine Types ---
+
+export type PerformanceAnalysisStatus = 'pending' | 'analyzing' | 'analyzed';
+
+export interface PerformanceEvidence {
+  sampleSize: number;
+  baselineAvailable: boolean;
+  confidence: 'low' | 'medium' | 'high';
+}
+
+export type LearningType = 'hook' | 'angle' | 'format' | 'topic' | 'cta' | 'structure' | 'audience' | 'timing' | 'general';
+export type LearningConfidence = 'low' | 'medium' | 'high';
+export type LearningStatus = 'suggested' | 'confirmed' | 'discarded';
+
+export interface SuggestedLearning {
+  learning: string;
+  type: LearningType;
+  evidence?: string;
+  confidence: LearningConfidence;
+  application?: string;
+}
+
+export interface PerformanceAnalysisData {
+  summary: string;
+  observations: string[];
+  strengths: string[];
+  weaknesses: string[];
+  hypotheses: string[];
+  recommendations: string[];
+  evidence: PerformanceEvidence;
+  suggestedLearnings?: SuggestedLearning[];
+}
+
+export interface ContentPerformanceAnalysis {
+  id: string;
+  userId: string;
+  contentIdeaId: string;
+  status: PerformanceAnalysisStatus;
+  analysis: PerformanceAnalysisData;
+  createdAt: string;
+  updatedAt: string;
+  analyzedAt?: string | null;
+  isLocalOnly?: boolean;
+}
+
+export interface ContentLearning {
+  id: string;
+  userId: string;
+  sourceContentId?: string | null;
+  learning: string;
+  type: LearningType;
+  evidence?: string | null;
+  confidence: LearningConfidence;
+  status: LearningStatus;
+  application?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  isLocalOnly?: boolean;
+}
+
+export interface DerivedMetrics {
+  engagementRateViews: number | null; // (likes + comments + shares + saves) / views
+  engagementRateReach: number | null; // (likes + comments + shares + saves) / reach
+  leadRate: number | null;            // leads / reach (or leads / views)
+  totalInteractions: number;          // likes + comments + shares + saves
+}
+
+export interface HistoricalComparison {
+  sampleSize: number;
+  confidence: 'low' | 'medium' | 'high';
+  confidenceLabel: string; // 'Sinal inicial' (1-4), 'Padrão emergente' (5-9), 'Padrão consistente' (10+)
+  medianViews: number | null;
+  medianReach: number | null;
+  medianEngagementRate: number | null;
+  viewsVsMedianPercent: number | null;
+  engagementVsMedianPercent: number | null;
+}
+
 // ============================================
 // Service stubs (no-op until tables are created)
 // ============================================

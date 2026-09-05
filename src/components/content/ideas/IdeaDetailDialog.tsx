@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -5,7 +6,7 @@ import {
   DialogTitle, 
   DialogFooter 
 } from '@/components/ui/dialog';
-import { ContentIdea } from '@/services/contentService';
+import { ContentIdea, ContentPerformanceAnalysis, ContentLearning } from '@/services/contentService';
 import { 
   CalendarDays, 
   Brain, 
@@ -14,10 +15,16 @@ import {
   Edit3, 
   Clock,
   ArrowRight,
-  Flame
+  Flame,
+  TrendingUp,
+  BookmarkCheck
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { sendIdeaToProduction } from '@/services/contentProductionService';
+import { fetchPerformanceAnalysis, fetchLearnings, analyzePerformanceWithAI } from '@/services/contentPerformanceService';
+import { PerformanceMetricCard } from '@/components/content/performance/PerformanceMetricCard';
+import { PerformanceAnalysisModal } from '@/components/content/performance/PerformanceAnalysisModal';
+import { calculateDerivedMetrics } from '@/services/contentMetricsCalculation';
 
 interface IdeaDetailDialogProps {
   idea: ContentIdea | null;
@@ -33,6 +40,34 @@ export default function IdeaDetailDialog({
   onEdit,
 }: IdeaDetailDialogProps) {
   const navigate = useNavigate();
+  const [analysis, setAnalysis] = useState<ContentPerformanceAnalysis | null>(null);
+  const [learnings, setLearnings] = useState<ContentLearning[]>([]);
+  const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  useEffect(() => {
+    if (idea && isOpen) {
+      // Fetch performance analysis
+      fetchPerformanceAnalysis(idea.id).then(setAnalysis).catch(() => setAnalysis(null));
+      // Fetch associated learnings
+      fetchLearnings().then(all => {
+        setLearnings(all.filter(l => l.sourceContentId === idea.id));
+      }).catch(() => setLearnings([]));
+    } else {
+      setAnalysis(null);
+      setLearnings([]);
+    }
+  }, [idea, isOpen]);
+
+  const handleAnalyze = async (ideaId: string) => {
+    setIsAnalyzing(true);
+    try {
+      const res = await analyzePerformanceWithAI(ideaId);
+      setAnalysis(res);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   if (!idea) return null;
 
@@ -151,6 +186,94 @@ export default function IdeaDetailDialog({
             )}
           </div>
 
+          {/* Seção DESEMPENHO (se publicado ou com métricas) */}
+          {(idea.executionStage === 'publicado' || Boolean(idea.publishedAt) || (idea.metrics && Object.keys(idea.metrics).length > 0)) && (
+            <div className="p-3.5 bg-muted/30 border border-border rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <TrendingUp size={14} className="text-blue-500" />
+                  <span>Desempenho</span>
+                </h4>
+                {idea.publishedAt && (
+                  <span className="text-[11px] text-muted-foreground">
+                    Publicado em {new Date(idea.publishedAt).toLocaleDateString('pt-BR')}
+                  </span>
+                )}
+              </div>
+
+              {/* Métricas Compactas */}
+              <PerformanceMetricCard
+                metrics={idea.metrics}
+                derived={calculateDerivedMetrics(idea.metrics)}
+                compact={true}
+              />
+
+              {/* Status da Análise & Ações */}
+              <div className="pt-2 border-t border-border/50 flex items-center justify-between flex-wrap gap-2">
+                {analysis?.status === 'analyzed' ? (
+                  <div className="space-y-1">
+                    <p className="text-xs text-foreground font-semibold flex items-center gap-1">
+                      <Brain size={12} className="text-blue-500" />
+                      <span>Análise de IA concluída</span>
+                    </p>
+                    {analysis.analysis?.summary && (
+                      <p className="text-[11px] text-muted-foreground line-clamp-1 max-w-sm">
+                        {analysis.analysis.summary}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground italic">
+                    Ainda sem análise de diagnóstico da IA.
+                  </p>
+                )}
+
+                <div className="flex items-center gap-2">
+                  {analysis?.status === 'analyzed' ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsAnalysisModalOpen(true)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                    >
+                      Ver análise completa
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleAnalyze(idea.id)}
+                      disabled={isAnalyzing}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50"
+                    >
+                      {isAnalyzing ? 'Analisando...' : 'Analisar desempenho'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Aprendizados vinculados */}
+              {learnings.length > 0 && (
+                <div className="pt-2 border-t border-border/50 space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <BookmarkCheck size={11} className="text-emerald-500" />
+                    <span>Aprendizados gerados ({learnings.length})</span>
+                  </span>
+                  <div className="space-y-1">
+                    {learnings.map(l => (
+                      <div key={l.id} className="text-xs p-2 rounded-lg bg-card border border-border/60 flex items-center justify-between gap-2">
+                        <span className="font-medium text-foreground text-[11px]">"{l.learning}"</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                          l.status === 'confirmed' ? 'text-emerald-500' : 'text-zinc-400'
+                        }`}>
+                          {l.status === 'confirmed' ? 'Confirmado' : 'Sugerido'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Metadados: Prioridade e Datas */}
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="p-2.5 bg-muted/20 border border-border/60 rounded-xl">
@@ -206,6 +329,16 @@ export default function IdeaDetailDialog({
           </button>
         </DialogFooter>
       </DialogContent>
+
+      <PerformanceAnalysisModal
+        idea={idea}
+        analysis={analysis}
+        isOpen={isAnalysisModalOpen}
+        onClose={() => setIsAnalysisModalOpen(false)}
+        allPublishedIdeas={[]}
+        onReanalyze={handleAnalyze}
+        isAnalyzing={isAnalyzing}
+      />
     </Dialog>
   );
 }
