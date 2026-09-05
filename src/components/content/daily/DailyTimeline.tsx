@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Clock, 
   Mic, 
@@ -25,6 +26,7 @@ interface DailyTimelineProps {
   onDeleteEntry: (id: string) => Promise<void>;
   onCreateIdea?: (data: { title: string; description: string; sourceType: 'daily'; sourceId: string }) => void;
   isLoading?: boolean;
+  dailyOpportunityMap?: Record<string, string>;
 }
 
 export default function DailyTimeline({
@@ -32,6 +34,7 @@ export default function DailyTimeline({
   onDeleteEntry,
   onCreateIdea,
   isLoading = false,
+  dailyOpportunityMap,
 }: DailyTimelineProps) {
   const [entryToDelete, setEntryToDelete] = useState<ContentDailyEntry | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -134,6 +137,17 @@ export default function DailyTimeline({
                         <Sparkles size={9} className="animate-spin text-primary" />
                         Analisando...
                       </span>
+                    )}
+
+                    {dailyOpportunityMap?.[entry.id] && (
+                      <Link
+                        to="/content/opportunities"
+                        className="text-[10px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded border border-primary/20 flex items-center gap-1 transition-colors"
+                        title="Este acontecimento gerou uma oportunidade de conteúdo"
+                      >
+                        <Sparkles size={10} className="text-amber-500" />
+                        <span>Ver oportunidade</span>
+                      </Link>
                     )}
                   </div>
 

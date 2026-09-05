@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useContentDaily } from '@/hooks/content/useContentDaily';
 import DailyHeader from '@/components/content/daily/DailyHeader';
 import DailyQuickCapture from '@/components/content/daily/DailyQuickCapture';
@@ -6,6 +6,7 @@ import DailyTimeline from '@/components/content/daily/DailyTimeline';
 import DailyPlannedSection from '@/components/content/daily/DailyPlannedSection';
 import IdeaModal from '@/components/content/ideas/IdeaModal';
 import { createContentIdea, CreateContentIdeaInput } from '@/services/contentIdeasService';
+import { fetchDailyOpportunityMap } from '@/services/contentOpportunityService';
 import { Sparkles, Lightbulb, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -37,6 +38,13 @@ export default function ContentToday() {
   });
 
   const [ideaSavedToast, setIdeaSavedToast] = useState<string | null>(null);
+  const [dailyOpportunityMap, setDailyOpportunityMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetchDailyOpportunityMap()
+      .then(map => setDailyOpportunityMap(map))
+      .catch(() => {});
+  }, [entries]);
 
   // Aggregate all AI signals captured for this day
   const dailySignals = entries
@@ -117,6 +125,7 @@ export default function ContentToday() {
               onDeleteEntry={removeEntry}
               onCreateIdea={handleOpenIdeaFromDaily}
               isLoading={isLoading}
+              dailyOpportunityMap={dailyOpportunityMap}
             />
           </div>
         </div>

@@ -2210,6 +2210,289 @@ Retorne EXCLUSIVAMENTE em formato JSON sem markdown:
     }
 });
 
+// ==========================================
+// CONTENT INTELLIGENCE — CONNECTION ENGINE / OPPORTUNITIES
+// ==========================================
+app.post('/api/content/opportunities/generate', authenticate, async (req, res) => {
+    const authenticatedUserId = req.user?.sub;
+
+    if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
+    }
+
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${req.jwt}` } }
+    });
+
+    try {
+        logToFile(`🧠 [Opportunities Engine] Starting connection analysis for user ${authenticatedUserId}`);
+
+        // 1. Fetch user's recent daily entries
+        const { data: dailyEntries, error: dailyErr } = await userSupabase
+            .from('content_daily_entries')
+            .select('id, raw_content, occurred_at, ai_signals, ai_summary')
+            .eq('user_id', authenticatedUserId)
+            .order('occurred_at', { ascending: false })
+            .limit(15);
+
+        if (dailyErr) {
+            logToFile(`⚠️ [Opportunities Engine] Daily entries fetch warning: ${dailyErr.message}`);
+        }
+
+        // 2. Fetch user's commercial insights
+        const { data: crmInsights, error: crmErr } = await userSupabase
+            .from('insights_comerciais')
+            .select('id, texto_origem, categoria, subcategoria, resumo, content_signal, tags_tematicas, confianca')
+            .eq('user_id', authenticatedUserId)
+            .order('criado_em', { ascending: false })
+            .limit(25);
+
+        if (crmErr) {
+            logToFile(`⚠️ [Opportunities Engine] CRM insights fetch warning: ${crmErr.message}`);
+        }
+
+        // 3. Fetch user's existing ideas (to avoid duplicates / enable connecting to them)
+        const { data: existingIdeas, error: ideasErr } = await userSupabase
+            .from('content_ideas')
+            .select('id, title, description, status, priority')
+            .eq('user_id', authenticatedUserId)
+            .in('status', ['capturada', 'validada', 'em_producao'])
+            .limit(30);
+
+        if (ideasErr) {
+            logToFile(`⚠️ [Opportunities Engine] Ideas fetch warning: ${ideasErr.message}`);
+        }
+
+        // 4. Fetch open opportunities already generated (to avoid duplicate opportunities)
+        const { data: openOpps, error: oppsErr } = await userSupabase
+            .from('content_opportunities')
+            .select('id, title, description, why_now, status')
+            .eq('user_id', authenticatedUserId)
+            .in('status', ['nova', 'vista', 'aceita'])
+            .limit(10);
+
+        if (oppsErr) {
+            logToFile(`⚠️ [Opportunities Engine] Open opps fetch warning: ${oppsErr.message}`);
+        }
+
+        const validDaily = dailyEntries || [];
+        const validCrm = crmInsights || [];
+        const validIdeas = existingIdeas || [];
+        const validOpenOpps = openOpps || [];
+
+        if (validDaily.length === 0 && validCrm.length === 0) {
+            return res.json({
+                success: true,
+                count: 0,
+                opportunities: [],
+                message: 'Nenhuma anotação no Daily ou sinal comercial encontrado para cruzar oportunidades.'
+            });
+        }
+
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            logToFile('ℹ️ [Opportunities Engine] ANTHROPIC_API_KEY missing');
+            return res.status(503).json({ error: 'ANTHROPIC_API_KEY is not configured on server' });
+        }
+
+        const systemPrompt = `Você é o Connection Engine do módulo Content Intelligence (Vamus Pipeline).
+Sua missão é transformar acontecimentos reais e inteligência de vendas em poucas e excelentes oportunidades de conteúdo.
+
+Princípios inegociáveis:
+1. "MENOS PENSAR NO QUE PRODUZIR. MAIS PRODUZIR."
+2. "A IA SUGERE. O PHIL DECIDE."
+3. "A IA NÃO inventa experiências nem fatos." Nunca atribua ao usuário algo que ele não tenha vivido ou registrado. Se faltar certeza, formule como ângulo de hipótese.
+4. "MÁXIMO DE 3 OPORTUNIDADES PRINCIPAIS." Não gere mais de 3. Escolha apenas as conexões de maior impacto.
+5. "DEDUPLICAÇÃO E REAPROVEITAMENTO." Se um sinal ou vivência corresponder a uma ideia que já existe na lista de ideias do usuário, NÃO crie uma nova ideia do zero. Defina o campo "connected_idea_id" com o UUID da ideia correspondente e formule a oportunidade como alavanca daquela ideia. Da mesma forma, se já houver uma oportunidade aberta muito parecida, não a repita.
+
+Tipos de Conexões a Buscar:
+- Daily + CRM: Uma vivência pessoal (reunião, atendimento, fechamento, frustração) que ilustra na prática uma dor ou objeção recorrente registrada no CRM.
+- Daily/CRM + Ideia Existente: Uma vivência ou sinal comercial que valida, enriquece ou dá timing a uma ideia que o usuário já havia anotado.
+- Daily Isolado de Alto Impacto: Experiência pessoal rica com reflexão/aprendizado prático que merece ser compartilhada mesmo sem dado de CRM direto.
+
+Critérios de Relevância (Score de 0 a 100):
+- 80 a 100: Alta oportunidade (conecta dor real de mercado + experiência autêntica, forte autoridade/aquisição).
+- 60 a 79: Boa oportunidade.
+- Menos de 60: Ignore, não retorne.
+
+Retorne EXCLUSIVAMENTE um array JSON válido sem nenhum markdown ou texto em volta, no seguinte formato:
+[
+  {
+    "title": "Título/tese forte, provocativo e direto (até 15 palavras)",
+    "description": "Explicação concisa do ângulo prático e formato recomendado",
+    "why_now": "Explicação de 1 linha de por que apareceu agora (ex: 'Daily de ontem + objeção recorrente no CRM sobre falta de tempo')",
+    "opportunity_type": "experiencia" | "dor_comercial" | "insight" | "opiniao" | "educacional" | "tendencia" | "conexao",
+    "priority": 1 ou 2,
+    "score": número entre 60 e 100,
+    "connected_idea_id": "UUID_DA_IDEIA_EXISTENTE ou null",
+    "sources": [
+      {
+        "source_type": "daily" | "crm_signal" | "content_idea",
+        "source_id": "UUID_DO_REGISTRO ou null",
+        "source_context": "Breve trecho ou resumo da fonte que fundamentou esta oportunidade"
+      }
+    ]
+  }
+]`;
+
+        const userPayload = {
+            daily_entries: validDaily.map(d => ({
+                id: d.id,
+                occurred_at: d.occurred_at,
+                raw_content: d.raw_content,
+                ai_signals: d.ai_signals,
+                ai_summary: d.ai_summary
+            })),
+            crm_insights: validCrm.map(c => ({
+                id: c.id,
+                categoria: c.categoria,
+                subcategoria: c.subcategoria,
+                content_signal: c.content_signal,
+                resumo: c.resumo,
+                texto_origem: c.texto_origem
+            })),
+            existing_ideas: validIdeas.map(i => ({
+                id: i.id,
+                title: i.title,
+                description: i.description,
+                priority: i.priority
+            })),
+            open_opportunities: validOpenOpps.map(o => ({
+                id: o.id,
+                title: o.title,
+                why_now: o.why_now
+            }))
+        };
+
+        const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 1500,
+                system: systemPrompt,
+                messages: [
+                    { role: 'user', content: JSON.stringify(userPayload) }
+                ]
+            })
+        });
+
+        if (!aiResponse.ok) {
+            const errText = await aiResponse.text();
+            logToFile(`❌ [Opportunities Engine] Anthropic error: ${aiResponse.status} - ${errText}`);
+            return res.status(502).json({ error: `Anthropic API error: ${aiResponse.status}` });
+        }
+
+        const data = await aiResponse.json();
+        const text = data?.content?.[0]?.text;
+        if (!text) {
+            logToFile('❌ [Opportunities Engine] Anthropic returned empty text');
+            return res.status(502).json({ error: 'AI returned empty response' });
+        }
+
+        let cleaned = text.trim();
+        if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+        if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+        if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+        cleaned = cleaned.trim();
+
+        let generatedItems;
+        try {
+            generatedItems = JSON.parse(cleaned);
+        } catch (parseErr) {
+            logToFile(`❌ [Opportunities Engine] Failed to parse JSON: ${cleaned}`);
+            return res.status(500).json({ error: 'Failed to parse AI output', raw: cleaned });
+        }
+
+        if (!Array.isArray(generatedItems)) {
+            generatedItems = [generatedItems];
+        }
+
+        // Limit strictly to 3
+        const topItems = generatedItems.slice(0, 3);
+        const persistedOpps = [];
+
+        for (const item of topItems) {
+            if (!item.title) continue;
+
+            const oppRow = {
+                user_id: authenticatedUserId,
+                title: String(item.title).trim(),
+                description: item.description ? String(item.description).trim() : '',
+                why_now: item.why_now ? String(item.why_now).trim() : '',
+                opportunity_type: ['experiencia', 'dor_comercial', 'insight', 'opiniao', 'educacional', 'tendencia', 'conexao'].includes(item.opportunity_type) 
+                    ? item.opportunity_type 
+                    : 'conexao',
+                status: 'nova',
+                priority: item.priority === 1 ? 1 : 2,
+                score: typeof item.score === 'number' ? Math.max(0, Math.min(100, Math.round(item.score))) : 75,
+                connected_idea_id: item.connected_idea_id || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+
+            const { data: insertedOpp, error: oppInsertErr } = await userSupabase
+                .from('content_opportunities')
+                .insert(oppRow)
+                .select()
+                .single();
+
+            if (oppInsertErr) {
+                logToFile(`⚠️ [Opportunities Engine] Error inserting opportunity into Supabase: ${oppInsertErr.message}`);
+                oppRow.id = randomUUID();
+                oppRow.sources = item.sources || [];
+                persistedOpps.push(oppRow);
+                continue;
+            }
+
+            const oppId = insertedOpp.id;
+            const sourcesToInsert = [];
+
+            if (Array.isArray(item.sources)) {
+                for (const src of item.sources) {
+                    sourcesToInsert.push({
+                        opportunity_id: oppId,
+                        source_type: ['daily', 'crm_signal', 'content_idea', 'reference', 'performance'].includes(src.source_type)
+                            ? src.source_type
+                            : 'daily',
+                        source_id: src.source_id || null,
+                        source_context: src.source_context || null,
+                        created_at: new Date().toISOString()
+                    });
+                }
+            }
+
+            if (sourcesToInsert.length > 0) {
+                const { error: srcInsertErr } = await userSupabase
+                    .from('content_opportunity_sources')
+                    .insert(sourcesToInsert);
+
+                if (srcInsertErr) {
+                    logToFile(`⚠️ [Opportunities Engine] Error inserting sources for opp ${oppId}: ${srcInsertErr.message}`);
+                }
+            }
+
+            insertedOpp.sources = sourcesToInsert;
+            persistedOpps.push(insertedOpp);
+        }
+
+        logToFile(`✅ [Opportunities Engine] Generated ${persistedOpps.length} opportunities for user ${authenticatedUserId}`);
+        return res.json({
+            success: true,
+            count: persistedOpps.length,
+            opportunities: persistedOpps
+        });
+
+    } catch (e) {
+        logToFile(`❌ [Opportunities Engine] Critical error: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 
 // ==========================================
 // BREVO INTEGRATION ENDPOINTS

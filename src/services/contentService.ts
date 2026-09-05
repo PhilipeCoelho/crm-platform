@@ -59,10 +59,40 @@ export interface ContentIdea {
   format?: 'reel' | 'carrossel' | 'post' | 'story' | 'artigo' | null;
   status: 'capturada' | 'validada' | 'em_producao' | 'descartada';
   priority: number; // 1 to 5
-  sourceType: 'manual' | 'daily' | 'crm_signal' | 'reference' | 'ai_suggestion';
+  sourceType: 'manual' | 'daily' | 'crm_signal' | 'reference' | 'ai_suggestion' | 'opportunity';
   sourceId?: string | null;
   tags: string[];
   insightIds: string[];
+  isLocalOnly?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OpportunityType = 'experiencia' | 'dor_comercial' | 'insight' | 'opiniao' | 'educacional' | 'tendencia' | 'conexao';
+export type OpportunityStatus = 'nova' | 'vista' | 'aceita' | 'descartada' | 'convertida';
+export type OpportunitySourceType = 'daily' | 'crm_signal' | 'content_idea' | 'reference' | 'performance';
+
+export interface ContentOpportunitySource {
+  id: string;
+  opportunityId: string;
+  sourceType: OpportunitySourceType;
+  sourceId?: string | null;
+  sourceContext?: string | null;
+  createdAt: string;
+}
+
+export interface ContentOpportunity {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  whyNow: string;
+  opportunityType: OpportunityType;
+  status: OpportunityStatus;
+  priority: number;
+  score: number | null;
+  connectedIdeaId?: string | null;
+  sources?: ContentOpportunitySource[];
   isLocalOnly?: boolean;
   createdAt: string;
   updatedAt: string;

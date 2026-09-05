@@ -7,7 +7,7 @@ export interface CreateContentIdeaInput {
   format?: 'reel' | 'carrossel' | 'post' | 'story' | 'artigo' | null;
   status?: 'capturada' | 'validada' | 'em_producao' | 'descartada';
   priority?: number;
-  sourceType?: 'manual' | 'daily' | 'crm_signal' | 'reference' | 'ai_suggestion';
+  sourceType?: 'manual' | 'daily' | 'crm_signal' | 'reference' | 'ai_suggestion' | 'opportunity';
   sourceId?: string | null;
   tags?: string[];
   insightIds?: string[];
