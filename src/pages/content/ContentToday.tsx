@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useContentDaily } from '@/hooks/content/useContentDaily';
 import DailyHeader from '@/components/content/daily/DailyHeader';
 import DailyQuickCapture from '@/components/content/daily/DailyQuickCapture';
 import DailyTimeline from '@/components/content/daily/DailyTimeline';
 import DailyPlannedSection from '@/components/content/daily/DailyPlannedSection';
+import { NextBestActionSection } from '@/components/content/orchestration/NextBestActionSection';
 import IdeaModal from '@/components/content/ideas/IdeaModal';
 import { createContentIdea, CreateContentIdeaInput } from '@/services/contentIdeasService';
 import { fetchDailyOpportunityMap } from '@/services/contentOpportunityService';
+import type { ContentAction } from '@/services/contentService';
 import { Sparkles, Lightbulb, ArrowUpRight, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export default function ContentToday() {
   const {
@@ -75,6 +77,30 @@ export default function ContentToday() {
     setTimeout(() => setIdeaSavedToast(null), 4000);
   };
 
+  const navigate = useNavigate();
+
+  const handleExecuteAction = (action: ContentAction) => {
+    switch (action.actionType) {
+      case 'usar_oportunidade':
+        navigate('/content/opportunities');
+        break;
+      case 'continuar_producao':
+      case 'registrar_metricas':
+        navigate('/content/production');
+        break;
+      case 'analisar_performance':
+      case 'aplicar_aprendizado':
+        navigate('/content/intelligence');
+        break;
+      case 'analisar_referencia':
+        navigate('/content/references');
+        break;
+      default:
+        navigate('/content/ideas');
+        break;
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Toast Feedback */}
@@ -89,6 +115,11 @@ export default function ContentToday() {
           </div>
         </div>
       )}
+
+      {/* 0. Próximo Movimento (Next Best Action - Entrada do Módulo) */}
+      <div className="border-b border-border/80 pb-6">
+        <NextBestActionSection onExecuteAction={handleExecuteAction} />
+      </div>
 
       {/* 1. Header with date controls */}
       <DailyHeader

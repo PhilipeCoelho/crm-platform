@@ -2290,9 +2290,23 @@ app.post('/api/content/opportunities/generate', authenticate, async (req, res) =
             logToFile(`⚠️ [Opportunities Engine] Ideas fetch warning: ${ideasErr.message}`);
         }
 
+        // 5. Fetch user's confirmed learnings (Feedback loop: Stage 7 -> Stage 4)
+        const { data: confirmedLearnings, error: learningsErr } = await userSupabase
+            .from('content_learnings')
+            .select('id, learning, type, confidence, application')
+            .eq('user_id', authenticatedUserId)
+            .eq('status', 'confirmed')
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        if (learningsErr) {
+            logToFile(`⚠️ [Opportunities Engine] Learnings fetch warning: ${learningsErr.message}`);
+        }
+
         const validDaily = dailyEntries || [];
         const validCrm = crmInsights || [];
         const validIdeas = existingIdeas || [];
+        const validLearnings = confirmedLearnings || [];
 
         if (validDaily.length === 0 && validCrm.length === 0) {
             return res.json({
@@ -2329,6 +2343,10 @@ Princípios inegociáveis:
 6. "DEDUPLICAÇÃO E REAPROVEITAMENTO."
    - Se um sinal ou vivência corresponder a uma ideia já presente na lista "existing_ideas", NÃO invente uma nova ideia. Defina o campo "connected_idea_id" com o UUID exato da ideia correspondente.
    - Se já houver uma oportunidade aberta muito parecida na lista "open_opportunities", NÃO gere repetições.
+7. "APRENDIZADOS CONFIRMADOS (LEARNINGS) COMO CONTEXTO ESTRATÉGICO."
+   - A lista "confirmed_learnings" contém princípios já validados pelo próprio Phil com dados reais do canal.
+   - Utilize esses aprendizados como contexto estratégico para enriquecer e calibrar o ângulo ou tese da oportunidade quando forem pertinentes.
+   - O Learning é CONTEXTO: NÃO force a aplicação artificial se o sinal do dia não tiver relação com ele.
 
 Tipos de Conexões Válidas:
 - Daily + CRM: Uma vivência pessoal que ilustra na prática uma dor ou objeção recorrente registrada no CRM.
@@ -2383,6 +2401,12 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem markdown em volta:
                 title: o.title,
                 why_now: o.why_now,
                 connected_idea_id: o.connected_idea_id
+            })),
+            confirmed_learnings: validLearnings.map(l => ({
+                id: l.id,
+                learning: l.learning,
+                type: l.type,
+                application: l.application
             }))
         };
 
@@ -2637,6 +2661,17 @@ app.post('/api/content/production/structure', authenticate, async (req, res) => 
             }
         }
 
+        // Fetch user's confirmed learnings (Feedback loop: Stage 7 -> Stage 5)
+        const { data: confirmedLearnings } = await userSupabase
+            .from('content_learnings')
+            .select('learning, type, application')
+            .eq('user_id', authenticatedUserId)
+            .eq('status', 'confirmed')
+            .order('created_at', { ascending: false })
+            .limit(8);
+
+        const validLearnings = confirmedLearnings || [];
+
         const title = bodyTitle || idea?.title || 'Conteúdo Estratégico';
         const description = bodyDesc || idea?.description || '';
         const format = bodyFormat || idea?.format || 'reel';
@@ -2660,6 +2695,10 @@ Princípios inegociáveis:
    - Se 'carrossel': Slide 1 (gancho visual e promessa clara), Slides 2-5 (desenvolvimento progressivo com densidade), Slide final (CTA e síntese).
    - Se 'post' ou 'artigo': Linha 1 de quebra de padrão, parágrafos fluidos de 1 a 2 linhas, lição de trincheira, CTA conversacional.
    - Se 'story': Sequência de 3 a 5 stories rápidos contextualizando e engajando.
+5. "APRENDIZADOS CONFIRMADOS (LEARNINGS) COMO DIRETRIZES TÉCNICAS":
+   - Você receberá a lista "confirmed_learnings" de princípios já validados pelo próprio Phil através do histórico de performance do canal.
+   - Considere esses aprendizados como princípios operacionais de alta eficácia e aplique-os no roteiro, gancho, ângulo ou CTA SEMPRE que forem pertinentes ao tema e formato.
+   - Não force a aplicação de todos os aprendizados caso não façam sentido com o tema; priorize a coerência e relevância.
 
 Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no formato:
 {
@@ -2685,6 +2724,11 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no fo
                 } : null,
                 crm_insights: relatedSignals.map(s => s.insight || s.descricao || s.tipo)
             },
+            confirmed_learnings: validLearnings.map(l => ({
+                learning: l.learning,
+                type: l.type,
+                application: l.application
+            })),
             current_draft: currentWorkspace || null
         };
 

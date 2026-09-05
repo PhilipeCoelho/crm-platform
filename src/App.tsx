@@ -40,13 +40,11 @@ import MetaLeadAdsSettings from '@/pages/settings/MetaLeadAdsSettings';
 import { Share2, PenTool } from 'lucide-react';
 import ActivitySuggestionModal from '@/components/activities-v2/ActivitySuggestionModal';
 import ContentLayout from '@/components/content/ContentLayout';
-import ContentHome from '@/components/content/ContentHome';
 import ContentToday from '@/pages/content/ContentToday';
 import ContentOpportunities from '@/pages/content/ContentOpportunities';
 import ContentIdeas from '@/pages/content/ContentIdeas';
 import ContentProduction from '@/pages/content/ContentProduction';
 import ContentReferences from '@/pages/content/ContentReferences';
-import ContentPublications from '@/pages/content/ContentPublications';
 import ContentIntelligence from '@/pages/content/ContentIntelligence';
 
 
@@ -700,13 +698,13 @@ function App() {
                         <Route path="/content/*" element={
                             <ContentLayout>
                                 <Routes>
-                                    <Route index element={<ContentHome />} />
-                                    <Route path="today" element={<ContentToday />} />
+                                    <Route index element={<ContentToday />} />
+                                    <Route path="today" element={<Navigate to="/content" replace />} />
                                     <Route path="opportunities" element={<ContentOpportunities />} />
                                     <Route path="ideas" element={<ContentIdeas />} />
                                     <Route path="production" element={<ContentProduction />} />
                                     <Route path="references" element={<ContentReferences />} />
-                                    <Route path="publications" element={<ContentPublications />} />
+                                    <Route path="publications" element={<Navigate to="/content/production" replace />} />
                                     <Route path="intelligence" element={<ContentIntelligence />} />
                                     <Route path="*" element={<Navigate to="" replace />} />
                                 </Routes>

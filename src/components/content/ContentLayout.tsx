@@ -5,7 +5,6 @@ import {
   Lightbulb, 
   Layers, 
   BookMarked, 
-  Share2, 
   Brain 
 } from 'lucide-react';
 
@@ -19,7 +18,6 @@ const tabs = [
   { name: 'Ideias', path: '/content/ideas', icon: Lightbulb, end: false },
   { name: 'Produção', path: '/content/production', icon: Layers, end: false },
   { name: 'Referências', path: '/content/references', icon: BookMarked, end: false },
-  { name: 'Publicações', path: '/content/publications', icon: Share2, end: false },
   { name: 'Inteligência', path: '/content/intelligence', icon: Brain, end: false },
 ];
 

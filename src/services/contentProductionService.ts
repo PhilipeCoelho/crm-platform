@@ -103,14 +103,14 @@ function mapRowToIdea(row: any): ContentIdea {
 }
 
 /**
- * Fetches all items currently in the execution pipeline (execution_stage is not null)
+ * Fetches all items currently in the execution pipeline (execution_stage is not null and status is not descartada)
  */
 export async function fetchProductionItems(): Promise<ContentIdea[]> {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     const local = getLocalIdeas();
-    return local.filter(i => i.executionStage);
+    return local.filter(i => i.executionStage && i.status !== 'descartada');
   }
 
   try {
@@ -119,19 +119,22 @@ export async function fetchProductionItems(): Promise<ContentIdea[]> {
       .select('*')
       .eq('user_id', user.id)
       .not('execution_stage', 'is', null)
+      .neq('status', 'descartada')
       .order('priority', { ascending: true })
       .order('stage_updated_at', { ascending: false });
 
     if (error) {
       console.warn('Supabase fetchProductionItems error, using fallback:', error.message);
       const local = getLocalIdeas();
-      return local.filter(i => i.executionStage);
+      return local.filter(i => i.executionStage && i.status !== 'descartada');
     }
 
-    return (data || []).map(mapRowToIdea);
+    return (data || [])
+      .map(mapRowToIdea)
+      .filter(i => i.status !== 'descartada');
   } catch (err) {
     console.error('Unexpected error in fetchProductionItems:', err);
-    return getLocalIdeas().filter(i => i.executionStage);
+    return getLocalIdeas().filter(i => i.executionStage && i.status !== 'descartada');
   }
 }
 
