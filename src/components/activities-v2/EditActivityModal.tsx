@@ -64,6 +64,7 @@ export default function EditActivityModal({ isOpen, onClose, deal, activity, onU
                     <ActivityForm
                         deal={deal}
                         initialData={initialData}
+                        contactName={deal?.title || 'Cliente'}
                         onSave={handleSave}
                         submitLabel="Atualizar"
                     />

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
-import { Plus, Settings, Calendar, ChevronDown, Check } from 'lucide-react';
+import { Plus, Settings, Calendar, ChevronDown, Check, Lock, Eye } from 'lucide-react';
 import { Currency } from '@/data/currencies';
 import { getInsightsData, InsightsData } from '@/services/insights';
 import { generateStrategicRecommendations } from '@/services/recommendations';
@@ -12,6 +12,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
 import WidgetManagerModal from '@/components/dashboard/WidgetManagerModal';
 import { PriorityCard, WidgetsRow, AlertColumns } from '@/components/dashboard/DashboardWidgets';
+import EditActivityModal from '@/components/activities-v2/EditActivityModal';
+import { Activity, Deal } from '@/types/schema';
 import {
     Popover,
     PopoverContent,
@@ -38,7 +40,11 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         openNewDealModal,
         updateActivity,
         deleteActivity,
-        openFocusDeal
+        openFocusDeal,
+        isPrivacyMode,
+        isAllTemporarilyRevealed,
+        revealAllTemporarily,
+        hideAllRevealed
     } = useCRM();
     const navigate = useNavigate();
 
@@ -257,20 +263,35 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         const openRealActivities = realActivities.filter(a => !a.completed && a.status !== 'canceled');
         const now = new Date();
 
-        const overdueActivities = openRealActivities.filter(a => {
-            if (!a.dueDate) return false;
-            const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
-            if (deal && deal.status !== 'open') return false;
-            const dueDate = parseISO(a.dueDate);
-            return isBefore(dueDate, now) && !isToday(dueDate);
-        });
+        const overdueActivities = openRealActivities
+            .filter(a => {
+                if (!a.dueDate) return false;
+                const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
+                if (deal && deal.status !== 'open') return false;
+                const dueDate = parseISO(a.dueDate);
+                return isBefore(dueDate, now) && !isToday(dueDate);
+            })
+            .sort((a, b) => {
+                const timeA = parseISO(a.dueDate!).getTime();
+                const timeB = parseISO(b.dueDate!).getTime();
+                if (timeA !== timeB) return timeA - timeB; // Mais antigas (maior atraso) primeiro
+                const createdA = a.createdAt ? parseISO(a.createdAt).getTime() : 0;
+                const createdB = b.createdAt ? parseISO(b.createdAt).getTime() : 0;
+                return createdA - createdB;
+            });
 
-        const todayActivities = openRealActivities.filter(a => {
-            if (!a.dueDate) return false;
-            const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
-            if (deal && deal.status !== 'open') return false;
-            return isToday(parseISO(a.dueDate));
-        });
+        const todayActivities = openRealActivities
+            .filter(a => {
+                if (!a.dueDate) return false;
+                const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
+                if (deal && deal.status !== 'open') return false;
+                return isToday(parseISO(a.dueDate));
+            })
+            .sort((a, b) => {
+                const timeA = parseISO(a.dueDate!).getTime();
+                const timeB = parseISO(b.dueDate!).getTime();
+                return timeA - timeB;
+            });
 
         // Optimized: build Set of dealIds with open activities (O(n) instead of O(n²))
         const dealsWithOpenActivityIds = new Set(
@@ -301,6 +322,26 @@ export default function Dashboard({ currency }: { currency: Currency }) {
     const handleOpenWidgetModal = useCallback(() => {
         setIsWidgetModalOpen(true);
     }, []);
+
+    const [activityToEdit, setActivityToEdit] = useState<Activity | null>(null);
+
+    const dealForEdit = useMemo(() => {
+        if (!activityToEdit) return null;
+        const found = deals.find(d => d.id === activityToEdit.dealId);
+        if (found) return found;
+        return {
+            id: activityToEdit.dealId || '',
+            title: activityToEdit.title,
+            value: 0,
+            currency: currency || 'EUR',
+            pipelineId: 'sales',
+            stageId: '',
+            status: 'open',
+            priority: 'medium',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        } as unknown as Deal;
+    }, [activityToEdit, deals, currency]);
 
     return (
         <div className="h-full overflow-y-auto bg-background transition-colors duration-500 custom-scrollbar">
@@ -461,7 +502,50 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                                 onToggleActivity={handleToggleActivity}
                                 onDeleteActivity={handleDeleteActivity}
                                 onOpenFocusDeal={openFocusDeal}
+                                onEditActivity={setActivityToEdit}
                             />
+
+                            {activityToEdit && dealForEdit && (
+                                <EditActivityModal
+                                    isOpen={!!activityToEdit}
+                                    onClose={() => setActivityToEdit(null)}
+                                    deal={dealForEdit}
+                                    activity={activityToEdit}
+                                    onUpdate={updateActivity}
+                                />
+                            )}
+
+                            {/* BANNER DE MODO DE PRIVACIDADE */}
+                            {isPrivacyMode && (
+                                <div className="mt-8 bg-card border border-blue-500/20 dark:border-blue-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                            <Lock size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-foreground">
+                                                Seus dados estão protegidos com o Modo de Privacidade.
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Clique no ícone de olho ao lado do nome para revelar temporariamente.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (isAllTemporarilyRevealed) {
+                                                hideAllRevealed();
+                                            } else {
+                                                revealAllTemporarily(5);
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+                                    >
+                                        <Eye size={14} />
+                                        {isAllTemporarilyRevealed ? "Ocultar todos os nomes" : "Revelar todos os nomes por 5 minutos"}
+                                    </button>
+                                </div>
+                            )}
                         </section>
                     </div>
                 )}

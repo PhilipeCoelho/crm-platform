@@ -162,17 +162,21 @@ export function useDashboardData() {
 
     const now = new Date();
 
-    const overdueActivities = openRealActivities.filter(a => {
-        if (!a.dueDate) return false;
-        const dueDate = parseISO(a.dueDate);
-        return isBefore(dueDate, now) && !isToday(dueDate);
-    });
+    const overdueActivities = openRealActivities
+        .filter(a => {
+            if (!a.dueDate) return false;
+            const dueDate = parseISO(a.dueDate);
+            return isBefore(dueDate, now) && !isToday(dueDate);
+        })
+        .sort((a, b) => parseISO(a.dueDate!).getTime() - parseISO(b.dueDate!).getTime());
 
-    const todayActivities = openRealActivities.filter(a => {
-        if (!a.dueDate) return false;
-        const dueDate = parseISO(a.dueDate);
-        return isToday(dueDate);
-    });
+    const todayActivities = openRealActivities
+        .filter(a => {
+            if (!a.dueDate) return false;
+            const dueDate = parseISO(a.dueDate);
+            return isToday(dueDate);
+        })
+        .sort((a, b) => parseISO(a.dueDate!).getTime() - parseISO(b.dueDate!).getTime());
 
     const upcomingActivities = openRealActivities.filter(a => {
         if (!a.dueDate) return false;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
     Campaign, EmailTemplate, CampaignSender, CadenceTemplate, CadenceStage
@@ -90,6 +90,11 @@ export interface CRMStore {
     // Privacy Mode (Global)
     isPrivacyMode: boolean;
     togglePrivacyMode: () => void;
+    revealedPrivacyIds: string[];
+    toggleRevealPrivacyId: (id: string) => void;
+    isAllTemporarilyRevealed: boolean;
+    revealAllTemporarily: (minutes?: number) => void;
+    hideAllRevealed: () => void;
 
     // Campaigns Actions
     addCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'createdBy' | 'sentCount' | 'openedCount' | 'clickedCount'>) => Promise<void>;
@@ -188,13 +193,42 @@ export function useCRMStore(): CRMStore {
         return saved === 'true';
     });
 
+    const [revealedPrivacyIds, setRevealedPrivacyIds] = useState<string[]>([]);
+    const [isAllTemporarilyRevealed, setIsAllTemporarilyRevealed] = useState(false);
+    const revealTimerRef = useRef<any>(null);
+
     const togglePrivacyMode = () => {
         setIsPrivacyMode((prev: any) => {
             const next = !prev;
             localStorage.setItem('privacy_mode', String(next));
+            if (!next) {
+                setRevealedPrivacyIds([]);
+                setIsAllTemporarilyRevealed(false);
+                if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+            }
             return next;
         });
     };
+
+    const toggleRevealPrivacyId = useCallback((id: string) => {
+        setRevealedPrivacyIds(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    }, []);
+
+    const revealAllTemporarily = useCallback((minutes: number = 5) => {
+        if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        setIsAllTemporarilyRevealed(true);
+        revealTimerRef.current = setTimeout(() => {
+            setIsAllTemporarilyRevealed(false);
+        }, minutes * 60 * 1000);
+    }, []);
+
+    const hideAllRevealed = useCallback(() => {
+        if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        setIsAllTemporarilyRevealed(false);
+        setRevealedPrivacyIds([]);
+    }, []);
 
     const openFocusDeal = (id: string) => setActiveFocusDealId(id);
     const closeFocusDeal = () => setActiveFocusDealId(null);
@@ -561,6 +595,10 @@ export function useCRMStore(): CRMStore {
                         const updated = payload.new;
                         setActivities((prev: any[]) => prev.map((a: any) => a.id === updated.id ? {
                             ...a,
+                            type: updated.type || a.type,
+                            duration: updated.duration !== undefined ? updated.duration : a.duration,
+                            description: updated.description !== undefined ? updated.description : a.description,
+                            priority: updated.priority || a.priority,
                             completed: updated.completed,
                             status: updated.status || a.status,
                             completedAt: updated.completed_at,
@@ -834,6 +872,10 @@ export function useCRMStore(): CRMStore {
 
         const dbUpdates: Record<string, unknown> = {};
         if (synchronizedUpdates.title !== undefined) dbUpdates.title = synchronizedUpdates.title;
+        if (synchronizedUpdates.type !== undefined) dbUpdates.type = synchronizedUpdates.type;
+        if (synchronizedUpdates.duration !== undefined) dbUpdates.duration = synchronizedUpdates.duration;
+        if (synchronizedUpdates.description !== undefined) dbUpdates.description = synchronizedUpdates.description;
+        if (synchronizedUpdates.priority !== undefined) dbUpdates.priority = synchronizedUpdates.priority;
         if (synchronizedUpdates.notes !== undefined) dbUpdates.notes = synchronizedUpdates.notes;
         if (synchronizedUpdates.completed !== undefined) dbUpdates.completed = synchronizedUpdates.completed;
         if (synchronizedUpdates.status !== undefined) dbUpdates.status = synchronizedUpdates.status;
@@ -2142,6 +2184,11 @@ export function useCRMStore(): CRMStore {
         closeFocusCompany,
         isPrivacyMode,
         togglePrivacyMode,
+        revealedPrivacyIds,
+        toggleRevealPrivacyId,
+        isAllTemporarilyRevealed,
+        revealAllTemporarily,
+        hideAllRevealed,
         addCampaign,
         updateCampaign,
         deleteCampaign,

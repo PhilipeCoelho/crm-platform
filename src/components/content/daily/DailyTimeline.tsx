@@ -1,17 +1,28 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Clock, 
   Mic, 
   FileText, 
   Trash2, 
   Sparkles, 
-  CheckCircle2, 
-  Lightbulb,
   CloudOff,
-  AlertTriangle
+  AlertTriangle,
+  Edit3,
+  Check,
+  X,
+  Loader2,
+  Calendar,
+  CalendarCheck2,
+  Building,
+  CheckSquare,
+  Activity
 } from 'lucide-react';
 import { ContentDailyEntry } from '@/services/contentService';
+import { 
+  sortEntriesChronologically, 
+  extractEntryDisplayTime,
+  cleanEntryContent
+} from '@/services/contentDailyService';
 import {
   Dialog,
   DialogContent,
@@ -24,20 +35,26 @@ import {
 interface DailyTimelineProps {
   entries: ContentDailyEntry[];
   onDeleteEntry: (id: string) => Promise<void>;
-  onCreateIdea?: (data: { title: string; description: string; sourceType: 'daily'; sourceId: string }) => void;
+  onUpdateEntry?: (id: string, newContent: string) => Promise<void>;
   isLoading?: boolean;
-  dailyOpportunityMap?: Record<string, string>;
+  onOpenDeal?: (dealId: string) => void;
 }
 
 export default function DailyTimeline({
   entries,
   onDeleteEntry,
-  onCreateIdea,
+  onUpdateEntry,
   isLoading = false,
-  dailyOpportunityMap,
+  onOpenDeal,
 }: DailyTimelineProps) {
+  const [activeFilter, setActiveFilter] = useState<'all' | 'planejado' | 'acontecimento'>('all');
   const [entryToDelete, setEntryToDelete] = useState<ContentDailyEntry | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const handleConfirmDelete = async () => {
     if (!entryToDelete) return;
@@ -50,17 +67,70 @@ export default function DailyTimeline({
     }
   };
 
+  const handleStartEdit = (entry: ContentDailyEntry) => {
+    setEditingId(entry.id);
+    setEditContent(cleanEntryContent(entry.rawContent));
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    if (!editContent.trim() || !onUpdateEntry) return;
+    setIsSavingEdit(true);
+    try {
+      await onUpdateEntry(id, editContent.trim());
+      setEditingId(null);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const formatTime = (timeStr?: string) => {
     if (!timeStr) return '';
     try {
       const parts = timeStr.split(':');
       if (parts.length >= 2) {
-        return `${parts[0]}:${parts[1]}`;
+        return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
       }
       return timeStr;
     } catch {
       return timeStr;
     }
+  };
+
+  // 1. Sort all entries in chronological order
+  const sortedEntries = sortEntriesChronologically(entries);
+
+  // 2. Classify entries: Planejado vs Acontecimento
+  const isEntryPlanned = (entry: ContentDailyEntry) => {
+    return entry.entryType === 'planejado' || entry.sourceType === 'crm_sync';
+  };
+
+  const plannedEntries = sortedEntries.filter(isEntryPlanned);
+  const happeningEntries = sortedEntries.filter(e => !isEntryPlanned(e));
+
+  // 3. Apply active filter
+  const displayedEntries = activeFilter === 'planejado'
+    ? plannedEntries
+    : activeFilter === 'acontecimento'
+    ? happeningEntries
+    : sortedEntries;
+
+  // Helper for stage styling
+  const getStageColor = (stageName?: string | null) => {
+    if (!stageName) return 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30';
+    const norm = stageName.toLowerCase();
+    if (norm.includes('prospect')) {
+      return 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30';
+    }
+    if (norm.includes('engaj') || norm.includes('contact')) {
+      return 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30';
+    }
+    if (norm.includes('reun') || norm.includes('meet') || norm.includes('call')) {
+      return 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30';
+    }
+    if (norm.includes('fech') || norm.includes('propos') || norm.includes('nego')) {
+      return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+    }
+    return 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30';
   };
 
   if (isLoading) {
@@ -79,165 +149,284 @@ export default function DailyTimeline({
     );
   }
 
-  if (entries.length === 0) {
-    return (
-      <div className="py-12 px-4 text-center bg-card/40 border border-dashed border-border rounded-2xl">
-        <div className="w-12 h-12 rounded-full bg-muted/70 flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-          <Clock size={22} />
-        </div>
-        <h3 className="font-semibold text-foreground text-sm">Nenhum registro para este dia</h3>
-        <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1.5 leading-relaxed">
-          Grave um áudio ou digite acima para guardar fatos, reuniões, vitórias ou obstáculos da sua rotina.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60">
-        {entries.map((entry) => {
-          const isVoice = entry.sourceType === 'voice';
-          const signals = entry.aiSignals;
-          const hasContentSignals = signals?.sinais_conteudo && signals.sinais_conteudo.length > 0;
-          const hasLearning = Boolean(signals?.aprendizado);
+    <div className="space-y-4">
+      {/* Filter Tabs: Tudo (Cronológico) | Planejado | Acontecimentos */}
+      <div className="flex items-center gap-1.5 p-1 bg-muted/40 border border-border/60 rounded-xl text-xs font-medium w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveFilter('all')}
+          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+            activeFilter === 'all'
+              ? 'bg-card text-foreground shadow-sm font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Clock size={12} className={activeFilter === 'all' ? 'text-primary' : ''} />
+          <span>Tudo (Cronológico)</span>
+          <span className="text-[10px] bg-muted/80 px-1.5 py-0.2 rounded-full font-mono">
+            {sortedEntries.length}
+          </span>
+        </button>
 
-          return (
-            <div key={entry.id} className="relative group">
-              {/* Timeline Dot */}
-              <div className="absolute -left-6 top-3 w-5 h-5 rounded-full border-2 border-background bg-card flex items-center justify-center text-muted-foreground group-hover:border-primary group-hover:text-primary transition-colors shadow-sm">
-                {isVoice ? <Mic size={10} /> : <FileText size={10} />}
-              </div>
+        <button
+          type="button"
+          onClick={() => setActiveFilter('planejado')}
+          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+            activeFilter === 'planejado'
+              ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 shadow-sm font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <CalendarCheck2 size={12} className={activeFilter === 'planejado' ? 'text-blue-600 dark:text-blue-400' : ''} />
+          <span>Planejado</span>
+          <span className="text-[10px] bg-blue-500/10 text-blue-700 dark:text-blue-300 px-1.5 py-0.2 rounded-full font-mono">
+            {plannedEntries.length}
+          </span>
+        </button>
 
-              {/* Entry Card */}
-              <div className="bg-card border border-border rounded-2xl p-4 shadow-sm hover:border-border/80 transition-all">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-mono font-semibold text-muted-foreground flex items-center gap-1">
-                      <Clock size={12} className="text-muted-foreground/70" />
-                      {formatTime(entry.entryTime)}
-                    </span>
-                    {isVoice && (
-                      <span className="text-[10px] font-medium bg-rose-500/10 text-rose-500 px-1.5 py-0.5 rounded flex items-center gap-1">
-                        <Mic size={9} />
-                        Áudio
-                      </span>
-                    )}
-                    {entry.isLocalOnly && (
-                      <span 
-                        title="Registro salvo no navegador local. Execute o script supabase_content_daily.sql no Supabase para sincronização em nuvem."
-                        className="text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-500/20"
-                      >
-                        <CloudOff size={9} />
-                        Salvo localmente
-                      </span>
-                    )}
-                    {entry.aiStatus === 'pending' && (
-                      <span className="text-[10px] text-muted-foreground/70 flex items-center gap-1 italic">
-                        <Sparkles size={9} className="animate-spin text-primary" />
-                        Analisando...
-                      </span>
-                    )}
+        <button
+          type="button"
+          onClick={() => setActiveFilter('acontecimento')}
+          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+            activeFilter === 'acontecimento'
+              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shadow-sm font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Sparkles size={12} className={activeFilter === 'acontecimento' ? 'text-emerald-600 dark:text-emerald-400' : ''} />
+          <span>Acontecimentos</span>
+          <span className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.2 rounded-full font-mono">
+            {happeningEntries.length}
+          </span>
+        </button>
+      </div>
 
-                    {dailyOpportunityMap?.[entry.id] && (
-                      <Link
-                        to="/content/opportunities"
-                        className="text-[10px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded border border-primary/20 flex items-center gap-1 transition-colors"
-                        title="Este acontecimento gerou uma oportunidade de conteúdo"
-                      >
-                        <Sparkles size={10} className="text-amber-500" />
-                        <span>Ver oportunidade</span>
-                      </Link>
-                    )}
-                  </div>
+      {/* Empty State */}
+      {displayedEntries.length === 0 ? (
+        <div className="py-12 px-4 text-center bg-card/40 border border-dashed border-border rounded-2xl">
+          <div className="w-12 h-12 rounded-full bg-muted/70 flex items-center justify-center mx-auto mb-3 text-muted-foreground">
+            {activeFilter === 'planejado' ? (
+              <CalendarCheck2 size={22} />
+            ) : activeFilter === 'acontecimento' ? (
+              <Sparkles size={22} />
+            ) : (
+              <Clock size={22} />
+            )}
+          </div>
+          <h3 className="font-semibold text-foreground text-sm">
+            {activeFilter === 'planejado'
+              ? 'Nenhum compromisso ou atividade planejada para este dia'
+              : activeFilter === 'acontecimento'
+              ? 'Nenhum acontecimento registrado para este dia'
+              : 'Nenhum registro para este dia'}
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1.5 leading-relaxed">
+            {activeFilter === 'planejado'
+              ? 'Compromissos da Google Agenda e atividades/notas agendadas no pipeline aparecerão aqui automaticamente.'
+              : 'Grave um áudio ou digite acima para registrar o que aconteceu na sua rotina.'}
+          </p>
+        </div>
+      ) : (
+        /* Timeline List */
+        <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60">
+          {displayedEntries.map((entry) => {
+            const isPlanned = isEntryPlanned(entry);
+            const isVoice = entry.sourceType === 'voice';
+            const isSync = entry.sourceType === 'crm_sync';
+            const isEditing = editingId === entry.id;
+            const displayTime = extractEntryDisplayTime(entry) || formatTime(entry.entryTime);
 
-                  {/* Excluir com confirmação */}
-                  <button
-                    type="button"
-                    onClick={() => setEntryToDelete(entry)}
-                    title="Excluir este registro"
-                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+            // Detailed categorization for sync items
+            const isGoogleCal = isSync && (entry.rawContent.includes('[Google Agenda') || (!entry.activityId && !entry.dealId));
+            const isCrmActivity = isSync && (entry.rawContent.includes('[Atividade CRM') || Boolean(entry.activityId));
+            const isLeadNote = isSync && (entry.rawContent.includes('[Nota do Lead') || (Boolean(entry.dealId) && !entry.activityId));
+
+            // Extract pipeline stage if present
+            const stageMatch = entry.rawContent.match(/\[(?:Atividade CRM|Nota do Lead)\s*•\s*([^\]]+)\]/);
+            const stageName = stageMatch ? stageMatch[1].trim() : null;
+
+            return (
+              <div key={entry.id} className="relative group">
+                {/* Timeline Rail Dot */}
+                <div className={`absolute -left-6 top-3 w-5 h-5 rounded-full border-2 border-background bg-card flex items-center justify-center transition-colors shadow-sm ${
+                  isPlanned 
+                    ? 'text-blue-500 group-hover:border-blue-500' 
+                    : 'text-emerald-500 group-hover:border-emerald-500'
+                }`}>
+                  {isPlanned ? (
+                    isGoogleCal ? (
+                      <Calendar size={10} className="text-blue-500" />
+                    ) : isLeadNote ? (
+                      <Building size={10} className="text-amber-500" />
+                    ) : (
+                      <CalendarCheck2 size={10} className="text-indigo-500" />
+                    )
+                  ) : isVoice ? (
+                    <Mic size={10} className="text-rose-500" />
+                  ) : (
+                    <Sparkles size={10} className="text-emerald-500" />
+                  )}
                 </div>
 
-                {/* Raw Content */}
-                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                  {entry.rawContent}
-                </p>
-
-                {/* AI Extracted Signals (Non-intrusive) */}
-                {(hasContentSignals || hasLearning || signals?.emocao_contexto) && (
-                  <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
-                    {hasContentSignals && signals!.sinais_conteudo!.map((sinal, idx) => (
-                      <div
-                        key={idx}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-primary bg-primary/5 border border-primary/15 rounded-lg p-2.5"
-                      >
-                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                          <Lightbulb size={13} className="shrink-0 mt-0.5 text-primary" />
-                          <span className="leading-snug">
-                            <strong className="font-semibold">Sinal de Conteúdo:</strong> &ldquo;{sinal}&rdquo;
-                          </span>
-                        </div>
-                        {onCreateIdea && (
-                          <button
-                            type="button"
-                            onClick={() => onCreateIdea({
-                              title: sinal,
-                              description: `Originado do Daily em ${entry.entryDate} (${formatTime(entry.entryTime)}):\n"${entry.rawContent}"`,
-                              sourceType: 'daily',
-                              sourceId: entry.id
-                            })}
-                            className="shrink-0 self-end sm:self-auto text-[11px] font-semibold bg-primary/10 hover:bg-primary hover:text-primary-foreground text-primary px-2.5 py-1 rounded-md transition-all active:scale-95"
-                          >
-                            Transformar em ideia
-                          </button>
-                        )}
-                      </div>
-                    ))}
-
-                    {hasLearning && (
-                      <div className="flex items-start gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-lg px-2.5 py-1.5">
-                        <CheckCircle2 size={13} className="shrink-0 mt-0.5" />
-                        <span className="leading-snug">
-                          <strong className="font-semibold">Aprendizado:</strong> {signals!.aprendizado}
-                        </span>
-                      </div>
-                    )}
-
-                    {signals?.emocao_contexto && (
-                      <span className="inline-block text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        {signals.emocao_contexto}
+                {/* Entry Card */}
+                <div className={`bg-card border rounded-2xl p-4 shadow-sm transition-all hover:border-border/80 ${
+                  isPlanned ? 'border-blue-200/40 dark:border-blue-900/30' : 'border-border'
+                }`}>
+                  {/* Card Header with Badges */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Horário Cronológico */}
+                      <span className="text-xs font-mono font-semibold text-muted-foreground flex items-center gap-1">
+                        <Clock size={12} className="text-muted-foreground/70" />
+                        {displayTime}
                       </span>
-                    )}
-                  </div>
-                )}
 
-                {/* Ação manual de transformar nota simples em ideia */}
-                {!hasContentSignals && onCreateIdea && (
-                  <div className="mt-2.5 pt-2 border-t border-border/40 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => onCreateIdea({
-                        title: entry.rawContent.length > 70 ? `${entry.rawContent.substring(0, 70)}...` : entry.rawContent,
-                        description: `Originado do Daily em ${entry.entryDate} (${formatTime(entry.entryTime)}):\n"${entry.rawContent}"`,
-                        sourceType: 'daily',
-                        sourceId: entry.id
-                      })}
-                      className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 font-medium"
-                    >
-                      <Lightbulb size={11} />
-                      <span>Criar ideia desta anotação</span>
-                    </button>
+                      {/* Classificação Central: Planejado vs Acontecimento */}
+                      {isPlanned ? (
+                        <span className="text-[10px] font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <CalendarCheck2 size={10} className="text-blue-500" />
+                          Planejado
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Activity size={10} className="text-emerald-500" />
+                          Acontecimento
+                        </span>
+                      )}
+
+                      {/* Sub-Badges de Origem */}
+                      {isGoogleCal && (
+                        <span className="text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded flex items-center gap-1 border border-blue-500/20">
+                          <Calendar size={9} />
+                          Google Agenda
+                        </span>
+                      )}
+
+                      {isCrmActivity && (
+                        <span className="text-[10px] font-medium bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded flex items-center gap-1 border border-indigo-500/20">
+                          <CheckSquare size={9} />
+                          Atividade CRM
+                        </span>
+                      )}
+
+                      {isLeadNote && (
+                        <span className="text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-500/20">
+                          <Building size={9} />
+                          Nota do Lead
+                        </span>
+                      )}
+
+                      {/* Badge da Etapa do Pipeline */}
+                      {stageName && (
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${getStageColor(stageName)}`}>
+                          {stageName}
+                        </span>
+                      )}
+
+                      {isVoice && (
+                        <span className="text-[10px] font-medium bg-rose-500/10 text-rose-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-rose-500/20">
+                          <Mic size={9} />
+                          Áudio
+                        </span>
+                      )}
+
+                      {!isVoice && !isSync && (
+                        <span className="text-[10px] font-medium bg-slate-500/10 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded flex items-center gap-1 border border-slate-500/20">
+                          <FileText size={9} />
+                          Registro Rápido
+                        </span>
+                      )}
+
+                      {/* Link para Lead no CRM se dealId existir */}
+                      {entry.dealId && onOpenDeal && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenDeal(entry.dealId!)}
+                          title="Abrir detalhes deste lead no CRM"
+                          className="text-[10px] font-medium text-primary hover:underline inline-flex items-center gap-1 bg-primary/5 px-1.5 py-0.5 rounded border border-primary/20 transition-colors"
+                        >
+                          <Building size={9} />
+                          <span>Ver Lead</span>
+                        </button>
+                      )}
+
+                      {entry.isLocalOnly && (
+                        <span 
+                          title="Registro salvo no seu navegador. Está seguro e acessível."
+                          className="text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-500/20"
+                        >
+                          <CloudOff size={9} />
+                          Salvo localmente
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Ações: Editar e Excluir */}
+                    <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                      {!isEditing && onUpdateEntry && (
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(entry)}
+                          title="Editar anotação"
+                          className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setEntryToDelete(entry)}
+                        title="Excluir este registro"
+                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
-                )}
+
+                  {/* Raw Content or Edit Mode */}
+                  {isEditing ? (
+                    <div className="space-y-2 mt-2">
+                      <textarea
+                        value={editContent}
+                        onChange={e => setEditContent(e.target.value)}
+                        rows={3}
+                        className="w-full text-sm p-2.5 rounded-xl border border-input bg-background text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          disabled={isSavingEdit}
+                          className="px-2.5 py-1 rounded-lg border border-border text-xs text-muted-foreground hover:bg-muted transition-colors flex items-center gap-1"
+                        >
+                          <X size={12} />
+                          <span>Cancelar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveEdit(entry.id)}
+                          disabled={isSavingEdit || !editContent.trim()}
+                          className="px-3 py-1 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all flex items-center gap-1 shadow-sm"
+                        >
+                          {isSavingEdit ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                          <span>Salvar</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                      {cleanEntryContent(entry.rawContent)}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Modal de Confirmação de Exclusão (Radix UI) */}
       <Dialog open={!!entryToDelete} onOpenChange={(open) => { if (!open) setEntryToDelete(null); }}>
@@ -256,7 +445,7 @@ export default function DailyTimeline({
 
           {entryToDelete && (
             <div className="p-3 bg-muted/50 border border-border rounded-xl text-xs text-foreground/80 italic line-clamp-3">
-              &ldquo;{entryToDelete.rawContent}&rdquo;
+              &ldquo;{cleanEntryContent(entryToDelete.rawContent)}&rdquo;
             </div>
           )}
 
@@ -280,6 +469,6 @@ export default function DailyTimeline({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

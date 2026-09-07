@@ -1,16 +1,56 @@
 import { supabase } from '@/lib/supabase';
-import { ContentDailyEntry } from './contentService';
+import { ContentDailyEntry, DailyEntryType } from './contentService';
 import { Activity } from '@/types/schema';
 
 export interface CreateDailyEntryInput {
   rawContent: string;
   sourceType: 'text' | 'voice' | 'crm_sync' | 'file';
   entryDate?: string;
+  entryTime?: string;
   activityId?: string | null;
   dealId?: string | null;
+  entryType?: DailyEntryType;
 }
 
 const LOCAL_STORAGE_KEY = 'vamus_daily_entries_fallback';
+
+export function extractEntryDisplayTime(entry: ContentDailyEntry): string {
+  if (entry.entryTime) {
+    const parts = entry.entryTime.split(':');
+    if (parts.length >= 2) {
+      return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    }
+  }
+  const match = entry.rawContent?.match(/às\s+(\d{1,2}):(\d{2})/);
+  if (match) {
+    return `${match[1].padStart(2, '0')}:${match[2]}`;
+  }
+  if (entry.createdAt) {
+    try {
+      const d = new Date(entry.createdAt);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+    } catch {}
+  }
+  return '';
+}
+
+export function cleanEntryContent(content?: string | null): string {
+  if (!content) return '';
+  return content.replace(/<!--\s*gcal_id:[^>]+-->/g, '').trim();
+}
+
+export function sortEntriesChronologically(entries: ContentDailyEntry[]): ContentDailyEntry[] {
+  return [...entries].sort((a, b) => {
+    const timeA = extractEntryDisplayTime(a) || '99:99';
+    const timeB = extractEntryDisplayTime(b) || '99:99';
+    if (timeA !== timeB) {
+      return timeA.localeCompare(timeB);
+    }
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
+}
 
 function getLocalFallback(date: string): ContentDailyEntry[] {
   try {
@@ -18,9 +58,15 @@ function getLocalFallback(date: string): ContentDailyEntry[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) 
-      ? parsed
-          .filter(e => e.entryDate === date)
-          .map(e => ({ ...e, isLocalOnly: true }))
+      ? sortEntriesChronologically(
+          parsed
+            .filter(e => e.entryDate === date)
+            .map(e => ({
+              ...e,
+              isLocalOnly: true,
+              entryType: e.entryType || (e.sourceType === 'crm_sync' ? 'planejado' : 'acontecimento'),
+            }))
+        )
       : [];
   } catch {
     return [];
@@ -54,6 +100,7 @@ function removeLocalFallback(id: string) {
  * Maps Supabase snake_case row to frontend ContentDailyEntry model
  */
 function mapRowToEntry(row: any): ContentDailyEntry {
+  const isSync = row.source_type === 'crm_sync';
   return {
     id: row.id,
     userId: row.user_id,
@@ -63,6 +110,7 @@ function mapRowToEntry(row: any): ContentDailyEntry {
     sourceType: row.source_type,
     activityId: row.activity_id,
     dealId: row.deal_id,
+    entryType: row.entry_type || (isSync ? 'planejado' : 'acontecimento'),
     aiStatus: row.ai_status,
     aiSummary: row.ai_summary,
     aiSignals: row.ai_signals,
@@ -73,7 +121,7 @@ function mapRowToEntry(row: any): ContentDailyEntry {
 }
 
 /**
- * Fetches all entries for a specific day
+ * Fetches all entries for a specific day in chronological order
  */
 export async function fetchDailyEntries(date: string): Promise<ContentDailyEntry[]> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -85,7 +133,7 @@ export async function fetchDailyEntries(date: string): Promise<ContentDailyEntry
       .select('*')
       .eq('user_id', user.id)
       .eq('entry_date', date)
-      .order('created_at', { ascending: true });
+      .order('entry_time', { ascending: true });
 
     if (error) {
       // If table doesn't exist yet in Supabase, gracefully use local storage
@@ -97,7 +145,8 @@ export async function fetchDailyEntries(date: string): Promise<ContentDailyEntry
       return getLocalFallback(date);
     }
 
-    return (data || []).map(mapRowToEntry);
+    const mapped = (data || []).map(mapRowToEntry);
+    return sortEntriesChronologically(mapped);
   } catch (err) {
     console.error('Exception fetching daily entries:', err);
     return getLocalFallback(date);
@@ -113,7 +162,12 @@ export async function createDailyEntry(input: CreateDailyEntryInput): Promise<Co
 
   const now = new Date();
   const todayStr = input.entryDate || now.toISOString().split('T')[0];
-  const timeStr = now.toTimeString().split(' ')[0];
+  let timeStr = input.entryTime || now.toTimeString().split(' ')[0];
+  if (timeStr && timeStr.length === 5) {
+    timeStr = `${timeStr}:00`;
+  }
+  const isSync = input.sourceType === 'crm_sync';
+  const entryType = input.entryType || (isSync ? 'planejado' : 'acontecimento');
 
   const tempId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `daily_${Date.now()}`;
 
@@ -126,6 +180,7 @@ export async function createDailyEntry(input: CreateDailyEntryInput): Promise<Co
     sourceType: input.sourceType,
     activityId: input.activityId || null,
     dealId: input.dealId || null,
+    entryType,
     aiStatus: 'pending',
     aiSummary: null,
     aiSignals: null,
@@ -209,9 +264,26 @@ export async function deleteDailyEntry(id: string): Promise<boolean> {
  * Updates a daily entry by ID
  */
 export async function updateDailyEntry(id: string, updates: Partial<ContentDailyEntry>): Promise<boolean> {
+  // Update local fallback immediately
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (raw) {
+      const list: ContentDailyEntry[] = JSON.parse(raw);
+      const idx = list.findIndex(e => e.id === id);
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...updates, updatedAt: new Date().toISOString() };
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(list));
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to update daily entry fallback:', err);
+  }
+
   try {
     const snakeUpdates: any = {};
     if (updates.rawContent !== undefined) snakeUpdates.raw_content = updates.rawContent;
+    if (updates.entryTime !== undefined) snakeUpdates.entry_time = updates.entryTime;
+    if (updates.entryDate !== undefined) snakeUpdates.entry_date = updates.entryDate;
     if (updates.aiStatus !== undefined) snakeUpdates.ai_status = updates.aiStatus;
     if (updates.aiSummary !== undefined) snakeUpdates.ai_summary = updates.aiSummary;
     if (updates.aiSignals !== undefined) snakeUpdates.ai_signals = updates.aiSignals;
@@ -297,9 +369,67 @@ export async function triggerDailyAnalysis(entry: ContentDailyEntry): Promise<vo
       },
       body: JSON.stringify({
         entryId: entry.id,
+        rawContent: entry.rawContent,
       })
     }).catch(err => console.debug('Daily AI analyze fetch error (quiet):', err));
   } catch (err) {
     console.debug('Failed to trigger daily analysis:', err);
+  }
+}
+
+/**
+ * Triggers backend AI analysis and returns the updated entry with signals
+ */
+export async function analyzeDailyEntryDirectly(entry: ContentDailyEntry): Promise<ContentDailyEntry | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    console.warn('Cannot trigger daily AI analysis: No active auth session');
+    return null;
+  }
+
+  try {
+    const response = await fetch('/api/content/daily/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        entryId: entry.id,
+        rawContent: entry.rawContent,
+      })
+    });
+
+    if (!response.ok) {
+      console.warn('AI analysis request returned error:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    if (data.success && data.analysis) {
+      const updated: ContentDailyEntry = {
+        ...entry,
+        aiStatus: 'processed',
+        aiSignals: data.analysis,
+        aiSummary: data.analysis.aprendizado || (data.analysis.fatos && data.analysis.fatos[0]) || null,
+        updatedAt: new Date().toISOString()
+      };
+
+      saveLocalFallback(updated);
+
+      updateDailyEntry(entry.id, {
+        aiStatus: 'processed',
+        aiSignals: data.analysis,
+        aiSummary: updated.aiSummary,
+      }).catch(() => {});
+
+      return updated;
+    }
+    return null;
+  } catch (err) {
+    console.error('Exception analyzing daily entry:', err);
+    return null;
   }
 }

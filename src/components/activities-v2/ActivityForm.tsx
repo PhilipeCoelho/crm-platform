@@ -31,7 +31,7 @@ const QUICK_ACTIONS = [
     { type: 'message', icon: MessageSquare, label: 'Mensagem', template: (name: string) => `Mensagem para ${name}` },
     { type: 'email', icon: Mail, label: 'E-mail', template: (name: string) => `Enviar e-mail para ${name}` },
     { type: 'call', icon: Phone, label: 'Ligação', template: (name: string) => `Ligar para ${name}` },
-    { type: 'task', icon: CheckCircle2, label: 'Tarefa', template: () => `Tarefa:` },
+    { type: 'task', icon: CheckCircle2, label: 'Tarefa', template: (name?: string) => name ? `Tarefa: ${name}` : `Tarefa:` },
     { type: 'meeting', icon: Users, label: 'Reunião', template: (name: string) => `Reunião com ${name}` },
 ];
 
@@ -63,8 +63,20 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
 
     const handleQuickAction = (action: typeof QUICK_ACTIONS[0]) => {
         setSelectedType(action.type);
-        if (!title.trim() || QUICK_ACTIONS.some(a => title.startsWith(a.template(contactName)))) {
-            setTitle(action.template(contactName));
+        const effectiveName = contactName || deal?.title || 'Cliente';
+        if (!title.trim()) {
+            setTitle(action.template(effectiveName));
+            return;
+        }
+
+        const actionPrefixRegex = /^(ligar para|mensagem para|enviar e-?mail para|e-?mail para|reunião com|tarefa:?)\s*/i;
+        const match = title.match(actionPrefixRegex);
+
+        if (match) {
+            const subject = title.replace(actionPrefixRegex, '').trim() || effectiveName;
+            setTitle(action.template(subject));
+        } else if (QUICK_ACTIONS.some(a => title.startsWith(a.template(contactName)))) {
+            setTitle(action.template(effectiveName));
         }
     };
 
@@ -79,7 +91,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                 title,
                 dealId: deal.id,
                 dueDate: `${date}T${time}:00.000`,
-                duration: 30,
+                duration: initialData?.duration || 30,
                 completed: false,
                 status: 'pending'
             };

@@ -13,6 +13,7 @@ import CompleteActivityModal from '@/components/activities-v2/CompleteActivityMo
 import NewActivityModal from '@/components/activities-v2/NewActivityModal';
 import { useVoiceTranscription } from '@/hooks/useVoiceTranscription';
 import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
+import { PrivacyActivityTitle } from '@/components/ui/PrivacyMask';
 
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   call:      { label: 'Ligar',   icon: 'phone',    color: 'var(--ax-blue)',   bg: 'var(--ax-blue-bg)' },
@@ -234,7 +235,7 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
         onClick={() => setSelectedId(a.id)}
       >
         <span className="ax-queue-idx">{idx + 2}</span>
-        <span className="ax-queue-title">{a.title}</span>
+        <span className="ax-queue-title"><PrivacyActivityTitle title={a.title} /></span>
         <span className={`ax-queue-deal ${blur}`}>{deal?.title}</span>
         <span className={`ax-queue-value ${blur}`}>{deal ? fmtMoney(deal.value, currency) : ''}</span>
         <span className={`ax-queue-time ax-card-time--${due <= -14 ? 'critical' : due < 0 ? 'warn' : 'normal'}`}>
@@ -383,10 +384,10 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
                         title="Pesquisar no Google"
                         className="ax-focus-title-link"
                       >
-                        {currentHero.title}
+                        <PrivacyActivityTitle title={currentHero.title} />
                       </a>
                     ) : (
-                      currentHero.title
+                      <PrivacyActivityTitle title={currentHero.title} />
                     )}
                   </h1>
                   <div className="ax-exec-meta" style={isFocusMode ? { fontSize: 13, marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' } : {}}>

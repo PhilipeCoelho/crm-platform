@@ -15,14 +15,14 @@ import { LeadProcessor } from './utils/leadProcessor.js';
 import { encrypt, decrypt } from './utils/crypto.js';
 import { sendMetaCAPIEvent, testMetaConnection } from './utils/capiSender.js';
 
-const LOG_FILE = '/tmp/crm_server.log';
+const LOG_FILE = path.join(process.cwd(), 'crm_server.log');
 function logToFile(msg) {
     const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${msg}`);
     try {
-        console.log(`[${timestamp}] ${msg}`);
         fs.appendFileSync(LOG_FILE, `[${timestamp}] ${msg}\n`);
-    } catch (e) {
-        console.error('Logging failed:', e);
+    } catch {
+        // Silently catch file log errors if filesystem is read-only
     }
 }
 
@@ -2069,38 +2069,47 @@ Retorne EXCLUSIVAMENTE neste formato JSON, sem nenhum texto antes ou depois:
 // CONTENT INTELLIGENCE — DAILY ANALYSIS
 // ==========================================
 app.post('/api/content/daily/analyze', authenticate, async (req, res) => {
-    const { entryId } = req.body;
+    const { entryId, rawContent: directContent } = req.body || {};
     const authenticatedUserId = req.user?.sub;
-
-    if (!entryId) {
-        return res.status(400).json({ error: 'entryId is required' });
-    }
 
     if (!authenticatedUserId) {
         return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
     }
 
-    // Validate that the entry exists and strictly belongs to the authenticated user
+    if (!entryId && (!directContent || !directContent.trim())) {
+        return res.status(400).json({ error: 'entryId or rawContent is required' });
+    }
+
     const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         global: { headers: { Authorization: `Bearer ${req.jwt}` } }
     });
 
     try {
-        const { data: entry, error: fetchErr } = await userSupabase
-            .from('content_daily_entries')
-            .select('id, user_id, raw_content')
-            .eq('id', entryId)
-            .eq('user_id', authenticatedUserId)
-            .single();
+        let rawContent = (directContent || '').trim();
+        let dbEntryFound = false;
 
-        if (fetchErr || !entry) {
-            logToFile(`⛔ [Daily AI] Access denied or entry not found: entryId=${entryId}, user=${authenticatedUserId}`);
-            return res.status(403).json({ error: 'Entry not found or access denied' });
+        if (entryId) {
+            try {
+                const { data: entry, error: fetchErr } = await userSupabase
+                    .from('content_daily_entries')
+                    .select('id, user_id, raw_content')
+                    .eq('id', entryId)
+                    .eq('user_id', authenticatedUserId)
+                    .single();
+
+                if (!fetchErr && entry) {
+                    dbEntryFound = true;
+                    if (!rawContent) {
+                        rawContent = (entry.raw_content || '').trim();
+                    }
+                }
+            } catch (_) {
+                // Table might not exist or entry might be local-only
+            }
         }
 
-        const rawContent = entry.raw_content;
-        if (!rawContent || !rawContent.trim()) {
-            return res.status(400).json({ error: 'Entry has no text content to analyze' });
+        if (!rawContent) {
+            return res.status(400).json({ error: 'No text content available to analyze' });
         }
 
         const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -2109,13 +2118,7 @@ app.post('/api/content/daily/analyze', authenticate, async (req, res) => {
             return res.json({ success: false, reason: 'ANTHROPIC_API_KEY not set' });
         }
 
-        // Acknowledge immediately to avoid blocking client
-        res.status(200).json({ success: true, status: 'processing_async' });
-
-        // Process asynchronously
-        (async () => {
-            try {
-                const systemPrompt = `Você é um analisador de memória diária de um profissional de negócios, vendas e marketing.
+        const systemPrompt = `Você é um analisador de memória diária de um profissional de negócios, vendas e marketing.
 Você vai receber o relato de um acontecimento do dia a dia (reunião, fechamento, frustração, problema técnico, reflexão de rotina).
 
 Sua tarefa:
@@ -2132,83 +2135,213 @@ Retorne EXCLUSIVAMENTE em formato JSON sem markdown:
   "sinais_conteudo": ["tese de conteúdo 1"]
 }`;
 
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01',
-                        'content-type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-sonnet-4-6',
-                        max_tokens: 800,
-                        system: systemPrompt,
-                        messages: [
-                            { role: 'user', content: rawContent }
-                        ]
-                    })
-                });
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 800,
+                system: systemPrompt,
+                messages: [
+                    { role: 'user', content: rawContent }
+                ]
+            })
+        });
 
-                if (!response.ok) {
-                    const errText = await response.text();
-                    logToFile(`❌ [Daily AI] Anthropic error: ${response.status} - ${errText}`);
-                    await userSupabase
-                        .from('content_daily_entries')
-                        .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
-                        .eq('id', entryId)
-                        .eq('user_id', authenticatedUserId);
-                    return;
-                }
-
-                const data = await response.json();
-                const text = data?.content?.[0]?.text;
-                if (!text) {
-                    await userSupabase
-                        .from('content_daily_entries')
-                        .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
-                        .eq('id', entryId)
-                        .eq('user_id', authenticatedUserId);
-                    return;
-                }
-
-                let cleaned = text.trim();
-                if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
-                if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
-                if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
-                cleaned = cleaned.trim();
-
-                const parsed = JSON.parse(cleaned);
-
+        if (!response.ok) {
+            const errText = await response.text();
+            logToFile(`❌ [Daily AI] Anthropic error: ${response.status} - ${errText}`);
+            if (dbEntryFound && entryId) {
                 await userSupabase
                     .from('content_daily_entries')
-                    .update({
-                        ai_status: 'processed',
-                        ai_summary: parsed.aprendizado || (parsed.fatos && parsed.fatos[0]) || null,
-                        ai_signals: parsed,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
                     .eq('id', entryId)
                     .eq('user_id', authenticatedUserId);
-
-                logToFile(`✅ [Daily AI] Entry ${entryId} analyzed and saved successfully for user ${authenticatedUserId}`);
-            } catch (err) {
-                logToFile(`❌ [Daily AI] Exception analyzing entry ${entryId}: ${err.message}`);
-                try {
-                    await userSupabase
-                        .from('content_daily_entries')
-                        .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
-                        .eq('id', entryId)
-                        .eq('user_id', authenticatedUserId);
-                } catch (updateErr) {
-                    logToFile(`❌ [Daily AI] Failed to set status=failed: ${updateErr.message}`);
-                }
             }
-        })();
+            return res.status(502).json({ error: `Anthropic API error: ${response.status}` });
+        }
+
+        const data = await response.json();
+        const text = data?.content?.[0]?.text;
+        if (!text) {
+            if (dbEntryFound && entryId) {
+                await userSupabase
+                    .from('content_daily_entries')
+                    .update({ ai_status: 'failed', updated_at: new Date().toISOString() })
+                    .eq('id', entryId)
+                    .eq('user_id', authenticatedUserId);
+            }
+            return res.status(502).json({ error: 'AI returned empty response' });
+        }
+
+        let cleaned = text.trim();
+        if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+        if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+        if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+        cleaned = cleaned.trim();
+
+        const parsed = JSON.parse(cleaned);
+
+        if (dbEntryFound && entryId) {
+            await userSupabase
+                .from('content_daily_entries')
+                .update({
+                    ai_status: 'processed',
+                    ai_summary: parsed.aprendizado || (parsed.fatos && parsed.fatos[0]) || null,
+                    ai_signals: parsed,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', entryId)
+                .eq('user_id', authenticatedUserId);
+        }
+
+        logToFile(`✅ [Daily AI] Entry analyzed successfully (entryId=${entryId || 'direct'})`);
+        return res.json({
+            success: true,
+            status: 'processed',
+            analysis: parsed,
+        });
+
     } catch (e) {
-        logToFile(`❌ [Daily AI] Validation exception: ${e.message}`);
+        logToFile(`❌ [Daily AI] Exception: ${e.message}`);
         return res.status(500).json({ error: e.message });
     }
 });
+
+// ==========================================
+// CONTENT INTELLIGENCE — CONTENT PLAYBOOK (CONFIRMED MARKET KNOWLEDGE)
+// ==========================================
+const DEFAULT_CONTENT_PLAYBOOK = {
+    objetivo: `Objetivo fixo do sistema: crescer a audiência do Instagram pessoal do Phil com empresários e profissionais de saúde em Portugal como seguidores, convertendo em clientes do serviço de marketing/aquisição de pacientes. Todo conteúdo gerado deve passar pelo filtro: "isto aproxima ou afasta esse público de querer seguir e depois contratar?"`,
+
+    persona: `Nome de referência: "Dr. Ricardo" — representa o profissional de saúde em Portugal (dono de clínica de qualquer especialidade, ou profissional que precisa gerar procura/pacientes/crescimento).
+
+Características:
+- Depende de indicação como principal fonte de novos pacientes
+- Parou de postar/atualizar redes sociais há meses
+- Não responde leads em menos de 4 horas
+- Tem medo de gastar em anúncios sem ver retorno
+- Trabalha muito e cresce pouco — sente que "ser bom" devia bastar
+- Não sabe a diferença entre ter anúncio ativo e ter estratégia
+
+Filtro de toda ideia: "O Dr. Ricardo pararia de rolar o feed?" e "Ele pensaria 'esse cara está falando de mim' — não 'mais uma dica de marketing'?"`,
+
+    pilares: `Todo conteúdo se classifica em 1 destes 5 pilares:
+1. Visibilidade — ser encontrado vs. ser bom
+2. Agência — bastidores da construção da Vamuss
+3. Marketing — educação sobre aquisição, anúncios, funil
+4. Vida — conflitos pessoais reais (pai, dois empregos, Portugal)
+5. Mentalidade de Execução — a luta real entre planejar e executar (não é motivação vazia — é mostrar a procrastinação, a desculpa, a decisão de agir)`,
+
+    andar_funil: `Todo conteúdo se classifica em 1 destes 3 andares — a métrica-alvo muda conforme:
+- TOPO (atrair, alcance amplo, sem venda) → métrica: reach, compartilhamentos, seguidores novos
+- MEIO (gerar confiança, mostrar que entende o problema) → métrica: comentários, salvamentos, DMs
+- FUNDO (qualificar e converter) → métrica: formulários, reuniões marcadas, clientes fechados
+Nunca julgar um post de Topo pela ausência de saves, nem um post de Fundo pela ausência de reach viral — cada andar tem sua própria função.`,
+
+    formatos: `Catálogo de 13 formatos — usar para variar e não repetir estrutura:
+1. Sem voz — processos, transformações, demonstrações visuais
+2. Direto ao ponto — perguntas, respostas, opiniões, conceitos simples
+3. Caixinha de perguntas — pergunta relevante → resposta → explicação → conclusão
+4. Lo-fi / gravar de cara — conversa direta com câmera; ideal para opinião, experiência, autoridade, identificação, histórias pessoais
+5. Imersivo — espectador dentro da situação (ambiente real, câmera em movimento)
+6. Trend com texto — adaptar tendências ao tema, nunca virar a estratégia inteira
+7. Tela dividida — fala enquanto mostra prints/anúncios/conversas/números reais
+8. Remix — pega conteúdo de outro e acrescenta análise/opinião/discordância argumentada (nunca só reagir)
+9. Sequência — mostra trecho de outro conteúdo, depois analisa/explica
+10. Clone — duas versões da mesma pessoa no vídeo; ótimo para Objeção→Solução
+11. Faz e Fala — executa uma atividade real enquanto fala sobre o tema
+12. Carrossel em vídeo — sequência de telas/textos dentro do Reels
+13. Vídeo 15s + legenda — gancho forte, promessa, direciona para legenda completa
+
+Regra: Formato ≠ Gancho — são camadas diferentes, sempre combinar as duas. Formato pode ser copiado (já existe); a personalidade e o ponto de vista dentro dele, não.`,
+
+    ganchos: `7 estruturas de gancho:
+1. Contradição — fórmula: "[crença comum] NA VERDADE [efeito oposto]". Regras: sempre fechar o ciclo (nunca parar em "na verdade..." sem completar a consequência); ser específico, nunca genérico; traduzir conceitos abstratos em ação/cena concreta; o gancho não é o roteiro inteiro, é só a abertura.
+2. Erro comum
+3. Pergunta
+4. Número/dado
+5. História
+6. "Se... então"
+7. Confissão
+
+O gancho deve: parar o feed, despertar interesse da pessoa certa, dar motivo pra continuar. Nunca abrir morno ("hoje eu vou falar sobre...", "você sabia que..." genérico). Combinar texto na tela + visual + fala desde o primeiro frame. Curiosidade só funciona com especificidade — "cuidado com ele" é fraco; "cuidado com esse erro no WhatsApp da sua clínica" funciona.`,
+
+    cta: `Banco por objetivo:
+- Comentário: "o que você acha?", "A ou B? comenta", "comenta X e eu te envio Y"
+- Salvamento: "salva esse Reels pra ele te salvar no futuro"
+- Compartilhamento: "compartilha com alguém que precisa ver agora"
+- Seguidor: "siga se você tá cansado desse problema"
+- Venda: "vá ao meu perfil pra [benefício]" (não precisa aparecer em todo conteúdo)
+
+Regra: escolher UMA ação só por vídeo. CTA não precisa ser só no final — pode vir no meio da estrutura se fizer mais sentido.`,
+
+    estrutura_tempo: `Lógica geral: Gancho (0:00-0:03) → Benefício se necessário (0:04-0:08) → Desenvolvimento com ilustração visual (0:09 até 0:30/0:40) → CTA → Porta na cara.
+
+PORTA NA CARA: terminar ANTES da pessoa perceber que acabou. Nunca despedida longa tipo "então pessoal é isso", "espero que tenha gostado". Fechar a ideia rápido e cortar.
+
+Duração: não encurtar artificialmente — perguntar "qual o menor tempo pra entregar exatamente o que preciso?". Faixa comum em virais: 35-45s. 15s também funciona em formatos específicos (ex: vídeo 15s + legenda).
+
+MOSTRAR > FALAR sempre: ilustrar com prints, telas, gravações reais, exemplos, tela dividida — nunca stock footage genérico.`,
+
+    processo_criacao: `8 etapas ao gerar uma ideia:
+1. IDEIA — precisa ter tensão/curiosidade/identificação/utilidade/opinião/contraste/história/descoberta/erro/problema/transformação
+2. ÂNGULO — a mesma ideia gera vários vídeos diferentes; escolher o ângulo mais interessante, não só o tema (ex: tema "anúncios pra clínica" → ângulos: "o problema não é seu orçamento" / "você pode estar comprando cliques que nunca viram pacientes" / "antes de aumentar orçamento, responda 3 perguntas")
+3. GANCHO — "isso me faria parar o scroll?" Se não, reescrever
+4. BENEFÍCIO — se o gancho não deixa claro o ganho, adicionar logo depois
+5. DESENVOLVIMENTO — uma ideia central só, cortar contexto desnecessário
+6. ILUSTRAÇÃO — o que posso mostrar enquanto falo?
+7. CTA — uma ação principal só
+8. PORTA NA CARA — eliminar despedidas, terminar rápido
+
+Pergunta mais importante antes de publicar: "por que alguém que não me conhece deveria assistir isso?" — "é informação importante" sozinho não basta.`,
+
+    etica_saude: `Regra dura, sempre aplicar em conteúdo sobre saúde:
+- Não prometer resultados
+- Não garantir número de pacientes
+- Não fazer comparação indevida com outros profissionais
+- Não usar imagem de paciente sem consentimento
+- Evitar exagero
+- Manter comunicação educativa
+- Respeitar regras da entidade reguladora do profissional (ex: Ordem dos Médicos Dentistas em Portugal)
+Estratégia viral nunca ultrapassa a ética.`,
+
+    checklist_pre_publicacao: `Checklist de verificação antes de gravar/publicar:
+- Gancho: para o scroll? tem tensão? é específico? evita introdução genérica?
+- Benefício: a pessoa sabe o que ganha?
+- Desenvolvimento: ideia central única? dá pra cortar frase? chego rápido ao ponto?
+- Visual: estou mostrando ou só falando? tem prova visual real?
+- CTA: pedi uma ação? é só uma? faz sentido pro conteúdo?
+- Final: existe despedida desnecessária? posso fechar mais rápido?
+- Autenticidade: isso realmente aconteceu, ou estou inventando uma situação que o Phil não viveu/relatou? (NUNCA inventar visitas, reuniões, análises de clínica, números ou situações não confirmadas pelo Phil)`
+};
+
+async function fetchContentPlaybook(userSupabase) {
+    try {
+        const { data, error } = await userSupabase
+            .from('content_playbook')
+            .select('secao, conteudo')
+            .eq('status', 'confirmed');
+
+        if (error || !data || data.length === 0) {
+            return DEFAULT_CONTENT_PLAYBOOK;
+        }
+
+        const playbook = { ...DEFAULT_CONTENT_PLAYBOOK };
+        for (const row of data) {
+            if (row.secao && row.conteudo) {
+                playbook[row.secao] = row.conteudo;
+            }
+        }
+        return playbook;
+    } catch (_) {
+        return DEFAULT_CONTENT_PLAYBOOK;
+    }
+}
 
 // ==========================================
 // CONTENT INTELLIGENCE — CONNECTION ENGINE / OPPORTUNITIES
@@ -2303,6 +2436,9 @@ app.post('/api/content/opportunities/generate', authenticate, async (req, res) =
             logToFile(`⚠️ [Opportunities Engine] Learnings fetch warning: ${learningsErr.message}`);
         }
 
+        // 6. Fetch Content Playbook (Confirmed external market knowledge)
+        const playbook = await fetchContentPlaybook(userSupabase);
+
         const validDaily = dailyEntries || [];
         const validCrm = crmInsights || [];
         const validIdeas = existingIdeas || [];
@@ -2347,6 +2483,13 @@ Princípios inegociáveis:
    - A lista "confirmed_learnings" contém princípios já validados pelo próprio Phil com dados reais do canal.
    - Utilize esses aprendizados como contexto estratégico para enriquecer e calibrar o ângulo ou tese da oportunidade quando forem pertinentes.
    - O Learning é CONTEXTO: NÃO force a aplicação artificial se o sinal do dia não tiver relação com ele.
+8. "CONTENT PLAYBOOK (DIRETRIZES ESTRATÉGICAS DE MERCADO) — CONTEXTO E CALIBRAÇÃO":
+   - O Playbook contém diretrizes de mercado já validadas externamente para o posicionamento do Phil.
+   - PÚBLICO E PERSONA ALVO ("Dr. Ricardo"): Dono de clínica/profissional de saúde em Portugal. Depende de indicação, não responde leads rápido, tem medo de tráfego pago sem retorno, trabalha muito e cresce pouco.
+   - OBJETIVO E FILTRO: Crescer o Instagram pessoal do Phil com empresários e profissionais de saúde em Portugal, convertendo em clientes de marketing/aquisição de pacientes. Toda oportunidade deve passar pelo filtro: "isto aproxima ou afasta esse público de querer seguir e depois contratar?"
+   - 5 PILARES DE CONTEÚDO: Visibilidade (ser encontrado vs ser bom), Agência (bastidores Vamuss), Marketing (aquisição/anúncios/funil), Vida (conflitos reais, pai, 2 empregos, Portugal), Mentalidade de Execução (luta real de executar vs planejar).
+   - ÉTICA EM SAÚDE: Nunca prometer resultados, nunca garantir número de pacientes, respeito à OMD Portugal, comunicação educativa.
+   - REGRA FUNDAMENTAL: O Playbook é CONTEXTO e CALIBRAÇÃO, NUNCA ORDEM ABSOLUTA. Utilize para afiar o ângulo e a relevância para o Dr. Ricardo, SEM forçar aplicação artificial caso o acontecimento do dia seja diferente.
 
 Tipos de Conexões Válidas:
 - Daily + CRM: Uma vivência pessoal que ilustra na prática uma dor ou objeção recorrente registrada no CRM.
@@ -2407,7 +2550,14 @@ Retorne EXCLUSIVAMENTE um array JSON válido sem markdown em volta:
                 learning: l.learning,
                 type: l.type,
                 application: l.application
-            }))
+            })),
+            content_playbook: {
+                objetivo: playbook.objetivo,
+                persona: playbook.persona,
+                pilares: playbook.pilares,
+                andar_funil: playbook.andar_funil,
+                etica_saude: playbook.etica_saude
+            }
         };
 
         const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2672,6 +2822,9 @@ app.post('/api/content/production/structure', authenticate, async (req, res) => 
 
         const validLearnings = confirmedLearnings || [];
 
+        // Fetch Content Playbook (Confirmed external market knowledge)
+        const playbook = await fetchContentPlaybook(userSupabase);
+
         const title = bodyTitle || idea?.title || 'Conteúdo Estratégico';
         const description = bodyDesc || idea?.description || '';
         const format = bodyFormat || idea?.format || 'reel';
@@ -2699,6 +2852,20 @@ Princípios inegociáveis:
    - Você receberá a lista "confirmed_learnings" de princípios já validados pelo próprio Phil através do histórico de performance do canal.
    - Considere esses aprendizados como princípios operacionais de alta eficácia e aplique-os no roteiro, gancho, ângulo ou CTA SEMPRE que forem pertinentes ao tema e formato.
    - Não force a aplicação de todos os aprendizados caso não façam sentido com o tema; priorize a coerência e relevância.
+6. "CONTENT PLAYBOOK (DIRETRIZES TÉCNICAS E ESTRUTURAIS) — CONTEXTO E CALIBRAÇÃO":
+   - Você tem acesso ao Content Playbook oficial ("content_playbook"), compilado de referências validadas de mercado.
+   - GANCHOS (7 estruturas comprovadas):
+     1. Contradição — fórmula: "[crença comum] NA VERDADE [efeito oposto]" (sempre fechar o ciclo de consequência; traduzir em cena concreta).
+     2. Erro comum, 3. Pergunta, 4. Número/dado, 5. História, 6. "Se... então", 7. Confissão.
+     Combine texto na tela + visual + fala desde o 1º frame. Evite aberturas mornas ("hoje eu vou falar sobre...", "você sabia que...").
+   - CATÁLOGO DE FORMATOS: Aplique o formato correspondente ("${format}") usando o catálogo do Playbook (ex: Lo-fi conversa direta, Tela dividida com prints/números reais, Faz e Fala, Clone para Objeção->Solução, etc.). Formato ≠ Gancho: combine ambos.
+   - ESTRUTURA DE TEMPO & PORTA NA CARA:
+     Gancho (0:00-0:03) → Benefício (0:04-0:08) → Desenvolvimento visual (mostrar > falar) → CTA → PORTA NA CARA.
+     PORTA NA CARA: Termine ANTES da pessoa perceber que acabou. ZERO despedidas longas ("é isso pessoal", "espero que tenham gostado"). Feche rápido e corte.
+   - BANCO DE CTA: Escolha apenas UMA ação principal por vídeo (Comentário, Salvamento, Compartilhamento, Seguidor ou Venda).
+   - ÉTICA EM SAÚDE: Sem promessas de resultado, sem garantia de pacientes, tom educativo e respeito à regulação de profissionais de saúde em Portugal (OMD).
+   - CHECKLIST DE AUTENTICIDADE: NUNCA inventar visitas, análises de clínicas, números ou reuniões que o Phil não viveu ou relatou.
+   - REGRA: O Playbook é CONTEXTO E FERRAMENTAL. Utilize para estruturar um roteiro dinâmico, autêntico e de alta conversão, sem engessar.
 
 Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no formato:
 {
@@ -2707,7 +2874,9 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no fo
   "body_script": "Roteiro ou estrutura completa do corpo dividida em tópicos claros e objetivos",
   "cta": "Chamada para ação natural e alinhada ao objetivo comercial ou de relacionamento",
   "notes": "Dicas de gravação, ritmo, elementos visuais ou tom de voz"
-}`;
+}
+
+Observação importante: no campo "notes", se alguma regra do playbook ou learning confirmado inspirou a estrutura escolhida, mencione brevemente como rastreabilidade (ex: "Playbook: Gancho de Contradição + Formato Lo-fi").`;
 
         const userPayload = {
             title,
@@ -2729,6 +2898,15 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido (sem tags markdown em volta) no fo
                 type: l.type,
                 application: l.application
             })),
+            content_playbook: {
+                formatos: playbook.formatos,
+                ganchos: playbook.ganchos,
+                cta: playbook.cta,
+                estrutura_tempo: playbook.estrutura_tempo,
+                processo_criacao: playbook.processo_criacao,
+                etica_saude: playbook.etica_saude,
+                checklist_pre_publicacao: playbook.checklist_pre_publicacao
+            },
             current_draft: currentWorkspace || null
         };
 
@@ -3666,6 +3844,204 @@ Retorne EXCLUSIVAMENTE um array JSON de objetos no formato:
     } catch (e) {
         logToFile(`❌ [Orchestration AI] Critical error: ${e.message}`);
         return res.status(500).json({ error: e.message });
+    }
+});
+
+// ==========================================
+// CALENDAR INTEGRATION — GOOGLE CALENDAR / ICAL FEED
+// ==========================================
+
+function unescapeICalString(str) {
+    if (!str) return '';
+    return str
+        .replace(/\\n/g, '\n')
+        .replace(/\\,/g, ',')
+        .replace(/\\;/g, ';')
+        .replace(/\\\\/g, '\\');
+}
+
+function parseICalDateTime(dateStr, keyPart = '') {
+    if (!dateStr) return null;
+    const isAllDay = !dateStr.includes('T');
+    if (isAllDay) {
+        const y = dateStr.slice(0, 4);
+        const m = dateStr.slice(4, 6);
+        const d = dateStr.slice(6, 8);
+        return {
+            dateStr: `${y}-${m}-${d}`,
+            timeStr: null,
+            isAllDay: true,
+            iso: `${y}-${m}-${d}T00:00:00.000Z`
+        };
+    }
+
+    const isUTC = dateStr.endsWith('Z');
+    const clean = dateStr.replace('Z', '');
+    const [dateP, timeP] = clean.split('T');
+    if (!dateP || !timeP) return null;
+
+    const y = parseInt(dateP.slice(0, 4), 10);
+    const m = parseInt(dateP.slice(4, 6), 10) - 1;
+    const d = parseInt(dateP.slice(6, 8), 10);
+    const hh = parseInt(timeP.slice(0, 2), 10) || 0;
+    const mm = parseInt(timeP.slice(2, 4), 10) || 0;
+    const ss = parseInt(timeP.slice(4, 6), 10) || 0;
+
+    const dateObj = isUTC ? new Date(Date.UTC(y, m, d, hh, mm, ss)) : new Date(y, m, d, hh, mm, ss);
+    if (isNaN(dateObj.getTime())) return null;
+
+    const localYear = dateObj.getFullYear();
+    const localMonth = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const localDay = String(dateObj.getDate()).padStart(2, '0');
+    const localHour = String(dateObj.getHours()).padStart(2, '0');
+    const localMin = String(dateObj.getMinutes()).padStart(2, '0');
+
+    return {
+        dateStr: `${localYear}-${localMonth}-${localDay}`,
+        timeStr: `${localHour}:${localMin}`,
+        isAllDay: false,
+        iso: dateObj.toISOString()
+    };
+}
+
+function parseICalContent(icsText, targetDateStr) {
+    const lines = icsText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const unfoldedLines = [];
+    for (const line of lines) {
+        if ((line.startsWith(' ') || line.startsWith('\t')) && unfoldedLines.length > 0) {
+            unfoldedLines[unfoldedLines.length - 1] += line.slice(1);
+        } else {
+            unfoldedLines.push(line);
+        }
+    }
+
+    const events = [];
+    let currentEvent = null;
+
+    for (const line of unfoldedLines) {
+        const trimmed = line.trim();
+        if (trimmed === 'BEGIN:VEVENT') {
+            currentEvent = {};
+        } else if (trimmed === 'END:VEVENT') {
+            if (currentEvent && currentEvent.summary) {
+                const start = parseICalDateTime(currentEvent.dtstartRaw, currentEvent.dtstartKey);
+                const end = parseICalDateTime(currentEvent.dtendRaw, currentEvent.dtendKey);
+
+                if (start) {
+                    const matches = start.dateStr === targetDateStr || 
+                        (start.isAllDay && end && targetDateStr >= start.dateStr && targetDateStr < end.dateStr);
+
+                    if (matches && currentEvent.status !== 'cancelled') {
+                        events.push({
+                            id: currentEvent.id || `gcal_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                            title: currentEvent.summary,
+                            description: currentEvent.description || null,
+                            location: currentEvent.location || null,
+                            url: currentEvent.url || null,
+                            startTime: start.timeStr,
+                            endTime: end ? end.timeStr : null,
+                            isAllDay: start.isAllDay,
+                            startIso: start.iso,
+                            endIso: end ? end.iso : null,
+                            source: 'google_calendar',
+                        });
+                    }
+                }
+            }
+            currentEvent = null;
+        } else if (currentEvent) {
+            const colonIdx = line.indexOf(':');
+            if (colonIdx > 0) {
+                const keyPart = line.substring(0, colonIdx);
+                const valuePart = line.substring(colonIdx + 1);
+                const cleanKey = keyPart.split(';')[0].toUpperCase();
+
+                if (cleanKey === 'SUMMARY') {
+                    currentEvent.summary = unescapeICalString(valuePart);
+                } else if (cleanKey === 'DESCRIPTION') {
+                    currentEvent.description = unescapeICalString(valuePart);
+                } else if (cleanKey === 'LOCATION') {
+                    currentEvent.location = unescapeICalString(valuePart);
+                } else if (cleanKey === 'UID') {
+                    currentEvent.id = valuePart;
+                } else if (cleanKey === 'URL') {
+                    currentEvent.url = valuePart;
+                } else if (cleanKey === 'STATUS') {
+                    currentEvent.status = valuePart.toLowerCase();
+                } else if (cleanKey === 'DTSTART') {
+                    currentEvent.dtstartRaw = valuePart;
+                    currentEvent.dtstartKey = keyPart;
+                } else if (cleanKey === 'DTEND') {
+                    currentEvent.dtendRaw = valuePart;
+                    currentEvent.dtendKey = keyPart;
+                }
+            }
+        }
+    }
+
+    return events.sort((a, b) => {
+        if (a.isAllDay && !b.isAllDay) return -1;
+        if (!a.isAllDay && b.isAllDay) return 1;
+        return (a.startTime || '').localeCompare(b.startTime || '');
+    });
+}
+
+app.post('/api/calendar/fetch-ical', authenticate, async (req, res) => {
+    const authenticatedUserId = req.user?.sub;
+    if (!authenticatedUserId) {
+        return res.status(401).json({ error: 'Unauthorized: missing user identifier' });
+    }
+
+    const { icalUrl, date: requestedDate } = req.body || {};
+    if (!icalUrl || typeof icalUrl !== 'string') {
+        return res.status(400).json({ error: 'icalUrl is required' });
+    }
+
+    const trimmedUrl = icalUrl.trim();
+    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+        return res.status(400).json({ error: 'Invalid icalUrl: must start with http:// or https://' });
+    }
+
+    const targetDate = requestedDate || new Date().toISOString().split('T')[0];
+
+    try {
+        logToFile(`📅 [Google Calendar] Fetching iCal feed for user ${authenticatedUserId} (date: ${targetDate})`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch(trimmedUrl, {
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'Vamuss-CRM/1.0',
+                'Accept': 'text/calendar, text/plain, */*'
+            }
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            logToFile(`❌ [Google Calendar] Failed to fetch feed: HTTP ${response.status}`);
+            return res.status(502).json({ error: `Failed to fetch calendar feed: HTTP ${response.status}` });
+        }
+
+        const icsText = await response.text();
+        if (!icsText.includes('BEGIN:VCALENDAR')) {
+            return res.status(400).json({ error: 'URL provided did not return a valid iCal feed' });
+        }
+
+        const events = parseICalContent(icsText, targetDate);
+        logToFile(`✅ [Google Calendar] Found ${events.length} events for ${targetDate}`);
+
+        return res.json({
+            success: true,
+            date: targetDate,
+            count: events.length,
+            events
+        });
+
+    } catch (err) {
+        logToFile(`❌ [Google Calendar] Exception fetching ical: ${err.message}`);
+        return res.status(500).json({ error: `Calendar sync error: ${err.message}` });
     }
 });
 

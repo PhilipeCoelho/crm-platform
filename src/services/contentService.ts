@@ -29,6 +29,8 @@ import { supabase } from '@/lib/supabase';
 // Types (structural — no tables yet)
 // ============================================
 
+export type DailyEntryType = 'planejado' | 'acontecimento';
+
 export interface ContentDailyEntry {
   id: string;
   userId: string;
@@ -38,6 +40,7 @@ export interface ContentDailyEntry {
   sourceType: 'text' | 'voice' | 'crm_sync' | 'file';
   activityId?: string | null;
   dealId?: string | null;
+  entryType?: DailyEntryType;
   aiStatus: 'pending' | 'processed' | 'failed' | 'skipped';
   aiSummary?: string | null;
   aiSignals?: {

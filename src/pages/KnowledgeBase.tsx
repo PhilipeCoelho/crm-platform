@@ -20,7 +20,7 @@ import { InsightComercial } from '@/types/schema';
 import { Link } from 'react-router-dom';
 
 export default function KnowledgeBase() {
-    const [period, setPeriod] = useState<'today' | '7' | '30' | '60' | '90' | 'all' | 'custom'>('today');
+    const [period, setPeriod] = useState<'today' | '7' | '30' | '60' | '90' | 'all' | 'custom'>('30');
     const [customStart, setCustomStart] = useState<string>(() => {
         const d = new Date();
         d.setDate(d.getDate() - 30);
@@ -270,12 +270,12 @@ export default function KnowledgeBase() {
             const result = await triggerBackfill(60);
             if (result) {
                 setBackfillResult(result);
-            } else {
-                alert('Erro ao iniciar o processamento. Verifica os logs do servidor.');
+                // Automatically reload data so results show up
+                await loadData();
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert('Erro inesperado ao iniciar o backfill.');
+            alert(`Erro ao iniciar o processamento: ${e?.message || 'Verifique se o servidor está ativo.'}`);
         } finally {
             setIsBackfilling(false);
         }
@@ -524,6 +524,33 @@ export default function KnowledgeBase() {
                     </div>
                 ) : activeSection === 'dashboard' ? (
                     <div className="space-y-8">
+                        {/* Banner quando não há insights classificados */}
+                        {(!topDor && !topBarreira && !topObjecao && (!trends?.tag_counts || trends.tag_counts.length === 0)) && (
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in duration-300">
+                                <div className="flex items-start gap-4">
+                                    <div className="p-3 bg-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
+                                        <Sparkles size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-foreground">
+                                            Nenhum insight classificado no período selecionado
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+                                            A Inteligência Comercial analisa as anotações do histórico e os motivos de perda dos leads com IA para identificar padrões de dores, objeções e barreiras.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleBackfill}
+                                    disabled={isBackfilling}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95 shrink-0 disabled:opacity-50 cursor-pointer"
+                                >
+                                    <RefreshCw size={14} className={isBackfilling ? 'animate-spin' : ''} />
+                                    <span>{isBackfilling ? 'Classificando histórico...' : 'Processar Histórico (60d)'}</span>
+                                </button>
+                            </div>
+                        )}
+
                         {/* Top Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Dor Card */}

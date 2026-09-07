@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react';
+import { useCRM } from '@/contexts/CRMContext';
+import { PrivacyMaskedName, getInitials } from '@/components/ui/PrivacyMask';
 import { Activity, Deal } from '@/types/schema';
 import { Currency } from '@/data/currencies';
 import { AlertTriangle, CalendarDays, ArrowRight, Target, CheckCircle2 } from 'lucide-react';
@@ -195,12 +197,14 @@ interface AlertColumnsProps {
     onToggleActivity: (id: string) => void;
     onDeleteActivity: (id: string) => void;
     onOpenFocusDeal: (dealId: string) => void;
+    onEditActivity?: (activity: Activity) => void;
 }
 
 export const AlertColumns = React.memo(function AlertColumns({
     overdueActivities, todayActivities, dealsWithoutAction,
-    onToggleActivity, onDeleteActivity, onOpenFocusDeal
+    onToggleActivity, onDeleteActivity, onOpenFocusDeal, onEditActivity
 }: AlertColumnsProps) {
+    const { isPrivacyMode } = useCRM();
     const visibleDeals = useMemo(() => dealsWithoutAction.slice(0, MAX_VISIBLE_ITEMS), [dealsWithoutAction]);
     const hasMoreDeals = dealsWithoutAction.length > MAX_VISIBLE_ITEMS;
 
@@ -220,6 +224,7 @@ export const AlertColumns = React.memo(function AlertColumns({
                             activities={overdueActivities}
                             onToggle={onToggleActivity}
                             onDelete={onDeleteActivity}
+                            onEdit={onEditActivity}
                             onItemClick={(activity) => activity.dealId && onOpenFocusDeal(activity.dealId)}
                         />
                     )}
@@ -240,6 +245,7 @@ export const AlertColumns = React.memo(function AlertColumns({
                             activities={todayActivities}
                             onToggle={onToggleActivity}
                             onDelete={onDeleteActivity}
+                            onEdit={onEditActivity}
                             onItemClick={(activity) => activity.dealId && onOpenFocusDeal(activity.dealId)}
                         />
                     )}
@@ -261,13 +267,26 @@ export const AlertColumns = React.memo(function AlertColumns({
                                 <div
                                     key={deal.id}
                                     onClick={() => onOpenFocusDeal(deal.id)}
-                                    className="p-3 rounded-lg border border-amber-500/20 bg-card hover:bg-amber-500/10 transition-colors cursor-pointer group flex items-center justify-between"
+                                    className="p-3 rounded-lg border border-amber-500/20 bg-card hover:bg-amber-500/10 transition-colors cursor-pointer group flex items-center justify-between gap-3"
                                 >
-                                    <div>
-                                        <p className="text-sm font-semibold text-foreground truncate">{deal.title}</p>
-                                        <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Sem próximos passos guiados</p>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        {isPrivacyMode && (
+                                            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 select-none">
+                                                {getInitials(deal.title)}
+                                            </div>
+                                        )}
+                                        <div className="min-w-0">
+                                            {isPrivacyMode ? (
+                                                <PrivacyMaskedName id={deal.id} name={deal.title} showInitials={false} />
+                                            ) : (
+                                                <p className="text-sm font-semibold text-foreground truncate">
+                                                    {deal.title}
+                                                </p>
+                                            )}
+                                            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Sem próximos passos guiados</p>
+                                        </div>
                                     </div>
-                                    <ArrowRight size={14} className="text-amber-500 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-[opacity,transform]" />
+                                    <ArrowRight size={14} className="text-amber-500 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-[opacity,transform] shrink-0" />
                                 </div>
                             ))}
                             {hasMoreDeals && (

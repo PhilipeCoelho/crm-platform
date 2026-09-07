@@ -222,7 +222,7 @@ export async function triggerBackfill(dias: number = 60): Promise<BackfillResult
         return await response.json();
     } catch (err) {
         console.error('Error triggering backfill:', err);
-        return null;
+        throw err;
     }
 }
 
@@ -278,8 +278,7 @@ export async function fetchTrendsAndSignalsClient(
 
     const { data: insights, error } = await supabase
         .from('insights_comerciais')
-        .select('*')
-        .eq('user_id', user.id);
+        .select('*');
 
     if (error) {
         console.error("Error fetching insights client-side:", error);
@@ -301,7 +300,6 @@ export async function fetchTrendsAndSignalsClient(
     const { count: activeCount } = await supabase
         .from('deals')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
         .eq('status', 'open');
 
     const total_active_deals = activeCount || 0;

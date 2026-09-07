@@ -7,6 +7,7 @@ import {
 import { ActivityScriptPopover } from './ActivityScriptPopover';
 import { getScriptByTitle, formatScript } from '@/services/cadence';
 import { useCRM } from '@/contexts/CRMContext';
+import { PrivacyActivityTitle } from '@/components/ui/PrivacyMask';
 import { differenceInDays, format, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -86,7 +87,7 @@ const statusStyles = {
 };
 
 export default function ActivityList({ activities, onToggle, onDelete, onEdit, onItemClick }: Props) {
-    const { contacts, companies, deals } = useCRM();
+    const { contacts, companies, deals, isPrivacyMode } = useCRM();
     if (activities.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
@@ -127,8 +128,8 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
 
                         <div className="flex-1 min-w-0 pt-2 sm:pt-0">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
-                                <h4 className={`text-[12px] sm:text-[11px] font-bold sm:font-semibold flex items-center gap-1.5 ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                                    {activity.title}
+                                <h4 className={`text-[12px] sm:text-[11px] font-bold sm:font-semibold flex items-center gap-1.5 flex-1 ${(isCompleted || isCanceled) ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                    <PrivacyActivityTitle id={activity.id} title={activity.title} activityType={activity.type} />
                                     {(activity.tooltipScript || activity.notes || getScriptByTitle(activity.title)) && !isCompleted && !isCanceled && (() => {
                                         const rawScript = activity.tooltipScript || getScriptByTitle(activity.title);
                                         const contact = contacts.find(c => c.id === activity.contactId);
@@ -244,7 +245,7 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                                                             Copiar Mensagem
                                                         </button>
                                                     </div>
-                                                    <p className="text-[11px] text-foreground italic leading-relaxed whitespace-pre-wrap">
+                                                    <p className={`text-[11px] text-foreground italic leading-relaxed whitespace-pre-wrap ${isPrivacyMode ? 'filter blur-[6px] select-none' : ''}`}>
                                                         {formattedScript}
                                                     </p>
                                                 </div>
