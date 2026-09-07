@@ -2,7 +2,8 @@
 dist
 node_modules
 .DS_Store
-.env
-.env*.local
+.env*
 *.log
 scratch/
+meta-capi-debug.json
+*.zip
