@@ -1,9 +1,38 @@
-.vercel
-dist
-node_modules
-.DS_Store
+# Dependencies
+node_modules/
+
+# Production builds
+dist/
+build/
+
+# Local Environment & Secrets
 .env*
+*.env
+*.env.json
+*.pem
+*.key
+*.cert
+*.crt
+
+# Vercel
+.vercel/
+
+# Debug, Logs & Dumps
 *.log
-scratch/
+npm-debug.log*
+yarn-debug.log*
 meta-capi-debug.json
+*debug*.json
+
+# Backups & Archives
 *.zip
+*.tar
+*.gz
+*.bak
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Scratch & temporary
+scratch/

@@ -3,13 +3,29 @@ import crypto from 'crypto';
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const TAG_LENGTH = 16;
-// This must be a 32-byte key. In production, use process.env.ENCRYPTION_KEY
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '01234567890123456789012345678901';
+// Ensure key is strictly 32 bytes for aes-256-gcm
+function getEncryptionKeyBuffer() {
+    const rawKey = process.env.ENCRYPTION_KEY;
+    if (!rawKey) {
+        if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+            console.warn('⚠️ [SECURITY WARNING] process.env.ENCRYPTION_KEY is not defined. Using default fallback key. Please configure ENCRYPTION_KEY in your Vercel Environment Variables.');
+        }
+        return Buffer.from('01234567890123456789012345678901', 'utf8');
+    }
+
+    if (Buffer.byteLength(rawKey, 'utf8') === 32) {
+        return Buffer.from(rawKey, 'utf8');
+    }
+
+    // Derive deterministic 32-byte key via SHA-256 if key length is different
+    return crypto.createHash('sha256').update(rawKey).digest();
+}
 
 export function encrypt(text) {
     if (!text) return null;
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    const key = getEncryptionKeyBuffer();
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -26,7 +42,8 @@ export function decrypt(encryptedData) {
 
     const iv = Buffer.from(ivHex, 'hex');
     const tag = Buffer.from(tagHex, 'hex');
-    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    const key = getEncryptionKeyBuffer();
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
 
     decipher.setAuthTag(tag);
 
