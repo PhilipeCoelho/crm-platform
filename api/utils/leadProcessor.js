@@ -104,19 +104,35 @@ export class LeadProcessor {
             if (!contact && this.settings.auto_create_contact) {
                 // 6a. Create company first if available
                 let companyId = null;
-                if (leadData.companyName && this.settings.auto_create_company) {
+                const shouldCreateCompany = leadData.createCompany !== undefined 
+                    ? Boolean(leadData.createCompany) 
+                    : this.settings.auto_create_company;
+
+                if (leadData.companyName && shouldCreateCompany) {
                     const company = await this.createCompany({ name: leadData.companyName });
                     companyId = company.id;
                     result.companyId = companyId;
                     result.companyCreated = !company._existed; // Flag if it was newly created
                 }
 
+                // Build clean notes with tracking info and message
+                const notesParts = [
+                    `📥 Lead recebido via ${leadData.source || 'Landing Page'} (${new Date().toLocaleString('pt-PT')})`,
+                    leadData.formName ? `Formulário: ${leadData.formName}` : null,
+                    leadData.companyName ? `Clínica / Empresa: ${leadData.companyName}` : null,
+                    leadData.message ? `Mensagem: ${leadData.message}` : null,
+                    (leadData.utmSource || leadData.utmCampaign || leadData.utmMedium) 
+                        ? `UTMs: source=${leadData.utmSource || '-'} | medium=${leadData.utmMedium || '-'} | campaign=${leadData.utmCampaign || '-'}${leadData.utmContent ? ` | content=${leadData.utmContent}` : ''}${leadData.utmTerm ? ` | term=${leadData.utmTerm}` : ''}`
+                        : null
+                ].filter(Boolean);
+
                 // 6b. Create contact
                 contact = await this.createContact({
                     name: leadData.name || 'Lead sem nome',
                     email: leadData.email,
                     phone: leadData.phone,
-                    companyId: companyId
+                    companyId: companyId,
+                    notes: notesParts.join('\n')
                 });
                 result.contactCreated = true;
             } else if (contact) {
@@ -124,14 +140,22 @@ export class LeadProcessor {
                 const updates = {};
                 if (!contact.phone && leadData.phone) updates.phone = leadData.phone;
                 if (!contact.email && leadData.email) updates.email = leadData.email;
-                if (!contact.name && leadData.name) updates.name = leadData.name;
+                if ((!contact.name || contact.name === 'Lead sem nome') && leadData.name) updates.name = leadData.name;
                 
+                // Append lead conversion event to notes
+                const conversionNote = `\n---\n📥 Nova conversão via ${leadData.source || 'Landing Page'} (${new Date().toLocaleString('pt-PT')}):${leadData.message ? `\n"${leadData.message}"` : ''}${leadData.formName ? ` (Formulário: ${leadData.formName})` : ''}`;
+                updates.notes = contact.notes ? `${contact.notes}${conversionNote}` : conversionNote.trim();
+
                 if (Object.keys(updates).length > 0) {
                     await this.supabase.from('contacts').update(updates).eq('id', contact.id);
                 }
 
                 // Handle company
-                if (leadData.companyName && !contact.company_id && this.settings.auto_create_company) {
+                const shouldCreateCompany = leadData.createCompany !== undefined 
+                    ? Boolean(leadData.createCompany) 
+                    : this.settings.auto_create_company;
+
+                if (leadData.companyName && !contact.company_id && shouldCreateCompany) {
                     const company = await this.createCompany({ name: leadData.companyName });
                     result.companyId = company.id;
                     result.companyCreated = !company._existed;
@@ -149,6 +173,10 @@ export class LeadProcessor {
                 deal = await this.findActiveDeal(result.contactId);
             }
 
+            const shouldCreateDeal = leadData.createDeal !== undefined 
+                ? Boolean(leadData.createDeal) 
+                : this.settings.auto_create_deal;
+
             if (deal) {
                 result.hasActiveDeal = true;
                 result.dealId = deal.id;
@@ -159,16 +187,18 @@ export class LeadProcessor {
                     await this.registerDealLog(deal.id, leadData);
                     result.historyRegistered = true;
                 }
-            } else if (this.settings.auto_create_deal && result.contactId) {
+            } else if (shouldCreateDeal && result.contactId) {
                 // 9. Create new deal
+                const targetPipelineId = leadData.pipelineId || this.settings.default_pipeline_id;
+                const targetStageId = leadData.stageId || this.settings.default_stage_id;
                 const dealTitle = leadData.name ? `${leadData.name} - ${leadData.source}` : `Lead - ${leadData.source}`;
                 const newDeal = await this.createDeal({
                     title: dealTitle,
                     contactId: result.contactId,
                     companyId: result.companyId,
                     source: leadData.source,
-                    pipelineId: this.settings.default_pipeline_id,
-                    stageId: this.settings.default_stage_id,
+                    pipelineId: targetPipelineId,
+                    stageId: targetStageId,
                     utms: {
                         utm_source: leadData.utmSource,
                         utm_medium: leadData.utmMedium,
@@ -327,13 +357,17 @@ export class LeadProcessor {
         return { ...created, _existed: false };
     }
 
-    async createContact({ name, email, phone }) {
+    async createContact({ name, email, phone, companyId, notes }) {
         const contactData = {
             id: randomUUID(),
             user_id: this.userId,
             name: name || 'Lead sem nome',
             email: email ? email.toLowerCase().trim() : null,
             phone: phone || null,
+            company_id: companyId || null,
+            notes: notes || null,
+            role: 'Lead',
+            marketing_status: 'lead',
             created_at: new Date().toISOString()
         };
 
@@ -341,6 +375,11 @@ export class LeadProcessor {
             .from('contacts')
             .insert(contactData)
             .select();
+
+        if (error) {
+            console.error('⚠️ [LeadProcessor] Error inserting contact:', error);
+            throw new Error(`Erro ao criar contato: ${error.message}`);
+        }
 
         return data?.[0] || contactData;
     }

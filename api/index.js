@@ -36,7 +36,7 @@ const EXCLUDED_DEAL_STATUSES = ['lost', 'desqualificado'];
 app.use(cors({
     origin: '*', // Allow all during debug
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'X-Api-Key', 'apikey']
 }));
 
 app.use(express.json());
@@ -158,6 +158,208 @@ app.post('/api/webhooks/brevo', async (req, res) => {
         return res.json(data);
     } catch (err) {
         logToFile(`🔥 [Webhook Brevo] Erro interno: ${err.message}`);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Endpoint Público para receber leads de Landing Pages
+app.post('/api/leads', async (req, res) => {
+    try {
+        // Authentication check: header x-api-key OR Authorization Bearer OR body apiKey
+        const apiKey = req.headers['x-api-key'] || 
+                       req.headers['X-Api-Key'] || 
+                       (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null) ||
+                       req.body?.apiKey || 
+                       req.body?.api_key;
+
+        const configuredKey = process.env.LP_API_KEY || process.env.CRM_WEBHOOK_SECRET;
+        if (configuredKey && apiKey !== configuredKey) {
+            logToFile(`⛔ [API Leads] Acesso negado: chave de API inválida ou ausente`);
+            return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+        }
+
+        const raw = req.body || {};
+        const name = (raw.name || raw.fullName || raw.nome || '').trim();
+        const phone = (raw.phone || raw.whatsapp || raw.telefone || raw.celular || '').trim();
+        const email = (raw.email || raw.mail || '').trim().toLowerCase();
+        const companyName = (raw.company || raw.clinicName || raw.empresa || raw.clinica || raw.companyName || '').trim();
+        const message = (raw.message || raw.mensagem || raw.notes || raw.observacoes || '').trim();
+        const source = raw.source || raw.origem || 'Landing Page Vamuss';
+        const formName = raw.formName || raw.form_name || 'Formulário Principal';
+
+        // Validação mínima: pelo menos um identificador de contacto
+        if (!name && !phone && !email) {
+            return res.status(400).json({ error: 'Pelo menos um identificador (name, phone ou email) é obrigatório' });
+        }
+
+        // UTMs & Parâmetros de Rastreamento
+        const utmSource = raw.utm_source || raw.utmSource;
+        const utmMedium = raw.utm_medium || raw.utmMedium;
+        const utmCampaign = raw.utm_campaign || raw.utmCampaign;
+        const utmContent = raw.utm_content || raw.utmContent;
+        const utmTerm = raw.utm_term || raw.utmTerm;
+
+        // Resolução do userId do CRM (automático caso a LP não envie)
+        const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+        let targetUserId = raw.userId || process.env.DEFAULT_USER_ID;
+
+        if (!targetUserId) {
+            try {
+                const { data: profiles } = await supabaseAdmin
+                    .from('profiles')
+                    .select('id')
+                    .order('created_at', { ascending: true })
+                    .limit(1);
+                if (profiles?.[0]?.id) {
+                    targetUserId = profiles[0].id;
+                }
+            } catch (_) {}
+
+            if (!targetUserId) {
+                try {
+                    const { data: contacts } = await supabaseAdmin
+                        .from('contacts')
+                        .select('user_id')
+                        .limit(1);
+                    if (contacts?.[0]?.user_id) {
+                        targetUserId = contacts[0].user_id;
+                    }
+                } catch (_) {}
+            }
+        }
+
+        if (!targetUserId) {
+            logToFile(`❌ [API Leads] Nenhum usuário CRM encontrado para associar o lead`);
+            return res.status(500).json({ error: 'Nenhum usuário CRM configurado para associar este lead. Configure DEFAULT_USER_ID no Vercel.' });
+        }
+
+        logToFile(`📥 [API Leads] Novo lead recebido: ${name || email || phone} (${companyName || 'Sem clínica'}) via ${source}`);
+
+        // Regra de Pipeline vs Contato:
+        // Por padrão para Landing Page, createDeal é FALSE para NÃO poluir o pipeline nem criar negócio/tarefa prematuramente.
+        // Se a LP ou automação desejar criar negócio direto, basta passar "createDeal": true.
+        const createDeal = raw.createDeal === true;
+
+        const processor = new LeadProcessor(supabaseAdmin, targetUserId);
+        const result = await processor.processLead({
+            source,
+            name,
+            email,
+            phone,
+            companyName,
+            formName,
+            message,
+            utmSource,
+            utmMedium,
+            utmCampaign,
+            utmContent,
+            utmTerm,
+            createDeal, // false por padrão: fica apenas como Contato para triagem
+            createCompany: Boolean(companyName),
+            pipelineId: raw.pipelineId,
+            stageId: raw.stageId,
+            rawPayload: raw
+        });
+
+        const statusMessage = createDeal
+            ? 'Lead cadastrado com sucesso no Contato e Negócio criado no Pipeline.'
+            : 'Lead cadastrado com sucesso na base de Contatos (fora do Pipeline para triagem).';
+
+        return res.status(result.success ? 200 : 400).json({
+            ...result,
+            message: statusMessage
+        });
+    } catch (err) {
+        logToFile(`🔥 [API Leads] Erro interno: ${err.message}`);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Endpoint Público para receber agendamento nativo da LP
+app.post('/api/schedule', async (req, res) => {
+    try {
+        const apiKey = req.headers['x-api-key'];
+        if (apiKey !== process.env.LP_API_KEY) {
+            return res.status(401).json({ error: 'Unauthorized LP' });
+        }
+        
+        const { email, goal, budget, date, time, userId } = req.body;
+        if (!email || !date || !time || !userId) {
+            return res.status(400).json({ error: 'Missing required schedule fields' });
+        }
+
+        logToFile(`📥 [API Schedule] Novo agendamento para: ${email} | ${date} ${time}`);
+        
+        const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+        
+        // 1. Encontrar o Lead pelo email (no CRM, contacts ou leads table)
+        const { data: contact } = await supabaseAdmin
+            .from('contacts')
+            .select('id, name')
+            .eq('user_id', userId)
+            .eq('email', email)
+            .single();
+
+        let contactId = contact?.id;
+
+        // 2. Se encontrar o contacto, registar a Atividade de Agendamento
+        if (contactId) {
+            // Verifica se há um negócio (deal) aberto
+            const { data: deal } = await supabaseAdmin
+                .from('deals')
+                .select('id')
+                .eq('contact_id', contactId)
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            // Insere atividade no CRM
+            await supabaseAdmin.from('activities').insert([{
+                user_id: userId,
+                contact_id: contactId,
+                deal_id: deal?.id || null,
+                activity_type: 'meeting',
+                notes: `Agendamento via LP.\nObjetivo: ${goal}\nOrçamento: ${budget}\nData e Hora: ${date} às ${time}`,
+                scheduled_at: `${date}T${time}:00`
+            }]);
+        }
+
+        // 3. Enviar e-mail de confirmação para o paciente
+        try {
+            const transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+                port: parseInt(process.env.SMTP_PORT || '587'),
+                secure: false,
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS
+                }
+            });
+
+            await transporter.sendMail({
+                from: `"Philipe Coelho" <${process.env.SMTP_USER || 'ola@euphilipecoelho.com'}>`,
+                to: email,
+                subject: "Reunião Confirmada - Vamuss__",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                        <h2>A sua reunião está confirmada!</h2>
+                        <p>Olá ${contact?.name || ''},</p>
+                        <p>A sua reunião de diagnóstico com a Vamuss__ foi agendada para <strong>${date} às ${time}</strong>.</p>
+                        <p>Em breve enviarei o link do Zoom para o nosso encontro.</p>
+                        <p>Até breve,<br>Philipe Coelho</p>
+                    </div>
+                `
+            });
+            logToFile(`✅ [API Schedule] E-mail de confirmação enviado para: ${email}`);
+        } catch (mailErr) {
+            logToFile(`⚠️ [API Schedule] Erro ao enviar e-mail de confirmação: ${mailErr.message}`);
+            // Não quebra a requisição se falhar apenas o e-mail
+        }
+
+        return res.status(200).json({ success: true, scheduled: true });
+    } catch (err) {
+        logToFile(`🔥 [API Schedule] Erro: ${err.message}`);
         return res.status(500).json({ error: err.message });
     }
 });
