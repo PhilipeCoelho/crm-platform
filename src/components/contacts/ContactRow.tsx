@@ -74,17 +74,28 @@ export const ContactRow = memo(function ContactRow({
             {visibleColumns.map((col) => {
                 const columnClass = getColumnClass(col.id);
                 switch (col.id) {
-                    case 'name':
+                    case 'name': {
+                        const isLp = Boolean(
+                            contact.notes?.toLowerCase().includes('landing page') ||
+                            contact.role?.toLowerCase() === 'lead' ||
+                            (contact as any).marketing_status === 'lead'
+                        );
                         return (
-                            <div key={col.id} className={`px-4 flex items-center h-full gap-3 truncate ${columnClass}`}>
+                            <div key={col.id} className={`px-4 flex items-center h-full gap-2.5 truncate ${columnClass}`}>
                                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                                     {contact.name.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="font-medium text-foreground truncate">
                                     <PrivacyText text={contact.name} type="name" />
                                 </span>
+                                {isLp && (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded shrink-0" title="Lead recebido via Landing Page">
+                                        LP
+                                    </span>
+                                )}
                             </div>
                         );
+                    }
                     case 'organization':
                         return (
                             <div key={col.id} className={`px-4 flex flex-col justify-center h-full truncate ${columnClass}`}>

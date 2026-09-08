@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { Search, Filter, Plus, Columns, ArrowUpDown, Users } from 'lucide-react';
+import { Search, Filter, Plus, Columns, ArrowUpDown, Users, Sparkles } from 'lucide-react';
 import NewContactModal from './NewContactModal';
 import { Contact } from '@/types/schema';
 import { List } from 'react-window';
@@ -32,6 +33,7 @@ const getColumnClass = (id: ColumnId) => {
 
 export default function PeopleView() {
     const { contacts, companies, activities, deals, deleteContact, openFocusContact } = useCRM();
+    const [searchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
@@ -54,6 +56,12 @@ export default function PeopleView() {
     const [showDataFilterSelector, setShowDataFilterSelector] = useState(false);
     const [lastExportDate, setLastExportDate] = useState<string | null>(null);
     const [showExportMenu, setShowExportMenu] = useState(false);
+
+    useEffect(() => {
+        if (searchParams.get('filter') === 'landing-page') {
+            setSelectedDataFilter('Leads da Landing Page');
+        }
+    }, [searchParams]);
 
     const [columns, setColumns] = useState<Column[]>([
         { id: 'name', label: 'Nome', visible: true, sortable: true },
@@ -188,6 +196,16 @@ export default function PeopleView() {
         return contactDealsMap.get(contactId)?.closed || 0;
     }, [contactDealsMap]);
 
+    const isLpContact = useCallback((contact: Contact) => {
+        const notes = contact.notes || '';
+        const role = (contact.role || '').toLowerCase();
+        return notes.includes('[Landing Page') || role === 'lead' || (contact as any).marketing_status === 'lead';
+    }, []);
+
+    const lpLeadsCount = useMemo(() => {
+        return contacts.filter(isLpContact).length;
+    }, [contacts, isLpContact]);
+
     const filteredAndSortedContacts = useMemo(() => {
         let result = contacts.filter(contact => {
             const companyId = contact.companyId || (contact as any).company_id;
@@ -218,6 +236,7 @@ export default function PeopleView() {
             if (!passViewFilter) return false;
 
             // Data availability filtering
+            if (selectedDataFilter === 'Leads da Landing Page' && !isLpContact(contact)) return false;
             if (selectedDataFilter === 'Com Telefone' && !contact.phone) return false;
             if (selectedDataFilter === 'Com E-mail' && !contact.email) return false;
             if (selectedDataFilter === 'Com Nome, Tel e E-mail' && (!contact.name || !contact.phone || !contact.email)) return false;
@@ -285,7 +304,7 @@ export default function PeopleView() {
         }
 
         return result;
-    }, [contacts, companyMap, searchTerm, sortColumn, sortDirection, contactDealsMap, nextActivityMap, contactStatusSummaryMap, selectedView, selectedDataFilter, selectedBrevoFilter, getCompanyName, getNextActivity, getOpenDealsCount, getClosedDealsCount]);
+    }, [contacts, companyMap, searchTerm, sortColumn, sortDirection, contactDealsMap, nextActivityMap, contactStatusSummaryMap, selectedView, selectedDataFilter, selectedBrevoFilter, getCompanyName, getNextActivity, getOpenDealsCount, getClosedDealsCount, isLpContact]);
 
     const handleEditClick = useCallback((contact: Contact, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -504,7 +523,7 @@ export default function PeopleView() {
                         </button>
                         {showDataFilterSelector && (
                             <div className="absolute left-0 mt-2 w-56 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
-                                {['Todos os Contatos', 'Com Telefone', 'Com E-mail', 'Com Nome, Tel e E-mail'].map((filter) => (
+                                {['Todos os Contatos', 'Leads da Landing Page', 'Com Telefone', 'Com E-mail', 'Com Nome, Tel e E-mail'].map((filter) => (
                                     <button
                                         key={filter}
                                         onClick={(e) => {
@@ -520,6 +539,24 @@ export default function PeopleView() {
                             </div>
                         )}
                     </div>
+
+                    {/* Quick LP Leads Filter Pill */}
+                    {lpLeadsCount > 0 && (
+                        <button
+                            onClick={() => {
+                                setSelectedDataFilter(prev => prev === 'Leads da Landing Page' ? 'Todos os Contatos' : 'Leads da Landing Page');
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all cursor-pointer ${
+                                selectedDataFilter === 'Leads da Landing Page'
+                                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 hover:bg-blue-500/20'
+                            }`}
+                            title="Filtrar contatos originados da Landing Page"
+                        >
+                            <Sparkles size={14} />
+                            <span>Leads LP ({lpLeadsCount})</span>
+                        </button>
+                    )}
 
                     {/* Brevo Filter */}
                     <div className="relative">

@@ -204,6 +204,17 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
                                             {format(new Date(contact.createdAt), "d 'de' MMM 'de' yyyy", { locale: ptBR })}
                                         </div>
                                     </div>
+                                    {contact.notes && (
+                                        <div className="space-y-2 pt-3 border-t border-border/50">
+                                            <label className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-1.5">
+                                                <Tag size={13} className="text-primary" />
+                                                Notas & Origem (Landing Page)
+                                            </label>
+                                            <div className="text-xs text-foreground bg-muted/40 border border-border/70 rounded-xl p-3.5 whitespace-pre-wrap leading-relaxed font-sans shadow-inner">
+                                                {contact.notes}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </section>
                         </div>

@@ -2,12 +2,48 @@ import { randomUUID } from 'node:crypto';
 import { sendMetaCAPIEvent } from './capiSender.js';
 
 /**
- * LeadProcessor - Camada de processamento de leads agnóstica à origem.
- * Reutilizável para Meta Lead Ads, Google Ads, TikTok, LinkedIn, Landing Pages.
- * 
- * Utiliza exclusivamente os serviços existentes do CRM (contacts, deals, activities, deal_logs).
- * Não cria fluxos paralelos nem duplica lógica.
+ * Compila todas as informações do lead em notas formatadas e completas,
+ * garantindo rastreabilidade total de origem, formulário, UTMs e campos adicionais.
  */
+function buildComprehensiveNotes(leadData) {
+    const lines = [
+        `📥 Lead recebido via ${leadData.source || 'Landing Page'} (${new Date().toLocaleString('pt-PT')})`,
+        leadData.formName ? `• Formulário: ${leadData.formName}` : null,
+        leadData.companyName ? `• Clínica / Empresa: ${leadData.companyName}` : null,
+        leadData.email ? `• E-mail: ${leadData.email}` : null,
+        leadData.phone ? `• Telefone / WhatsApp: ${leadData.phone}` : null,
+        leadData.message ? `• Mensagem: "${leadData.message}"` : null,
+        (leadData.utmSource || leadData.utmCampaign || leadData.utmMedium || leadData.utmContent || leadData.utmTerm) 
+            ? `• Rastreamento / UTMs: source=${leadData.utmSource || '-'} | medium=${leadData.utmMedium || '-'} | campaign=${leadData.utmCampaign || '-'}${leadData.utmContent ? ` | content=${leadData.utmContent}` : ''}${leadData.utmTerm ? ` | term=${leadData.utmTerm}` : ''}`
+            : null
+    ].filter(Boolean);
+
+    // Salvar campos adicionais / respostas customizadas do formulário
+    if (leadData.rawPayload && typeof leadData.rawPayload === 'object') {
+        const standardKeys = new Set([
+            'name', 'fullName', 'nome', 'phone', 'whatsapp', 'telefone', 'celular',
+            'email', 'mail', 'company', 'clinicName', 'clinica', 'empresa', 'companyName',
+            'message', 'mensagem', 'notes', 'observacoes', 'source', 'origem',
+            'formName', 'form_name', 'userId', 'apiKey', 'api_key', 'createDeal',
+            'utm_source', 'utmSource', 'utm_medium', 'utmMedium', 'utm_campaign', 'utmCampaign',
+            'utm_content', 'utmContent', 'utm_term', 'utmTerm', 'pipelineId', 'stageId'
+        ]);
+
+        const extraEntries = Object.entries(leadData.rawPayload)
+            .filter(([k, v]) => !standardKeys.has(k) && v !== undefined && v !== null && v !== '');
+
+        if (extraEntries.length > 0) {
+            lines.push('• Dados Adicionais do Formulário:');
+            for (const [key, val] of extraEntries) {
+                const formattedVal = typeof val === 'object' ? JSON.stringify(val) : val;
+                lines.push(`   - ${key}: ${formattedVal}`);
+            }
+        }
+    }
+
+    return lines.join('\n');
+}
+
 export class LeadProcessor {
     constructor(supabase, userId) {
         this.supabase = supabase;
@@ -115,16 +151,8 @@ export class LeadProcessor {
                     result.companyCreated = !company._existed; // Flag if it was newly created
                 }
 
-                // Build clean notes with tracking info and message
-                const notesParts = [
-                    `📥 Lead recebido via ${leadData.source || 'Landing Page'} (${new Date().toLocaleString('pt-PT')})`,
-                    leadData.formName ? `Formulário: ${leadData.formName}` : null,
-                    leadData.companyName ? `Clínica / Empresa: ${leadData.companyName}` : null,
-                    leadData.message ? `Mensagem: ${leadData.message}` : null,
-                    (leadData.utmSource || leadData.utmCampaign || leadData.utmMedium) 
-                        ? `UTMs: source=${leadData.utmSource || '-'} | medium=${leadData.utmMedium || '-'} | campaign=${leadData.utmCampaign || '-'}${leadData.utmContent ? ` | content=${leadData.utmContent}` : ''}${leadData.utmTerm ? ` | term=${leadData.utmTerm}` : ''}`
-                        : null
-                ].filter(Boolean);
+                // Build exhaustive notes with tracking, contact details and custom fields
+                const notesContent = buildComprehensiveNotes(leadData);
 
                 // 6b. Create contact
                 contact = await this.createContact({
@@ -132,7 +160,7 @@ export class LeadProcessor {
                     email: leadData.email,
                     phone: leadData.phone,
                     companyId: companyId,
-                    notes: notesParts.join('\n')
+                    notes: notesContent
                 });
                 result.contactCreated = true;
             } else if (contact) {
@@ -143,8 +171,8 @@ export class LeadProcessor {
                 if ((!contact.name || contact.name === 'Lead sem nome') && leadData.name) updates.name = leadData.name;
                 
                 // Append lead conversion event to notes
-                const conversionNote = `\n---\n📥 Nova conversão via ${leadData.source || 'Landing Page'} (${new Date().toLocaleString('pt-PT')}):${leadData.message ? `\n"${leadData.message}"` : ''}${leadData.formName ? ` (Formulário: ${leadData.formName})` : ''}`;
-                updates.notes = contact.notes ? `${contact.notes}${conversionNote}` : conversionNote.trim();
+                const conversionNote = `\n\n---\n${buildComprehensiveNotes(leadData)}`;
+                updates.notes = contact.notes ? `${contact.notes}${conversionNote}` : buildComprehensiveNotes(leadData);
 
                 if (Object.keys(updates).length > 0) {
                     await this.supabase.from('contacts').update(updates).eq('id', contact.id);

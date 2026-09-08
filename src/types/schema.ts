@@ -32,6 +32,7 @@ export interface Contact {
     brevoLastSyncAt?: string;
     exportBatchId?: string;
     brevoSyncStatus?: 'sincronizado' | 'nao_sincronizado' | 'nao_elegivel';
+    notes?: string;
     createdAt: string;
 }
 

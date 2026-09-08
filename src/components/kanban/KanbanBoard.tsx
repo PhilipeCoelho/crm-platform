@@ -18,12 +18,12 @@ import { createPortal } from "react-dom";
 import { DealCardBase } from "./KanbanCard";
 import SuggestionModal from "./SuggestionModal";
 
-import { Filter, Search, Plus } from "lucide-react";
+import { Filter, Search, Plus, Bell, Users, X } from "lucide-react";
 import { Currency } from "@/data/currencies";
 import MobileKanbanView from "./MobileKanbanView";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface KanbanBoardProps {
     currency: Currency;
@@ -37,7 +37,23 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     } = useCRM();
 
     const location = useLocation();
+    const navigate = useNavigate();
     const isMobile = useIsMobile();
+    const [isLpBannerDismissed, setIsLpBannerDismissed] = useState(false);
+
+    // Identifica novos contatos recebidos da Landing Page que ainda não têm negócio criado no funil
+    const lpLeadsWithoutDeal = useMemo(() => {
+        const activeDealContactIds = new Set(
+            deals.filter(d => d.status === 'open').map(d => d.contactId).filter(Boolean)
+        );
+        return contacts.filter(c => {
+            const notes = (c.notes || '').toLowerCase();
+            const role = (c.role || '').toLowerCase();
+            const isLp = notes.includes('landing page') || role === 'lead';
+            return isLp && !activeDealContactIds.has(c.id);
+        });
+    }, [contacts, deals]);
+
     // Default to 'sales' pipeline for now, can be dynamic
     const [currentPipelineId, setCurrentPipelineId] = useState(() => {
         const saved = localStorage.getItem('kanban_pipeline_id');
@@ -459,6 +475,16 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         <h1 className="text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors whitespace-nowrap">
                             {currentPipeline?.name}
                         </h1>
+                        {lpLeadsWithoutDeal.length > 0 && (
+                            <button
+                                onClick={() => navigate('/contacts?filter=landing-page')}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all cursor-pointer"
+                                title="Ver contatos da Landing Page aguardando triagem"
+                            >
+                                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                                <span>{lpLeadsWithoutDeal.length} novo{lpLeadsWithoutDeal.length > 1 ? 's' : ''} lead{lpLeadsWithoutDeal.length > 1 ? 's' : ''} LP</span>
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 flex-1 justify-end">
@@ -608,6 +634,47 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Banner de Notificação de Novos Leads da Landing Page */}
+            {lpLeadsWithoutDeal.length > 0 && !isLpBannerDismissed && (
+                <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/5 border-b border-blue-500/20 px-4 py-2.5 flex items-center justify-between gap-3 text-xs shrink-0 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                            <Bell size={14} className="animate-pulse" />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="font-bold text-foreground truncate">
+                                {lpLeadsWithoutDeal.length === 1 
+                                    ? '1 novo lead da Landing Page recebido' 
+                                    : `${lpLeadsWithoutDeal.length} novos leads da Landing Page recebidos`}
+                                <span className="font-normal text-muted-foreground ml-2 hidden sm:inline">
+                                    (Cadastrados em Contatos aguardando triagem para não poluir o funil)
+                                </span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                                Mais recente: <span className="font-semibold text-foreground">{lpLeadsWithoutDeal[0].name}</span>
+                                {lpLeadsWithoutDeal[0].phone ? ` • ${lpLeadsWithoutDeal[0].phone}` : ''}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button
+                            onClick={() => navigate('/contacts?filter=landing-page')}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-xs transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <Users size={13} />
+                            <span>Ver em Contatos</span>
+                        </button>
+                        <button
+                            onClick={() => setIsLpBannerDismissed(true)}
+                            className="p-1 text-muted-foreground hover:text-foreground rounded-md transition-colors cursor-pointer"
+                            title="Dispensar aviso nesta sessão"
+                        >
+                            <X size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Board Content - Professional Horizontal Scroll Layout */}
             <div className="flex-1 w-full h-full overflow-hidden bg-transparent relative">
