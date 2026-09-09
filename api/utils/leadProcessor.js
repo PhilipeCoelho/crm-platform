@@ -146,9 +146,9 @@ export class LeadProcessor {
 
                 if (leadData.companyName && shouldCreateCompany) {
                     const company = await this.createCompany({ name: leadData.companyName });
-                    companyId = company.id;
+                    companyId = company ? company.id : null;
                     result.companyId = companyId;
-                    result.companyCreated = !company._existed; // Flag if it was newly created
+                    result.companyCreated = company ? !company._existed : false; // Flag if it was newly created
                 }
 
                 // Build exhaustive notes with tracking, contact details and custom fields
@@ -185,9 +185,11 @@ export class LeadProcessor {
 
                 if (leadData.companyName && !contact.company_id && shouldCreateCompany) {
                     const company = await this.createCompany({ name: leadData.companyName });
-                    result.companyId = company.id;
-                    result.companyCreated = !company._existed;
-                    await this.supabase.from('contacts').update({ company_id: company.id }).eq('id', contact.id);
+                    if (company?.id) {
+                        result.companyId = company.id;
+                        result.companyCreated = !company._existed;
+                        await this.supabase.from('contacts').update({ company_id: company.id }).eq('id', contact.id);
+                    }
                 } else if (contact.company_id) {
                     result.companyId = contact.company_id;
                 }
@@ -357,32 +359,41 @@ export class LeadProcessor {
     async createCompany({ name }) {
         if (!name) return null;
         
-        const { data: existing } = await this.supabase
-            .from('companies')
-            .select('*')
-            .eq('user_id', this.userId)
-            .ilike('name', name.trim())
-            .limit(1);
+        try {
+            const { data: existing } = await this.supabase
+                .from('companies')
+                .select('*')
+                .eq('user_id', this.userId)
+                .ilike('name', name.trim())
+                .limit(1);
 
-        if (existing && existing.length > 0) {
-            existing[0]._existed = true;
-            return existing[0];
+            if (existing && existing.length > 0) {
+                existing[0]._existed = true;
+                return existing[0];
+            }
+
+            const companyData = {
+                id: randomUUID(),
+                user_id: this.userId,
+                name: name.trim(),
+                created_at: new Date().toISOString()
+            };
+
+            const { data, error } = await this.supabase
+                .from('companies')
+                .insert(companyData)
+                .select();
+
+            if (error || !data || data.length === 0) {
+                console.warn('⚠️ [LeadProcessor] Warning inserting company (RLS or error):', error?.message);
+                return null; // Retorna null para não quebrar a foreign key contacts_company_id_fkey
+            }
+
+            return { ...data[0], _existed: false };
+        } catch (err) {
+            console.warn('⚠️ [LeadProcessor] Exception creating company:', err?.message);
+            return null;
         }
-
-        const companyData = {
-            id: randomUUID(),
-            user_id: this.userId,
-            name: name.trim(),
-            created_at: new Date().toISOString()
-        };
-
-        const { data, error } = await this.supabase
-            .from('companies')
-            .insert(companyData)
-            .select();
-
-        const created = data?.[0] || companyData;
-        return { ...created, _existed: false };
     }
 
     async createContact({ name, email, phone, companyId, notes }) {
