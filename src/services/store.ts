@@ -26,7 +26,7 @@ export interface CRMStore {
     setPipelineSettingsOpen: (open: boolean) => void;
 
     // Actions
-    addDeal: (deal: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
+    addDeal: (deal: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<Deal | null>;
     updateDeal: (id: string, updates: Partial<Deal>) => Promise<void>;
     moveDeal: (id: string, stageId: string, position?: number, pipelineId?: string) => Promise<void>;
     deleteDeal: (id: string) => Promise<void>;
@@ -1008,11 +1008,11 @@ export function useCRMStore(): CRMStore {
 
     }
 
-    const addDeal = async (data: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
+    const addDeal = async (data: Omit<Deal, 'id' | 'createdAt' | 'updatedAt' | 'userId'>): Promise<Deal | null> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
             alert('Erro: Usuário não autenticado. Tente fazer login novamente.');
-            return;
+            return null;
         }
 
         const tempId = generateId();
@@ -1060,6 +1060,7 @@ export function useCRMStore(): CRMStore {
             alert(`Erro ao salvar negócio: ${error.message}`);
             // Revert
             setDeals((prev: any[]) => prev.filter((status_d: any) => status_d.id !== tempId));
+            return null;
         } else {
             // Trigger Cadence for the initial stage is handled by Database Triggers
             console.log('📡 Deal created. Database trigger will handle cadence.');
@@ -1068,6 +1069,7 @@ export function useCRMStore(): CRMStore {
             sendCapiEvent(tempId, data.stageId).catch(err => {
                 console.error('⚠️ [CAPI] Error triggering CAPI event on deal creation:', err);
             });
+            return optimisticDeal;
         }
     };
 

@@ -18,7 +18,7 @@ const parseCurrency = (val: string): number => {
 };
 
 export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess }: ConvertToDealModalProps) {
-    const { companies, pipelines, addCompany, updateContact, addDeal } = useCRM();
+    const { companies, pipelines, addCompany, updateContact, addDeal, addLog } = useCRM();
 
     // 1. Extrair nome da clínica / empresa automaticamente
     const extractedClinicName = useMemo(() => {
@@ -119,7 +119,7 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
             const numValue = parseCurrency(value);
             const targetStage = selectedStageId || defaultStageId;
 
-            await addDeal({
+            const createdDeal = await addDeal({
                 title: title.trim(),
                 value: numValue,
                 currency: 'EUR',
@@ -132,6 +132,24 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                 priority: 'medium',
                 tags: ['Landing Page', 'Prospect']
             });
+
+            // 3. Salvar identificação no histórico do negócio e anotações: "criado pela página de captura"
+            if (createdDeal?.id) {
+                await addLog({
+                    dealId: createdDeal.id,
+                    content: "criado pela página de captura",
+                    logType: 'manual_note'
+                });
+
+                // Se houver anotações acumuladas no contacto (Passo 1 + Passo 2 da LP / Tela de Obrigado), registra também no histórico do negócio
+                if (contact.notes && contact.notes.trim()) {
+                    await addLog({
+                        dealId: createdDeal.id,
+                        content: `📋 Dossiê da Captura (Dados da LP & Tela de Obrigado):\n\n${contact.notes.trim()}`,
+                        logType: 'manual_note'
+                    });
+                }
+            }
 
             setSuccessMessage('Negócio criado na coluna Prospects e Organização vinculada com sucesso!');
             setTimeout(() => {

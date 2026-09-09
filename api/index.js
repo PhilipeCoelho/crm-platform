@@ -284,53 +284,299 @@ app.post('/api/leads', async (req, res) => {
     }
 });
 
-// Endpoint Público para receber agendamento nativo da LP
+// Endpoint para anexar/sincronizar informações da Página de Obrigado ao Contato existente (Passo 2)
+app.post('/api/contacts/append', async (req, res) => {
+    try {
+        const apiKey = req.headers['x-api-key'] || 
+                       req.headers['X-Api-Key'] || 
+                       (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null) ||
+                       req.body?.apiKey || 
+                       req.body?.api_key;
+
+        const configuredKey = process.env.LP_API_KEY || process.env.CRM_WEBHOOK_SECRET;
+        if (configuredKey && apiKey && apiKey !== configuredKey) {
+            logToFile(`⛔ [API Contacts Append] Acesso negado: chave de API inválida`);
+            return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
+        }
+
+        const raw = req.body || {};
+        const contactId = raw.contactId || raw.contact_id || raw.cid;
+        const phone = (raw.phone || raw.whatsapp || raw.telefone || '').trim();
+        const email = (raw.email || raw.mail || '').trim().toLowerCase();
+        const name = (raw.name || raw.fullName || raw.nome || '').trim();
+        const clinicName = (raw.clinicName || raw.clinic || raw.company || raw.companyName || '').trim();
+        const goal = raw.goal || raw.objetivo;
+        const budget = raw.budget || raw.orcamento;
+        const date = raw.date || raw.data;
+        const time = raw.time || raw.hora;
+        const positioningAnalysis = raw.positioningAnalysis || raw.positioning_analysis || raw.analisePosicionamento;
+        const answers = raw.answers || raw.respostas || raw.questions;
+        const materials = raw.materials || raw.materiais || raw.links;
+        const notes = raw.notes || raw.observacoes || raw.message;
+
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
+                               process.env.SUPABASE_SERVICE_ROLE || 
+                               process.env.SUPABASE_SERVICE_KEY || 
+                               process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseAdmin = createClient(SUPABASE_URL, serviceRoleKey || SUPABASE_ANON_KEY);
+
+        let targetUserId = raw.userId || process.env.DEFAULT_USER_ID || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
+
+        // 1. Localizar o contacto existente (por contactId, phone, email ou name)
+        let contact = null;
+
+        if (contactId) {
+            const { data, error } = await supabaseAdmin
+                .from('contacts')
+                .select('*')
+                .eq('id', contactId)
+                .maybeSingle();
+            if (data && !error) contact = data;
+        }
+
+        if (!contact && phone) {
+            const cleanDigits = phone.replace(/[^\d]/g, '');
+            if (cleanDigits.length >= 7) {
+                const searchSuffix = cleanDigits.slice(-9);
+                const { data: phoneMatches } = await supabaseAdmin
+                    .from('contacts')
+                    .select('*')
+                    .ilike('phone', `%${searchSuffix}%`)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                if (phoneMatches?.[0]) contact = phoneMatches[0];
+            }
+        }
+
+        if (!contact && email) {
+            const { data: emailMatches } = await supabaseAdmin
+                .from('contacts')
+                .select('*')
+                .ilike('email', email)
+                .order('created_at', { ascending: false })
+                .limit(1);
+            if (emailMatches?.[0]) contact = emailMatches[0];
+        }
+
+        if (!contact && name) {
+            const { data: nameMatches } = await supabaseAdmin
+                .from('contacts')
+                .select('*')
+                .ilike('name', `%${name}%`)
+                .order('created_at', { ascending: false })
+                .limit(1);
+            if (nameMatches?.[0]) contact = nameMatches[0];
+        }
+
+        // Formatação estruturada dos dados da página de obrigado
+        const lisbonTime = new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' });
+        let section = `\n\n═══════════════════════════════════════════\n📊 DADOS RECEBIDOS NA PÁGINA DE OBRIGADO (${lisbonTime}):\n`;
+        if (goal) section += `• Prioridade Trimestral: ${goal}\n`;
+        if (budget) section += `• Investimento Mídia Previsto: ${budget}\n`;
+        if (date && time) section += `• Agendamento Solicitado: ${date} às ${time}\n`;
+        if (positioningAnalysis) {
+            section += `• Solicitação de Análise de Posicionamento:\n`;
+            if (typeof positioningAnalysis === 'object') {
+                section += Object.entries(positioningAnalysis).map(([k, v]) => `  - ${k}: ${v}`).join('\n') + '\n';
+            } else {
+                section += `  ${positioningAnalysis}\n`;
+            }
+        }
+        if (answers) {
+            section += `• Respostas ao Questionário:\n`;
+            if (typeof answers === 'object') {
+                section += Object.entries(answers).map(([k, v]) => `  - ${k}: ${v}`).join('\n') + '\n';
+            } else {
+                section += `  ${answers}\n`;
+            }
+        }
+        if (materials) section += `• Materiais / Links Fornecidos:\n${materials}\n`;
+        if (notes) section += `• Observações:\n${notes}\n`;
+        section += `═══════════════════════════════════════════`;
+
+        if (contact) {
+            logToFile(`✅ [API Contacts Append] Enriquecendo contacto existente: ${contact.id} (${contact.name})`);
+            const existingNotes = contact.notes || '';
+            const updatedNotes = existingNotes ? `${existingNotes}\n${section}` : section.trim();
+
+            const updates = {
+                notes: updatedNotes,
+                updated_at: new Date().toISOString()
+            };
+            if (email && !contact.email) updates.email = email;
+            if (phone && !contact.phone) updates.phone = phone;
+
+            await supabaseAdmin.from('contacts').update(updates).eq('id', contact.id);
+
+            // Sincronizar também no histórico dos negócios (deal_logs) caso já existam negócios vinculados a este contato
+            const { data: existingDeals } = await supabaseAdmin
+                .from('deals')
+                .select('id')
+                .eq('contact_id', contact.id)
+                .order('created_at', { ascending: false });
+
+            if (existingDeals && existingDeals.length > 0) {
+                for (const d of existingDeals) {
+                    await supabaseAdmin.from('deal_logs').insert({
+                        id: randomUUID(),
+                        deal_id: d.id,
+                        content: `📊 Novas informações recebidas na Página de Obrigado:\n${section.trim()}`,
+                        log_type: 'manual_note',
+                        created_by: contact.user_id || targetUserId,
+                        created_at: new Date().toISOString()
+                    });
+                }
+            }
+
+            // Se for agendamento com data/hora, registrar atividade no CRM
+            if (date && time) {
+                await supabaseAdmin.from('activities').insert({
+                    id: randomUUID(),
+                    user_id: contact.user_id || targetUserId,
+                    contact_id: contact.id,
+                    deal_id: existingDeals?.[0]?.id || null,
+                    type: 'meeting',
+                    title: `Sessão Diagnóstico - ${contact.name}`,
+                    notes: `Agendamento via Página de Obrigado.\nData/Hora: ${date} às ${time}\nObjetivo: ${goal || 'N/A'}\nOrçamento: ${budget || 'N/A'}`,
+                    date: `${date}T${time}:00`,
+                    completed: false,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                contactId: contact.id,
+                message: 'Informações da página de obrigado anexadas ao contacto com sucesso.'
+            });
+        } else {
+            // Se nenhum contacto prévio foi localizado, cria novo para não perder as respostas do lead
+            logToFile(`⚠️ [API Contacts Append] Contacto não localizado. Criando novo registo de contacto de segurança.`);
+            const newContactId = randomUUID();
+            const contactName = name || (clinicName ? `Lead - ${clinicName}` : 'Lead Página de Obrigado');
+            const { error: insertErr } = await supabaseAdmin.from('contacts').insert({
+                id: newContactId,
+                user_id: targetUserId,
+                name: contactName,
+                email: email || null,
+                phone: phone || null,
+                notes: section.trim(),
+                status: 'lead',
+                created_at: new Date().toISOString()
+            });
+
+            if (insertErr) {
+                logToFile(`❌ [API Contacts Append] Erro ao criar contacto: ${insertErr.message}`);
+                return res.status(500).json({ error: insertErr.message });
+            }
+
+            return res.status(200).json({
+                success: true,
+                contactId: newContactId,
+                message: 'Novo contacto criado com as informações fornecidas.'
+            });
+        }
+    } catch (err) {
+        logToFile(`🔥 [API Contacts Append] Erro interno: ${err.message}`);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
+// Endpoint Público para receber agendamento nativo da LP (atualiza o contacto existente)
 app.post('/api/schedule', async (req, res) => {
     try {
         const apiKey = req.headers['x-api-key'];
-        if (apiKey !== process.env.LP_API_KEY) {
+        if (apiKey && process.env.LP_API_KEY && apiKey !== process.env.LP_API_KEY) {
             return res.status(401).json({ error: 'Unauthorized LP' });
         }
         
-        const { email, goal, budget, date, time, userId } = req.body;
-        if (!email || !date || !time || !userId) {
-            return res.status(400).json({ error: 'Missing required schedule fields' });
+        const { contactId, phone, email, goal, budget, date, time, userId, positioningAnalysis, answers, materials } = req.body;
+        if (!date || !time) {
+            return res.status(400).json({ error: 'Missing required schedule fields (date and time)' });
         }
 
-        logToFile(`📥 [API Schedule] Novo agendamento para: ${email} | ${date} ${time}`);
+        logToFile(`📥 [API Schedule] Agendamento: ${email || phone || contactId} | ${date} ${time}`);
         
         const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+        const targetUserId = userId || process.env.DEFAULT_USER_ID || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
         
-        // 1. Encontrar o Lead pelo email (no CRM, contacts ou leads table)
-        const { data: contact } = await supabaseAdmin
-            .from('contacts')
-            .select('id, name')
-            .eq('user_id', userId)
-            .eq('email', email)
-            .single();
-
-        let contactId = contact?.id;
-
-        // 2. Se encontrar o contacto, registar a Atividade de Agendamento
+        // 1. Encontrar o Lead (por contactId, phone ou email)
+        let contact = null;
         if (contactId) {
-            // Verifica se há um negócio (deal) aberto
-            const { data: deal } = await supabaseAdmin
+            const { data } = await supabaseAdmin.from('contacts').select('*').eq('id', contactId).maybeSingle();
+            if (data) contact = data;
+        }
+        if (!contact && phone) {
+            const cleanDigits = phone.replace(/[^\d]/g, '');
+            if (cleanDigits.length >= 7) {
+                const searchSuffix = cleanDigits.slice(-9);
+                const { data: phoneMatches } = await supabaseAdmin
+                    .from('contacts')
+                    .select('*')
+                    .ilike('phone', `%${searchSuffix}%`)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                if (phoneMatches?.[0]) contact = phoneMatches[0];
+            }
+        }
+        if (!contact && email) {
+            const { data: emailMatches } = await supabaseAdmin
+                .from('contacts')
+                .select('*')
+                .ilike('email', email)
+                .order('created_at', { ascending: false })
+                .limit(1);
+            if (emailMatches?.[0]) contact = emailMatches[0];
+        }
+
+        // 2. Se encontrar o contacto, anexar notas e registar a Atividade de Agendamento
+        const lisbonTime = new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' });
+        let scheduleNote = `\n\n═══════════════════════════════════════════\n📅 AGENDAMENTO RECEBIDO NA PÁGINA DE OBRIGADO (${lisbonTime}):\n• Data e Hora: ${date} às ${time}\n• Prioridade: ${goal || 'Não especificada'}\n• Orçamento Mídia: ${budget || 'Não especificado'}\n`;
+        if (positioningAnalysis) scheduleNote += `• Análise de Posicionamento: ${typeof positioningAnalysis === 'object' ? JSON.stringify(positioningAnalysis) : positioningAnalysis}\n`;
+        if (answers) scheduleNote += `• Respostas: ${typeof answers === 'object' ? JSON.stringify(answers) : answers}\n`;
+        scheduleNote += `═══════════════════════════════════════════`;
+
+        if (contact) {
+            const existingNotes = contact.notes || '';
+            await supabaseAdmin.from('contacts').update({
+                notes: existingNotes ? `${existingNotes}\n${scheduleNote}` : scheduleNote.trim(),
+                updated_at: new Date().toISOString()
+            }).eq('id', contact.id);
+
+            // Verifica se há negócio(s) associado(s)
+            const { data: deals } = await supabaseAdmin
                 .from('deals')
                 .select('id')
-                .eq('contact_id', contactId)
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
+                .eq('contact_id', contact.id)
+                .order('created_at', { ascending: false });
+
+            if (deals && deals.length > 0) {
+                for (const d of deals) {
+                    await supabaseAdmin.from('deal_logs').insert({
+                        id: randomUUID(),
+                        deal_id: d.id,
+                        content: `📅 Agendamento via Página de Obrigado:\n${scheduleNote.trim()}`,
+                        log_type: 'manual_note',
+                        created_by: contact.user_id || targetUserId,
+                        created_at: new Date().toISOString()
+                    });
+                }
+            }
 
             // Insere atividade no CRM
             await supabaseAdmin.from('activities').insert([{
-                user_id: userId,
-                contact_id: contactId,
-                deal_id: deal?.id || null,
-                activity_type: 'meeting',
-                notes: `Agendamento via LP.\nObjetivo: ${goal}\nOrçamento: ${budget}\nData e Hora: ${date} às ${time}`,
-                scheduled_at: `${date}T${time}:00`
+                id: randomUUID(),
+                user_id: contact.user_id || targetUserId,
+                contact_id: contact.id,
+                deal_id: deals?.[0]?.id || null,
+                type: 'meeting',
+                title: `Sessão Diagnóstico - ${contact.name}`,
+                notes: `Agendamento via LP.\nObjetivo: ${goal || 'N/A'}\nOrçamento: ${budget || 'N/A'}\nData e Hora: ${date} às ${time}`,
+                date: `${date}T${time}:00`,
+                completed: false,
+                status: 'pending',
+                created_at: new Date().toISOString()
             }]);
         }
 
