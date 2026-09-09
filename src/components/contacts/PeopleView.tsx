@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
 import { Search, Filter, Plus, Columns, ArrowUpDown, Users, Sparkles } from 'lucide-react';
 import NewContactModal from './NewContactModal';
+import ConvertToDealModal from './ConvertToDealModal';
 import { Contact } from '@/types/schema';
 import { List } from 'react-window';
 import { ContactRow } from './ContactRow';
@@ -37,6 +38,7 @@ export default function PeopleView() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
+    const [convertingContact, setConvertingContact] = useState<Contact | null>(null);
 
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
@@ -197,9 +199,9 @@ export default function PeopleView() {
     }, [contactDealsMap]);
 
     const isLpContact = useCallback((contact: Contact) => {
-        const notes = contact.notes || '';
+        const notes = (contact.notes || '').toLowerCase();
         const role = (contact.role || '').toLowerCase();
-        return notes.includes('[Landing Page') || role === 'lead' || (contact as any).marketing_status === 'lead';
+        return notes.includes('landing page') || role === 'lead' || (contact as any).marketing_status === 'lead';
     }, []);
 
     const lpLeadsCount = useMemo(() => {
@@ -300,6 +302,13 @@ export default function PeopleView() {
                 if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
                 if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
                 return 0;
+            });
+        } else {
+            // Padrão: mais recentes primeiro (created_at decrescente)
+            result = [...result].sort((a, b) => {
+                const dateA = new Date(a.createdAt || (a as any).created_at || 0).getTime();
+                const dateB = new Date(b.createdAt || (b as any).created_at || 0).getTime();
+                return dateB - dateA;
             });
         }
 
@@ -780,6 +789,10 @@ export default function PeopleView() {
                                                     setOpenMenuId(null);
                                                 }
                                             }}
+                                            onConvertToDeal={(c) => {
+                                                setConvertingContact(c);
+                                                setOpenMenuId(null);
+                                            }}
                                             onClick={() => openFocusContact(contact.id)}
                                             companyName={getCompanyName(contact.companyId || (contact as any).company_id)}
                                             openDealsCount={getOpenDealsCount(contact.id)}
@@ -805,6 +818,15 @@ export default function PeopleView() {
                 onClose={() => setIsModalOpen(false)}
                 contactToEdit={editingContact}
             />
+
+            {convertingContact && (
+                <ConvertToDealModal
+                    isOpen={Boolean(convertingContact)}
+                    onClose={() => setConvertingContact(null)}
+                    contact={convertingContact}
+                    onSuccess={() => setConvertingContact(null)}
+                />
+            )}
 
         </div>
     );

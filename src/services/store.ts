@@ -281,7 +281,7 @@ export function useCRMStore(): CRMStore {
                 { data: cadenceStagesData }
             ] = await Promise.all([
                 supabase.from('deals').select('*'),
-                supabase.from('contacts').select('*'),
+                supabase.from('contacts').select('*').order('created_at', { ascending: false }),
                 supabase.from('activities').select('*'),
                 supabase.from('deal_logs').select('*'),
                 supabase.from('companies').select('*'),
@@ -1355,7 +1355,7 @@ export function useCRMStore(): CRMStore {
         if (deleteDealsError) {
             console.error('Error deleting deals:', deleteDealsError);
             // Partial failure — reload only contacts
-             const { data: freshContacts } = await supabase.from('contacts').select('*');
+             const { data: freshContacts } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
              if (freshContacts) {
                  const cleanEmail = (email: string) => {
                      if (!email) return '';

@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ArrowLeft, User, Building, Mail, Phone, Briefcase, Calendar, Pencil, Tag, ExternalLink, Trash2, Plus, MessageSquare } from 'lucide-react';
+import { ArrowLeft, User, Building, Mail, Phone, Briefcase, Calendar, Pencil, Tag, ExternalLink, Trash2, Plus, MessageSquare, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NewContactModal from '@/components/contacts/NewContactModal';
 import ActivityList from '@/components/activities-v2/ActivityList';
 import NewActivityModal from '@/components/activities-v2/NewActivityModal';
+import ConvertToDealModal from '@/components/contacts/ConvertToDealModal';
 import { isMobileNumber, getCleanedWhatsAppLink } from '@/utils/phoneHelpers';
 
 interface Props {
@@ -23,6 +24,7 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
     const { contacts, companies, deals, activities, deleteContact, deleteDeal, updateActivity, deleteActivity, openFocusDeal, openFocusCompany, addActivity } = useCRM();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+    const [isConvertToDealOpen, setIsConvertToDealOpen] = useState(false);
     const [noteText, setNoteText] = useState('');
 
     const contact = contacts.find(c => c.id === id);
@@ -131,6 +133,14 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
                         <Pencil size={14} />
                         Editar Contato
                     </button>
+                    <button
+                        onClick={() => setIsConvertToDealOpen(true)}
+                        className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md text-sm font-semibold flex items-center gap-2 shadow-sm transition-all"
+                        title="Transformar este contacto num negócio no Pipeline (coluna Prospects)"
+                    >
+                        <Sparkles size={15} />
+                        Transformar em Negócio
+                    </button>
                 </div>
             </div>
 
@@ -229,7 +239,13 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
                                         <Briefcase size={18} className="text-primary" />
                                         Negócios ({contactDeals.length})
                                     </h3>
-                                    {/* Could Link to create deal */}
+                                    <button
+                                        onClick={() => setIsConvertToDealOpen(true)}
+                                        className="text-xs font-semibold text-primary hover:underline flex items-center gap-1.5"
+                                    >
+                                        <Plus size={14} />
+                                        Novo Negócio
+                                    </button>
                                 </div>
                                 <div className="space-y-3">
                                     {contactDeals.length > 0 ? contactDeals.map(deal => (
@@ -273,8 +289,15 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
                                             </button>
                                         </div>
                                     )) : (
-                                        <div className="text-center py-6 text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border">
-                                            <p className="text-sm">Nenhum negócio vinculado.</p>
+                                        <div className="text-center py-6 px-4 bg-muted/20 rounded-xl border border-dashed border-border space-y-3">
+                                            <p className="text-sm text-muted-foreground">Nenhum negócio vinculado a este contacto.</p>
+                                            <button
+                                                onClick={() => setIsConvertToDealOpen(true)}
+                                                className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg text-sm font-semibold inline-flex items-center gap-2 shadow-sm transition-all"
+                                            >
+                                                <Sparkles size={14} />
+                                                Transformar em Negócio (Coluna Prospects)
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -347,6 +370,14 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
                     isOpen={isActivityModalOpen}
                     onClose={() => setIsActivityModalOpen(false)}
                     preselectedContactId={contact.id}
+                />
+            )}
+            {isConvertToDealOpen && (
+                <ConvertToDealModal
+                    isOpen={isConvertToDealOpen}
+                    onClose={() => setIsConvertToDealOpen(false)}
+                    contact={contact}
+                    onSuccess={() => setIsConvertToDealOpen(false)}
                 />
             )}
         </div>

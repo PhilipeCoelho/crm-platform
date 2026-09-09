@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Mail, Phone, MessageCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Mail, Phone, MessageCircle, MoreHorizontal, Edit, Trash2, Sparkles } from 'lucide-react';
 import { Contact, Activity } from '@/types/schema';
 import { PrivacyText } from '../ui/PrivacyMask';
 import { isMobileNumber, getCleanedWhatsAppLink, getCleanedPhoneLink } from '@/utils/phoneHelpers';
@@ -11,6 +11,7 @@ interface ContactRowProps {
     onSelect: () => void;
     onEdit: (contact: Contact, e: React.MouseEvent) => void;
     onDelete: (id: string) => void;
+    onConvertToDeal?: (contact: Contact, e: React.MouseEvent) => void;
     onClick: () => void;
     companyName: string;
     openDealsCount: number;
@@ -43,6 +44,7 @@ export const ContactRow = memo(function ContactRow({
     onSelect,
     onEdit,
     onDelete,
+    onConvertToDeal,
     onClick,
     companyName,
     openDealsCount,
@@ -242,7 +244,19 @@ export const ContactRow = memo(function ContactRow({
                             <MoreHorizontal size={14} />
                         </button>
                         {isMenuOpen && (
-                            <div className="absolute right-0 mt-2 w-36 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                            <div className="absolute right-0 mt-2 w-44 bg-popover border border-border rounded-lg shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                                {onConvertToDeal && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onConvertToDeal(contact, e);
+                                        }}
+                                        className="w-full text-left px-3 py-2 text-sm hover:bg-primary/10 text-primary font-medium flex items-center gap-2 transition-colors border-b border-border/50"
+                                    >
+                                        <Sparkles size={14} />
+                                        Criar Negócio
+                                    </button>
+                                )}
                                 <button
                                     onClick={(e) => onEdit(contact, e)}
                                     className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2 transition-colors"
