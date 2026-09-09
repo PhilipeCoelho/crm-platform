@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { Search, Filter, Plus, Columns, ArrowUpDown, Users, Sparkles } from 'lucide-react';
+import { Search, Filter, Plus, Columns, ArrowUpDown, Users, Sparkles, RefreshCw } from 'lucide-react';
 import NewContactModal from './NewContactModal';
 import ConvertToDealModal from './ConvertToDealModal';
 import { Contact } from '@/types/schema';
@@ -33,9 +33,10 @@ const getColumnClass = (id: ColumnId) => {
 };
 
 export default function PeopleView() {
-    const { contacts, companies, activities, deals, deleteContact, openFocusContact } = useCRM();
+    const { contacts, companies, activities, deals, deleteContact, openFocusContact, refresh } = useCRM();
     const [searchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
     const [convertingContact, setConvertingContact] = useState<Contact | null>(null);
@@ -481,6 +482,24 @@ export default function PeopleView() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+
+                    {/* Botão de Atualização Imediata */}
+                    <button
+                        onClick={async () => {
+                            setIsRefreshing(true);
+                            try {
+                                await refresh();
+                            } finally {
+                                setTimeout(() => setIsRefreshing(false), 500);
+                            }
+                        }}
+                        disabled={isRefreshing}
+                        title="Atualizar lista de contatos em tempo real"
+                        className="flex items-center gap-1.5 px-3 py-2 border border-input rounded-lg hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground shrink-0 cursor-pointer active:scale-95"
+                    >
+                        <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-primary' : ''} />
+                        <span className="hidden sm:inline">Atualizar</span>
+                    </button>
                     
                     {/* View Selector */}
                     <div className="relative">

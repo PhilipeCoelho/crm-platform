@@ -658,6 +658,55 @@ export function useCRMStore(): CRMStore {
                     }
                 }
 
+                // Handle contacts granularly (instant real-time insertion at the very top)
+                if (payload.table === 'contacts') {
+                    if (payload.eventType === 'INSERT') {
+                        const newContact = payload.new;
+                        setContacts((prev: any[]) => {
+                            if (prev.some((c: any) => c.id === newContact.id)) return prev;
+                            const cleanEmail = (email: string) => {
+                                if (!email) return '';
+                                const parts = email.split(/[\s,;|/]+/);
+                                const firstValid = parts.find(p => p.includes('@'));
+                                return firstValid ? firstValid.trim().toLowerCase() : '';
+                            };
+                            const cleanedEmail = cleanEmail(newContact.email);
+                            const isEligible = cleanedEmail.length > 0;
+                            const mapped: Contact = {
+                                ...newContact,
+                                userId: newContact.user_id,
+                                companyId: newContact.company_id,
+                                marketingStatus: newContact.marketing_status || 'subscribed',
+                                brevoStatus: newContact.brevo_status || false,
+                                brevoLastSyncAt: newContact.brevo_last_sync_at,
+                                exportBatchId: newContact.export_batch_id,
+                                brevoSyncStatus: isEligible ? 'nao_sincronizado' : 'nao_elegivel',
+                                createdAt: newContact.created_at
+                            };
+                            return [mapped, ...prev]; // Adiciona imediatamente no topo #1
+                        });
+                        return;
+                    }
+                    if (payload.eventType === 'UPDATE') {
+                        const updated = payload.new;
+                        setContacts((prev: any[]) => prev.map((c: any) => c.id === updated.id ? {
+                            ...c,
+                            ...updated,
+                            userId: updated.user_id || c.userId,
+                            companyId: updated.company_id || c.companyId,
+                            notes: updated.notes !== undefined ? updated.notes : c.notes,
+                            name: updated.name || c.name,
+                            phone: updated.phone || c.phone,
+                            email: updated.email || c.email
+                        } : c));
+                        return;
+                    }
+                    if (payload.eventType === 'DELETE') {
+                        setContacts((prev: any[]) => prev.filter((c: any) => c.id !== payload.old.id));
+                        return;
+                    }
+                }
+
                 // For all other tables (campaigns, templates, etc.) — debounced refresh
                 debouncedFetchAll();
             })
@@ -668,7 +717,20 @@ export function useCRMStore(): CRMStore {
                 }
             });
 
+        // Auto-refresh when user switches back to this tab/window
+        let lastFocusFetchTime = Date.now();
+        const handleFocusOrVisible = () => {
+            if (document.visibilityState === 'visible' && Date.now() - lastFocusFetchTime > 3000) {
+                lastFocusFetchTime = Date.now();
+                debouncedFetchAll();
+            }
+        };
+        window.addEventListener('focus', handleFocusOrVisible);
+        document.addEventListener('visibilitychange', handleFocusOrVisible);
+
         return () => {
+            window.removeEventListener('focus', handleFocusOrVisible);
+            document.removeEventListener('visibilitychange', handleFocusOrVisible);
             authListener.unsubscribe();
             supabase.removeChannel(channel);
         };
