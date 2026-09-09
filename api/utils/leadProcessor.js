@@ -395,7 +395,7 @@ export class LeadProcessor {
             company_id: companyId || null,
             notes: notes || null,
             role: 'Lead',
-            marketing_status: 'lead',
+            marketing_status: 'subscribed',
             created_at: new Date().toISOString()
         };
 
