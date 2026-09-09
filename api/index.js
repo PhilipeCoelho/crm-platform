@@ -200,7 +200,14 @@ app.post('/api/leads', async (req, res) => {
         const utmTerm = raw.utm_term || raw.utmTerm;
 
         // Resolução do userId do CRM (automático caso a LP não envie)
-        const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
+                               process.env.SUPABASE_SERVICE_ROLE || 
+                               process.env.SUPABASE_SERVICE_KEY || 
+                               process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+        if (!serviceRoleKey) {
+            logToFile(`⚠️ [API Leads] AVISO: SUPABASE_SERVICE_ROLE_KEY não configurada no Vercel. Usando anon key (sujeita a RLS).`);
+        }
+        const supabaseAdmin = createClient(SUPABASE_URL, serviceRoleKey || SUPABASE_ANON_KEY);
         let targetUserId = raw.userId || process.env.DEFAULT_USER_ID;
 
         if (!targetUserId) {
