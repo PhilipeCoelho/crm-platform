@@ -265,6 +265,8 @@ app.post('/api/leads', async (req, res) => {
             createCompany: Boolean(companyName),
             pipelineId: raw.pipelineId,
             stageId: raw.stageId,
+            allowDuplicates: raw.allowDuplicates !== undefined ? Boolean(raw.allowDuplicates) : true,
+            forceNewContact: raw.forceNewContact !== undefined ? Boolean(raw.forceNewContact) : true,
             rawPayload: raw
         });
 

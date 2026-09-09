@@ -122,22 +122,34 @@ export class LeadProcessor {
                 }
             }
 
-            // 3. Find existing contact by email
+            // 3. Determine if we should force a new contact registration
+            const shouldForceNewContact = 
+                leadData.allowDuplicates === true || 
+                leadData.forceNewContact === true || 
+                leadData.source === 'Landing Page Vamuss' ||
+                (typeof leadData.source === 'string' && leadData.source.toLowerCase().includes('landing page'));
+
             let contact = null;
-            if (leadData.email) {
-                contact = await this.findContactByEmail(leadData.email);
-            }
 
-            // 4. If not found, find by phone
-            if (!contact && leadData.phone) {
-                contact = await this.findContactByPhone(leadData.phone);
-            }
+            if (!shouldForceNewContact) {
+                // Find existing contact by email
+                if (leadData.email) {
+                    contact = await this.findContactByEmail(leadData.email);
+                }
 
-            // 5. Determine if duplicate contact
-            result.isDuplicate = !!contact;
+                // If not found, find by phone
+                if (!contact && leadData.phone) {
+                    contact = await this.findContactByPhone(leadData.phone);
+                }
+
+                // Determine if duplicate contact
+                result.isDuplicate = !!contact;
+            } else {
+                result.isDuplicate = false;
+            }
 
             // 6. Create or update contact
-            if (!contact && this.settings.auto_create_contact) {
+            if (!contact && (this.settings.auto_create_contact || shouldForceNewContact)) {
                 // 6a. Create company first if available
                 let companyId = null;
                 const shouldCreateCompany = leadData.createCompany !== undefined 
