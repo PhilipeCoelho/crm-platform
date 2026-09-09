@@ -400,8 +400,7 @@ app.post('/api/contacts/append', async (req, res) => {
             const updatedNotes = existingNotes ? `${existingNotes}\n${section}` : section.trim();
 
             const updates = {
-                notes: updatedNotes,
-                updated_at: new Date().toISOString()
+                notes: updatedNotes
             };
             if (email && !contact.email) updates.email = email;
             if (phone && !contact.phone) updates.phone = phone;
@@ -540,8 +539,7 @@ app.post('/api/schedule', async (req, res) => {
         if (contact) {
             const existingNotes = contact.notes || '';
             await supabaseAdmin.from('contacts').update({
-                notes: existingNotes ? `${existingNotes}\n${scheduleNote}` : scheduleNote.trim(),
-                updated_at: new Date().toISOString()
+                notes: existingNotes ? `${existingNotes}\n${scheduleNote}` : scheduleNote.trim()
             }).eq('id', contact.id);
 
             // Verifica se há negócio(s) associado(s)
