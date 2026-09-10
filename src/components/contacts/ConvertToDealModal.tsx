@@ -3,6 +3,7 @@ import Modal from '@/components/ui/Modal';
 import { useCRM } from '@/contexts/CRMContext';
 import { Contact } from '@/types/schema';
 import { Building, Briefcase, User, DollarSign, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface ConvertToDealModalProps {
     isOpen: boolean;
@@ -63,6 +64,8 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
     const [value, setValue] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [syncedNotes, setSyncedNotes] = useState<string>(contact?.notes || '');
+    const [isSyncingNotes, setIsSyncingNotes] = useState<boolean>(false);
 
     useEffect(() => {
         if (isOpen && contact) {
@@ -74,6 +77,47 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
             setSelectedStageId(defaultStageId);
             setIsSubmitting(false);
             setSuccessMessage(null);
+            setSyncedNotes(contact.notes || '');
+
+            // Sincronizar dados frescos do contacto e email_logs (respostas da tela de obrigado)
+            const syncContactData = async () => {
+                try {
+                    setIsSyncingNotes(true);
+                    // 1. Contacto atualizado no Supabase
+                    const { data: dbContact } = await supabase
+                        .from('contacts')
+                        .select('notes')
+                        .eq('id', contact.id)
+                        .maybeSingle();
+
+                    // 2. Registos de enriquecimento em email_logs
+                    const { data: emailLogs } = await supabase
+                        .from('email_logs')
+                        .select('content, sent_at')
+                        .eq('person_id', contact.id)
+                        .order('sent_at', { ascending: true });
+
+                    let consolidated = dbContact?.notes || contact.notes || '';
+                    if (emailLogs && emailLogs.length > 0) {
+                        for (const el of emailLogs) {
+                            if (el.content && !consolidated.includes(el.content.trim())) {
+                                consolidated = consolidated ? `${consolidated}\n\n${el.content.trim()}` : el.content.trim();
+                            }
+                        }
+                    }
+
+                    setSyncedNotes(consolidated);
+                    if (consolidated && consolidated !== contact.notes) {
+                        await updateContact(contact.id, { notes: consolidated });
+                    }
+                } catch (err) {
+                    console.warn('Erro ao sincronizar dados da tela de obrigado:', err);
+                } finally {
+                    setIsSyncingNotes(false);
+                }
+            };
+
+            syncContactData();
         }
     }, [isOpen, contact, extractedClinicName, defaultPipelineId, defaultStageId]);
 
@@ -142,10 +186,11 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                 });
 
                 // Se houver anotações acumuladas no contacto (Passo 1 + Passo 2 da LP / Tela de Obrigado), registra também no histórico do negócio
-                if (contact.notes && contact.notes.trim()) {
+                const finalNotes = syncedNotes || contact.notes || '';
+                if (finalNotes && finalNotes.trim()) {
                     await addLog({
                         dealId: createdDeal.id,
-                        content: `📋 Dossiê da Captura (Dados da LP & Tela de Obrigado):\n\n${contact.notes.trim()}`,
+                        content: `📋 Dossiê da Captura (Dados da LP & Tela de Obrigado):\n\n${finalNotes.trim()}`,
                         logType: 'manual_note'
                     });
                 }
@@ -292,6 +337,26 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                         />
                     </div>
                 </div>
+
+                {/* Dossiê da Captura (Dados da LP & Tela de Obrigado) */}
+                {syncedNotes && (
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                                <Sparkles size={13} className="text-primary" />
+                                Dossiê da Captura (LP & Obrigado)
+                            </label>
+                            {isSyncingNotes && (
+                                <span className="text-[10px] font-semibold text-primary animate-pulse">
+                                    A sincronizar...
+                                </span>
+                            )}
+                        </div>
+                        <div className="text-[11px] text-foreground/80 bg-muted/40 border border-border/70 rounded-lg p-3 max-h-32 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed shadow-inner">
+                            {syncedNotes}
+                        </div>
+                    </div>
+                )}
 
                 {/* Feedback de Sucesso */}
                 {successMessage && (

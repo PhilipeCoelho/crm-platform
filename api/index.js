@@ -309,6 +309,10 @@ app.post('/api/contacts/append', async (req, res) => {
         const budget = raw.budget || raw.orcamento;
         const date = raw.date || raw.data;
         const time = raw.time || raw.hora;
+        const instagram = (raw.instagram || raw.ig || '').trim();
+        const website = (raw.website || raw.site || '').trim();
+        const location = (raw.location || raw.city || '').trim();
+        const auditScore = raw.auditScore;
         const positioningAnalysis = raw.positioningAnalysis || raw.positioning_analysis || raw.analisePosicionamento;
         const answers = raw.answers || raw.respostas || raw.questions;
         const materials = raw.materials || raw.materiais || raw.links;
@@ -371,9 +375,13 @@ app.post('/api/contacts/append', async (req, res) => {
         // Formatação estruturada dos dados da página de obrigado
         const lisbonTime = new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' });
         let section = `\n\n═══════════════════════════════════════════\n📊 DADOS RECEBIDOS NA PÁGINA DE OBRIGADO (${lisbonTime}):\n`;
-        if (goal) section += `• Prioridade Trimestral: ${goal}\n`;
+        if (goal) section += `• Prioridade / Meta: ${goal}\n`;
         if (budget) section += `• Investimento Mídia Previsto: ${budget}\n`;
         if (date && time) section += `• Agendamento Solicitado: ${date} às ${time}\n`;
+        if (instagram) section += `• Instagram Informado: @${instagram.replace(/^@/, '')}\n`;
+        if (website) section += `• Website Informado: ${website}\n`;
+        if (location) section += `• Localização / Cidade: ${location}\n`;
+        if (auditScore) section += `• Score da Auditoria de Presença: ${auditScore}/100\n`;
         if (positioningAnalysis) {
             section += `• Solicitação de Análise de Posicionamento:\n`;
             if (typeof positioningAnalysis === 'object') {
@@ -406,6 +414,22 @@ app.post('/api/contacts/append', async (req, res) => {
             if (phone && !contact.phone) updates.phone = phone;
 
             await supabaseAdmin.from('contacts').update(updates).eq('id', contact.id);
+
+            // Persistir também em email_logs como canal de auditoria e persistência garantido
+            try {
+                await supabaseAdmin.from('email_logs').insert({
+                    id: randomUUID(),
+                    user_id: contact.user_id || targetUserId,
+                    person_id: contact.id,
+                    recipient_email: contact.email || email || 'landingpage@vamuss.com',
+                    subject: 'Página de Obrigado - Análise de Posicionamento & Material',
+                    content: section.trim(),
+                    status: 'delivered',
+                    sent_at: new Date().toISOString()
+                });
+            } catch (eLogErr) {
+                logToFile(`⚠️ [API Contacts Append] Erro ao registrar em email_logs: ${eLogErr?.message}`);
+            }
 
             // Sincronizar também no histórico dos negócios (deal_logs) caso já existam negócios vinculados a este contato
             const { data: existingDeals } = await supabaseAdmin

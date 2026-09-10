@@ -1377,6 +1377,7 @@ export function useCRMStore(): CRMStore {
         if (updates.name !== undefined) dbUpdates.name = updates.name;
         if (updates.email !== undefined) dbUpdates.email = updates.email;
         if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+        if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
         if (updates.role !== undefined) dbUpdates.role = updates.role;
         if (updates.companyId !== undefined) dbUpdates.company_id = updates.companyId;
         if (updates.marketingStatus !== undefined) dbUpdates.marketing_status = updates.marketingStatus;

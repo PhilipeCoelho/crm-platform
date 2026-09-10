@@ -1,5 +1,5 @@
 // Imports
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
 import { ArrowLeft, User, Building, Mail, Phone, Briefcase, Calendar, Pencil, Tag, ExternalLink, Trash2, Plus, MessageSquare, Sparkles } from 'lucide-react';
@@ -10,6 +10,7 @@ import ActivityList from '@/components/activities-v2/ActivityList';
 import NewActivityModal from '@/components/activities-v2/NewActivityModal';
 import ConvertToDealModal from '@/components/contacts/ConvertToDealModal';
 import { isMobileNumber, getCleanedWhatsAppLink } from '@/utils/phoneHelpers';
+import { supabase } from '@/lib/supabase';
 
 interface Props {
     contactId?: string;
@@ -21,7 +22,7 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
     const { id: paramsId } = useParams();
     const id = contactId || paramsId;
     const navigate = useNavigate();
-    const { contacts, companies, deals, activities, deleteContact, deleteDeal, updateActivity, deleteActivity, openFocusDeal, openFocusCompany, addActivity } = useCRM();
+    const { contacts, companies, deals, activities, deleteContact, deleteDeal, updateActivity, deleteActivity, openFocusDeal, openFocusCompany, addActivity, updateContact } = useCRM();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
     const [isConvertToDealOpen, setIsConvertToDealOpen] = useState(false);
@@ -39,6 +40,37 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
             navigate(-1);
         }
     };
+
+    // Sincronizar dados da página de obrigado / email_logs se existirem
+    useEffect(() => {
+        if (!id) return;
+        const syncThankYouPageNotes = async () => {
+            try {
+                const { data: extraLogs } = await supabase
+                    .from('email_logs')
+                    .select('content, sent_at')
+                    .eq('person_id', id)
+                    .order('sent_at', { ascending: true });
+
+                if (extraLogs && extraLogs.length > 0) {
+                    let currentNotes = contact?.notes || '';
+                    let changed = false;
+                    for (const l of extraLogs) {
+                        if (l.content && !currentNotes.includes(l.content.trim())) {
+                            currentNotes = currentNotes ? `${currentNotes}\n\n${l.content.trim()}` : l.content.trim();
+                            changed = true;
+                        }
+                    }
+                    if (changed) {
+                        await updateContact(id, { notes: currentNotes });
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao sincronizar notas em ContactDetails:', err);
+            }
+        };
+        syncThankYouPageNotes();
+    }, [id, contact?.notes]);
 
     // Filter Related Data
     const contactDeals = deals.filter(d => d.contactId === id);
