@@ -372,9 +372,9 @@ app.post('/api/contacts/append', async (req, res) => {
             if (nameMatches?.[0]) contact = nameMatches[0];
         }
 
-        // Formatação estruturada dos dados da página de obrigado
+        // Formatação limpa e estruturada dos dados da página de obrigado
         const lisbonTime = new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' });
-        let section = `\n\n═══════════════════════════════════════════\n📊 DADOS RECEBIDOS NA PÁGINA DE OBRIGADO (${lisbonTime}):\n`;
+        let section = `\n\n📌 Respostas da Página de Obrigado (${lisbonTime}):\n`;
         if (goal) section += `• Prioridade / Meta: ${goal}\n`;
         if (budget) section += `• Investimento Mídia Previsto: ${budget}\n`;
         if (date && time) section += `• Agendamento Solicitado: ${date} às ${time}\n`;
@@ -383,24 +383,23 @@ app.post('/api/contacts/append', async (req, res) => {
         if (location) section += `• Localização / Cidade: ${location}\n`;
         if (auditScore) section += `• Score da Auditoria de Presença: ${auditScore}/100\n`;
         if (positioningAnalysis) {
-            section += `• Solicitação de Análise de Posicionamento:\n`;
+            section += `\n📊 Análise de Posicionamento:\n`;
             if (typeof positioningAnalysis === 'object') {
                 section += Object.entries(positioningAnalysis).map(([k, v]) => `  - ${k}: ${v}`).join('\n') + '\n';
             } else {
-                section += `  ${positioningAnalysis}\n`;
+                section += `  ${positioningAnalysis.trim()}\n`;
             }
         }
         if (answers) {
-            section += `• Respostas ao Questionário:\n`;
+            section += `\n💬 Respostas ao Questionário:\n`;
             if (typeof answers === 'object') {
                 section += Object.entries(answers).map(([k, v]) => `  - ${k}: ${v}`).join('\n') + '\n';
             } else {
-                section += `  ${answers}\n`;
+                section += `  ${answers.trim()}\n`;
             }
         }
-        if (materials) section += `• Materiais / Links Fornecidos:\n${materials}\n`;
-        if (notes) section += `• Observações:\n${notes}\n`;
-        section += `═══════════════════════════════════════════`;
+        if (materials) section += `\n📁 Materiais / Links Fornecidos:\n${materials}\n`;
+        if (notes) section += `\n📝 Observações:\n${notes}\n`;
 
         if (contact) {
             logToFile(`✅ [API Contacts Append] Enriquecendo contacto existente: ${contact.id} (${contact.name})`);
@@ -412,6 +411,42 @@ app.post('/api/contacts/append', async (req, res) => {
             };
             if (email && !contact.email) updates.email = email;
             if (phone && !contact.phone) updates.phone = phone;
+
+            // Atualizar website no cadastro de empresa existente ou criar/vincular
+            if (website) {
+                try {
+                    if (contact.company_id) {
+                        await supabaseAdmin.from('companies').update({ website: website.trim() }).eq('id', contact.company_id);
+                    } else if (clinicName) {
+                        const { data: existingCo } = await supabaseAdmin
+                            .from('companies')
+                            .select('id, website')
+                            .ilike('name', clinicName.trim())
+                            .limit(1);
+
+                        if (existingCo && existingCo.length > 0) {
+                            updates.company_id = existingCo[0].id;
+                            if (!existingCo[0].website) {
+                                await supabaseAdmin.from('companies').update({ website: website.trim() }).eq('id', existingCo[0].id);
+                            }
+                        } else {
+                            const newCoId = randomUUID();
+                            const { error: insErr } = await supabaseAdmin.from('companies').insert({
+                                id: newCoId,
+                                user_id: contact.user_id || targetUserId,
+                                name: clinicName.trim(),
+                                website: website.trim(),
+                                created_at: new Date().toISOString()
+                            });
+                            if (!insErr) {
+                                updates.company_id = newCoId;
+                            }
+                        }
+                    }
+                } catch (coErr) {
+                    logToFile(`⚠️ [API Contacts Append] Erro ao sincronizar website da empresa: ${coErr?.message}`);
+                }
+            }
 
             await supabaseAdmin.from('contacts').update(updates).eq('id', contact.id);
 
@@ -431,15 +466,21 @@ app.post('/api/contacts/append', async (req, res) => {
                 logToFile(`⚠️ [API Contacts Append] Erro ao registrar em email_logs: ${eLogErr?.message}`);
             }
 
-            // Sincronizar também no histórico dos negócios (deal_logs) caso já existam negócios vinculados a este contato
+            // Sincronizar também no histórico dos negócios (deal_logs) e preencher instagram nos negócios existentes
             const { data: existingDeals } = await supabaseAdmin
                 .from('deals')
-                .select('id')
+                .select('id, instagram_url')
                 .eq('contact_id', contact.id)
                 .order('created_at', { ascending: false });
 
             if (existingDeals && existingDeals.length > 0) {
+                const cleanIg = instagram ? `@${instagram.replace(/^@/, '')}` : null;
                 for (const d of existingDeals) {
+                    if (cleanIg && !d.instagram_url) {
+                        try {
+                            await supabaseAdmin.from('deals').update({ instagram_url: cleanIg }).eq('id', d.id);
+                        } catch (_) {}
+                    }
                     await supabaseAdmin.from('deal_logs').insert({
                         id: randomUUID(),
                         deal_id: d.id,

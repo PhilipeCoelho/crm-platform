@@ -233,14 +233,16 @@ export class LeadProcessor {
                 // 9. Create new deal
                 const targetPipelineId = leadData.pipelineId || this.settings.default_pipeline_id;
                 const targetStageId = leadData.stageId || this.settings.default_stage_id;
-                const dealTitle = leadData.name ? `${leadData.name} - ${leadData.source}` : `Lead - ${leadData.source}`;
+                const dealTitle = leadData.companyName ? `Negócio ${leadData.companyName}` : (leadData.name ? `Negócio ${leadData.name}` : 'Negócio Lead');
                 const newDeal = await this.createDeal({
                     title: dealTitle,
+                    value: leadData.value !== undefined ? (Number(leadData.value) || 197) : 197,
                     contactId: result.contactId,
                     companyId: result.companyId,
                     source: leadData.source,
                     pipelineId: targetPipelineId,
                     stageId: targetStageId,
+                    instagramUrl: leadData.instagram || leadData.instagramUrl,
                     utms: {
                         utm_source: leadData.utmSource,
                         utm_medium: leadData.utmMedium,
@@ -368,7 +370,7 @@ export class LeadProcessor {
         return null;
     }
 
-    async createCompany({ name }) {
+    async createCompany({ name, website }) {
         if (!name) return null;
         
         try {
@@ -381,6 +383,9 @@ export class LeadProcessor {
 
             if (existing && existing.length > 0) {
                 existing[0]._existed = true;
+                if (website && !existing[0].website) {
+                    await this.supabase.from('companies').update({ website: website.trim() }).eq('id', existing[0].id);
+                }
                 return existing[0];
             }
 
@@ -388,6 +393,7 @@ export class LeadProcessor {
                 id: randomUUID(),
                 user_id: this.userId,
                 name: name.trim(),
+                website: website ? website.trim() : null,
                 created_at: new Date().toISOString()
             };
 
@@ -474,7 +480,7 @@ Data: ${leadData.createdTime || now}`;
         await this.supabase.from('deal_logs').insert(logData);
     }
 
-    async createDeal({ title, contactId, companyId, source, pipelineId, stageId, utms }) {
+    async createDeal({ title, value, contactId, companyId, source, pipelineId, stageId, instagramUrl, utms }) {
         const { data: maxPositionData } = await this.supabase
             .from('deals')
             .select('position')
@@ -493,7 +499,7 @@ Data: ${leadData.createdTime || now}`;
             id: randomUUID(),
             user_id: this.userId,
             title: title,
-            value: 0,
+            value: value !== undefined ? (Number(value) || 197) : 197,
             currency: 'EUR',
             pipeline_id: pipelineId,
             stage_id: stageId,
@@ -503,6 +509,7 @@ Data: ${leadData.createdTime || now}`;
             company_id: companyId,
             source: source,
             position: position,
+            instagram_url: instagramUrl || null,
             utm_source: utms?.utm_source || null,
             utm_medium: utms?.utm_medium || null,
             utm_campaign: utms?.utm_campaign || null,

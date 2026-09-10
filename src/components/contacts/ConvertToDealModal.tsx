@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Modal from '@/components/ui/Modal';
 import { useCRM } from '@/contexts/CRMContext';
 import { Contact } from '@/types/schema';
-import { Building, Briefcase, User, DollarSign, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Building, Briefcase, User, DollarSign, Sparkles, CheckCircle2, ArrowRight, Instagram, Globe } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface ConvertToDealModalProps {
@@ -13,13 +13,55 @@ interface ConvertToDealModalProps {
 }
 
 const parseCurrency = (val: string): number => {
-    if (!val) return 0;
+    if (!val) return 197;
     const clean = val.replace(',', '.').replace(/[^\d.]/g, '');
-    return parseFloat(clean) || 0;
+    return parseFloat(clean) || 197;
+};
+
+// Extração robusta do Instagram
+const extractInstagram = (text: string): string => {
+    if (!text) return '';
+    const m1 = text.match(/•?\s*Instagram(?:\s*Informado)?:\s*([^\n\r,]+)/i);
+    if (m1 && m1[1]) {
+        const val = m1[1].trim();
+        if (!val.toLowerCase().includes('não') && !val.toLowerCase().includes('informado')) {
+            return val.startsWith('@') ? val : (val.startsWith('http') ? val : `@${val}`);
+        }
+    }
+    const m2 = text.match(/https?:\/\/(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
+    if (m2 && m2[1]) return `@${m2[1]}`;
+    return '';
+};
+
+// Extração robusta do Website
+const extractWebsite = (text: string): string => {
+    if (!text) return '';
+    const m1 = text.match(/•?\s*Website(?:\s*Informado)?:\s*([^\n\r,]+)/i);
+    if (m1 && m1[1]) {
+        const val = m1[1].trim();
+        if (!val.toLowerCase().includes('não') && !val.toLowerCase().includes('informado')) {
+            return val;
+        }
+    }
+    const m2 = text.match(/https?:\/\/[^\s\n\r]+/i);
+    if (m2 && m2[0] && !m2[0].includes('instagram.com')) return m2[0].trim();
+    return '';
+};
+
+// Limpeza e organização elegante das notas (sem divisores ASCII pesados)
+const formatCleanDossier = (rawText: string): string => {
+    if (!rawText) return '';
+    return rawText
+        .replace(/[═─=_-]{4,}/g, '')
+        .split('\n')
+        .map(line => line.trimEnd())
+        .filter((line, idx, arr) => !(line === '' && arr[idx - 1] === ''))
+        .join('\n')
+        .trim();
 };
 
 export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess }: ConvertToDealModalProps) {
-    const { companies, pipelines, addCompany, updateContact, addDeal, addLog } = useCRM();
+    const { companies, pipelines, addCompany, updateCompany, updateContact, addDeal, addLog } = useCRM();
 
     // 1. Extrair nome da clínica / empresa automaticamente
     const extractedClinicName = useMemo(() => {
@@ -61,23 +103,36 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
     const [selectedStageId, setSelectedStageId] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [title, setTitle] = useState('');
-    const [value, setValue] = useState('');
+    const [value, setValue] = useState('197');
+    const [instagram, setInstagram] = useState('');
+    const [website, setWebsite] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [syncedNotes, setSyncedNotes] = useState<string>(contact?.notes || '');
+    const [syncedNotes, setSyncedNotes] = useState<string>(formatCleanDossier(contact?.notes || ''));
     const [isSyncingNotes, setIsSyncingNotes] = useState<boolean>(false);
 
     useEffect(() => {
         if (isOpen && contact) {
-            const clinic = extractedClinicName;
-            setCompanyName(clinic);
-            setTitle(clinic ? `${clinic} - ${contact.name}` : `${contact.name} - Vamuss`);
-            setValue('');
+            const clinic = extractedClinicName?.trim();
+            setCompanyName(clinic || '');
+            
+            // Regra de nomenclatura: Negócio NomeDaClinica (se não houver clínica, Negócio NomeDoContato) - sem aspas e sem parênteses
+            const initialTitle = clinic ? `Negócio ${clinic}` : `Negócio ${contact.name}`;
+            setTitle(initialTitle);
+            
+            setValue('197');
             setSelectedPipelineId(defaultPipelineId);
             setSelectedStageId(defaultStageId);
             setIsSubmitting(false);
             setSuccessMessage(null);
-            setSyncedNotes(contact.notes || '');
+
+            // Extrair Instagram e Website iniciais
+            const existingCompany = contact.companyId ? companies.find(c => c.id === contact.companyId) : null;
+            const initIg = extractInstagram(contact.notes || '');
+            const initWeb = existingCompany?.website || extractWebsite(contact.notes || '');
+            setInstagram(initIg);
+            setWebsite(initWeb);
+            setSyncedNotes(formatCleanDossier(contact.notes || ''));
 
             // Sincronizar dados frescos do contacto e email_logs (respostas da tela de obrigado)
             const syncContactData = async () => {
@@ -106,9 +161,17 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                         }
                     }
 
-                    setSyncedNotes(consolidated);
+                    const cleanConsolidated = formatCleanDossier(consolidated);
+                    setSyncedNotes(cleanConsolidated);
+
+                    // Extrair dados frescos de Instagram e Website da tela de obrigado
+                    const freshIg = extractInstagram(consolidated);
+                    const freshWeb = extractWebsite(consolidated);
+                    if (freshIg) setInstagram(prev => prev || freshIg);
+                    if (freshWeb) setWebsite(prev => prev || freshWeb);
+
                     if (consolidated && consolidated !== contact.notes) {
-                        await updateContact(contact.id, { notes: consolidated });
+                        await updateContact(contact.id, { notes: cleanConsolidated });
                     }
                 } catch (err) {
                     console.warn('Erro ao sincronizar dados da tela de obrigado:', err);
@@ -133,6 +196,15 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
         return companies.some(c => c.name.toLowerCase() === companyName.trim().toLowerCase());
     }, [companies, companyName]);
 
+    const handleCompanyChange = (val: string) => {
+        setCompanyName(val);
+        const trimmed = val.trim();
+        // Atualiza automaticamente o título para manter a regra: Negócio NomeDaClinica (ou Negócio NomeDoContato)
+        if (!title || title.startsWith('Negócio ')) {
+            setTitle(trimmed ? `Negócio ${trimmed}` : `Negócio ${contact.name}`);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!contact || !title.trim()) return;
@@ -141,13 +213,19 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
         try {
             let finalCompanyId = contact.companyId;
 
-            // 1. Criar ou Vincular Organização
+            // 1. Criar ou Vincular Organização e salvar Website nos devidos campos
             if (companyName.trim()) {
                 const existing = companies.find(c => c.name.toLowerCase() === companyName.trim().toLowerCase());
                 if (existing) {
                     finalCompanyId = existing.id;
+                    if (website.trim() && (!existing.website || existing.website !== website.trim())) {
+                        await updateCompany(existing.id, { website: website.trim() });
+                    }
                 } else {
-                    const newCo = await addCompany({ name: companyName.trim() });
+                    const newCo = await addCompany({ 
+                        name: companyName.trim(),
+                        website: website.trim() || undefined
+                    });
                     if (newCo?.id) {
                         finalCompanyId = newCo.id;
                     }
@@ -159,9 +237,13 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                 }
             }
 
-            // 2. Criar Negócio na Coluna 'Prospects'
-            const numValue = parseCurrency(value);
+            // 2. Formatar Instagram e Criar Negócio na Coluna 'Prospects' (Valor sempre 197€)
+            const numValue = parseCurrency(value) || 197;
             const targetStage = selectedStageId || defaultStageId;
+            const cleanIg = instagram.trim();
+            const formattedInstagram = cleanIg 
+                ? (cleanIg.startsWith('http') ? cleanIg : `@${cleanIg.replace(/^@/, '')}`)
+                : undefined;
 
             const createdDeal = await addDeal({
                 title: title.trim(),
@@ -174,10 +256,11 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                 source: 'Landing Page Vamuss',
                 status: 'open',
                 priority: 'medium',
-                tags: ['Landing Page', 'Prospect']
+                tags: ['Landing Page', 'Prospect'],
+                instagramUrl: formattedInstagram
             });
 
-            // 3. Salvar identificação no histórico do negócio e anotações: "criado pela página de captura"
+            // 3. Salvar identificação no histórico do negócio e anotações limpas e estruturadas
             if (createdDeal?.id) {
                 await addLog({
                     dealId: createdDeal.id,
@@ -185,12 +268,12 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                     logType: 'manual_note'
                 });
 
-                // Se houver anotações acumuladas no contacto (Passo 1 + Passo 2 da LP / Tela de Obrigado), registra também no histórico do negócio
-                const finalNotes = syncedNotes || contact.notes || '';
-                if (finalNotes && finalNotes.trim()) {
+                // Registrar o dossiê limpo e organizado no histórico do negócio
+                const finalNotes = formatCleanDossier(syncedNotes || contact.notes || '');
+                if (finalNotes) {
                     await addLog({
                         dealId: createdDeal.id,
-                        content: `📋 Dossiê da Captura (Dados da LP & Tela de Obrigado):\n\n${finalNotes.trim()}`,
+                        content: `📋 Dossiê da Captura (Landing Page & Tela de Obrigado):\n\n${finalNotes}`,
                         logType: 'manual_note'
                     });
                 }
@@ -235,6 +318,25 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                     </div>
                 </div>
 
+                {/* Título do Negócio (Regra: Negócio NomeDaClinica ou Negócio NomeDoContato) */}
+                <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Briefcase size={14} className="text-primary" />
+                        Título do Negócio *
+                    </label>
+                    <input
+                        type="text"
+                        required
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Ex: Negócio Clínica Sorriso Real"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all font-medium"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                        Nomenclatura oficial: <strong>Negócio [Nome da Clínica]</strong> ou <strong>Negócio [Nome]</strong>.
+                    </p>
+                </div>
+
                 {/* Organização / Clínica */}
                 <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
@@ -255,31 +357,41 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                     <input
                         type="text"
                         value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        placeholder="Ex: Clínica Dentária Chiado"
+                        onChange={(e) => handleCompanyChange(e.target.value)}
+                        placeholder="Ex: Clínica Sorriso Real"
                         className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     />
-                    <p className="text-[11px] text-muted-foreground">
-                        {extractedClinicName 
-                            ? 'Detectada automaticamente a partir da candidatura na Landing Page.' 
-                            : 'Informe a clínica/empresa para criar e associar na aba Organizações.'}
-                    </p>
                 </div>
 
-                {/* Título do Negócio */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Briefcase size={14} className="text-primary" />
-                        Título do Negócio *
-                    </label>
-                    <input
-                        type="text"
-                        required
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Ex: Clínica Chiado - Dr. João"
-                        className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                    />
+                {/* Canais Digitais: Instagram & Website */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                            <Instagram size={14} className="text-pink-500" />
+                            Instagram
+                        </label>
+                        <input
+                            type="text"
+                            value={instagram}
+                            onChange={(e) => setInstagram(e.target.value)}
+                            placeholder="@perfil"
+                            className="w-full px-3.5 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all font-mono"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                            <Globe size={14} className="text-blue-500" />
+                            Website
+                        </label>
+                        <input
+                            type="text"
+                            value={website}
+                            onChange={(e) => setWebsite(e.target.value)}
+                            placeholder="https://..."
+                            className="w-full px-3.5 py-2 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all font-mono"
+                        />
+                    </div>
                 </div>
 
                 {/* Pipeline & Etapa */}
@@ -318,12 +430,17 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                     </div>
                 </div>
 
-                {/* Valor do Negócio */}
+                {/* Valor do Negócio (Sempre 197€) */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <DollarSign size={14} className="text-primary" />
-                        Valor Previsto (EUR / €)
-                    </label>
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                            <DollarSign size={14} className="text-primary" />
+                            Valor do Negócio (EUR / €)
+                        </label>
+                        <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            Valor Padrão: 197€
+                        </span>
+                    </div>
                     <div className="relative">
                         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold">
                             €
@@ -332,8 +449,8 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                             type="text"
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
-                            placeholder="0,00"
-                            className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all font-mono"
+                            placeholder="197,00"
+                            className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all font-mono font-semibold"
                         />
                     </div>
                 </div>
@@ -352,7 +469,7 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                                 </span>
                             )}
                         </div>
-                        <div className="text-[11px] text-foreground/80 bg-muted/40 border border-border/70 rounded-lg p-3 max-h-32 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed shadow-inner">
+                        <div className="text-[11px] text-foreground/80 bg-muted/30 border border-border/70 rounded-lg p-3 max-h-36 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed shadow-inner">
                             {syncedNotes}
                         </div>
                     </div>
@@ -386,7 +503,7 @@ export default function ConvertToDealModal({ isOpen, onClose, contact, onSuccess
                         ) : (
                             <>
                                 <Sparkles size={16} />
-                                <span>Transformar em Negócio</span>
+                                <span>Transformar em Negócio (197€)</span>
                                 <ArrowRight size={14} />
                             </>
                         )}
