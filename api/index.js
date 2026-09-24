@@ -2126,7 +2126,7 @@ async function sendDailySummaryForUser(supabase, userId, userEmail, userName) {
             instagram: '📸 Instagram',
             analysis: '📊 Análise',
             audit: '🎥 Auditoria',
-            task: '✅ Tarefa'
+            task: '✅ Follow UP'
         };
         const typeColors = {
             call: '#2563eb',
@@ -2139,7 +2139,7 @@ async function sendDailySummaryForUser(supabase, userId, userEmail, userName) {
             task: '#4b5563'
         };
 
-        const typeLabel = typeLabels[a.type] || '✅ Tarefa';
+        const typeLabel = typeLabels[a.type] || '✅ Follow UP';
         const typeColor = typeColors[a.type] || '#4b5563';
         const dealTitle = a.deal_id ? dealsMap.get(a.deal_id) || 'Negócio associado' : 'Sem negócio associado';
 
@@ -6849,7 +6849,7 @@ app.post('/api/meta/test', authenticate, async (req, res) => {
             steps.push({
                 name: 'Primeira atividade criada',
                 status: processingResult.activityCreated ? 'success' : 'skipped',
-                message: processingResult.activityCreated ? 'Tarefa agendada' : 'Desativada'
+                message: processingResult.activityCreated ? 'Follow UP agendado' : 'Desativada'
             });
             steps.push({
                 name: 'Cadência iniciada',
