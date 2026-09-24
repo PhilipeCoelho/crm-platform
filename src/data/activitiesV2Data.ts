@@ -7,7 +7,7 @@ export const TYPES: Record<ActivityType, { label: string; icon: string; color: s
   email:   { label: 'E-mail',   icon: 'mail',     color: 'var(--vp-purple)',   bg: 'var(--vp-purple-bg)' },
   whats:   { label: 'WhatsApp', icon: 'whatsapp', color: 'var(--vp-success)',  bg: 'var(--vp-success-bg)' },
   meeting: { label: 'Reunião',  icon: 'video',    color: 'var(--vp-pink)',     bg: 'var(--vp-pink-bg)' },
-  task:    { label: 'Tarefa',   icon: 'check',    color: 'var(--vp-ink-600)',  bg: 'var(--vp-ink-50)' },
+  task:    { label: 'Follow UP', icon: 'check',   color: 'var(--vp-ink-600)',  bg: 'var(--vp-ink-50)' },
 };
 
 export const STAGES = [

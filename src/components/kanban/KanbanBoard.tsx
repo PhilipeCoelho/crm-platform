@@ -171,9 +171,23 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     const normalizeDigits = useCallback((text: string) => text.replace(/\D/g, ""), []);
 
+    const matchDigits = useCallback((sourceDigits: string, queryDigits: string) => {
+        if (!sourceDigits || !queryDigits) return false;
+        if (sourceDigits.includes(queryDigits)) return true;
+        if (sourceDigits.length >= 7 && queryDigits.includes(sourceDigits)) return true;
+        const queryWithoutCountry = queryDigits.replace(/^(351|55)/, '');
+        if (queryWithoutCountry.length >= 3 && sourceDigits.includes(queryWithoutCountry)) return true;
+        const sourceWithoutCountry = sourceDigits.replace(/^(351|55)/, '');
+        if (sourceWithoutCountry.length >= 3 && sourceWithoutCountry.includes(queryDigits)) return true;
+        return false;
+    }, []);
+
     const filteredDeals = useMemo(() => {
-        const searchUpper = normalizeText(searchTerm);
-        const searchDigits = normalizeDigits(searchTerm);
+        const cleanSearch = normalizeText(searchTerm).trim();
+        const searchUpper = cleanSearch;
+        const searchNoSpaces = cleanSearch.replace(/\s+/g, '');
+        const searchDigits = normalizeDigits(cleanSearch);
+        const searchWords = cleanSearch.split(/\s+/).filter(Boolean);
 
         // Pre-create Maps for O(1) lookups
         const contactMap = new Map(contacts.map(c => [c.id, c]));
@@ -198,16 +212,49 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             const contactName = contact ? normalizeText(contact.name) : '';
             const companyName = company ? normalizeText(company.name) : '';
             const contactPhone = contact?.phone ? normalizeText(contact.phone) : '';
+            const companyPhone = company?.phone ? normalizeText(company.phone) : '';
             const contactEmail = contact?.email ? normalizeText(contact.email) : '';
-            const contactPhoneDigits = contact?.phone ? normalizeDigits(contact.phone) : '';
 
-            const matchesSearch = !searchTerm ||
+            const dealTitleNoSpaces = dealTitle.replace(/\s+/g, '');
+            const contactNameNoSpaces = contactName.replace(/\s+/g, '');
+            const companyNameNoSpaces = companyName.replace(/\s+/g, '');
+            const contactPhoneNoSpaces = contactPhone.replace(/\s+/g, '');
+            const companyPhoneNoSpaces = companyPhone.replace(/\s+/g, '');
+
+            const contactPhoneDigits = contact?.phone ? normalizeDigits(contact.phone) : '';
+            const companyPhoneDigits = company?.phone ? normalizeDigits(company.phone) : '';
+            const dealTitleDigits = normalizeDigits(deal.title);
+
+            // 1. Direct includes
+            const directMatch = !cleanSearch ||
                 dealTitle.includes(searchUpper) ||
                 contactName.includes(searchUpper) ||
                 companyName.includes(searchUpper) ||
                 contactPhone.includes(searchUpper) ||
-                contactEmail.includes(searchUpper) ||
-                (searchDigits.length >= 7 && contactPhoneDigits.includes(searchDigits));
+                companyPhone.includes(searchUpper) ||
+                contactEmail.includes(searchUpper);
+
+            // 2. Ignore all spaces match (e.g. "912 345 678" matches "912345678" and vice-versa)
+            const noSpacesMatch = searchNoSpaces.length > 0 && (
+                dealTitleNoSpaces.includes(searchNoSpaces) ||
+                contactNameNoSpaces.includes(searchNoSpaces) ||
+                companyNameNoSpaces.includes(searchNoSpaces) ||
+                contactPhoneNoSpaces.includes(searchNoSpaces) ||
+                companyPhoneNoSpaces.includes(searchNoSpaces)
+            );
+
+            // 3. Digit/phone matching with country code tolerance and partial digits
+            const digitsMatch = searchDigits.length >= 2 && (
+                matchDigits(contactPhoneDigits, searchDigits) ||
+                matchDigits(companyPhoneDigits, searchDigits) ||
+                matchDigits(dealTitleDigits, searchDigits)
+            );
+
+            // 4. Multi-word search (all words must appear in deal context)
+            const combinedText = `${dealTitle} ${contactName} ${companyName} ${contactEmail} ${contactPhone} ${companyPhone}`;
+            const wordsMatch = searchWords.length > 1 && searchWords.every(word => combinedText.includes(word));
+
+            const matchesSearch = directMatch || noSpacesMatch || digitsMatch || wordsMatch;
 
             if (!matchesSearch) return false;
             if (searchTerm) return true; // Bypass all filters when searching
@@ -275,7 +322,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             // 3. Recency
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
-    }, [pipelineDeals, contacts, companies, activities, searchTerm, viewMode, statusFilter, dateFilter, normalizeText, normalizeDigits]);
+    }, [pipelineDeals, contacts, companies, activities, searchTerm, viewMode, statusFilter, dateFilter, normalizeText, normalizeDigits, matchDigits]);
 
 
     const [activeDeal, setActiveDeal] = useState<Deal | null>(null);

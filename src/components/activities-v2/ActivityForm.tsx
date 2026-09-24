@@ -31,7 +31,7 @@ const QUICK_ACTIONS = [
     { type: 'message', icon: MessageSquare, label: 'Mensagem', template: (name: string) => `Mensagem para ${name}` },
     { type: 'email', icon: Mail, label: 'E-mail', template: (name: string) => `Enviar e-mail para ${name}` },
     { type: 'call', icon: Phone, label: 'Ligação', template: (name: string) => `Ligar para ${name}` },
-    { type: 'task', icon: CheckCircle2, label: 'Tarefa', template: (name?: string) => name ? `Tarefa: ${name}` : `Tarefa:` },
+    { type: 'task', icon: CheckCircle2, label: 'Follow UP', template: (name?: string) => name ? `Follow UP: ${name}` : `Follow UP:` },
     { type: 'meeting', icon: Users, label: 'Reunião', template: (name: string) => `Reunião com ${name}` },
 ];
 
@@ -69,7 +69,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             return;
         }
 
-        const actionPrefixRegex = /^(ligar para|mensagem para|enviar e-?mail para|e-?mail para|reunião com|tarefa:?)\s*/i;
+        const actionPrefixRegex = /^(ligar para|mensagem para|enviar e-?mail para|e-?mail para|reunião com|tarefa:?|follow[ -]?up:?)\s*/i;
         const match = title.match(actionPrefixRegex);
 
         if (match) {

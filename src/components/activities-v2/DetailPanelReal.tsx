@@ -11,7 +11,7 @@ const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; 
   email:     { label: 'E-mail',  icon: 'mail',     color: '#7c5cff',          bg: '#efebff' },
   message:   { label: 'Mensagem', icon: 'whatsapp', color: 'var(--ax-success)', bg: '#defaee' },
   meeting:   { label: 'Reunião', icon: 'video',    color: '#d23a82',          bg: '#fde7f1' },
-  task:      { label: 'Tarefa',  icon: 'check',    color: 'var(--ax-neutral)', bg: 'var(--ax-neutral-bg)' },
+  task:      { label: 'Follow UP', icon: 'check',   color: 'var(--ax-neutral)', bg: 'var(--ax-neutral-bg)' },
 };
 
 function fmtMoney(v: number, currency: Currency): string {

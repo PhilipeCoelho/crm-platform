@@ -261,7 +261,7 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                                     {activity.type === 'message' ? 'Mensagem' :
                                         activity.type === 'call' ? 'Ligação' :
                                             activity.type === 'meeting' ? 'Reunião' :
-                                                activity.type === 'task' ? 'Tarefa' :
+                                                activity.type === 'task' ? 'Follow UP' :
                                                     activity.type === 'email' ? 'E-mail' :
                                                         activity.type === 'analysis' ? 'Análise' :
                                                             activity.type === 'audit' ? 'Auditoria' :

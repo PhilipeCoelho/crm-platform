@@ -11,6 +11,7 @@ import NewActivityModal from '@/components/activities-v2/NewActivityModal';
 import ConvertToDealModal from '@/components/contacts/ConvertToDealModal';
 import { isMobileNumber, getCleanedWhatsAppLink } from '@/utils/phoneHelpers';
 import { supabase } from '@/lib/supabase';
+import DiagnosticDossierModal, { DiagnosticData } from '@/components/diagnostics/DiagnosticDossierModal';
 
 interface Props {
     contactId?: string;
@@ -26,6 +27,8 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
     const [isConvertToDealOpen, setIsConvertToDealOpen] = useState(false);
+    const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
+    const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
     const [noteText, setNoteText] = useState('');
 
     const contact = contacts.find(c => c.id === id);
@@ -70,6 +73,64 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
             }
         };
         syncThankYouPageNotes();
+    }, [id, contact?.notes]);
+
+    // Carregar Diagnóstico Estratégico da tabela diagnostics ou fallback das notas
+    useEffect(() => {
+        if (!id) return;
+        const fetchDiagnostic = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('diagnostics')
+                    .select('*')
+                    .eq('contact_id', id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (data && !error) {
+                    setDiagnostic(data);
+                } else if (contact?.notes && (contact.notes.includes('DOSSIÊ ESTRATÉGICO') || contact.notes.includes('Página de Obrigado') || contact.notes.includes('Auditoria'))) {
+                    // Fallback resiliente a partir das notas
+                    const scoreMatch = contact.notes.match(/Score[^:\d]*:\s*(\d+)/i) || contact.notes.match(/(\d+)\/100/);
+                    const goalMatch = contact.notes.match(/•?\s*(?:Meta|Prioridade|Objetivo)[^:\n]*:\s*([^\n\r]+)/i);
+                    const challengeMatch = contact.notes.match(/•?\s*Principal Desafio[^:\n]*:\s*([^\n\r]+)/i);
+                    const budgetMatch = contact.notes.match(/•?\s*(?:Orçamento|Investimento)[^:\n]*:\s*([^\n\r]+)/i);
+                    const ticketMatch = contact.notes.match(/•?\s*Ticket Médio[^:\n]*:\s*([^\n\r]+)/i);
+                    const capacityMatch = contact.notes.match(/•?\s*Capacidade[^:\n]*:\s*([^\n\r]+)/i);
+
+                    setDiagnostic({
+                        contact_id: id,
+                        overall_score: scoreMatch ? parseInt(scoreMatch[1], 10) : 65,
+                        primary_goal: goalMatch ? goalMatch[1].trim() : undefined,
+                        primary_challenge: challengeMatch ? challengeMatch[1].trim() : undefined,
+                        monthly_media_budget: budgetMatch ? budgetMatch[1].trim() : undefined,
+                        average_patient_value: ticketMatch ? ticketMatch[1].trim() : undefined,
+                        clinic_capacity: capacityMatch ? capacityMatch[1].trim() : undefined,
+                        internal_report: contact.notes,
+                        top_opportunities: [
+                            { title: 'Blindagem da Rota de Conversão no WhatsApp', category: 'Conversão', priority: 'Alta', evidence: 'Oportunidade identificada na auditoria dos canais.', impact: 'Elevação imediata de agendamentos.', hypothesis: 'Ativar resposta rápida e triagem comercial.' },
+                            { title: 'Ativação do Rastreamento de Audiências (Meta Pixel)', category: 'Tracking', priority: 'Alta', evidence: 'Ausência de retargeting aos visitantes.', impact: 'Recuperação de pacientes indecisos.', hypothesis: 'Instalação de Pixel e eventos de conversão.' },
+                            { title: 'Captura de Intenção Local no Google', category: 'Google', priority: 'Alta', evidence: 'Concorrentes locais ativos na região.', impact: 'Captação de pacientes prontos para agendar.', hypothesis: 'Campanha de Google Search geolocalizada.' }
+                        ],
+                        meeting_questions: [
+                            'Quando um novo potencial paciente envia mensagem no WhatsApp, quem responde e em quanto tempo?',
+                            'Qual é a percentagem aproximada de pacientes particulares vs acordos e seguradoras?',
+                            'Quais tratamentos apresentam maior margem e horários vagos na agenda?'
+                        ],
+                        strategy_hypothesis: {
+                            acquisitionChannels: 'Google Search Local + Meta Ads',
+                            primaryObjective: goalMatch ? goalMatch[1].trim() : 'Novos Pacientes Particulares',
+                            mainBottleneck: 'Conversão no Website / Ponto de Contacto'
+                        },
+                        reviewed_by_vamuss: false
+                    });
+                }
+            } catch (err) {
+                console.warn('Erro ao carregar diagnóstico:', err);
+            }
+        };
+        fetchDiagnostic();
     }, [id, contact?.notes]);
 
     // Filter Related Data
@@ -182,6 +243,57 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
 
                         {/* LEFT COLUMN: Main Info (3 cols) */}
                         <div className="lg:col-span-4 space-y-8">
+                            {/* Card de Destaque: Diagnóstico Estratégico Vamuss__ */}
+                            {diagnostic && (
+                                <section className="bg-card rounded-xl border-2 border-primary/30 p-5 shadow-sm space-y-4">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-1.5">
+                                            <Sparkles className="w-4 h-4 text-emerald-600" />
+                                            <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">
+                                                Diagnóstico Estratégico
+                                            </h3>
+                                        </div>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                            diagnostic.reviewed_by_vamuss 
+                                                ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                                        }`}>
+                                            {diagnostic.reviewed_by_vamuss ? '✓ Revisado' : 'Pendente Revisão'}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
+                                        <div>
+                                            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Vamuss Readiness</span>
+                                            <span className="text-2xl font-extrabold text-foreground">{diagnostic.overall_score || 65}<span className="text-xs font-normal text-muted-foreground">/100</span></span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Meta Declarada</span>
+                                            <span className="text-xs font-semibold text-foreground max-w-[150px] truncate block" title={diagnostic.primary_goal}>
+                                                {diagnostic.primary_goal || 'Novos Pacientes'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {diagnostic.primary_challenge && (
+                                        <div className="text-xs space-y-1">
+                                            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Gargalo / Desafio</span>
+                                            <p className="text-foreground font-medium text-xs bg-muted/30 p-2 rounded-md border border-border/60">
+                                                {diagnostic.primary_challenge}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => setIsDossierModalOpen(true)}
+                                        className="w-full py-2.5 px-3 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                                    >
+                                        <Sparkles size={13} />
+                                        <span>Abrir Dossiê & Roteiro de Reunião</span>
+                                    </button>
+                                </section>
+                            )}
+
                             {/* Personal Details */}
                             <section className="bg-card rounded-xl border border-border p-6 shadow-sm">
                                 <h3 className="font-semibold mb-6 text-lg flex items-center gap-2 text-foreground">
@@ -410,6 +522,18 @@ export default function ContactDetails({ contactId, onClose, isModal }: Props) {
                     onClose={() => setIsConvertToDealOpen(false)}
                     contact={contact}
                     onSuccess={() => setIsConvertToDealOpen(false)}
+                />
+            )}
+            {diagnostic && (
+                <DiagnosticDossierModal
+                    isOpen={isDossierModalOpen}
+                    onClose={() => setIsDossierModalOpen(false)}
+                    diagnostic={diagnostic}
+                    clinicName={company?.name || contact.name}
+                    contactName={contact.name}
+                    onReviewedChange={(isReviewed) => {
+                        setDiagnostic(prev => prev ? { ...prev, reviewed_by_vamuss: isReviewed } : null);
+                    }}
                 />
             )}
         </div>

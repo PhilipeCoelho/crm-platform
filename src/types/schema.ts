@@ -287,6 +287,23 @@ export type CategoriaInsight = 'dor' | 'objecao' | 'barreira_acesso' | 'motivo_p
 
 export type TagTematicaInsight = 'decisor' | 'concorrencia' | 'orcamento' | 'urgencia' | 'autoridade' | 'indicacao' | 'marketing_atual' | 'expansao' | 'crescimento' | 'operacional';
 
+export type SignalType = 
+    | 'recurring_pain' 
+    | 'emerging_problem' 
+    | 'strong_objection' 
+    | 'surprising_behavior' 
+    | 'market_misconception' 
+    | 'customer_language' 
+    | 'success_pattern' 
+    | 'failure_pattern' 
+    | 'competitive_gap' 
+    | 'unmet_desire' 
+    | 'unexpected_result' 
+    | 'contradiction' 
+    | 'new_pattern';
+
+export type SignalStatus = 'evergreen' | 'growing' | 'emerging' | 'declining' | 'saturated';
+
 export interface InsightComercial {
     id: string;
     userId: string;
@@ -303,6 +320,61 @@ export interface InsightComercial {
     erroClassificacao?: string | null;
     contentSignal?: string | null;
     criadoEm: string;
+
+    // Market Signals v2 (Fatos e Citações Literais)
+    fact?: string | null;
+    context?: string | null;
+    quoteOriginal?: string | null;
+    quoteContext?: string | null;
+
+    // Camada Psicológica & Decisão
+    belief?: string | null;
+    desiredBelief?: string | null;
+    desiredOutcome?: string | null;
+    fear?: string | null;
+    behavior?: string | null;
+    tension?: string | null;
+    consequence?: string | null;
+    businessImpact?: string | null;
+
+    // Metadados & Classificação Editorial
+    signalType?: SignalType | null;
+    topic?: string | null;
+    anglesUsed?: string[];
+    anglesAvailable?: string[];
+    signalStatus?: SignalStatus | null;
+
+    // Pontuações Multidimensionais (0 a 100)
+    noveltyScore?: number | null;
+    specificityScore?: number | null;
+    tensionScore?: number | null;
+    evidenceStrength?: number | null;
+    commercialRelevance?: number | null;
+    audienceRelevance?: number | null;
+    sourceDiversity?: number;
+    contentSaturationScore?: number;
+
+    // Rastreabilidade e Versão
+    classifierVersion?: string;
+    taxonomyVersion?: string;
+    confidenceByField?: Record<string, number>;
+}
+
+export interface ContentMemoryItem {
+    id: string;
+    userId: string;
+    contentId?: string | null;
+    topic: string;
+    marketSignalId?: string | null;
+    angle: string;
+    format?: string | null;
+    funnelStage?: string | null;
+    pillar?: string | null;
+    publishedAt?: string | null;
+    metrics?: Record<string, any>;
+    angleStatus: 'explorado' | 'parcialmente_explorado' | 'nao_explorado';
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface BrevoSyncLog {

@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect, Fragment } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCRM } from '@/contexts/CRMContext';
-import { ArrowLeft, Building, User, Pencil, Trash2, X, Ban, MoreHorizontal, Phone, Check, MessageCircle, Instagram, ExternalLink, Search, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Building, User, Pencil, Trash2, X, Ban, MoreHorizontal, Phone, Check, MessageCircle, Instagram, ExternalLink, Search, ChevronRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-
-
-
+import DiagnosticDossierModal, { DiagnosticData } from '@/components/diagnostics/DiagnosticDossierModal';
 
 import ActivityPanel from '@/components/deals/ActivityPanel';
 import LostReasonModal from '@/components/deals/LostReasonModal';
@@ -25,15 +23,15 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
     const navigate = useNavigate();
     const { deals, companies, contacts, updateDeal, deleteDeal, pipelines, openNewDealModal, updateContact } = useCRM();
 
-
     const id = propId || paramId;
 
     const deal = deals.find(d => d.id === id);
     const company = companies.find(c => c.id === deal?.companyId);
     const contact = contacts.find(c => c.id === deal?.contactId);
 
-
     const [isLostModalOpen, setIsLostModalOpen] = useState(false);
+    const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
+    const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
 
     // Inline Editing State
     const [editingField, setEditingField] = useState<'title' | 'value' | 'phone' | 'email' | 'stage' | null>(null);
@@ -115,6 +113,110 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
 
         cleanupDuplicates();
     }, [deal?.id]);
+
+    // Carregar Diagnóstico Estratégico do negócio ou do contacto vinculado
+    useEffect(() => {
+        if (!deal?.id) return;
+        const fetchDealDiagnostic = async () => {
+            try {
+                let q = supabase.from('diagnostics').select('*');
+                if (deal.contactId) {
+                    q = q.or(`deal_id.eq.${deal.id},contact_id.eq.${deal.contactId}`);
+                } else {
+                    q = q.eq('deal_id', deal.id);
+                }
+                const { data, error } = await q.order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+                if (data && !error) {
+                    setDiagnostic(data);
+                } else if (contact?.notes && (contact.notes.includes('DOSSIÊ ESTRATÉGICO') || contact.notes.includes('Página de Obrigado') || contact.notes.includes('Auditoria'))) {
+                    // Fallback estruturado a partir das notas
+                    const scoreMatch = contact.notes.match(/Score[^:\d]*:\s*(\d+)/i) || contact.notes.match(/(\d+)\/100/);
+                    const goalMatch = contact.notes.match(/•?\s*(?:Meta|Prioridade|Objetivo)[^:\n]*:\s*([^\n\r]+)/i);
+                    const challengeMatch = contact.notes.match(/•?\s*Principal Desafio[^:\n]*:\s*([^\n\r]+)/i);
+                    const budgetMatch = contact.notes.match(/•?\s*(?:Orçamento|Investimento)[^:\n]*:\s*([^\n\r]+)/i);
+                    const responseTimeMatch = contact.notes.match(/•?\s*(?:Tempo de Resposta|Tempo Médio)[^:\n]*:\s*([^\n\r]+)/i);
+
+                    setDiagnostic({
+                        deal_id: deal.id,
+                        contact_id: deal.contactId,
+                        overall_score: scoreMatch ? parseInt(scoreMatch[1], 10) : 68,
+                        primary_goal: goalMatch ? goalMatch[1].trim() : undefined,
+                        primary_challenge: challengeMatch ? challengeMatch[1].trim() : undefined,
+                        monthly_media_budget: budgetMatch ? budgetMatch[1].trim() : undefined,
+                        response_time: responseTimeMatch ? responseTimeMatch[1].trim() : undefined,
+                        internal_report: contact.notes,
+                        leakage_points: [
+                            {
+                                stage: 'Primeiro Contato / WhatsApp',
+                                severity: 'Crítico',
+                                title: 'Vazamento no Tempo de Resposta aos Novos Leads',
+                                description: 'Leads de anúncios digitais em Portugal têm decaimento de interesse superior a 70% se não forem contactados nos primeiros 15 minutos.',
+                                evidence: responseTimeMatch ? `Tempo declarado: ${responseTimeMatch[1].trim()}` : 'Tempo de resposta superior a 15 minutos.',
+                                financial_impact: 'Perda estimada de 40% a 65% das oportunidades de agendamento.',
+                                action_to_seal: 'Implementar protocolo de primeiro toque em <15 min via WhatsApp com script de qualificação.'
+                            },
+                            {
+                                stage: 'Posicionamento & Vitrine',
+                                severity: 'Alto',
+                                title: 'Descompasso entre Ticket Pretendido e Prova Social Digital',
+                                description: 'O paciente particular de alto ticket pesquisa ativamente a autoridade clínica antes de agendar e comparecer.',
+                                evidence: `Meta: ${goalMatch ? goalMatch[1].trim() : 'Novos Pacientes'} | Desafio: ${challengeMatch ? challengeMatch[1].trim() : 'Conversão'}`,
+                                financial_impact: 'Resistência a preço e objeções de "está caro" na primeira consulta.',
+                                action_to_seal: 'Estruturar destaques estratégicos com casos clínicos e autoridade médica no Instagram e Google.'
+                            },
+                            {
+                                stage: 'Capacidade & Mídia',
+                                severity: 'Alto',
+                                title: 'Ociosidade de Gabinetes por Falta de Canal Ativo de Alta Intenção',
+                                description: 'Capacidade instalada desbalanceada em relação ao volume de leads qualificados gerados.',
+                                evidence: `Investimento previsto: ${budgetMatch ? budgetMatch[1].trim() : 'A definir'}`,
+                                financial_impact: 'Custo fixo de estrutura e equipa médica ociosa.',
+                                action_to_seal: 'Concentrar investimento em campanhas de Google Search geolocalizado + Meta Ads qualificado.'
+                            },
+                            {
+                                stage: 'Comparecimento / No-Show',
+                                severity: 'Moderado',
+                                title: 'Taxa de No-Show em Primeiras Consultas Sem Aquecimento Prévio',
+                                description: 'Pacientes agendados sem reforço de compromisso têm taxa média de ausência de 25% a 40%.',
+                                evidence: 'Necessidade de garantir presença efetiva na agenda.',
+                                financial_impact: 'Horários nobres bloqueados na agenda sem faturamento.',
+                                action_to_seal: 'Criar sequência de confirmação em 3 etapas no WhatsApp (vídeo de boas-vindas, rota e confirmação prévia).'
+                            },
+                            {
+                                stage: 'Fecho de Plano de Tratamento',
+                                severity: 'Crítico',
+                                title: 'Gargalo de Conversão de Consulta em Plano Integral',
+                                description: 'Foco exclusivo na queixa pontual em vez de apresentar plano de tratamento global.',
+                                evidence: `Meta prioritária: ${goalMatch ? goalMatch[1].trim() : 'Crescimento'}`,
+                                financial_impact: 'Ticket médio de fechamento abaixo do potencial máximo da clínica.',
+                                action_to_seal: 'Padronizar protocolo de consulta de diagnóstico com câmera intraoral e apresentação de plano completo.'
+                            }
+                        ],
+                        top_opportunities: [
+                            { title: 'Blindagem da Rota de Conversão no WhatsApp', category: 'Conversão', priority: 'Alta', evidence: 'Oportunidade identificada na auditoria.', impact: 'Elevação imediata de agendamentos.', hypothesis: 'Ativar resposta rápida e triagem comercial.' },
+                            { title: 'Ativação do Rastreamento de Audiências (Meta Pixel)', category: 'Tracking', priority: 'Alta', evidence: 'Ausência de retargeting aos visitantes.', impact: 'Recuperação de pacientes indecisos.', hypothesis: 'Instalação de Pixel e eventos de conversão.' },
+                            { title: 'Captura de Intenção Local no Google', category: 'Google', priority: 'Alta', evidence: 'Concorrentes locais ativos na região.', impact: 'Captação de pacientes prontos para agendar.', hypothesis: 'Campanha de Google Search geolocalizada.' }
+                        ],
+                        meeting_questions: [
+                            'Quando um novo potencial paciente envia mensagem no WhatsApp, quem responde e em quanto tempo?',
+                            'Qual é a percentagem aproximada de pacientes particulares vs acordos e seguradoras?',
+                            'Quais tratamentos apresentam maior margem e horários vagos na agenda?'
+                        ],
+                        strategy_hypothesis: {
+                            acquisitionChannels: 'Google Search Local + Meta Ads',
+                            primaryObjective: goalMatch ? goalMatch[1].trim() : 'Novos Pacientes Particulares',
+                            mainBottleneck: 'Conversão no Website / Ponto de Contacto'
+                        },
+                        reviewed_by_vamuss: false
+                    });
+                }
+            } catch (err) {
+                console.warn('Erro ao carregar diagnóstico no deal:', err);
+            }
+        };
+        fetchDealDiagnostic();
+    }, [deal?.id, deal?.contactId, contact?.notes]);
 
     if (!deal) {
         return (
@@ -434,6 +536,55 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                 <aside className="w-full md:w-[340px] shrink-0 border-b md:border-r md:border-b-0 border-border dark:border-border/50 p-3 sm:p-4 space-y-5 sm:space-y-6 md:overflow-y-auto bg-muted/5 dark:bg-card/30 custom-scrollbar order-2 md:order-1">
                     {/* BLOCO 2 – Pessoa e Organização */}
                     <div className="space-y-6 sm:space-y-8">
+                        {/* Card de Diagnóstico Estratégico no Negócio */}
+                        {diagnostic && (
+                            <div className="bg-white dark:bg-card p-3.5 rounded-xl border-2 border-primary/30 shadow-sm space-y-3">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-1.5">
+                                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                                        <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">
+                                            Diagnóstico Estratégico
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        {diagnostic.leakage_points && diagnostic.leakage_points.length > 0 && (
+                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                                                {diagnostic.leakage_points.length} Fugas
+                                            </span>
+                                        )}
+                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                                            diagnostic.reviewed_by_vamuss 
+                                                ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                                        }`}>
+                                            {diagnostic.reviewed_by_vamuss ? '✓ Revisado' : 'Pendente'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/40 border border-border">
+                                    <div>
+                                        <span className="text-[9px] uppercase font-bold text-muted-foreground block">Readiness</span>
+                                        <span className="text-xl font-extrabold text-foreground">{diagnostic.overall_score || 68}<span className="text-xs font-normal text-muted-foreground">/100</span></span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[9px] uppercase font-bold text-muted-foreground block">Meta</span>
+                                        <span className="text-xs font-semibold text-foreground max-w-[130px] truncate block" title={diagnostic.primary_goal}>
+                                            {diagnostic.primary_goal || 'Novos Pacientes'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setIsDossierModalOpen(true)}
+                                    className="w-full py-2 px-3 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                                >
+                                    <Sparkles size={12} />
+                                    <span>Ver Pontos de Fuga & Dossiê</span>
+                                </button>
+                            </div>
+                        )}
+
                         {/* Seção Pessoa */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
@@ -746,6 +897,22 @@ export default function DealDetails({ dealId: propId, onClose, isModal = false, 
                 onClose={() => setIsLostModalOpen(false)}
                 onConfirm={confirmLost}
             />
+
+            {diagnostic && (
+                <DiagnosticDossierModal
+                    isOpen={isDossierModalOpen}
+                    onClose={() => setIsDossierModalOpen(false)}
+                    diagnostic={diagnostic}
+                    clinicName={company?.name || deal.title}
+                    contactName={contact?.name}
+                    onReviewedChange={(isReviewed) => {
+                        setDiagnostic(prev => prev ? { ...prev, reviewed_by_vamuss: isReviewed } : null);
+                    }}
+                    onDiagnosticUpdated={(updated) => {
+                        setDiagnostic(updated);
+                    }}
+                />
+            )}
         </div>
     );
 }

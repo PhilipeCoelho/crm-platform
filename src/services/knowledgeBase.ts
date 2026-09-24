@@ -1,12 +1,51 @@
 import { supabase } from '@/lib/supabase';
 import { InsightComercial } from '@/types/schema';
 
+export interface TensionTrend {
+    tension: string;
+    categoria: string;
+    subcategoria: string;
+    topic?: string;
+    total: number;
+    unique_deals: number;
+    tension_score: number;
+}
+
+export interface BeliefTrend {
+    belief: string;
+    desired_belief?: string;
+    categoria: string;
+    total: number;
+    unique_deals: number;
+}
+
+export interface QuoteTrend {
+    quote_original: string;
+    quote_context?: string;
+    categoria: string;
+    subcategoria: string;
+    criado_em: string;
+}
+
+export interface EvidenceStats {
+    total_signals: number;
+    unique_deals_with_signals: number;
+    avg_specificity: number;
+    avg_novelty: number;
+}
+
 export interface TrendData {
     total_active_deals: number;
     top_subcategories: Record<string, { subcategoria: string; total: number }[]>;
     tag_counts: { tag: string; current_total: number; prev_total: number }[];
     win_loss_reasons: Record<string, { subcategoria: string; total: number; tags: string[] }[]>;
     pending_counts: { revisar_manualmente: number; classificacao_falhou: number };
+    top_tensions?: TensionTrend[];
+    top_beliefs?: BeliefTrend[];
+    top_quotes?: QuoteTrend[];
+    signal_types?: Record<string, number>;
+    signal_statuses?: Record<string, number>;
+    evidence_stats?: EvidenceStats;
 }
 
 /**
@@ -67,7 +106,35 @@ export async function fetchPendingReviews(): Promise<InsightComercial[]> {
         revisarManualmente: item.revisar_manualmente,
         classificacaoFalhou: item.classificacao_falhou,
         erroClassificacao: item.erro_classificacao,
-        criadoEm: item.criado_em
+        contentSignal: item.content_signal,
+        criadoEm: item.criado_em,
+        // v2 fields
+        fact: item.fact,
+        context: item.context,
+        quoteOriginal: item.quote_original,
+        quoteContext: item.quote_context,
+        belief: item.belief,
+        desiredBelief: item.desired_belief,
+        desiredOutcome: item.desired_outcome,
+        fear: item.fear,
+        behavior: item.behavior,
+        tension: item.tension,
+        consequence: item.consequence,
+        businessImpact: item.business_impact,
+        signalType: item.signal_type,
+        topic: item.topic,
+        anglesUsed: item.angles_used || [],
+        anglesAvailable: item.angles_available || [],
+        signalStatus: item.signal_status,
+        noveltyScore: item.novelty_score,
+        specificityScore: item.specificity_score,
+        tensionScore: item.tension_score,
+        evidenceStrength: item.evidence_strength,
+        commercialRelevance: item.commercial_relevance,
+        audienceRelevance: item.audience_relevance,
+        sourceDiversity: item.source_diversity || 1,
+        contentSaturationScore: item.content_saturation_score || 0,
+        classifierVersion: item.classifier_version
     }));
 }
 
@@ -155,12 +222,21 @@ export async function fetchRelatedDeals(filter: { category?: string; tag?: strin
 }
 
 export interface ContentSignalTrend {
+    topic?: string;
     content_signal: string;
     current_total: number;
     prev_total: number;
+    unique_deals?: number;
     examples: string[];
+    quote_examples?: string[];
+    tension?: string;
     common_categoria: string;
     common_tags: string[];
+    angles_available?: string[];
+    angles_used?: string[];
+    content_saturation_score?: number;
+    novelty_score?: number;
+    signal_status?: string;
 }
 
 /**
@@ -374,12 +450,94 @@ export async function fetchTrendsAndSignalsClient(
         classificacao_falhou: items.filter(i => i.classificacao_falhou === true || String(i.classificacao_falhou) === 'true').length
     };
 
+    // Client-side fallback aggregation for Market Signals v2
+    const tensionMap: Record<string, { total: number; deals: Set<string>; categoria: string; subcategoria: string; topic?: string; tension_score: number }> = {};
+    const beliefMap: Record<string, { total: number; deals: Set<string>; desired_belief?: string; categoria: string }> = {};
+    const quotesList: QuoteTrend[] = [];
+
+    currentItems.forEach(item => {
+        if (item.tension) {
+            if (!tensionMap[item.tension]) {
+                tensionMap[item.tension] = {
+                    total: 0,
+                    deals: new Set(),
+                    categoria: item.categoria,
+                    subcategoria: item.subcategoria,
+                    topic: item.topic,
+                    tension_score: item.tension_score || 70
+                };
+            }
+            tensionMap[item.tension].total += 1;
+            if (item.negocio_id) tensionMap[item.tension].deals.add(item.negocio_id);
+        }
+
+        if (item.belief) {
+            if (!beliefMap[item.belief]) {
+                beliefMap[item.belief] = {
+                    total: 0,
+                    deals: new Set(),
+                    desired_belief: item.desired_belief,
+                    categoria: item.categoria
+                };
+            }
+            beliefMap[item.belief].total += 1;
+            if (item.negocio_id) beliefMap[item.belief].deals.add(item.negocio_id);
+        }
+
+        if (item.quote_original) {
+            quotesList.push({
+                quote_original: item.quote_original,
+                quote_context: item.quote_context,
+                categoria: item.categoria,
+                subcategoria: item.subcategoria,
+                criado_em: item.criado_em
+            });
+        }
+    });
+
+    const top_tensions: TensionTrend[] = Object.entries(tensionMap)
+        .map(([tension, data]) => ({
+            tension,
+            categoria: data.categoria,
+            subcategoria: data.subcategoria,
+            topic: data.topic,
+            total: data.total,
+            unique_deals: data.deals.size,
+            tension_score: data.tension_score
+        }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 10);
+
+    const top_beliefs: BeliefTrend[] = Object.entries(beliefMap)
+        .map(([belief, data]) => ({
+            belief,
+            desired_belief: data.desired_belief,
+            categoria: data.categoria,
+            total: data.total,
+            unique_deals: data.deals.size
+        }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 10);
+
+    const top_quotes = quotesList.slice(0, 15);
+
+    const evidence_stats: EvidenceStats = {
+        total_signals: currentItems.length,
+        unique_deals_with_signals: new Set(currentItems.map(i => i.negocio_id).filter(Boolean)).size,
+        avg_specificity: Math.round(currentItems.reduce((acc, i) => acc + (i.specificity_score || 70), 0) / (currentItems.length || 1)),
+        avg_novelty: Math.round(currentItems.reduce((acc, i) => acc + (i.novelty_score || 70), 0) / (currentItems.length || 1))
+    };
+
     const trends: TrendData = {
         total_active_deals,
         top_subcategories,
         tag_counts,
         win_loss_reasons,
-        pending_counts
+        pending_counts,
+        top_tensions,
+        top_beliefs,
+        top_quotes,
+        evidence_stats
     };
 
     const signalMap: Record<string, {
@@ -388,6 +546,10 @@ export async function fetchTrendsAndSignalsClient(
         categories: Record<string, number>;
         examples: Set<string>;
         tags: Record<string, number>;
+        topic?: string;
+        angles_available: Set<string>;
+        angles_used: Set<string>;
+        saturation_scores: number[];
     }> = {};
 
     currentItems.forEach(item => {
@@ -399,7 +561,11 @@ export async function fetchTrendsAndSignalsClient(
                     current_total: 0,
                     categories: {},
                     examples: new Set(),
-                    tags: {}
+                    tags: {},
+                    topic: item.topic,
+                    angles_available: new Set(),
+                    angles_used: new Set(),
+                    saturation_scores: []
                 };
             }
             signalMap[sig].current_total += 1;
@@ -411,6 +577,18 @@ export async function fetchTrendsAndSignalsClient(
                 item.tags_tematicas.forEach((t: string) => {
                     signalMap[sig].tags[t] = (signalMap[sig].tags[t] || 0) + 1;
                 });
+            }
+            if (item.topic && !signalMap[sig].topic) {
+                signalMap[sig].topic = item.topic;
+            }
+            if (Array.isArray(item.angles_available)) {
+                item.angles_available.forEach((a: string) => signalMap[sig].angles_available.add(a));
+            }
+            if (Array.isArray(item.angles_used)) {
+                item.angles_used.forEach((a: string) => signalMap[sig].angles_used.add(a));
+            }
+            if (typeof item.content_saturation_score === 'number') {
+                signalMap[sig].saturation_scores.push(item.content_saturation_score);
             }
         }
     });
@@ -435,13 +613,21 @@ export async function fetchTrendsAndSignalsClient(
 
         const prev_total = prevSignalTotals[sig.content_signal] || 0;
 
+        const avgSaturation = sig.saturation_scores.length > 0
+            ? sig.saturation_scores.reduce((a, b) => a + b, 0) / sig.saturation_scores.length
+            : 0;
+
         return {
             content_signal: sig.content_signal,
             current_total: sig.current_total,
             prev_total,
             common_categoria,
             examples,
-            common_tags
+            common_tags,
+            topic: sig.topic,
+            angles_available: Array.from(sig.angles_available),
+            angles_used: Array.from(sig.angles_used),
+            content_saturation_score: avgSaturation
         };
     }).sort((a, b) => b.current_total - a.current_total);
 

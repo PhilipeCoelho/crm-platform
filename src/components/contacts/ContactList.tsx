@@ -25,12 +25,21 @@ export default function ContactList() {
         const companyId = contact.companyId || (contact as any).company_id;
         const company = companies.find(c => c.id === companyId);
         const companyName = company?.name || '';
-        const searchLower = searchTerm.toLowerCase();
+        const cleanSearch = searchTerm.toLowerCase().trim();
+        const searchNoSpaces = cleanSearch.replace(/\s+/g, '');
+        const searchDigits = cleanSearch.replace(/\D/g, '');
+        const contactPhoneDigits = (contact.phone || '').replace(/\D/g, '');
 
-        return (
-            contact.name.toLowerCase().includes(searchLower) ||
-            contact.email.toLowerCase().includes(searchLower) ||
-            companyName.toLowerCase().includes(searchLower)
+        return !cleanSearch || (
+            contact.name.toLowerCase().includes(cleanSearch) ||
+            contact.email.toLowerCase().includes(cleanSearch) ||
+            companyName.toLowerCase().includes(cleanSearch) ||
+            (contact.phone && contact.phone.toLowerCase().includes(cleanSearch)) ||
+            (searchNoSpaces.length > 0 && (
+                contact.name.toLowerCase().replace(/\s+/g, '').includes(searchNoSpaces) ||
+                (contact.phone && contact.phone.replace(/\s+/g, '').includes(searchNoSpaces))
+            )) ||
+            (searchDigits.length >= 2 && contactPhoneDigits.includes(searchDigits))
         );
     });
 

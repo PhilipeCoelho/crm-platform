@@ -116,7 +116,7 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
                                 <option value="message">💬 Mensagem</option>
                                 <option value="email">📧 E-mail</option>
                                 <option value="call">📞 Ligação</option>
-                                <option value="task">✅ Tarefa</option>
+                                <option value="task">✅ Follow UP</option>
                                 <option value="meeting">📅 Reunião</option>
                                 <option value="analysis">📊 Análise</option>
                                 <option value="audit">🎥 Auditoria</option>

@@ -129,7 +129,7 @@ function parseActivityTitle(title: string, activityType?: string): { actionPrefi
             message: 'Mensagem para ',
             email: 'Enviar e-mail para ',
             meeting: 'Reunião com ',
-            task: 'Tarefa: ',
+            task: 'Follow UP: ',
             analysis: 'Análise: ',
             audit: 'Auditoria: '
         };

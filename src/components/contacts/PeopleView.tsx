@@ -213,13 +213,22 @@ export default function PeopleView() {
         let result = contacts.filter(contact => {
             const companyId = contact.companyId || (contact as any).company_id;
             const companyName = companyId ? (companyMap.get(companyId)?.name || '') : '';
-            const searchLower = searchTerm.toLowerCase();
+            const cleanSearch = searchTerm.toLowerCase().trim();
+            const searchNoSpaces = cleanSearch.replace(/\s+/g, '');
+            const searchDigits = cleanSearch.replace(/\D/g, '');
+            const contactPhone = contact.phone ? contact.phone.toLowerCase() : '';
+            const contactPhoneDigits = contact.phone ? contact.phone.replace(/\D/g, '') : '';
 
-            const matchesSearch = (
-                contact.name.toLowerCase().includes(searchLower) ||
-                contact.email.toLowerCase().includes(searchLower) ||
-                companyName.toLowerCase().includes(searchLower) ||
-                (contact.phone && contact.phone.toLowerCase().includes(searchLower))
+            const matchesSearch = !cleanSearch || (
+                contact.name.toLowerCase().includes(cleanSearch) ||
+                contact.email.toLowerCase().includes(cleanSearch) ||
+                companyName.toLowerCase().includes(cleanSearch) ||
+                (contactPhone && contactPhone.includes(cleanSearch)) ||
+                (searchNoSpaces.length > 0 && (
+                    contact.name.toLowerCase().replace(/\s+/g, '').includes(searchNoSpaces) ||
+                    (contactPhone && contactPhone.replace(/\s+/g, '').includes(searchNoSpaces))
+                )) ||
+                (searchDigits.length >= 2 && contactPhoneDigits.includes(searchDigits))
             );
 
             if (!matchesSearch) return false;

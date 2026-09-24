@@ -106,23 +106,65 @@ export const DealCardBase = React.memo(function DealCardBase({ deal, currency, o
     const contact = deal.contactId ? contacts.find(c => c.id === deal.contactId) : undefined;
     const company = deal.companyId ? companies.find(c => c.id === deal.companyId) : undefined;
 
-    const { searchNorm, isSearching, searchDigits } = useMemo(() => {
-        const norm = searchTerm ? searchTerm.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") : "";
+    const { searchNorm, isSearching, searchNoSpaces, searchDigits } = useMemo(() => {
+        const norm = searchTerm ? searchTerm.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").trim() : "";
         return {
             searchNorm: norm,
-            isSearching: !!searchTerm && searchTerm.length > 0,
-            searchDigits: (searchTerm || "").replace(/\D/g, "")
+            isSearching: !!norm && norm.length > 0,
+            searchNoSpaces: norm.replace(/\s+/g, ""),
+            searchDigits: norm.replace(/\D/g, "")
         };
     }, [searchTerm]);
 
     const normalizeText = (text: string) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-    const matchesTitle = isSearching && normalizeText(deal.title).includes(searchNorm);
-    const matchesPerson = isSearching && contact && (
-        normalizeText(contact.name).includes(searchNorm) ||
-        (contact.email && contact.email.toLowerCase().includes(searchNorm)) ||
-        (searchDigits.length >= 7 && contact.phone?.replace(/\D/g, "").includes(searchDigits))
+
+    const matchDigits = (sourceDigits: string, queryDigits: string) => {
+        if (!sourceDigits || !queryDigits) return false;
+        if (sourceDigits.includes(queryDigits)) return true;
+        if (sourceDigits.length >= 7 && queryDigits.includes(sourceDigits)) return true;
+        const queryWithoutCountry = queryDigits.replace(/^(351|55)/, '');
+        if (queryWithoutCountry.length >= 3 && sourceDigits.includes(queryWithoutCountry)) return true;
+        const sourceWithoutCountry = sourceDigits.replace(/^(351|55)/, '');
+        if (sourceWithoutCountry.length >= 3 && sourceWithoutCountry.includes(queryDigits)) return true;
+        return false;
+    };
+
+    const dealTitle = normalizeText(deal.title);
+    const dealTitleNoSpaces = dealTitle.replace(/\s+/g, "");
+    const dealTitleDigits = deal.title.replace(/\D/g, "");
+
+    const contactName = contact ? normalizeText(contact.name) : "";
+    const contactNameNoSpaces = contactName.replace(/\s+/g, "");
+    const contactPhone = contact?.phone ? normalizeText(contact.phone) : "";
+    const contactPhoneNoSpaces = contactPhone.replace(/\s+/g, "");
+    const contactPhoneDigits = contact?.phone ? contact.phone.replace(/\D/g, "") : "";
+
+    const companyName = company ? normalizeText(company.name) : "";
+    const companyNameNoSpaces = companyName.replace(/\s+/g, "");
+    const companyPhone = company?.phone ? normalizeText(company.phone) : "";
+    const companyPhoneNoSpaces = companyPhone.replace(/\s+/g, "");
+    const companyPhoneDigits = company?.phone ? company.phone.replace(/\D/g, "") : "";
+
+    const matchesTitle = isSearching && (
+        dealTitle.includes(searchNorm) ||
+        (searchNoSpaces.length > 0 && dealTitleNoSpaces.includes(searchNoSpaces)) ||
+        (searchDigits.length >= 2 && matchDigits(dealTitleDigits, searchDigits))
     );
-    const matchesCompany = isSearching && company && normalizeText(company.name).includes(searchNorm);
+    const matchesPerson = isSearching && !!contact && (
+        contactName.includes(searchNorm) ||
+        (searchNoSpaces.length > 0 && contactNameNoSpaces.includes(searchNoSpaces)) ||
+        (contact.email && contact.email.toLowerCase().includes(searchNorm)) ||
+        (contactPhone && contactPhone.includes(searchNorm)) ||
+        (searchNoSpaces.length > 0 && contactPhoneNoSpaces.includes(searchNoSpaces)) ||
+        (searchDigits.length >= 2 && matchDigits(contactPhoneDigits, searchDigits))
+    );
+    const matchesCompany = isSearching && !!company && (
+        companyName.includes(searchNorm) ||
+        (searchNoSpaces.length > 0 && companyNameNoSpaces.includes(searchNoSpaces)) ||
+        (companyPhone && companyPhone.includes(searchNorm)) ||
+        (searchNoSpaces.length > 0 && companyPhoneNoSpaces.includes(searchNoSpaces)) ||
+        (searchDigits.length >= 2 && matchDigits(companyPhoneDigits, searchDigits))
+    );
 
     const handleClick = (e: React.MouseEvent) => {
         if (onPreview) {

@@ -70,7 +70,7 @@ export default function TimelineView() {
         { id: 'notes' as EventFilter, label: 'Anotações', icon: FileText },
         { id: 'call' as EventFilter, label: 'Chamada', icon: Phone },
         { id: 'meeting' as EventFilter, label: 'Reunião', icon: Calendar },
-        { id: 'task' as EventFilter, label: 'Tarefa', icon: CheckCircle },
+        { id: 'task' as EventFilter, label: 'Follow UP', icon: CheckCircle },
         { id: 'deadline' as EventFilter, label: 'Prazo', icon: Clock },
         { id: 'lunch' as EventFilter, label: 'Almoço', icon: Coffee },
     ];

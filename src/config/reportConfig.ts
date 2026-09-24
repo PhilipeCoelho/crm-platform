@@ -105,7 +105,7 @@ export const ACTIVITIES_FILTERS: Filter[] = [
         id: 'type', name: 'Tipo', type: 'select', options: [
             { value: 'meeting', label: 'Reunião' },
             { value: 'call', label: 'Chamada' },
-            { value: 'task', label: 'Tarefa' },
+            { value: 'task', label: 'Follow UP' },
             { value: 'email', label: 'E-mail' }
         ], description: 'Filtrar por tipo de atividade'
     },

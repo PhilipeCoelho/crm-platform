@@ -4,7 +4,8 @@ import {
     ArrowUpRight, ArrowDownRight, Minus, 
     TrendingUp, ShieldAlert, CheckCircle2, 
     ChevronRight, Tag, Layers, MessageSquare, Flame, Sparkles,
-    Trash2, Settings, Copy, Check, Lightbulb
+    Trash2, Settings, Copy, Check, Lightbulb,
+    Quote, Zap, Compass, Target
 } from 'lucide-react';
 import { 
     fetchPendingReviews, 
@@ -33,9 +34,10 @@ export default function KnowledgeBase() {
     const [pendingReviews, setPendingReviews] = useState<InsightComercial[]>([]);
     const [contentSignals, setContentSignals] = useState<ContentSignalTrend[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [activeSection, setActiveSection] = useState<'dashboard' | 'review' | 'content'>('dashboard');
+    const [activeSection, setActiveSection] = useState<'dashboard' | 'radar' | 'content' | 'review'>('dashboard');
     const [expandedSignals, setExpandedSignals] = useState<Record<string, boolean>>({});
     const [savedCrmIdeaSignal, setSavedCrmIdeaSignal] = useState<string | null>(null);
+    const [copiedQuoteIdx, setCopiedQuoteIdx] = useState<number | null>(null);
 
     // Details Modal
     const [selectedFilter, setSelectedFilter] = useState<{ category?: string; subcategory?: string; tag?: string } | null>(null);
@@ -164,8 +166,46 @@ export default function KnowledgeBase() {
         text += `\n`;
         text += `---\n\n`;
 
-        // 5. SINAIS DE CONTEÚDO ESTRATÉGICOS
-        text += `## 5. SINAIS DE CONTEÚDO ESTRATÉGICOS\n\n`;
+        // 5. RADAR DE TENSÕES (DESEJO VS COMPORTAMENTO / MEDO)
+        if (trends?.top_tensions && trends.top_tensions.length > 0) {
+            text += `## 5. RADAR DE TENSÕES DO MERCADO (DESEJO VS COMPORTAMENTO / MEDO)\n\n`;
+            trends.top_tensions.forEach((t, idx) => {
+                text += `### Tensão ${idx + 1}: "${t.tension}"\n`;
+                text += `- **Eixo / Subcategoria:** ${formatSnakeCase(t.categoria)} > ${formatSnakeCase(t.subcategoria)}\n`;
+                text += `- **Evidência:** ${t.total} menções em ${t.unique_deals} negócio(s) distintos\n`;
+                text += `- **Força da Tensão:** ${t.tension_score}/100\n\n`;
+            });
+            text += `---\n\n`;
+        }
+
+        // 6. CRENÇAS IDENTIFICADAS NO MERCADO
+        if (trends?.top_beliefs && trends.top_beliefs.length > 0) {
+            text += `## 6. CRENÇAS IDENTIFICADAS NO MERCADO\n\n`;
+            trends.top_beliefs.forEach((b, idx) => {
+                text += `### Crença ${idx + 1}: "${b.belief}"\n`;
+                if (b.desired_belief) {
+                    text += `- **Mudança de Percepção Necessária:** "${b.desired_belief}"\n`;
+                }
+                text += `- **Eixo:** ${formatSnakeCase(b.categoria)} (${b.total} ocorrências em ${b.unique_deals} negócios)\n\n`;
+            });
+            text += `---\n\n`;
+        }
+
+        // 7. VOZ DO CLIENTE (CITAÇÕES LITERAIS)
+        if (trends?.top_quotes && trends.top_quotes.length > 0) {
+            text += `## 7. VOZ REAL DO CLIENTE (CITAÇÕES LITERAIS — MATÉRIA-PRIMA PARA COPY)\n\n`;
+            trends.top_quotes.forEach((q, idx) => {
+                text += `${idx + 1}. *"${q.quote_original}"*\n`;
+                if (q.quote_context) {
+                    text += `   - Contexto: ${q.quote_context}\n`;
+                }
+                text += `   - Eixo: ${formatSnakeCase(q.categoria)} > ${formatSnakeCase(q.subcategoria)}\n\n`;
+            });
+            text += `---\n\n`;
+        }
+
+        // 8. SINAIS DE CONTEÚDO ESTRATÉGICOS
+        text += `## 8. SINAIS DE CONTEÚDO ESTRATÉGICOS & ÂNGULOS DISPONÍVEIS\n\n`;
         if (contentSignals && contentSignals.length > 0) {
             contentSignals.forEach((signal, idx) => {
                 const formattedCategory = formatSnakeCase(signal.common_categoria);
@@ -174,14 +214,23 @@ export default function KnowledgeBase() {
                 text += `### Tema ${idx + 1}: "${signal.content_signal}"\n`;
                 text += `- **Eixo Principal:** ${formattedCategory}\n`;
                 text += `- **Assuntos Relacionados (Tags):** ${formattedTags}\n`;
-                text += `- **Ocorrências no Período:** ${signal.current_total}\n`;
-                text += `- **Feedbacks Reais do Lead (Matéria-Bruta):\n`;
-                if (signal.examples && signal.examples.length > 0) {
+                text += `- **Ocorrências no Período:** ${signal.current_total} (em ${signal.unique_deals || 1} negócios)\n`;
+                if (signal.tension) {
+                    text += `- **Tensão Central:** "${signal.tension}"\n`;
+                }
+                if (signal.angles_available && signal.angles_available.length > 0) {
+                    text += `- **Ângulos Disponíveis (Inexplorados):** ${signal.angles_available.join(', ')}\n`;
+                }
+                if (signal.quote_examples && signal.quote_examples.length > 0) {
+                    text += `- **Falas Literais do Lead (quote_original):\n`;
+                    signal.quote_examples.forEach(q => {
+                        text += `  - "${q.trim()}"\n`;
+                    });
+                } else if (signal.examples && signal.examples.length > 0) {
+                    text += `- **Feedbacks Reais do Lead:\n`;
                     signal.examples.forEach(example => {
                         text += `  - "${example.trim()}"\n`;
                     });
-                } else {
-                    text += `  - Sem exemplos adicionais registrados.\n`;
                 }
                 text += `\n`;
             });
@@ -331,6 +380,12 @@ export default function KnowledgeBase() {
         setExpandedSignals(prev => ({ ...prev, [signal]: !prev[signal] }));
     };
 
+    const handleCopySingleQuote = (quote: string, idx: number) => {
+        navigator.clipboard.writeText(`"${quote}"`);
+        setCopiedQuoteIdx(idx);
+        setTimeout(() => setCopiedQuoteIdx(null), 2500);
+    };
+
     // Card details
     const topDor = trends?.top_subcategories.dor?.[0];
     const topBarreira = trends?.top_subcategories.barreira_acesso?.[0];
@@ -363,6 +418,13 @@ export default function KnowledgeBase() {
                                 className={`px-4 py-1.5 rounded-md font-medium transition-all ${activeSection === 'dashboard' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                             >
                                 Tendências
+                            </button>
+                            <button 
+                                onClick={() => setActiveSection('radar')}
+                                className={`px-4 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 ${activeSection === 'radar' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <Compass size={13} className={activeSection === 'radar' ? 'text-amber-500' : 'text-muted-foreground'} />
+                                Radar de Mercado
                             </button>
                             <button 
                                 onClick={() => setActiveSection('content')}
@@ -874,6 +936,369 @@ export default function KnowledgeBase() {
                                         </div>
                                     );
                                 })
+                            )}
+                        </div>
+                    </div>
+                ) : activeSection === 'radar' ? (
+                    <div className="space-y-8 animate-in fade-in duration-200">
+                        {/* Radar Header & Metrics */}
+                        <div className="bg-card border border-border/40 p-6 rounded-2xl space-y-4">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <Compass className="text-amber-500" size={22} />
+                                        <h2 className="text-lg font-bold text-card-foreground">Radar de Mercado & Sinais Qualitativos</h2>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
+                                        Mapeamento contínuo das falas reais de leads: tensões centrais, crenças arraigadas, citações literais (Voz do Cliente) e ângulos virgens de conteúdo.
+                                        Alimenta a metodologia Micha + Oney com insumos empíricos sem gerar scripts artificiais.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Evidence Quality Strip */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                                <div className="p-3.5 bg-muted/20 border border-border/30 rounded-xl space-y-1">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                        <CheckCircle2 size={12} className="text-emerald-500" />
+                                        Evidência Real
+                                    </div>
+                                    <div className="text-xl font-bold text-foreground">
+                                        {trends?.evidence_stats?.avg_specificity !== undefined 
+                                            ? `${trends.evidence_stats.avg_specificity}%` 
+                                            : '—'}
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground">índice de especificidade</div>
+                                </div>
+
+                                <div className="p-3.5 bg-muted/20 border border-border/30 rounded-xl space-y-1">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                        <Zap size={12} className="text-amber-500" />
+                                        Tensões
+                                    </div>
+                                    <div className="text-xl font-bold text-foreground">
+                                        {trends?.top_tensions?.length ?? 0}
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground">conflitos mapeados</div>
+                                </div>
+
+                                <div className="p-3.5 bg-muted/20 border border-border/30 rounded-xl space-y-1">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                        <Brain size={12} className="text-indigo-400" />
+                                        Crenças
+                                    </div>
+                                    <div className="text-xl font-bold text-foreground">
+                                        {trends?.top_beliefs?.length ?? 0}
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground">certezas de mercado</div>
+                                </div>
+
+                                <div className="p-3.5 bg-muted/20 border border-border/30 rounded-xl space-y-1">
+                                    <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                        <Quote size={12} className="text-amber-500" />
+                                        Citações Literais
+                                    </div>
+                                    <div className="text-xl font-bold text-foreground">
+                                        {trends?.top_quotes?.length ?? 0}
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground">frases in verbis</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Grid: Tensões + Crenças */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Card: Tensões Centrais */}
+                            <div className="bg-card border border-border/40 p-6 rounded-2xl space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Zap className="text-amber-500" size={18} />
+                                        <h3 className="text-base font-bold text-card-foreground">Tensões Centrais do Lead</h3>
+                                    </div>
+                                    <span className="text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full">
+                                        Dilemas & Conflitos
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    O ponto onde o lead quer algo mas resiste por medo, crença ou dor operacional. A matéria-prima de maior valor para ganchos persuasivos.
+                                </p>
+
+                                {(!trends?.top_tensions || trends.top_tensions.length === 0) ? (
+                                    <div className="p-8 text-center text-muted-foreground border border-dashed border-border/40 rounded-xl space-y-1">
+                                        <p className="text-xs italic">Nenhuma tensão identificada no período.</p>
+                                        <p className="text-[10px]">Conforme notas forem salvas e classificadas com dilemas reais, aparecerão aqui.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {trends.top_tensions.map((t, idx) => (
+                                            <div 
+                                                key={idx} 
+                                                className="p-4 bg-muted/10 border border-border/30 hover:border-amber-500/30 rounded-xl space-y-2 transition-all"
+                                            >
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <p className="text-xs font-semibold text-foreground leading-relaxed">
+                                                        "{t.tension}"
+                                                    </p>
+                                                    <span className="shrink-0 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                                        {t.total}x
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                                                    {t.unique_deals !== undefined && (
+                                                        <span>{t.unique_deals} negócio(s) afetado(s)</span>
+                                                    )}
+                                                    {t.tension_score !== undefined && (
+                                                        <span className="flex items-center gap-1 font-medium text-amber-500">
+                                                            <Flame size={10} />
+                                                            Score {t.tension_score}/100
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Card: Crenças de Mercado */}
+                            <div className="bg-card border border-border/40 p-6 rounded-2xl space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Brain className="text-indigo-400" size={18} />
+                                        <h3 className="text-base font-bold text-card-foreground">Crenças Arraigadas</h3>
+                                    </div>
+                                    <span className="text-[11px] font-semibold bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 px-2 py-0.5 rounded-full">
+                                        Verdades do Lead
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Aquilo que o lead tem certeza antes de nos ouvir. Ideal para conteúdos de quebra de paradigmas e contra-intuição.
+                                </p>
+
+                                {(!trends?.top_beliefs || trends.top_beliefs.length === 0) ? (
+                                    <div className="p-8 text-center text-muted-foreground border border-dashed border-border/40 rounded-xl space-y-1">
+                                        <p className="text-xs italic">Nenhuma crença identificada no período.</p>
+                                        <p className="text-[10px]">Crenças expressas em conversas comerciais serão consolidadas aqui.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {trends.top_beliefs.map((b, idx) => (
+                                            <div 
+                                                key={idx} 
+                                                className="p-4 bg-muted/10 border border-border/30 hover:border-indigo-500/30 rounded-xl space-y-1 transition-all"
+                                            >
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <p className="text-xs font-semibold text-foreground leading-relaxed">
+                                                        "{b.belief}"
+                                                    </p>
+                                                    <span className="shrink-0 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                                        {b.total}x
+                                                    </span>
+                                                </div>
+                                                {b.desired_belief && (
+                                                    <p className="text-[11px] text-muted-foreground italic pl-1">
+                                                        Antídoto: "{b.desired_belief}"
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Voz do Cliente: Citações Literais */}
+                        <div className="bg-card border border-border/40 p-6 rounded-2xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Quote className="text-amber-500" size={18} />
+                                    <h3 className="text-base font-bold text-card-foreground">Voz do Cliente (Citações Literais)</h3>
+                                </div>
+                                <span className="text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                                    Vocabulário Autêntico
+                                </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Frases exatas ditas pelos leads, sem resumo ou interpretação artificial. Use para criar ganchos e scripts falando exatamente como o cliente fala.
+                            </p>
+
+                            {(!trends?.top_quotes || trends.top_quotes.length === 0) ? (
+                                <div className="p-8 text-center text-muted-foreground border border-dashed border-border/40 rounded-xl space-y-1">
+                                    <p className="text-xs italic">Nenhuma citação literal capturada no período.</p>
+                                    <p className="text-[10px]">Citações extraídas in verbis de notas com aspas ou falas explícitas aparecerão aqui.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {trends.top_quotes.map((q, idx) => (
+                                        <div 
+                                            key={idx} 
+                                            className="p-4 bg-muted/10 border border-border/30 hover:border-amber-500/30 rounded-xl flex flex-col justify-between gap-3 transition-all relative group"
+                                        >
+                                            <div className="space-y-2">
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-lg leading-none font-bold text-amber-500 select-none">“</span>
+                                                    <p className="text-xs italic text-foreground leading-relaxed flex-1">
+                                                        {q.quote_original}
+                                                    </p>
+                                                    <span className="text-lg leading-none font-bold text-amber-500 select-none">”</span>
+                                                </div>
+                                                <div className="text-[10px] text-muted-foreground flex items-center gap-2 pl-4 flex-wrap">
+                                                    {q.subcategoria && (
+                                                        <span className="font-medium bg-muted px-1.5 py-0.5 rounded">
+                                                            {formatSnakeCase(q.subcategoria)}
+                                                        </span>
+                                                    )}
+                                                    {q.quote_context && (
+                                                        <span className="italic text-muted-foreground/80">
+                                                            Contexto: {q.quote_context}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-end pt-2 border-t border-border/20">
+                                                <button
+                                                    onClick={() => handleCopySingleQuote(q.quote_original, idx)}
+                                                    className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground hover:text-amber-500 transition-colors px-2 py-1 rounded hover:bg-muted"
+                                                    title="Copiar citação"
+                                                >
+                                                    {copiedQuoteIdx === idx ? (
+                                                        <>
+                                                            <Check size={11} className="text-green-500" />
+                                                            <span className="text-green-500">Copiada!</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Copy size={11} />
+                                                            <span>Copiar Citação</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Temas & Ângulos Virgens de Conteúdo */}
+                        <div className="bg-card border border-border/40 p-6 rounded-2xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Target className="text-amber-500" size={18} />
+                                    <h3 className="text-base font-bold text-card-foreground">Temas & Ângulos Disponíveis (Não-Saturados)</h3>
+                                </div>
+                                <span className="text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full">
+                                    Anti-Repetição
+                                </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Ângulos ainda não explorados de cada tema para que o time de conteúdo Micha + Oney diversifique abordagens sem saturar a audiência.
+                            </p>
+
+                            {contentSignals.length === 0 ? (
+                                <div className="p-8 text-center text-muted-foreground border border-dashed border-border/40 rounded-xl space-y-1">
+                                    <p className="text-xs italic">Nenhum sinal com ângulos mapeados no período.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {contentSignals.map((signal, sIdx) => {
+                                        const anglesAvail = signal.angles_available || [];
+                                        const anglesUsed = signal.angles_used || [];
+                                        const saturation = signal.content_saturation_score ?? 0;
+
+                                        return (
+                                            <div 
+                                                key={sIdx} 
+                                                className="p-4 bg-muted/10 border border-border/30 rounded-xl space-y-3 hover:border-amber-500/30 transition-all"
+                                            >
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {signal.topic && (
+                                                                <span className="font-bold text-xs bg-muted px-2 py-0.5 rounded-md text-foreground">
+                                                                    {formatSnakeCase(signal.topic)}
+                                                                </span>
+                                                            )}
+                                                            <h4 className="text-xs font-bold text-foreground">
+                                                                "{signal.content_signal}"
+                                                            </h4>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                                                            saturation <= 0.33 
+                                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                                                                : saturation <= 0.66 
+                                                                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' 
+                                                                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                                                        }`}>
+                                                            {saturation <= 0.33 ? 'Ângulo Virgem' : saturation <= 0.66 ? 'Moderado' : 'Saturado'}
+                                                        </span>
+                                                        <span className="text-[10px] text-muted-foreground font-semibold">
+                                                            {signal.current_total}x
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Angles Available */}
+                                                {anglesAvail.length > 0 && (
+                                                    <div className="space-y-1">
+                                                        <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                                                            Ângulos Virgens Disponíveis:
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {anglesAvail.map((ang, aIdx) => (
+                                                                <span 
+                                                                    key={aIdx} 
+                                                                    className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-medium px-2 py-0.5 rounded-md border border-emerald-500/20"
+                                                                >
+                                                                    + {ang}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Angles Used */}
+                                                {anglesUsed.length > 0 && (
+                                                    <div className="space-y-1">
+                                                        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                                            Ângulos Já Explorados:
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {anglesUsed.map((ang, uIdx) => (
+                                                                <span 
+                                                                    key={uIdx} 
+                                                                    className="bg-muted text-muted-foreground line-through text-[10px] font-medium px-2 py-0.5 rounded-md"
+                                                                >
+                                                                    {ang}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="pt-1 flex justify-end">
+                                                    <button
+                                                        type="button"
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            await createIdeaFromCRMSignal(signal.content_signal, undefined, signal.examples?.[0]);
+                                                            setSavedCrmIdeaSignal(signal.content_signal);
+                                                            setTimeout(() => setSavedCrmIdeaSignal(null), 3500);
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-white text-[11px] font-semibold transition-all border border-amber-500/20 active:scale-95"
+                                                    >
+                                                        <Lightbulb size={12} />
+                                                        <span>{savedCrmIdeaSignal === signal.content_signal ? 'Salva no Banco de Ideias!' : 'Salvar como Ideia'}</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </div>
                     </div>

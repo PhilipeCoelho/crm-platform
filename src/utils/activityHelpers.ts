@@ -37,7 +37,7 @@ export const ACTIVITY_CONFIG = {
         bgColor: 'bg-primary/10'
     },
     task: {
-        label: 'Tarefa',
+        label: 'Follow UP',
         icon: 'CheckSquare',
         color: 'text-green-600',
         bgColor: 'bg-green-100'

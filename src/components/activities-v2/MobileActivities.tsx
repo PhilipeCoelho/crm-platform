@@ -15,7 +15,7 @@ const TYPE_THEME: Record<string, { label: string; icon: string; gradient: string
   email:   { label: 'E-mail',   icon: 'mail',     gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', glow: 'rgba(139,92,246,0.25)' },
   message: { label: 'WhatsApp', icon: 'whatsapp', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)', glow: 'rgba(34,197,94,0.25)' },
   meeting: { label: 'Reunião',  icon: 'video',    gradient: 'linear-gradient(135deg, #f59e0b, #d97706)', glow: 'rgba(245,158,11,0.25)' },
-  task:    { label: 'Tarefa',   icon: 'check',    gradient: 'linear-gradient(135deg, #64748b, #475569)', glow: 'rgba(100,116,139,0.25)' },
+  task:    { label: 'Follow UP', icon: 'check',    gradient: 'linear-gradient(135deg, #64748b, #475569)', glow: 'rgba(100,116,139,0.25)' },
 };
 
 function getDueDays(dueDate?: string): number {
