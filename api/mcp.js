@@ -1,16 +1,24 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import jwt from "jsonwebtoken";
 
 const transports = new Map();
 
 export function setupMcp(app) {
     app.get('/api/mcp/sse', async (req, res) => {
-        // Authenticate request
-        console.log("Auth header:", req.headers.authorization); const authHeader = req.headers.authorization || '';
-        const apiKey = authHeader.replace('Bearer ', '');
-        if (apiKey !== process.env.VAMUSS_GPT_KEY) {
-            return res.status(401).json({ error: 'Unauthorized' });
+        // Authenticate request via OAuth JWT
+        const authHeader = req.headers.authorization || '';
+        const token = authHeader.replace('Bearer ', '');
+        const JWT_SECRET = process.env.OAUTH_JWT_SECRET || process.env.VAMUSS_GPT_KEY || 'fallback_secret';
+        
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            if (!decoded.scope || !decoded.scope.includes('crm:read')) {
+                return res.status(403).json({ error: 'Forbidden: Insufficient scope' });
+            }
+        } catch (err) {
+            return res.status(401).json({ error: 'Unauthorized: Invalid token' });
         }
 
         const transport = new SSEServerTransport("/api/mcp/messages", res);
