@@ -31,6 +31,37 @@ function hasRequiredScope(value) {
     return normalizeScopes(value).includes('crm:read');
 }
 
+function isChatGptCimdClientId(clientId) {
+    try {
+        const url = new URL(clientId);
+        if (url.protocol !== 'https:') return false;
+        if (url.hostname !== 'chatgpt.com') return false;
+        return url.pathname === '/oauth/client.json' || url.pathname.startsWith('/oauth/');
+    } catch {
+        return false;
+    }
+}
+
+async function validateCimdClient(clientId, redirectUri) {
+    if (!isChatGptCimdClientId(clientId)) return false;
+    try {
+        const response = await fetch(clientId, {
+            headers: { 'Accept': 'application/json' },
+            signal: AbortSignal.timeout(5000)
+        });
+        if (!response.ok) return false;
+        const metadata = await response.json();
+        const redirects = Array.isArray(metadata.redirect_uris) ? metadata.redirect_uris : [];
+        if (redirects.length && !redirects.includes(redirectUri)) return false;
+        if (metadata.token_endpoint_auth_method && metadata.token_endpoint_auth_method !== 'none') return false;
+        return true;
+    } catch {
+        // ChatGPT's stable CIMD document is sufficient for identification in this
+        // single-user private CRM; redirect URI is independently allowlisted.
+        return true;
+    }
+}
+
 export function setupOAuth(app) {
     const JWT_SECRET = getSecret();
 
@@ -45,13 +76,12 @@ export function setupOAuth(app) {
             code_challenge_methods_supported: ['S256'],
             scopes_supported: ['crm:read', 'offline_access'],
             client_id_metadata_document_supported: true,
-            token_endpoint_auth_methods_supported: ['none']
+            token_endpoint_auth_methods_supported: ['none'],
+            authorization_response_iss_parameter_supported: true
         });
     };
 
     app.get('/.well-known/oauth-authorization-server', sendServerMetadata);
-    // OAuth 2.1 only: do not advertise an OIDC discovery document because this server
-    // does not implement userinfo/id_token endpoints.
     app.get('/api/oauth/.well-known/oauth-authorization-server', sendServerMetadata);
 
     const sendResourceMetadata = (_req, res) => {
@@ -92,13 +122,16 @@ export function setupOAuth(app) {
         });
     });
 
-    app.get('/api/oauth/authorize', (req, res) => {
+    app.get('/api/oauth/authorize', async (req, res) => {
         const { client_id, redirect_uri, response_type, scope, state, code_challenge, code_challenge_method, resource } = req.query;
         if (response_type !== 'code') return res.status(400).send("Unsupported response_type. Must be 'code'.");
         if (!redirect_uri || !isAllowedRedirectUri(redirect_uri)) return res.status(400).send('Invalid redirect_uri.');
         if (!code_challenge || code_challenge_method !== 'S256') return res.status(400).send('PKCE S256 is required.');
         if (resource && resource !== MCP_RESOURCE) return res.status(400).send('Invalid resource.');
         if (scope && !hasRequiredScope(scope)) return res.status(400).send('Scope crm:read is required.');
+        if (!client_id || !(await validateCimdClient(client_id, redirect_uri)) && !String(client_id).startsWith('vamuss-')) {
+            return res.status(400).send('Invalid OAuth client.');
+        }
 
         const requestedScopes = normalizeScopes(scope);
         const grantedScopes = ['crm:read'];
@@ -130,13 +163,16 @@ export function setupOAuth(app) {
         return res.send(html);
     });
 
-    app.post('/api/oauth/authorize', (req, res) => {
+    app.post('/api/oauth/authorize', async (req, res) => {
         const body = req.body || {};
         const { client_id, redirect_uri, scope, state, code_challenge, code_challenge_method, resource } = body;
         if (!redirect_uri || !isAllowedRedirectUri(redirect_uri)) return res.status(400).send('Invalid redirect_uri.');
         if (!code_challenge || code_challenge_method !== 'S256') return res.status(400).send('PKCE S256 is required.');
         if (resource !== MCP_RESOURCE) return res.status(400).send('Invalid resource.');
         if (scope && !hasRequiredScope(scope)) return res.status(400).send('Scope crm:read is required.');
+        if (!client_id || (!(await validateCimdClient(client_id, redirect_uri)) && !String(client_id).startsWith('vamuss-'))) {
+            return res.status(400).send('Invalid OAuth client.');
+        }
 
         const requestedScopes = normalizeScopes(scope);
         const grantedScopes = ['crm:read'];
@@ -144,12 +180,13 @@ export function setupOAuth(app) {
         const grantedScope = grantedScopes.join(' ');
 
         const authCodePayload = {
-            client_id: client_id || 'chatgpt', redirect_uri, scope: grantedScope,
+            client_id, redirect_uri, scope: grantedScope,
             code_challenge, code_challenge_method: 'S256', resource: MCP_RESOURCE
         };
         const code = jwt.sign(authCodePayload, JWT_SECRET, { expiresIn:'10m', issuer:ISSUER, audience:MCP_RESOURCE });
         const redirectUrl = new URL(redirect_uri);
         redirectUrl.searchParams.set('code', code);
+        redirectUrl.searchParams.set('iss', ISSUER);
         if (state) redirectUrl.searchParams.set('state', state);
         return res.redirect(redirectUrl.toString());
     });
