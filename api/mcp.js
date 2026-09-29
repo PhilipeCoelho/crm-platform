@@ -3,10 +3,12 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 
 const MCP_RESOURCE = "https://crm-platform-ten-rose.vercel.app/api/mcp/sse";
 const MCP_METADATA = "https://crm-platform-ten-rose.vercel.app/.well-known/oauth-protected-resource";
 const transports = new Map();
+const streamableSessions = new Map();
 
 function getBearerToken(req) {
     const authHeader = req.headers.authorization || "";
@@ -27,7 +29,10 @@ function verifyAccessToken(req, res) {
         const decoded = jwt.verify(token, JWT_SECRET, {
             audience: MCP_RESOURCE
         });
-        if (!decoded || typeof decoded !== "object" || decoded.scope !== "crm:read") {
+        const scopes = typeof decoded === "object" && typeof decoded.scope === "string"
+            ? decoded.scope.split(/\s+/)
+            : [];
+        if (!decoded || typeof decoded !== "object" || !scopes.includes("crm:read")) {
             res.setHeader("WWW-Authenticate", `Bearer resource_metadata="${MCP_METADATA}", scope="crm:read"`);
             res.status(403).json({ error: "Forbidden: Insufficient scope" });
             return null;
@@ -40,40 +45,14 @@ function verifyAccessToken(req, res) {
     }
 }
 
-function isServerDiscover(req) {
-    return req.body && req.body.method === "server/discover";
-}
-
-function handleServerDiscover(req, res) {
-    const request = req.body || {};
-    const requestedVersion = request?.params?._meta?.["io.modelcontextprotocol/protocolVersion"];
-    const supportedVersions = ["2026-07-28", "2025-11-25"];
-
-    res.status(200).json({
-        jsonrpc: "2.0",
-        id: request.id ?? "openai-mcp-discover",
-        result: {
-            resultType: "complete",
-            supportedVersions,
-            capabilities: { tools: {} },
-            _meta: {
-                "io.modelcontextprotocol/serverInfo": {
-                    name: "Vamuss CRM MCP Server",
-                    version: "1.2.0"
-                }
-            },
-            instructions: "Vamuss CRM exposes authenticated, read-only commercial intelligence tools for the connected Vamuss CRM account.",
-            ttlMs: 3600000,
-            cacheScope: "public",
-            ...(requestedVersion ? { selectedVersion: supportedVersions.includes(requestedVersion) ? requestedVersion : supportedVersions[0] } : {})
-        }
-    });
+function isInitializeRequest(body) {
+    return body && body.method === "initialize";
 }
 
 function createMcpServer(req) {
     const authHeader = req.headers.authorization || "";
     const server = new Server(
-        { name: "Vamuss CRM MCP Server", version: "1.2.0" },
+        { name: "Vamuss CRM MCP Server", version: "1.3.0" },
         { capabilities: { tools: {} } }
     );
 
@@ -83,6 +62,7 @@ function createMcpServer(req) {
         destructiveHint: false,
         openWorldHint: false
     };
+    const meta = { securitySchemes };
 
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
         tools: [
@@ -98,7 +78,8 @@ function createMcpServer(req) {
                     additionalProperties: false
                 },
                 securitySchemes,
-                annotations: readOnlyAnnotations
+                annotations: readOnlyAnnotations,
+                _meta: meta
             },
             {
                 name: "search_deals",
@@ -113,7 +94,8 @@ function createMcpServer(req) {
                     additionalProperties: false
                 },
                 securitySchemes,
-                annotations: readOnlyAnnotations
+                annotations: readOnlyAnnotations,
+                _meta: meta
             },
             {
                 name: "get_market_signals",
@@ -127,7 +109,8 @@ function createMcpServer(req) {
                     additionalProperties: false
                 },
                 securitySchemes,
-                annotations: readOnlyAnnotations
+                annotations: readOnlyAnnotations,
+                _meta: meta
             },
             {
                 name: "get_deal_dossier",
@@ -139,7 +122,8 @@ function createMcpServer(req) {
                     additionalProperties: false
                 },
                 securitySchemes,
-                annotations: readOnlyAnnotations
+                annotations: readOnlyAnnotations,
+                _meta: meta
             },
             {
                 name: "get_content_memory",
@@ -153,7 +137,8 @@ function createMcpServer(req) {
                     additionalProperties: false
                 },
                 securitySchemes,
-                annotations: readOnlyAnnotations
+                annotations: readOnlyAnnotations,
+                _meta: meta
             }
         ]
     }));
@@ -208,40 +193,101 @@ function createMcpServer(req) {
 }
 
 export function setupMcp(app) {
-    // ChatGPT performs server/discover before authenticated MCP requests.
-    // Discovery is metadata-only and intentionally does not expose CRM data.
+    // ChatGPT currently supports Streamable HTTP. Use the standard 2025-era
+    // MCP lifecycle here so initialize creates a session and subsequent
+    // tools/list and tools/call requests can reuse that authenticated session.
+    // The previous implementation advertised 2026 server/discover manually,
+    // but the project is pinned to the v1 SDK and could not serve the modern
+    // stateless protocol after discovery. That caused ChatGPT tool refreshes
+    // to fail after the initial probe.
     const handleStreamable = async (req, res) => {
-        if (isServerDiscover(req)) {
-            return handleServerDiscover(req, res);
+        const sessionId = req.headers["mcp-session-id"];
+
+        if (sessionId) {
+            const session = streamableSessions.get(sessionId);
+            if (!session) {
+                return res.status(404).json({
+                    jsonrpc: "2.0",
+                    error: { code: -32001, message: "Session not found" },
+                    id: null
+                });
+            }
+            try {
+                await session.transport.handleRequest(req, res, req.body);
+            } catch (err) {
+                console.error("MCP Streamable HTTP session error:", err);
+                if (!res.headersSent) res.status(500).json({ error: "MCP internal server error" });
+            }
+            return;
+        }
+
+        if (req.method !== "POST" || !isInitializeRequest(req.body)) {
+            return res.status(400).json({
+                jsonrpc: "2.0",
+                error: { code: -32000, message: "MCP session initialization required" },
+                id: req.body?.id ?? null
+            });
         }
 
         if (!verifyAccessToken(req, res)) return;
 
         try {
-            const transport = new StreamableHTTPServerTransport({
-                sessionIdGenerator: undefined,
-                enableJsonResponse: true
-            });
+            let sessionTransport;
             const server = createMcpServer(req);
-
-            res.on("close", () => {
-                transport.close().catch(() => {});
+            sessionTransport = new StreamableHTTPServerTransport({
+                sessionIdGenerator: () => randomUUID(),
+                enableJsonResponse: true,
+                onsessioninitialized: (id) => {
+                    streamableSessions.set(id, { transport: sessionTransport, server });
+                }
             });
 
-            await server.connect(transport);
-            await transport.handleRequest(req, res, req.body);
+            sessionTransport.onclose = () => {
+                if (sessionTransport.sessionId) {
+                    streamableSessions.delete(sessionTransport.sessionId);
+                }
+                server.close().catch(() => {});
+            };
+
+            await server.connect(sessionTransport);
+            await sessionTransport.handleRequest(req, res, req.body);
         } catch (err) {
-            console.error("MCP Streamable HTTP error:", err);
+            console.error("MCP Streamable HTTP initialize error:", err);
             if (!res.headersSent) {
-                res.status(500).json({ error: "MCP internal server error" });
+                res.status(500).json({
+                    jsonrpc: "2.0",
+                    error: { code: -32603, message: "MCP internal server error" },
+                    id: req.body?.id ?? null
+                });
             }
         }
     };
 
+    // Primary Streamable HTTP endpoint. Keep /api/mcp/sse as the existing
+    // configured URL so the current ChatGPT app does not need a new endpoint.
     app.post("/api/mcp/sse", handleStreamable);
     app.post("/api/mcp", handleStreamable);
 
-    // Legacy HTTP+SSE is retained for existing local/legacy clients.
+    // Streamable HTTP GET/DELETE requests are routed through the same session.
+    const handleStreamableSessionRequest = async (req, res) => {
+        const sessionId = req.headers["mcp-session-id"];
+        if (!sessionId || !streamableSessions.has(sessionId)) {
+            return res.status(404).json({ error: "Session not found" });
+        }
+        try {
+            await streamableSessions.get(sessionId).transport.handleRequest(req, res, req.body);
+        } catch (err) {
+            console.error("MCP Streamable HTTP session request error:", err);
+            if (!res.headersSent) res.status(500).json({ error: "MCP internal server error" });
+        }
+    };
+
+    app.get("/api/mcp/sse", handleStreamableSessionRequest);
+    app.delete("/api/mcp/sse", handleStreamableSessionRequest);
+    app.get("/api/mcp", handleStreamableSessionRequest);
+    app.delete("/api/mcp", handleStreamableSessionRequest);
+
+    // Legacy HTTP+SSE is retained under /api/mcp/messages for existing clients.
     const handleLegacySse = async (req, res) => {
         if (!verifyAccessToken(req, res)) return;
 
@@ -255,8 +301,8 @@ export function setupMcp(app) {
         });
     };
 
-    app.get("/api/mcp/sse", handleLegacySse);
-    app.get("/api/mcp", handleLegacySse);
+    app.post("/api/mcp/legacy-sse", handleLegacySse);
+    app.get("/api/mcp/legacy-sse", handleLegacySse);
 
     app.post("/api/mcp/messages", async (req, res) => {
         const sessionId = req.query.sessionId;
@@ -264,7 +310,4 @@ export function setupMcp(app) {
         if (!session) return res.status(404).send("Session not found");
         await session.transport.handlePostMessage(req, res, req.body);
     });
-
-    app.delete("/api/mcp/sse", (_req, res) => res.status(405).json({ error: "Method Not Allowed" }));
-    app.delete("/api/mcp", (_req, res) => res.status(405).json({ error: "Method Not Allowed" }));
 }
