@@ -40,10 +40,40 @@ function verifyAccessToken(req, res) {
     }
 }
 
+function isServerDiscover(req) {
+    return req.body && req.body.method === "server/discover";
+}
+
+function handleServerDiscover(req, res) {
+    const request = req.body || {};
+    const requestedVersion = request?.params?._meta?.["io.modelcontextprotocol/protocolVersion"];
+    const supportedVersions = ["2026-07-28", "2025-11-25"];
+
+    res.status(200).json({
+        jsonrpc: "2.0",
+        id: request.id ?? "openai-mcp-discover",
+        result: {
+            resultType: "complete",
+            supportedVersions,
+            capabilities: { tools: {} },
+            _meta: {
+                "io.modelcontextprotocol/serverInfo": {
+                    name: "Vamuss CRM MCP Server",
+                    version: "1.2.0"
+                }
+            },
+            instructions: "Vamuss CRM exposes authenticated, read-only commercial intelligence tools for the connected Vamuss CRM account.",
+            ttlMs: 3600000,
+            cacheScope: "public",
+            ...(requestedVersion ? { selectedVersion: supportedVersions.includes(requestedVersion) ? requestedVersion : supportedVersions[0] } : {})
+        }
+    });
+}
+
 function createMcpServer(req) {
     const authHeader = req.headers.authorization || "";
     const server = new Server(
-        { name: "Vamuss CRM MCP Server", version: "1.1.0" },
+        { name: "Vamuss CRM MCP Server", version: "1.2.0" },
         { capabilities: { tools: {} } }
     );
 
@@ -178,9 +208,13 @@ function createMcpServer(req) {
 }
 
 export function setupMcp(app) {
-    // Modern MCP: Streamable HTTP. Stateless mode is intentional for Vercel/serverless.
-    // ChatGPT may POST initialize/listTools/callTool to this same endpoint.
+    // ChatGPT performs server/discover before authenticated MCP requests.
+    // Discovery is metadata-only and intentionally does not expose CRM data.
     const handleStreamable = async (req, res) => {
+        if (isServerDiscover(req)) {
+            return handleServerDiscover(req, res);
+        }
+
         if (!verifyAccessToken(req, res)) return;
 
         try {
