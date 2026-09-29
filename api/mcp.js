@@ -38,7 +38,7 @@ export function setupMcp(app) {
         if (!session) {
             return res.status(404).send("Session not found");
         }
-        await session.transport.handlePostMessage(req, res);
+        await session.transport.handlePostMessage(req, res, req.body);
     });
 }
 
