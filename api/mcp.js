@@ -124,7 +124,7 @@ function createMcpServer(req) {
         const baseUrl = `${protocol}://${host}`;
         
         const headers = {
-            'Authorization': `Bearer ${process.env.VAMUSS_GPT_KEY}`,
+            'Authorization': authHeader || `Bearer ${process.env.VAMUSS_GPT_KEY}`,
             'Content-Type': 'application/json'
         };
 

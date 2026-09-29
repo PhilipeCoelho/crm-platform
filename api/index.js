@@ -6944,26 +6944,38 @@ const authenticateGpt = (req, res, next) => {
         providedKey = apiKeyHeader;
     }
 
-    if (!configuredKey) {
-        logToFile('⚠️ [GPT API] VAMUSS_GPT_KEY não configurada no ambiente do servidor.');
-        return res.status(500).json({ 
-            success: false, 
-            error: 'Server authentication configuration missing (VAMUSS_GPT_KEY).' 
-        });
-    }
-
-    if (!providedKey || providedKey !== configuredKey) {
-        logToFile(`⛔ [GPT API] Acesso não autorizado detectado de IP: ${req.ip}`);
+    if (!providedKey) {
         return res.status(401).json({ 
             success: false, 
-            error: 'Unauthorized: Chave de API inválida ou ausente. Forneça o token via Authorization: Bearer <key> ou X-API-Key: <key>' 
+            error: 'Unauthorized: Chave de API ou Access Token ausente.' 
         });
     }
 
-    // Associa à conta do Phil no CRM
-    req.targetUserId = process.env.DEFAULT_USER_ID || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
-    logToFile(`🤖 [GPT API ACCESS] ${req.method} ${req.originalUrl || req.url} | User: ${req.targetUserId}`);
-    next();
+    // 1. Valida se é a chave de API estática do CRM
+    if (configuredKey && providedKey === configuredKey) {
+        req.targetUserId = process.env.DEFAULT_USER_ID || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
+        logToFile(`🤖 [GPT API ACCESS - API KEY] ${req.method} ${req.originalUrl || req.url} | User: ${req.targetUserId}`);
+        return next();
+    }
+
+    // 2. Valida se é um Access Token JWT emitido pelo OAuth 2.1 (escopo crm:read)
+    const JWT_SECRET = process.env.OAUTH_JWT_SECRET || configuredKey || 'fallback_secret';
+    try {
+        const decoded = jwt.verify(providedKey, JWT_SECRET);
+        if (decoded && decoded.scope && decoded.scope.includes('crm:read')) {
+            req.targetUserId = decoded.sub || process.env.DEFAULT_USER_ID || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
+            logToFile(`🤖 [GPT API ACCESS - OAUTH JWT] ${req.method} ${req.originalUrl || req.url} | User: ${req.targetUserId}`);
+            return next();
+        }
+    } catch {
+        // Ignora erro de verificação de JWT e prossegue para rejeição
+    }
+
+    logToFile(`⛔ [GPT API] Acesso não autorizado detectado de IP: ${req.ip}`);
+    return res.status(401).json({ 
+        success: false, 
+        error: 'Unauthorized: Chave de API inválida ou Access Token expirado.' 
+    });
 };
 
 const getGptSupabaseClient = () => {
