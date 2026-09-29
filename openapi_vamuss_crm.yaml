@@ -7,36 +7,39 @@ servers:
   - url: https://crm-platform-phi.vercel.app/api
     description: Servidor de Produção (Vercel)
   - url: http://localhost:3001/api
-    description: Servidor Local (Desenvolvimento)
+    description: Servidor Local de Desenvolvimento
 paths:
   /gpt/metrics:
     get:
       operationId: getFunnelMetrics
-      summary: Obter métricas agregadas de vendas, funil e conversão
-      description: Retorna métricas executivas condensadas (volume de negócios, faturamento ganho, valor em aberto, taxa de conversão, ticket médio, distribuição por estágio, canais de aquisição e principais motivos de perda).
+      summary: Obter métricas executivas agregadas de vendas, funil e conversão
+      description: Retorna métricas executivas condensadas e agregadas (volume total de negócios, faturamento ganho, valor em aberto no pipeline, taxa de conversão %, ticket médio, distribuição por estágio, origens e principais motivos de perda).
       parameters:
         - name: startDate
           in: query
           required: false
-          description: Data inicial do período de análise no formato YYYY-MM-DD (ex: 2026-08-01)
+          description: Data inicial do período de análise no formato YYYY-MM-DD (ex: 2026-02-01)
           schema:
             type: string
+            format: date
         - name: endDate
           in: query
           required: false
-          description: Data final do período de análise no formato YYYY-MM-DD (ex: 2026-08-31)
+          description: Data final do período de análise no formato YYYY-MM-DD (ex: 2026-05-31)
           schema:
             type: string
+            format: date
         - name: status
           in: query
           required: false
-          description: Filtrar por status ('open', 'won', 'lost', 'desqualificado' ou 'all')
+          description: Filtrar por status específico do negócio
           schema:
             type: string
+            enum: [open, won, lost, desqualificado, all]
         - name: origin
           in: query
           required: false
-          description: Filtrar por canal/origem de aquisição (ex: 'meta_ads', 'landing_page', 'manual')
+          description: Filtrar por canal de aquisição (ex: 'meta_ads', 'landing_page', 'direto_manual')
           schema:
             type: string
         - name: stage
@@ -67,22 +70,102 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   periodo:
                     type: object
+                    properties:
+                      inicio:
+                        type: string
+                        example: "2026-02-01"
+                      fim:
+                        type: string
+                        example: "2026-05-31"
                   metricas_gerais:
                     type: object
+                    properties:
+                      total_negocios_analisados:
+                        type: integer
+                        example: 681
+                      distribuicao_status:
+                        type: object
+                        properties:
+                          open:
+                            type: integer
+                            example: 267
+                          won:
+                            type: integer
+                            example: 1
+                          lost:
+                            type: integer
+                            example: 320
+                          desqualificado:
+                            type: integer
+                            example: 7
+                      valor_pipeline_ativo:
+                        type: number
+                        example: 52205
+                      faturamento_ganho:
+                        type: number
+                        example: 197
+                      valor_perdido:
+                        type: number
+                        example: 63040
+                      ticket_medio_ganho:
+                        type: number
+                        example: 197
+                      taxa_conversao_fechamentos_pct:
+                        type: number
+                        example: 0.3
+                      taxa_conversao_geral_pct:
+                        type: number
+                        example: 0.2
                   estagios:
                     type: array
+                    items:
+                      type: object
+                      properties:
+                        stage_id:
+                          type: string
+                        count:
+                          type: integer
+                        total_value:
+                          type: number
                   origens_aquisicao:
                     type: array
+                    items:
+                      type: object
+                      properties:
+                        origem:
+                          type: string
+                        quantidade:
+                          type: integer
+                        ganhos:
+                          type: integer
+                        perdidos:
+                          type: integer
+                        faturamento:
+                          type: number
+                        taxa_conversao_pct:
+                          type: number
                   principais_motivos_perda:
                     type: array
+                    items:
+                      type: object
+                      properties:
+                        reason:
+                          type: string
+                        count:
+                          type: integer
+        '401':
+          description: Não autorizado - Token inválido ou ausente
+        '500':
+          description: Erro interno no servidor ou configuração ausente
 
   /gpt/deals:
     get:
       operationId: getDealsList
       summary: Consultar lista operacional de negócios e clínicas
-      description: Retorna lista paginada (máx 50 registros por requisição) de negócios comerciais, com dados da clínica, contacto associado, valores, estágio, datas de entrada/fechamento e motivo de perda.
+      description: Retorna lista paginada (máximo 50 registros por chamada) de negócios comerciais, com dados da clínica, contacto associado, valores, estágio, datas de entrada/fechamento e motivo de perda.
       parameters:
         - name: startDate
           in: query
@@ -90,22 +173,25 @@ paths:
           description: Data inicial de criação (YYYY-MM-DD)
           schema:
             type: string
+            format: date
         - name: endDate
           in: query
           required: false
           description: Data final de criação (YYYY-MM-DD)
           schema:
             type: string
+            format: date
         - name: status
           in: query
           required: false
-          description: Status do negócio ('open', 'won', 'lost', 'desqualificado' ou 'all')
+          description: Status do negócio
           schema:
             type: string
+            enum: [open, won, lost, desqualificado, all]
         - name: stage
           in: query
           required: false
-          description: Estágio específico do funil
+          description: ID do estágio do pipeline
           schema:
             type: string
         - name: origin
@@ -123,7 +209,7 @@ paths:
         - name: page
           in: query
           required: false
-          description: Número da página (padrão 1)
+          description: Número da página para paginação (padrão 1)
           schema:
             type: integer
             default: 1
@@ -134,6 +220,7 @@ paths:
           schema:
             type: integer
             default: 20
+            maximum: 50
       responses:
         '200':
           description: Lista de negócios retornada com sucesso
@@ -144,16 +231,67 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   paginacao:
                     type: object
+                    properties:
+                      pagina_atual:
+                        type: integer
+                      registros_por_pagina:
+                        type: integer
+                      total_registros:
+                        type: integer
+                      total_paginas:
+                        type: integer
+                      tem_mais:
+                        type: boolean
                   negocios:
                     type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        clinica:
+                          type: string
+                        valor:
+                          type: number
+                        status:
+                          type: string
+                        estagio:
+                          type: string
+                        origem:
+                          type: string
+                        contacto:
+                          type: object
+                          properties:
+                            nome:
+                              type: string
+                            email:
+                              type: string
+                            telefone:
+                              type: string
+                            cargo:
+                              type: string
+                        created_at:
+                          type: string
+                        data_ganho:
+                          type: string
+                        data_perda:
+                          type: string
+                        motivo_perda:
+                          type: string
+        '401':
+          description: Não autorizado - Token inválido ou ausente
+        '500':
+          description: Erro interno no servidor
 
   /gpt/market-signals:
     get:
       operationId: getMarketSignals
       summary: Obter sinais de mercado, dores, objeções e citações literais
-      description: Retorna padrões psicográficos e comerciais extraídos das anotações e reuniões, incluindo dores recorrentes, objeções, tensões do decisor, crenças e falas literais de clientes.
+      description: Retorna padrões psicográficos e comerciais extraídos das anotações e reuniões, incluindo dores recorrentes, objeções, tensões do decisor, crenças e falas literais dos clientes.
       parameters:
         - name: startDate
           in: query
@@ -161,24 +299,34 @@ paths:
           description: Data inicial do sinal (YYYY-MM-DD)
           schema:
             type: string
+            format: date
         - name: endDate
           in: query
           required: false
           description: Data final do sinal (YYYY-MM-DD)
           schema:
             type: string
+            format: date
         - name: categoria
           in: query
           required: false
-          description: Categoria do sinal ('dor', 'objecao', 'barreira_acesso', 'motivo_perda', 'motivo_ganho')
+          description: Categoria do sinal
           schema:
             type: string
+            enum: [dor, objecao, barreira_acesso, motivo_perda, motivo_ganho, neutro]
         - name: topic
           in: query
           required: false
           description: Tópico temático (ex: 'preco', 'agencia', 'recepcao', 'indicacao')
           schema:
             type: string
+        - name: signalType
+          in: query
+          required: false
+          description: Tipo de sinal
+          schema:
+            type: string
+            enum: [recurring_pain, emerging_problem, strong_objection, surprising_behavior, market_misconception, customer_language, success_pattern, failure_pattern, competitive_gap, unmet_desire, unexpected_result, contradiction, new_pattern]
         - name: search
           in: query
           required: false
@@ -192,13 +340,58 @@ paths:
           schema:
             type: integer
             default: 30
+            maximum: 50
       responses:
         '200':
-          description: Sinais qualitativos de mercado retornados com sucesso
+          description: Sinais qualitativos retornados com sucesso
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  success:
+                    type: boolean
+                  resumo:
+                    type: object
+                    properties:
+                      total_sinais_retornados:
+                        type: integer
+                      contagem_por_categoria:
+                        type: object
+                      principais_padroes:
+                        type: array
+                  citacoes_literais_reais:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fala_cliente:
+                          type: string
+                        contexto:
+                          type: string
+                        subcategoria:
+                          type: string
+                        categoria:
+                          type: string
+                  tensoes_psicologicas_mercado:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tensao:
+                          type: string
+                        crenca:
+                          type: string
+                        comportamento:
+                          type: string
+                        impacto:
+                          type: string
+                  sinais:
+                    type: array
+        '401':
+          description: Não autorizado - Token inválido ou ausente
+        '500':
+          description: Erro interno no servidor
 
   /gpt/deal-dossier/{id}:
     get:
@@ -212,6 +405,7 @@ paths:
           description: UUID do negócio no CRM
           schema:
             type: string
+            format: uuid
       responses:
         '200':
           description: Dossiê completo retornado com sucesso
@@ -219,6 +413,75 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  success:
+                    type: boolean
+                  negocio:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      clinica:
+                        type: string
+                      valor:
+                        type: number
+                      status:
+                        type: string
+                      estagio:
+                        type: string
+                      origem:
+                        type: string
+                      created_at:
+                        type: string
+                      data_ganho:
+                        type: string
+                      data_perda:
+                        type: string
+                      motivo_perda:
+                        type: string
+                      contacto:
+                        type: object
+                  diagnostico_estrategico:
+                    type: object
+                    properties:
+                      primary_goal:
+                        type: string
+                      primary_challenge:
+                        type: string
+                      city:
+                        type: string
+                      monthly_media_budget:
+                        type: string
+                      average_patient_value:
+                        type: string
+                      clinic_capacity:
+                        type: string
+                      number_of_rooms:
+                        type: string
+                      response_time:
+                        type: string
+                      overall_score:
+                        type: integer
+                      presence_score:
+                        type: integer
+                      leakage_points:
+                        type: array
+                      strategy_hypothesis:
+                        type: object
+                      meeting_questions:
+                        type: array
+                  atividades_followups:
+                    type: array
+                  timeline_logs:
+                    type: array
+                  insights_detectados:
+                    type: array
+        '401':
+          description: Não autorizado - Token inválido ou ausente
+        '404':
+          description: Negócio não encontrado
+        '500':
+          description: Erro interno no servidor
 
   /gpt/content-memory:
     get:
@@ -229,9 +492,10 @@ paths:
         - name: angleStatus
           in: query
           required: false
-          description: Status do ângulo ('explorado', 'parcialmente_explorado', 'nao_explorado')
+          description: Status do ângulo editorial
           schema:
             type: string
+            enum: [explorado, parcialmente_explorado, nao_explorado]
         - name: topic
           in: query
           required: false
@@ -245,6 +509,7 @@ paths:
           schema:
             type: integer
             default: 30
+            maximum: 50
       responses:
         '200':
           description: Memória editorial retornada com sucesso
@@ -252,6 +517,35 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  success:
+                    type: boolean
+                  resumo:
+                    type: object
+                    properties:
+                      total_registros_memoria:
+                        type: integer
+                      angulos_inexplorados:
+                        type: integer
+                      angulos_explorados:
+                        type: integer
+                  pautas_comerciais_prontas_para_conteudo:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tema:
+                          type: string
+                        dor_real:
+                          type: string
+                        fala_do_cliente:
+                          type: string
+                  conteudos_registrados:
+                    type: array
+        '401':
+          description: Não autorizado - Token inválido ou ausente
+        '500':
+          description: Erro interno no servidor
 
 components:
   securitySchemes:
@@ -259,6 +553,6 @@ components:
       type: apiKey
       in: header
       name: Authorization
-      description: Envie "Bearer <VAMUSS_GPT_KEY>" ou use "X-API-Key" com o token secreto configurado.
+      description: Envie no formato "Bearer <SUA_CHAVE_VAMUSS_GPT_KEY>" ou pelo header "X-API-Key".
 security:
   - ApiKeyAuth: []
