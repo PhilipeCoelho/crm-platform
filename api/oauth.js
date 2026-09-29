@@ -6,8 +6,8 @@ import express from 'express';
 export function setupOAuth(app) {
     const JWT_SECRET = process.env.OAUTH_JWT_SECRET || process.env.VAMUSS_GPT_KEY || 'fallback_secret';
     
-    // 1. Authorization Server Metadata
-    app.get('/.well-known/oauth-authorization-server', (req, res) => {
+    // 1. Authorization Server & Protected Resource Metadata
+    const sendServerMetadata = (req, res) => {
         const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
         const host = req.headers.host;
         const baseUrl = `${protocol}://${host}`;
@@ -19,9 +19,31 @@ export function setupOAuth(app) {
             response_types_supported: ["code"],
             grant_types_supported: ["authorization_code", "refresh_token"],
             code_challenge_methods_supported: ["S256"],
-            scopes_supported: ["crm:read"]
+            scopes_supported: ["crm:read"],
+            token_endpoint_auth_methods_supported: ["none", "client_secret_post", "client_secret_basic"]
         });
-    });
+    };
+
+    app.get('/.well-known/oauth-authorization-server', sendServerMetadata);
+    app.get('/.well-known/openid-configuration', sendServerMetadata);
+    app.get('/api/oauth/.well-known/oauth-authorization-server', sendServerMetadata);
+
+    // RFC 9728 Protected Resource Metadata (MCP OAuth 2.1)
+    const sendResourceMetadata = (req, res) => {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const host = req.headers.host;
+        const baseUrl = `${protocol}://${host}`;
+
+        res.json({
+            resource: `${baseUrl}/api/mcp/sse`,
+            authorization_servers: [baseUrl],
+            scopes_supported: ["crm:read"],
+            bearer_methods_supported: ["header"]
+        });
+    };
+
+    app.get('/.well-known/oauth-protected-resource', sendResourceMetadata);
+    app.get('/api/oauth/.well-known/oauth-protected-resource', sendResourceMetadata);
 
     // 2. Authorization Endpoint (GET - render form)
     app.get('/api/oauth/authorize', (req, res) => {
@@ -68,8 +90,13 @@ export function setupOAuth(app) {
     });
 
     // 3. Authorization Endpoint (POST - process approval)
-    app.post('/api/oauth/authorize', express.urlencoded({ extended: true }), (req, res) => {
-        const { client_id, redirect_uri, scope, state, code_challenge, code_challenge_method } = req.body;
+    app.post('/api/oauth/authorize', (req, res) => {
+        const body = req.body || {};
+        const { client_id, redirect_uri, scope, state, code_challenge, code_challenge_method } = body;
+        
+        if (!redirect_uri) {
+            return res.status(400).send("Missing redirect_uri");
+        }
         
         // Em um sistema multiusuário, validaríamos a sessão aqui. Como é single-user, apenas emitimos o código.
         const authCodePayload = {
@@ -93,8 +120,13 @@ export function setupOAuth(app) {
     });
 
     // 4. Token Endpoint
-    app.post('/api/oauth/token', express.json(), express.urlencoded({ extended: true }), (req, res) => {
-        const { grant_type, code, redirect_uri, client_id, code_verifier, refresh_token } = req.body;
+    app.post('/api/oauth/token', (req, res) => {
+        const body = req.body || {};
+        const { grant_type, code, redirect_uri, client_id, code_verifier, refresh_token } = body;
+        
+        if (!grant_type) {
+            return res.status(400).json({ error: 'invalid_request', error_description: 'Missing grant_type' });
+        }
         
         if (grant_type === 'authorization_code') {
             try {
