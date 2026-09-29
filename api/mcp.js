@@ -43,6 +43,7 @@ export function setupMcp(app) {
 }
 
 function createMcpServer(req) {
+    const authHeader = req.headers.authorization || '';
     const server = new Server({
         name: "Vamuss CRM MCP Server",
         version: "1.0.0"
