@@ -6926,6 +6926,666 @@ app.post('/api/meta/test', authenticate, async (req, res) => {
     }
 });
 
+// ==============================================================================
+// 🧠 CHATGPT STRATEGIC INTEGRATION (READ-ONLY ENDPOINTS)
+// Permite que o Custom GPT "Agência Vamuss" consulte métricas, negócios,
+// sinais de mercado e memória de conteúdo de forma segura, rápida e em modo leitura.
+// ==============================================================================
+
+const authenticateGpt = (req, res, next) => {
+    const configuredKey = process.env.VAMUSS_GPT_KEY || process.env.GPT_API_KEY;
+    const authHeader = req.headers.authorization;
+    const apiKeyHeader = req.headers['x-api-key'] || req.headers['x-vamuss-gpt-key'];
+
+    let providedKey = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        providedKey = authHeader.split(' ')[1];
+    } else if (apiKeyHeader) {
+        providedKey = apiKeyHeader;
+    }
+
+    if (!configuredKey) {
+        logToFile('⚠️ [GPT API] VAMUSS_GPT_KEY não configurada no ambiente do servidor.');
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Server authentication configuration missing (VAMUSS_GPT_KEY).' 
+        });
+    }
+
+    if (!providedKey || providedKey !== configuredKey) {
+        logToFile(`⛔ [GPT API] Acesso não autorizado detectado de IP: ${req.ip}`);
+        return res.status(401).json({ 
+            success: false, 
+            error: 'Unauthorized: Chave de API inválida ou ausente. Forneça o token via Authorization: Bearer <key> ou X-API-Key: <key>' 
+        });
+    }
+
+    // Associa à conta do Phil no CRM
+    req.targetUserId = process.env.DEFAULT_USER_ID || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
+    logToFile(`🤖 [GPT API ACCESS] ${req.method} ${req.originalUrl || req.url} | User: ${req.targetUserId}`);
+    next();
+};
+
+const getGptSupabaseClient = () => {
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
+                           process.env.SUPABASE_SERVICE_ROLE || 
+                           process.env.SUPABASE_SERVICE_KEY || 
+                           process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
+                           SUPABASE_ANON_KEY;
+    return createClient(SUPABASE_URL, serviceRoleKey);
+};
+
+/**
+ * 1. GET /api/gpt/metrics
+ * Visão executiva agregada de funil, conversão, ticket e motivos de perda.
+ */
+app.get('/api/gpt/metrics', authenticateGpt, async (req, res) => {
+    try {
+        const { 
+            startDate, 
+            endDate, 
+            status, 
+            origin, 
+            source, 
+            stage, 
+            pipelineId = 'sales', 
+            minValue, 
+            maxValue 
+        } = req.query;
+
+        const supabase = getGptSupabaseClient();
+        let query = supabase
+            .from('deals')
+            .select('id, title, value, status, stage_id, pipeline_id, source, created_at, won_at, lost_at, lost_reason, contact_id')
+            .eq('user_id', req.targetUserId);
+
+        if (pipelineId && pipelineId !== 'all') {
+            query = query.eq('pipeline_id', pipelineId);
+        }
+
+        if (status && status !== 'all') {
+            query = query.eq('status', status);
+        }
+
+        const originFilter = origin || source;
+        if (originFilter) {
+            query = query.ilike('source', `%${originFilter}%`);
+        }
+
+        if (stage) {
+            query = query.eq('stage_id', stage);
+        }
+
+        if (startDate) {
+            query = query.gte('created_at', startDate);
+        }
+
+        if (endDate) {
+            const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+            query = query.lte('created_at', endFilter);
+        }
+
+        if (minValue) {
+            query = query.gte('value', parseFloat(minValue));
+        }
+
+        if (maxValue) {
+            query = query.lte('value', parseFloat(maxValue));
+        }
+
+        const { data: deals, error } = await query;
+        if (error) {
+            logToFile(`❌ [GPT API /metrics] Erro no Supabase: ${error.message}`);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        const dealList = deals || [];
+        const totalDeals = dealList.length;
+
+        const statusDistribution = {
+            open: 0,
+            won: 0,
+            lost: 0,
+            desqualificado: 0
+        };
+
+        let activePipelineValue = 0;
+        let wonRevenue = 0;
+        let lostValue = 0;
+
+        const stageBreakdownMap = {};
+        const sourceBreakdownMap = {};
+        const lossReasonsMap = {};
+
+        for (const deal of dealList) {
+            const dealStatus = (deal.status || '').toLowerCase();
+            const val = Number(deal.value) || 0;
+
+            if (dealStatus === 'won') {
+                statusDistribution.won += 1;
+                wonRevenue += val;
+            } else if (dealStatus === 'lost') {
+                statusDistribution.lost += 1;
+                lostValue += val;
+                const reason = (deal.lost_reason || 'Não informado').trim();
+                lossReasonsMap[reason] = (lossReasonsMap[reason] || 0) + 1;
+            } else if (dealStatus === 'desqualificado') {
+                statusDistribution.desqualificado += 1;
+            } else {
+                statusDistribution.open += 1;
+                activePipelineValue += val;
+            }
+
+            const stageId = deal.stage_id || 'sem_estagio';
+            if (!stageBreakdownMap[stageId]) {
+                stageBreakdownMap[stageId] = { stage_id: stageId, count: 0, total_value: 0 };
+            }
+            stageBreakdownMap[stageId].count += 1;
+            stageBreakdownMap[stageId].total_value += val;
+
+            const src = (deal.source || 'direto_manual').toLowerCase();
+            if (!sourceBreakdownMap[src]) {
+                sourceBreakdownMap[src] = { source: src, total: 0, won: 0, lost: 0, revenue: 0 };
+            }
+            sourceBreakdownMap[src].total += 1;
+            if (dealStatus === 'won') {
+                sourceBreakdownMap[src].won += 1;
+                sourceBreakdownMap[src].revenue += val;
+            } else if (dealStatus === 'lost') {
+                sourceBreakdownMap[src].lost += 1;
+            }
+        }
+
+        const closedCount = statusDistribution.won + statusDistribution.lost;
+        const conversionRate = closedCount > 0 
+            ? Number(((statusDistribution.won / closedCount) * 100).toFixed(1)) 
+            : 0;
+
+        const overallConversion = totalDeals > 0 
+            ? Number(((statusDistribution.won / totalDeals) * 100).toFixed(1)) 
+            : 0;
+
+        const avgTicketWon = statusDistribution.won > 0 
+            ? Number((wonRevenue / statusDistribution.won).toFixed(2)) 
+            : 0;
+
+        const topLossReasons = Object.entries(lossReasonsMap)
+            .map(([reason, count]) => ({ reason, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+
+        const sources = Object.values(sourceBreakdownMap).map(s => ({
+            origem: s.source,
+            quantidade: s.total,
+            ganhos: s.won,
+            perdidos: s.lost,
+            faturamento: s.revenue,
+            taxa_conversao_pct: s.total > 0 ? Number(((s.won / s.total) * 100).toFixed(1)) : 0
+        })).sort((a, b) => b.quantidade - a.quantidade);
+
+        return res.json({
+            success: true,
+            periodo: {
+                inicio: startDate || 'historico_completo',
+                fim: endDate || 'hoje'
+            },
+            metricas_gerais: {
+                total_negocios_analisados: totalDeals,
+                distribuicao_status: statusDistribution,
+                valor_pipeline_ativo: activePipelineValue,
+                faturamento_ganho: wonRevenue,
+                valor_perdido: lostValue,
+                ticket_medio_ganho: avgTicketWon,
+                taxa_conversao_fechamentos_pct: conversionRate,
+                taxa_conversao_geral_pct: overallConversion
+            },
+            estagios: Object.values(stageBreakdownMap),
+            origens_aquisicao: sources,
+            principais_motivos_perda: topLossReasons
+        });
+
+    } catch (err) {
+        logToFile(`❌ [GPT API /metrics] Exceção: ${err.message}`);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * 2. GET /api/gpt/deals
+ * Consulta operacional e paginada de negócios (máx 50 registros por página).
+ */
+app.get('/api/gpt/deals', authenticateGpt, async (req, res) => {
+    try {
+        const { 
+            startDate, 
+            endDate, 
+            status, 
+            stage, 
+            origin, 
+            source, 
+            search, 
+            minValue, 
+            maxValue,
+            page = '1',
+            limit = '20'
+        } = req.query;
+
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
+        const offset = (pageNum - 1) * limitNum;
+
+        const supabase = getGptSupabaseClient();
+        let query = supabase
+            .from('deals')
+            .select(`
+                id, 
+                title, 
+                value, 
+                status, 
+                stage_id, 
+                pipeline_id, 
+                source, 
+                created_at, 
+                won_at, 
+                lost_at, 
+                lost_reason, 
+                contact_id,
+                contacts:contact_id(id, name, email, phone, role)
+            `, { count: 'exact' })
+            .eq('user_id', req.targetUserId);
+
+        if (status && status !== 'all') {
+            query = query.eq('status', status);
+        }
+
+        if (stage) {
+            query = query.eq('stage_id', stage);
+        }
+
+        const originFilter = origin || source;
+        if (originFilter) {
+            query = query.ilike('source', `%${originFilter}%`);
+        }
+
+        if (startDate) {
+            query = query.gte('created_at', startDate);
+        }
+
+        if (endDate) {
+            const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+            query = query.lte('created_at', endFilter);
+        }
+
+        if (minValue) {
+            query = query.gte('value', parseFloat(minValue));
+        }
+
+        if (maxValue) {
+            query = query.lte('value', parseFloat(maxValue));
+        }
+
+        if (search) {
+            query = query.ilike('title', `%${search}%`);
+        }
+
+        query = query
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limitNum - 1);
+
+        const { data: deals, count, error } = await query;
+
+        if (error) {
+            logToFile(`❌ [GPT API /deals] Erro no Supabase: ${error.message}`);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        const formattedDeals = (deals || []).map(d => ({
+            id: d.id,
+            clinica: d.title,
+            valor: Number(d.value) || 0,
+            status: d.status,
+            estagio: d.stage_id,
+            origem: d.source || 'desconhecida',
+            contacto: d.contacts ? {
+                nome: d.contacts.name,
+                email: d.contacts.email || null,
+                telefone: d.contacts.phone || null,
+                cargo: d.contacts.role || null
+            } : null,
+            created_at: d.created_at,
+            data_ganho: d.won_at || null,
+            data_perda: d.lost_at || null,
+            motivo_perda: d.lost_reason || null
+        }));
+
+        const totalRecords = count || 0;
+        const totalPages = Math.ceil(totalRecords / limitNum);
+
+        return res.json({
+            success: true,
+            paginacao: {
+                pagina_atual: pageNum,
+                registros_por_pagina: limitNum,
+                total_registros: totalRecords,
+                total_paginas: totalPages,
+                tem_mais: pageNum < totalPages
+            },
+            negocios: formattedDeals
+        });
+
+    } catch (err) {
+        logToFile(`❌ [GPT API /deals] Exceção: ${err.message}`);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * 3. GET /api/gpt/market-signals
+ * Sinais qualitativos, dores, objeções recorrentes, crenças e falas in-verbis (quotes).
+ */
+app.get('/api/gpt/market-signals', authenticateGpt, async (req, res) => {
+    try {
+        const { 
+            startDate, 
+            endDate, 
+            categoria, 
+            topic, 
+            signalType, 
+            search, 
+            limit = '30' 
+        } = req.query;
+
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 30));
+        const supabase = getGptSupabaseClient();
+
+        let query = supabase
+            .from('insights_comerciais')
+            .select(`
+                id, 
+                negocio_id, 
+                categoria, 
+                subcategoria, 
+                topic, 
+                fact, 
+                quote_original, 
+                quote_context, 
+                belief, 
+                tension, 
+                behavior, 
+                business_impact, 
+                signal_type, 
+                criado_em, 
+                tags_tematicas, 
+                resumo
+            `)
+            .eq('user_id', req.targetUserId);
+
+        if (categoria) {
+            query = query.eq('categoria', categoria);
+        }
+
+        if (topic) {
+            query = query.ilike('topic', `%${topic}%`);
+        }
+
+        if (signalType) {
+            query = query.eq('signal_type', signalType);
+        }
+
+        if (startDate) {
+            query = query.gte('criado_em', startDate);
+        }
+
+        if (endDate) {
+            const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+            query = query.lte('criado_em', endFilter);
+        }
+
+        if (search) {
+            query = query.or(`quote_original.ilike.%${search}%,resumo.ilike.%${search}%,fact.ilike.%${search}%`);
+        }
+
+        query = query.order('criado_em', { ascending: false }).limit(limitNum);
+
+        const { data: insights, error } = await query;
+        if (error) {
+            logToFile(`❌ [GPT API /market-signals] Erro no Supabase: ${error.message}`);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        const items = insights || [];
+
+        const categoryMap = {};
+        const subcategoryMap = {};
+        const quotesSample = [];
+        const tensionsSample = [];
+
+        for (const item of items) {
+            categoryMap[item.categoria] = (categoryMap[item.categoria] || 0) + 1;
+            
+            const sub = item.subcategoria || item.topic || 'geral';
+            subcategoryMap[sub] = (subcategoryMap[sub] || 0) + 1;
+
+            if (item.quote_original && quotesSample.length < 10) {
+                quotesSample.push({
+                    fala_cliente: item.quote_original,
+                    contexto: item.quote_context || item.context || item.resumo,
+                    subcategoria: item.subcategoria,
+                    categoria: item.categoria
+                });
+            }
+
+            if (item.tension && tensionsSample.length < 8) {
+                tensionsSample.push({
+                    tensao: item.tension,
+                    crenca: item.belief,
+                    comportamento: item.behavior,
+                    impacto: item.business_impact
+                });
+            }
+        }
+
+        const topSubcategories = Object.entries(subcategoryMap)
+            .map(([subcategoria, contagem]) => ({ subcategoria, contagem }))
+            .sort((a, b) => b.contagem - a.contagem)
+            .slice(0, 10);
+
+        return res.json({
+            success: true,
+            resumo: {
+                total_sinais_retornados: items.length,
+                contagem_por_categoria: categoryMap,
+                principais_padroes: topSubcategories
+            },
+            citacoes_literais_reais: quotesSample,
+            tensoes_psicologicas_mercado: tensionsSample,
+            sinais: items
+        });
+
+    } catch (err) {
+        logToFile(`❌ [GPT API /market-signals] Exceção: ${err.message}`);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * 4. GET /api/gpt/deal-dossier/:id
+ * Raio-X profundo e individual de uma clínica (diagnóstico, fugas, timeline e notas).
+ */
+app.get('/api/gpt/deal-dossier/:id', authenticateGpt, async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ success: false, error: 'ID do negócio é obrigatório' });
+        }
+
+        const supabase = getGptSupabaseClient();
+
+        // 1. Dados do negócio e contacto
+        const { data: deal, error: dealErr } = await supabase
+            .from('deals')
+            .select(`
+                id, 
+                title, 
+                value, 
+                status, 
+                stage_id, 
+                pipeline_id, 
+                source, 
+                created_at, 
+                won_at, 
+                lost_at, 
+                lost_reason, 
+                contact_id,
+                contacts:contact_id(id, name, email, phone, role, notes)
+            `)
+            .eq('id', id)
+            .eq('user_id', req.targetUserId)
+            .maybeSingle();
+
+        if (dealErr || !deal) {
+            return res.status(404).json({ success: false, error: 'Negócio não encontrado ou sem permissão.' });
+        }
+
+        // 2. Diagnóstico estratégico da clínica
+        const { data: diagnostic } = await supabase
+            .from('diagnostics')
+            .select(`
+                primary_goal, 
+                primary_challenge, 
+                city, 
+                monthly_media_budget, 
+                average_patient_value, 
+                clinic_capacity, 
+                number_of_rooms, 
+                response_time, 
+                overall_score, 
+                presence_score, 
+                leakage_points, 
+                strategy_hypothesis, 
+                meeting_questions
+            `)
+            .eq('deal_id', id)
+            .maybeSingle();
+
+        // 3. Atividades e Follow-ups recentes
+        const { data: activities } = await supabase
+            .from('activities')
+            .select('id, type, title, date, completed, notes, created_at')
+            .eq('deal_id', id)
+            .order('date', { ascending: false })
+            .limit(15);
+
+        // 4. Timeline de Logs do negócio
+        const { data: logs } = await supabase
+            .from('deal_logs')
+            .select('id, content, log_type, created_at')
+            .eq('deal_id', id)
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        // 5. Insights associados ao negócio
+        const { data: insights } = await supabase
+            .from('insights_comerciais')
+            .select('categoria, subcategoria, quote_original, tension, fact, resumo')
+            .eq('negocio_id', id)
+            .limit(10);
+
+        return res.json({
+            success: true,
+            negocio: {
+                id: deal.id,
+                clinica: deal.title,
+                valor: Number(deal.value) || 0,
+                status: deal.status,
+                estagio: deal.stage_id,
+                origem: deal.source,
+                created_at: deal.created_at,
+                data_ganho: deal.won_at,
+                data_perda: deal.lost_at,
+                motivo_perda: deal.lost_reason,
+                contacto: deal.contacts ? {
+                    nome: deal.contacts.name,
+                    email: deal.contacts.email,
+                    telefone: deal.contacts.phone,
+                    cargo: deal.contacts.role,
+                    anotacoes: deal.contacts.notes
+                } : null
+            },
+            diagnostico_estrategico: diagnostic || null,
+            atividades_followups: activities || [],
+            timeline_logs: logs || [],
+            insights_detectados: insights || []
+        });
+
+    } catch (err) {
+        logToFile(`❌ [GPT API /deal-dossier] Exceção: ${err.message}`);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * 5. GET /api/gpt/content-memory
+ * Memória de conteúdo, ângulos explorados vs inexplorados e métricas editoriais.
+ */
+app.get('/api/gpt/content-memory', authenticateGpt, async (req, res) => {
+    try {
+        const { angleStatus, topic, limit = '30' } = req.query;
+        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 30));
+        const supabase = getGptSupabaseClient();
+
+        let query = supabase
+            .from('content_memory')
+            .select('id, topic, angle, format, funnel_stage, pillar, published_at, metrics, angle_status, created_at')
+            .eq('user_id', req.targetUserId);
+
+        if (angleStatus) {
+            query = query.eq('angle_status', angleStatus);
+        }
+
+        if (topic) {
+            query = query.ilike('topic', `%${topic}%`);
+        }
+
+        query = query.order('created_at', { ascending: false }).limit(limitNum);
+
+        const { data: memoryEntries, error } = await query;
+        if (error) {
+            logToFile(`❌ [GPT API /content-memory] Erro no Supabase: ${error.message}`);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        const entries = memoryEntries || [];
+
+        // Identifica dores comerciais recentes no CRM que podem virar pautas
+        const { data: openSignals } = await supabase
+            .from('insights_comerciais')
+            .select('topic, subcategoria, quote_original, tension, fact')
+            .eq('user_id', req.targetUserId)
+            .order('criado_em', { ascending: false })
+            .limit(10);
+
+        return res.json({
+            success: true,
+            resumo: {
+                total_registros_memoria: entries.length,
+                angulos_inexplorados: entries.filter(e => e.angle_status === 'nao_explorado').length,
+                angulos_explorados: entries.filter(e => e.angle_status === 'explorado').length
+            },
+            pautas_comerciais_prontas_para_conteudo: (openSignals || []).map(s => ({
+                tema: s.topic || s.subcategoria,
+                dor_real: s.tension || s.fact,
+                fala_do_cliente: s.quote_original
+            })),
+            conteudos_registrados: entries
+        });
+
+    } catch (err) {
+        logToFile(`❌ [GPT API /content-memory] Exceção: ${err.message}`);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Only start the server locally, otherwise export the app for Vercel Serverless
 
 if (process.env.NODE_ENV !== 'production' && process.env.VERCEL !== '1') {

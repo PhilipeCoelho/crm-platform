@@ -1,0 +1,264 @@
+openapi: 3.1.0
+info:
+  title: CRM Vamuss Strategic API
+  description: API de inteligência e consulta em modo somente leitura (Read-Only) para o ChatGPT analisar o funil de vendas, oportunidades, clínicas, sinais de mercado e memória de conteúdo da Vamuss.
+  version: 1.0.0
+servers:
+  - url: https://crm-platform-phi.vercel.app/api
+    description: Servidor de Produção (Vercel)
+  - url: http://localhost:3001/api
+    description: Servidor Local (Desenvolvimento)
+paths:
+  /gpt/metrics:
+    get:
+      operationId: getFunnelMetrics
+      summary: Obter métricas agregadas de vendas, funil e conversão
+      description: Retorna métricas executivas condensadas (volume de negócios, faturamento ganho, valor em aberto, taxa de conversão, ticket médio, distribuição por estágio, canais de aquisição e principais motivos de perda).
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Data inicial do período de análise no formato YYYY-MM-DD (ex: 2026-08-01)
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          description: Data final do período de análise no formato YYYY-MM-DD (ex: 2026-08-31)
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          description: Filtrar por status ('open', 'won', 'lost', 'desqualificado' ou 'all')
+          schema:
+            type: string
+        - name: origin
+          in: query
+          required: false
+          description: Filtrar por canal/origem de aquisição (ex: 'meta_ads', 'landing_page', 'manual')
+          schema:
+            type: string
+        - name: stage
+          in: query
+          required: false
+          description: Filtrar por ID de estágio do pipeline (ex: 'new', 'contacted', 'proposal', 'negotiation')
+          schema:
+            type: string
+        - name: minValue
+          in: query
+          required: false
+          description: Valor financeiro mínimo do negócio
+          schema:
+            type: number
+        - name: maxValue
+          in: query
+          required: false
+          description: Valor financeiro máximo do negócio
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Métricas agregadas retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  periodo:
+                    type: object
+                  metricas_gerais:
+                    type: object
+                  estagios:
+                    type: array
+                  origens_aquisicao:
+                    type: array
+                  principais_motivos_perda:
+                    type: array
+
+  /gpt/deals:
+    get:
+      operationId: getDealsList
+      summary: Consultar lista operacional de negócios e clínicas
+      description: Retorna lista paginada (máx 50 registros por requisição) de negócios comerciais, com dados da clínica, contacto associado, valores, estágio, datas de entrada/fechamento e motivo de perda.
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Data inicial de criação (YYYY-MM-DD)
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          description: Data final de criação (YYYY-MM-DD)
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          description: Status do negócio ('open', 'won', 'lost', 'desqualificado' ou 'all')
+          schema:
+            type: string
+        - name: stage
+          in: query
+          required: false
+          description: Estágio específico do funil
+          schema:
+            type: string
+        - name: origin
+          in: query
+          required: false
+          description: Canal de origem (ex: 'meta', 'landing_page')
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          description: Termo de busca textual para encontrar pelo nome da clínica ou negócio
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          description: Número da página (padrão 1)
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          description: Quantidade de registros por página (padrão 20, máximo 50)
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Lista de negócios retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  paginacao:
+                    type: object
+                  negocios:
+                    type: array
+
+  /gpt/market-signals:
+    get:
+      operationId: getMarketSignals
+      summary: Obter sinais de mercado, dores, objeções e citações literais
+      description: Retorna padrões psicográficos e comerciais extraídos das anotações e reuniões, incluindo dores recorrentes, objeções, tensões do decisor, crenças e falas literais de clientes.
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Data inicial do sinal (YYYY-MM-DD)
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          description: Data final do sinal (YYYY-MM-DD)
+          schema:
+            type: string
+        - name: categoria
+          in: query
+          required: false
+          description: Categoria do sinal ('dor', 'objecao', 'barreira_acesso', 'motivo_perda', 'motivo_ganho')
+          schema:
+            type: string
+        - name: topic
+          in: query
+          required: false
+          description: Tópico temático (ex: 'preco', 'agencia', 'recepcao', 'indicacao')
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          description: Palavra-chave para buscar nas falas literais ou resumos
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Limite de registros (máximo 50)
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: Sinais qualitativos de mercado retornados com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /gpt/deal-dossier/{id}:
+    get:
+      operationId: getDealDossier
+      summary: Raio-X individual e histórico completo de uma clínica
+      description: Retorna o dossiê aprofundado de um negócio específico, incluindo diagnóstico estratégico de presença, pontos de fuga comerciais, orçamento, atividades recentes, histórico de logs e insights vinculados.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do negócio no CRM
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dossiê completo retornado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /gpt/content-memory:
+    get:
+      operationId: getContentMemory
+      summary: Consultar memória editorial de conteúdo e pautas comerciais
+      description: Retorna ângulos e tópicos de conteúdo que já foram explorados versus inexplorados, métricas de publicações e pautas comerciais prontas para serem transformadas em conteúdo.
+      parameters:
+        - name: angleStatus
+          in: query
+          required: false
+          description: Status do ângulo ('explorado', 'parcialmente_explorado', 'nao_explorado')
+          schema:
+            type: string
+        - name: topic
+          in: query
+          required: false
+          description: Tópico temático do conteúdo
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Limite de registros (máximo 50)
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: Memória editorial retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Envie "Bearer <VAMUSS_GPT_KEY>" ou use "X-API-Key" com o token secreto configurado.
+security:
+  - ApiKeyAuth: []
