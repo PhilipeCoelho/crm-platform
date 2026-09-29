@@ -4,7 +4,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import jwt from "jsonwebtoken";
 
-const MCP_RESOURCE = "https://crm-platform-ten-rose.vercel.app/api/mcp/sse";
+const MCP_RESOURCE = "https://crm-platform-ten-rose.vercel.app/api/mcp";
 const MCP_METADATA = "https://crm-platform-ten-rose.vercel.app/.well-known/oauth-protected-resource";
 const transports = new Map();
 
