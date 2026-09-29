@@ -7588,6 +7588,9 @@ app.get('/api/gpt/content-memory', authenticateGpt, async (req, res) => {
 
 // Only start the server locally, otherwise export the app for Vercel Serverless
 
+import { setupMcp } from "./mcp.js";
+setupMcp(app);
+
 if (process.env.NODE_ENV !== 'production' && process.env.VERCEL !== '1') {
     app.listen(PORT, () => {
         console.log(`🚀 Hardened Server running on port ${PORT}`);
