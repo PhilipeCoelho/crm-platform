@@ -53,11 +53,11 @@ async function validateCimdClient(clientId, redirectUri) {
         const metadata = await response.json();
         const redirects = Array.isArray(metadata.redirect_uris) ? metadata.redirect_uris : [];
         if (redirects.length && !redirects.includes(redirectUri)) return false;
-        if (metadata.token_endpoint_auth_method && metadata.token_endpoint_auth_method !== 'none') return false;
+        // ChatGPT's current CIMD document may advertise private_key_jwt as its
+        // preferred method. This server intentionally uses DCR instead, so CIMD
+        // validation is retained only for backwards compatibility with old links.
         return true;
     } catch {
-        // ChatGPT's stable CIMD document is sufficient for identification in this
-        // single-user private CRM; redirect URI is independently allowlisted.
         return true;
     }
 }
@@ -75,7 +75,10 @@ export function setupOAuth(app) {
             grant_types_supported: ['authorization_code', 'refresh_token'],
             code_challenge_methods_supported: ['S256'],
             scopes_supported: ['crm:read', 'offline_access'],
-            client_id_metadata_document_supported: true,
+            // Use Dynamic Client Registration for the ChatGPT plugin connection.
+            // Our token endpoint supports public clients (none + PKCE), not
+            // ChatGPT's private_key_jwt client authentication used by CIMD.
+            client_id_metadata_document_supported: false,
             token_endpoint_auth_methods_supported: ['none'],
             authorization_response_iss_parameter_supported: true
         });
@@ -129,7 +132,12 @@ export function setupOAuth(app) {
         if (!code_challenge || code_challenge_method !== 'S256') return res.status(400).send('PKCE S256 is required.');
         if (resource && resource !== MCP_RESOURCE) return res.status(400).send('Invalid resource.');
         if (scope && !hasRequiredScope(scope)) return res.status(400).send('Scope crm:read is required.');
-        if (!client_id || !(await validateCimdClient(client_id, redirect_uri)) && !String(client_id).startsWith('vamuss-')) {
+        if (!client_id) return res.status(400).send('Invalid OAuth client.');
+        if (String(client_id).startsWith('vamuss-')) {
+            // DCR-issued public clients are the supported production path.
+        } else if (isChatGptCimdClientId(client_id) && await validateCimdClient(client_id, redirect_uri)) {
+            // Backward compatibility for connections created before DCR-only mode.
+        } else {
             return res.status(400).send('Invalid OAuth client.');
         }
 
@@ -170,7 +178,12 @@ export function setupOAuth(app) {
         if (!code_challenge || code_challenge_method !== 'S256') return res.status(400).send('PKCE S256 is required.');
         if (resource !== MCP_RESOURCE) return res.status(400).send('Invalid resource.');
         if (scope && !hasRequiredScope(scope)) return res.status(400).send('Scope crm:read is required.');
-        if (!client_id || (!(await validateCimdClient(client_id, redirect_uri)) && !String(client_id).startsWith('vamuss-'))) {
+        if (!client_id) return res.status(400).send('Invalid OAuth client.');
+        if (String(client_id).startsWith('vamuss-')) {
+            // DCR-issued public client.
+        } else if (isChatGptCimdClientId(client_id) && await validateCimdClient(client_id, redirect_uri)) {
+            // Backward compatibility for old connections.
+        } else {
             return res.status(400).send('Invalid OAuth client.');
         }
 
