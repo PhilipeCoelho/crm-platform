@@ -99,12 +99,16 @@ function createMcpServer(req) {
             },
             {
                 name: "get_market_signals",
-                description: "Use this when you need commercial market signals extracted from Vamuss prospects, including pains, objections, beliefs, tensions, patterns, quotes, and insights.",
+                description: "Obtém insights comerciais e de mercado, objeções, dores, falas reais de prospects (quotes), notas qualitativas e padrões de ganhos/perdas.",
                 inputSchema: {
                     type: "object",
                     properties: {
-                        startDate: { type: "string" },
-                        endDate: { type: "string" }
+                        startDate: { type: "string", description: "Data de início (YYYY-MM-DD)" },
+                        endDate: { type: "string", description: "Data de fim (YYYY-MM-DD)" },
+                        categoria: { type: "string", description: "Filtrar por categoria (ex: dor, objecao, barreira_acesso, motivo_perda, motivo_ganho)" },
+                        topic: { type: "string", description: "Filtrar por tema ou assunto" },
+                        search: { type: "string", description: "Busca textual livre em falas, notas e resumos" },
+                        limit: { type: "number", description: "Quantidade máxima de registros (padrão: 30, máx: 50)" }
                     },
                     additionalProperties: false
                 },

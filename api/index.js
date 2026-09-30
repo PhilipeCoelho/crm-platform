@@ -7310,7 +7310,8 @@ app.get('/api/gpt/market-signals', authenticateGpt, async (req, res) => {
         const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 30));
         const supabase = getGptSupabaseClient();
 
-        let query = supabase
+        // 1. Consulta insights_comerciais (se houver registros de IA/Radar)
+        let insightsQuery = supabase
             .from('insights_comerciais')
             .select(`
                 id, 
@@ -7332,86 +7333,163 @@ app.get('/api/gpt/market-signals', authenticateGpt, async (req, res) => {
             `)
             .eq('user_id', req.targetUserId);
 
-        if (categoria) {
-            query = query.eq('categoria', categoria);
-        }
-
-        if (topic) {
-            query = query.ilike('topic', `%${topic}%`);
-        }
-
-        if (signalType) {
-            query = query.eq('signal_type', signalType);
-        }
-
-        if (startDate) {
-            query = query.gte('criado_em', startDate);
-        }
-
+        if (categoria) insightsQuery = insightsQuery.eq('categoria', categoria);
+        if (topic) insightsQuery = insightsQuery.ilike('topic', `%${topic}%`);
+        if (signalType) insightsQuery = insightsQuery.eq('signal_type', signalType);
+        if (startDate) insightsQuery = insightsQuery.gte('criado_em', startDate);
         if (endDate) {
             const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
-            query = query.lte('criado_em', endFilter);
+            insightsQuery = insightsQuery.lte('criado_em', endFilter);
         }
-
         if (search) {
-            query = query.or(`quote_original.ilike.%${search}%,resumo.ilike.%${search}%,fact.ilike.%${search}%`);
+            insightsQuery = insightsQuery.or(`quote_original.ilike.%${search}%,resumo.ilike.%${search}%,fact.ilike.%${search}%`);
+        }
+        insightsQuery = insightsQuery.order('criado_em', { ascending: false }).limit(limitNum);
+
+        const { data: insightsData } = await insightsQuery;
+        const insightsList = insightsData || [];
+
+        // 2. Consulta deals com lost_reason (motivos e objeções declarados de perdas)
+        let lostDealsQuery = supabase
+            .from('deals')
+            .select('id, title, value, source, stage_id, lost_at, lost_reason, created_at')
+            .eq('user_id', req.targetUserId)
+            .eq('status', 'lost')
+            .not('lost_reason', 'is', null)
+            .neq('lost_reason', '');
+
+        if (startDate) lostDealsQuery = lostDealsQuery.gte('lost_at', startDate);
+        if (endDate) {
+            const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+            lostDealsQuery = lostDealsQuery.lte('lost_at', endFilter);
+        }
+        if (search) lostDealsQuery = lostDealsQuery.ilike('lost_reason', `%${search}%`);
+        lostDealsQuery = lostDealsQuery.order('lost_at', { ascending: false }).limit(100);
+
+        const { data: lostDealsData } = await lostDealsQuery;
+        const lostDeals = lostDealsData || [];
+
+        // 3. Consulta negócios ganhos (padrões de fechamento e ticket)
+        let wonDealsQuery = supabase
+            .from('deals')
+            .select('id, title, value, source, stage_id, won_at, created_at')
+            .eq('user_id', req.targetUserId)
+            .eq('status', 'won');
+
+        if (startDate) wonDealsQuery = wonDealsQuery.gte('won_at', startDate);
+        if (endDate) {
+            const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+            wonDealsQuery = wonDealsQuery.lte('won_at', endFilter);
+        }
+        wonDealsQuery = wonDealsQuery.order('won_at', { ascending: false }).limit(50);
+
+        const { data: wonDealsData } = await wonDealsQuery;
+        const wonDeals = wonDealsData || [];
+
+        // 4. Consulta deal_logs qualitativos (anotações manuais e notas de atividade com falas e objeções reais)
+        let logsQuery = supabase
+            .from('deal_logs')
+            .select('id, deal_id, log_type, content, created_at')
+            .in('log_type', ['activity_note', 'manual_note']);
+
+        if (startDate) logsQuery = logsQuery.gte('created_at', startDate);
+        if (endDate) {
+            const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+            logsQuery = logsQuery.lte('created_at', endFilter);
+        }
+        if (search) logsQuery = logsQuery.ilike('content', `%${search}%`);
+        logsQuery = logsQuery.order('created_at', { ascending: false }).limit(limitNum);
+
+        const { data: logsData } = await logsQuery;
+        const dealLogs = logsData || [];
+
+        // Agrupamento e contagem de padrões de perda/objeções
+        const lossReasonsMap = {};
+        for (const d of lostDeals) {
+            const r = (d.lost_reason || '').trim();
+            if (!r) continue;
+            lossReasonsMap[r] = (lossReasonsMap[r] || 0) + 1;
         }
 
-        query = query.order('criado_em', { ascending: false }).limit(limitNum);
+        const topObjectionsAndLostReasons = Object.entries(lossReasonsMap)
+            .map(([motivo, total]) => ({ motivo, total }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 15);
 
-        const { data: insights, error } = await query;
-        if (error) {
-            logToFile(`❌ [GPT API /market-signals] Erro no Supabase: ${error.message}`);
-            return res.status(500).json({ success: false, error: error.message });
-        }
-
-        const items = insights || [];
-
-        const categoryMap = {};
-        const subcategoryMap = {};
-        const quotesSample = [];
-        const tensionsSample = [];
-
-        for (const item of items) {
-            categoryMap[item.categoria] = (categoryMap[item.categoria] || 0) + 1;
-            
-            const sub = item.subcategoria || item.topic || 'geral';
-            subcategoryMap[sub] = (subcategoryMap[sub] || 0) + 1;
-
-            if (item.quote_original && quotesSample.length < 10) {
-                quotesSample.push({
-                    fala_cliente: item.quote_original,
-                    contexto: item.quote_context || item.context || item.resumo,
-                    subcategoria: item.subcategoria,
-                    categoria: item.categoria
+        // Quotes e falas literais reais (extraídas de insights_comerciais e deal_logs)
+        const quotes = [];
+        for (const item of insightsList) {
+            if (item.quote_original && quotes.length < 15) {
+                quotes.push({
+                    fala: item.quote_original,
+                    contexto: item.quote_context || item.resumo,
+                    origem: 'insight_classificado',
+                    data: item.criado_em
                 });
             }
-
-            if (item.tension && tensionsSample.length < 8) {
-                tensionsSample.push({
-                    tensao: item.tension,
-                    crenca: item.belief,
-                    comportamento: item.behavior,
-                    impacto: item.business_impact
+        }
+        for (const l of dealLogs) {
+            if (quotes.length >= 20) break;
+            const content = (l.content || '').trim();
+            if (content.length > 15 && !content.includes('Atividade concluída')) {
+                quotes.push({
+                    fala: content.length > 280 ? `${content.substring(0, 280)}...` : content,
+                    contexto: l.log_type === 'manual_note' ? 'Anotação manual de negociação' : 'Nota de abordagem/contato',
+                    origem: 'deal_log_real',
+                    data: l.created_at,
+                    deal_id: l.deal_id
                 });
             }
         }
 
-        const topSubcategories = Object.entries(subcategoryMap)
-            .map(([subcategoria, contagem]) => ({ subcategoria, contagem }))
-            .sort((a, b) => b.contagem - a.contagem)
-            .slice(0, 10);
+        // Padrões de ganhos
+        const wonPatterns = wonDeals.map(w => ({
+            id: w.id,
+            clinica: w.title,
+            valor: Number(w.value) || 0,
+            origem: w.source || 'direto_manual',
+            data_ganho: w.won_at,
+            tempo_no_funil_dias: w.created_at && w.won_at 
+                ? Math.max(0, Math.round((new Date(w.won_at).getTime() - new Date(w.created_at).getTime()) / (1000 * 3600 * 24)))
+                : null
+        }));
+
+        // Resumo estatístico
+        const totalLostAnalyzed = lostDeals.length;
+        const totalWonAnalyzed = wonDeals.length;
+        const totalLogsAnalyzed = dealLogs.length;
+        const totalInsightsAnalyzed = insightsList.length;
 
         return res.json({
             success: true,
-            resumo: {
-                total_sinais_retornados: items.length,
-                contagem_por_categoria: categoryMap,
-                principais_padroes: topSubcategories
+            periodo: {
+                inicio: startDate || 'historico_completo',
+                fim: endDate || 'hoje'
             },
-            citacoes_literais_reais: quotesSample,
-            tensoes_psicologicas_mercado: tensionsSample,
-            sinais: items
+            resumo: {
+                total_negocios_perdidos_analisados: totalLostAnalyzed,
+                total_negocios_ganhos_analisados: totalWonAnalyzed,
+                total_anotacoes_qualitativas_analisadas: totalLogsAnalyzed,
+                total_insights_estruturados: totalInsightsAnalyzed
+            },
+            principais_motivos_perda_e_objecoes: topObjectionsAndLostReasons,
+            citacoes_e_falas_reais: quotes,
+            padroes_de_ganho: wonPatterns,
+            amostra_negocios_perdidos: lostDeals.slice(0, 20).map(d => ({
+                id: d.id,
+                clinica: d.title,
+                motivo: d.lost_reason,
+                origem: d.source || 'direto_manual',
+                data_perda: d.lost_at
+            })),
+            anotacoes_recentes_de_negociacao: dealLogs.slice(0, 15).map(l => ({
+                id: l.id,
+                deal_id: l.deal_id,
+                tipo: l.log_type,
+                conteudo: l.content,
+                data: l.created_at
+            })),
+            sinais_estruturados_radar: insightsList
         });
 
     } catch (err) {
