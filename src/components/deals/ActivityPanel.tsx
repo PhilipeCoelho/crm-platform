@@ -105,7 +105,7 @@ export default function ActivityPanel({ deal, readOnly }: ActivityPanelProps) {
         if (isCollapsed) return null;
 
         switch (activeTab) {
-            case 'activity': return <ActivityTab deal={deal} />;
+            case 'activity': return <ActivityTab deal={deal} onSave={() => setIsCollapsed(true)} />;
             case 'note': return <NoteTab deal={deal} />;
             case 'email': return <EmailTab deal={deal} />;
             case 'files': return <FilesTab deal={deal} />;

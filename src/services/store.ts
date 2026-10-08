@@ -368,7 +368,7 @@ export function useCRMStore(): CRMStore {
 
             // 3. Map & Set Activities (Merging Optimistic)
             if (activitiesData) {
-                const fetched: Activity[] = activitiesData.map((a: any) => ({
+                const rawFetched: Activity[] = activitiesData.map((a: any) => ({
                     ...a,
                     dealId: a.deal_id,
                     userId: a.user_id,
@@ -384,6 +384,51 @@ export function useCRMStore(): CRMStore {
                     sequenceStep: a.sequence_step,
                     suggestedDelay: a.suggested_delay
                 }));
+
+                // Deduplicate pending activities per deal (keep only newest by date/created)
+                const pendingByDealMap = new Map<string, Activity>();
+                const duplicateIdsToDelete: string[] = [];
+                const fetched: Activity[] = [];
+
+                for (const a of rawFetched) {
+                    if (!a.completed && a.status === 'pending' && a.dealId) {
+                        const normTitle = (a.title || '').trim().toLowerCase();
+                        const isFollowUp = normTitle.startsWith('follow up') || normTitle.startsWith('follow-up') || a.type === 'task';
+                        const key = isFollowUp ? `${a.dealId}__task_followup` : `${a.dealId}__${normTitle}`;
+
+                        if (!pendingByDealMap.has(key)) {
+                            pendingByDealMap.set(key, a);
+                            fetched.push(a);
+                        } else {
+                            const existing = pendingByDealMap.get(key)!;
+                            const existingTime = new Date(existing.dueDate || existing.createdAt).getTime();
+                            const currentTime = new Date(a.dueDate || a.createdAt).getTime();
+
+                            if (currentTime > existingTime) {
+                                duplicateIdsToDelete.push(existing.id);
+                                const idx = fetched.indexOf(existing);
+                                if (idx !== -1) fetched[idx] = a;
+                                pendingByDealMap.set(key, a);
+                            } else {
+                                duplicateIdsToDelete.push(a.id);
+                            }
+                        }
+                    } else {
+                        fetched.push(a);
+                    }
+                }
+
+                if (duplicateIdsToDelete.length > 0) {
+                    console.log(`🧹 [Anti-Duplication] Auto-purging ${duplicateIdsToDelete.length} duplicate pending activities...`);
+                    supabase
+                        .from('activities')
+                        .delete()
+                        .in('id', duplicateIdsToDelete)
+                        .then(({ error }: any) => {
+                            if (error) console.error('Error auto-purging duplicate activities:', error);
+                            else console.log(`✅ [Anti-Duplication] Successfully removed ${duplicateIdsToDelete.length} duplicates from Supabase.`);
+                        });
+                }
 
                 setActivities((prev: any[]) => {
                     // Keep optimistic ones that aren't in the fetched list yet
@@ -872,6 +917,31 @@ export function useCRMStore(): CRMStore {
 
         const isCompleted = data.completed !== undefined ? data.completed : (data.status === 'completed');
         const completedAtTime = data.completedAt || (isCompleted ? new Date().toISOString() : null);
+
+        // Anti-duplication: when scheduling a new pending activity, supersede older pending duplicates for this deal
+        if (data.dealId && !isCompleted && data.status !== 'completed') {
+            const normTitle = (data.title || '').trim().toLowerCase();
+            const isFollowUp = normTitle.startsWith('follow up') || normTitle.startsWith('follow-up') || data.type === 'task';
+
+            const existingPending = activities.filter((a: any) =>
+                a.dealId === data.dealId &&
+                !a.completed &&
+                (a.status === 'pending' || !a.status) &&
+                (
+                    (a.title || '').trim().toLowerCase() === normTitle ||
+                    (isFollowUp && ((a.title || '').trim().toLowerCase().startsWith('follow up') || (a.title || '').trim().toLowerCase().startsWith('follow-up') || a.type === 'task'))
+                )
+            );
+
+            if (existingPending.length > 0) {
+                const oldIds = existingPending.map((a: any) => a.id);
+                console.log(`🧹 [Anti-Duplication] Superseding ${oldIds.length} existing pending activity(ies) for deal ${data.dealId}`);
+                setActivities((prev: any[]) => prev.filter((a: any) => !oldIds.includes(a.id)));
+                supabase.from('activities').delete().in('id', oldIds).then(({ error }: any) => {
+                    if (error) console.error('Error removing superseded activities:', error);
+                });
+            }
+        }
 
         const newActivity = {
             id: tempId,

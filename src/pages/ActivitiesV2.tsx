@@ -749,8 +749,8 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
         onClose={() => setActivityToComplete(null)} 
         activity={activityToComplete} 
         initialNotes={execNotes}
-        onCompleted={async () => {
-          if (nextTaskType && activityToComplete?.dealId) {
+        onCompleted={async (scheduledNextInModal?: boolean) => {
+          if (!scheduledNextInModal && nextTaskType && activityToComplete?.dealId) {
             const nextTypeLabel = TYPE_CONFIG[nextTaskType]?.label || 'Nova Atividade';
             const nextDueDate = new Date();
             nextDueDate.setDate(nextDueDate.getDate() + 1); // Default to tomorrow

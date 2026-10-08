@@ -60,6 +60,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleQuickAction = (action: typeof QUICK_ACTIONS[0]) => {
         setSelectedType(action.type);
@@ -99,6 +100,9 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             if (onSave) {
                 await onSave(payload);
             }
+
+            setIsSuccess(true);
+            setTimeout(() => setIsSuccess(false), 2000);
 
             if (!initialData) {
                 setTitle('');
@@ -188,10 +192,14 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             <div className="flex justify-end pt-0.5">
                 <button
                     type="submit"
-                    disabled={!title.trim() || isSubmitting}
-                    className="h-7 px-4 bg-primary text-primary-foreground rounded-md hover:opacity-90 font-bold text-[10px] flex items-center justify-center gap-1.5 shadow-sm shadow-primary/10 disabled:opacity-50 transition-all active:scale-95 uppercase tracking-wider"
+                    disabled={!title.trim() || isSubmitting || isSuccess}
+                    className={`h-7 px-4 rounded-md font-bold text-[10px] flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 uppercase tracking-wider ${
+                        isSuccess 
+                            ? 'bg-emerald-600 text-white' 
+                            : 'bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 shadow-primary/10'
+                    }`}
                 >
-                    {isSubmitting ? '...' : submitLabel}
+                    {isSubmitting ? '...' : isSuccess ? '✓ Agendado!' : submitLabel}
                 </button>
             </div>
         </form>

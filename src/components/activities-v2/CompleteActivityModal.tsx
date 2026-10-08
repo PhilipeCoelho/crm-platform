@@ -25,7 +25,7 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     activity: Activity | null;
-    onCompleted?: () => void;
+    onCompleted?: (scheduledNextInModal?: boolean) => void;
     initialNotes?: string;
 }
 
@@ -144,7 +144,7 @@ export default function CompleteActivityModal({ isOpen, onClose, activity, onCom
             setNotes('');
             setSelectedTemplateId(null);
             onClose();
-            if (onCompleted) onCompleted();
+            if (onCompleted) onCompleted(!!selectedTemplateId);
         } catch (error) {
             console.error('Error in completion flow:', error);
         } finally {
