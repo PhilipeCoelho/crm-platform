@@ -19,7 +19,7 @@ import {
     Check
 } from 'lucide-react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { supabase } from '@/lib/supabase';
+import { supabase, fetchAllRows } from '@/lib/supabase';
 import EmailSyncSettings from '../settings/EmailSyncSettings';
 
 // Types for the Inbox
@@ -87,11 +87,14 @@ export default function EmailInbox() {
 
     const fetchThreads = async () => {
         try {
-            const { data: emails, error } = await supabase
-                .from('emails')
-                .select('*')
-                .eq('user_id', user?.id)
-                .order('received_at', { ascending: false });
+            const { data: emails, error } = await fetchAllRows((from, to) =>
+                supabase
+                    .from('emails')
+                    .select('*')
+                    .eq('user_id', user?.id)
+                    .order('received_at', { ascending: false })
+                    .range(from, to)
+            );
 
             if (error) throw error;
 

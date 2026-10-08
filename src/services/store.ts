@@ -3,7 +3,7 @@ import {
     User, Company, Contact, Deal, Activity, Pipeline, Stage, DealLog,
     Campaign, EmailTemplate, CampaignSender, CadenceTemplate, CadenceStage
 } from '../types/schema';
-import { supabase } from '@/lib/supabase';
+import { supabase, fetchAllRows } from '@/lib/supabase';
 import { perfMonitor } from '@/utils/perfMonitor';
 import { sendCapiEvent } from './metaLeadAds';
 
@@ -269,10 +269,10 @@ export function useCRMStore(): CRMStore {
 
             const [
                 { data: dealsData, error: dealsError },
-                { data: contactsData },
+                { data: contactsData, error: contactsError },
                 { data: activitiesData, error: activitiesError },
                 { data: logsData, error: logsError },
-                { data: companiesData },
+                { data: companiesData, error: companiesError },
                 { data: stagesData },
                 { data: campaignsData },
                 { data: templatesData },
@@ -280,22 +280,22 @@ export function useCRMStore(): CRMStore {
                 { data: cadenceData },
                 { data: cadenceStagesData }
             ] = await Promise.all([
-                supabase.from('deals').select('*'),
-                supabase.from('contacts').select('*').order('created_at', { ascending: false }),
-                supabase.from('activities').select('*'),
-                supabase.from('deal_logs').select('*'),
-                supabase.from('companies').select('*'),
+                fetchAllRows((from, to) => supabase.from('deals').select('*').range(from, to)),
+                fetchAllRows((from, to) => supabase.from('contacts').select('*').order('created_at', { ascending: false }).range(from, to)),
+                fetchAllRows((from, to) => supabase.from('activities').select('*').order('created_at', { ascending: false }).range(from, to)),
+                fetchAllRows((from, to) => supabase.from('deal_logs').select('*').range(from, to)),
+                fetchAllRows((from, to) => supabase.from('companies').select('*').range(from, to)),
                 supabase.from('stages').select('*').order('order_index', { ascending: true }),
-                supabase.from('campaigns').select('*'),
-                supabase.from('email_templates').select('*'),
+                fetchAllRows((from, to) => supabase.from('campaigns').select('*').range(from, to)),
+                fetchAllRows((from, to) => supabase.from('email_templates').select('*').range(from, to)),
                 supabase.from('senders').select('*'),
                 supabase.from('cadence_templates').select('*').order('tag', { ascending: true }).order('step', { ascending: true }),
                 supabase.from('cadence_stages').select('*').order('order', { ascending: true })
             ]);
 
             // Check for critical errors
-            if (dealsError || activitiesError || logsError) {
-                console.error('Critical Fetch Error:', { dealsError, activitiesError, logsError });
+            if (dealsError || activitiesError || logsError || contactsError || companiesError) {
+                console.error('Critical Fetch Error:', { dealsError, activitiesError, logsError, contactsError, companiesError });
             }
 
             // 1. Map & Set Deals
@@ -390,9 +390,10 @@ export function useCRMStore(): CRMStore {
                     const optimisticOnes = prev.filter((a: any) => (a as any).isOptimistic);
                     const filteredOptimistic = optimisticOnes.filter((opt: any) =>
                         !fetched.some((real: any) =>
-                            real.dealId === opt.dealId &&
+                            real.id === opt.id ||
+                            (real.dealId === opt.dealId &&
                             real.title === opt.title &&
-                            real.status === opt.status
+                            real.status === opt.status)
                         )
                     );
                     return [...fetched, ...filteredOptimistic];
@@ -914,6 +915,8 @@ export function useCRMStore(): CRMStore {
             console.error('Error creating activity:', error);
             alert(`Erro ao criar atividade: ${error.message} (Detalhe: ${error.details || ''})`);
             setActivities((prev: any[]) => prev.filter((a: any) => a.id !== tempId));
+        } else {
+            setActivities((prev: any[]) => prev.map((a: any) => a.id === tempId ? { ...a, isOptimistic: false } : a));
         }
     }
 
@@ -1420,7 +1423,7 @@ export function useCRMStore(): CRMStore {
         if (deleteDealsError) {
             console.error('Error deleting deals:', deleteDealsError);
             // Partial failure — reload only contacts
-             const { data: freshContacts } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
+             const { data: freshContacts } = await fetchAllRows((from, to) => supabase.from('contacts').select('*').order('created_at', { ascending: false }).range(from, to));
              if (freshContacts) {
                  const cleanEmail = (email: string) => {
                      if (!email) return '';
@@ -2047,10 +2050,13 @@ export function useCRMStore(): CRMStore {
 
         // 2. If we have emails to check, fetch contacts' emails and IDs, match them, and update to TRUE
         if (emails.length > 0) {
-            const { data: dbContacts, error: selectError } = await supabase
-                .from('contacts')
-                .select('id, email')
-                .eq('user_id', user.id);
+            const { data: dbContacts, error: selectError } = await fetchAllRows((from, to) =>
+                supabase
+                    .from('contacts')
+                    .select('id, email')
+                    .eq('user_id', user.id)
+                    .range(from, to)
+            );
 
             if (selectError) {
                 console.error('Error selecting contacts for Brevo match:', selectError);
@@ -2085,10 +2091,13 @@ export function useCRMStore(): CRMStore {
         await fetchAll();
 
         // 4. Return new counts
-        const { data: countData } = await supabase
-            .from('contacts')
-            .select('id, brevo_status')
-            .eq('user_id', user.id);
+        const { data: countData } = await fetchAllRows((from, to) =>
+            supabase
+                .from('contacts')
+                .select('id, brevo_status')
+                .eq('user_id', user.id)
+                .range(from, to)
+        );
 
         const totalCRM = countData ? countData.length : 0;
         const found = countData ? countData.filter((c: any) => c.brevo_status === true).length : 0;
