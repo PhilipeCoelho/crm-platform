@@ -18,7 +18,8 @@ import { PrivacyActivityTitle } from '@/components/ui/PrivacyMask';
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   call:      { label: 'Ligar',   icon: 'phone',    color: 'var(--ax-blue)',   bg: 'var(--ax-blue-bg)' },
   email:     { label: 'E-mail',  icon: 'mail',     color: '#7c5cff',          bg: '#efebff' },
-  message:   { label: 'Mensagem', icon: 'whatsapp', color: 'var(--ax-success)', bg: '#defaee' },
+  message:   { label: 'WhatsApp', icon: 'whatsapp', color: 'var(--ax-success)', bg: '#defaee' },
+  instagram: { label: 'Instagram', icon: 'instagram', color: '#E1306C', bg: '#fde7f1' },
   meeting:   { label: 'Reunião', icon: 'video',    color: '#d23a82',          bg: '#fde7f1' },
   task:      { label: 'Follow UP', icon: 'check',  color: 'var(--ax-neutral)', bg: 'var(--ax-neutral-bg)' },
 };
@@ -272,7 +273,8 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
                   <option value="all">Todas Atividades</option>
                   <option value="call">Ligar</option>
                   <option value="email">E-mail</option>
-                  <option value="message">Mensagem</option>
+                  <option value="message">WhatsApp</option>
+                  <option value="instagram">Instagram</option>
                   <option value="meeting">Reunião</option>
                   <option value="task">Follow UP</option>
                 </select>
@@ -594,7 +596,7 @@ function DesktopActivitiesV2({ currency }: { currency: Currency }) {
                       <div style={{ marginTop: 12 }}>
                         <span className="ax-label" style={{ marginBottom: 6, display: 'block', fontSize: 10, fontWeight: 800 }}>Próximo Passo Automatizado</span>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          {['call', 'email', 'message', 'task'].map(t => {
+                          {['call', 'email', 'message', 'instagram', 'task'].map(t => {
                             const active = nextTaskType === t;
                             const ptc = TYPE_CONFIG[t] || TYPE_CONFIG.task;
                             const Icon = Icons[ptc.icon || 'check'];

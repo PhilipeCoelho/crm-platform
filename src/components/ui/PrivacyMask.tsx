@@ -96,7 +96,7 @@ export const PrivacyText = memo(function PrivacyText({ text, type = 'text', clas
 function parseActivityTitle(title: string, activityType?: string): { actionPrefix: string; targetName: string } {
     if (!title) return { actionPrefix: '', targetName: '' };
 
-    const prefixRegex = /^(Ligar(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Ligação(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Chamada(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Enviar\s+(?:e-?mail|mensagem|proposta)(?:\s+(?:para(?:\s+[ao]s?)?|a))?|E-?mail(?:\s+(?:para(?:\s+[ao]s?)?|a))?|Mensagem(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|WhatsApp(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Reunião(?:\s+(?:com(?:\s+[ao]s?)?|para))?|Contato(?:\s+(?:com(?:\s+[ao]s?)?|para))?|Contacto(?:\s+(?:com(?:\s+[ao]s?)?|para))?|Auditoria(?:\s+para)?|Análise(?:\s+para)?|Tarefa(?:\s+para)?|Follow-?up(?:\s+(?:com|para))?|Visita(?:\s+(?:a|para))?|Lembrete(?:\s+(?:para|de))?)(?::|\s+|-|–)/i;
+    const prefixRegex = /^(Abordagem\s+via\s+(?:WhatsApp|Instagram)(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Instagram(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Ligar(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Ligação(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Chamada(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Enviar\s+(?:e-?mail|mensagem|proposta)(?:\s+(?:para(?:\s+[ao]s?)?|a))?|E-?mail(?:\s+(?:para(?:\s+[ao]s?)?|a))?|Mensagem(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|WhatsApp(?:\s+(?:para(?:\s+[ao]s?)?|a|com))?|Reunião(?:\s+(?:com(?:\s+[ao]s?)?|para))?|Contato(?:\s+(?:com(?:\s+[ao]s?)?|para))?|Contacto(?:\s+(?:com(?:\s+[ao]s?)?|para))?|Auditoria(?:\s+para)?|Análise(?:\s+para)?|Tarefa(?:\s+para)?|Follow-?up(?:\s+(?:com|para))?|Visita(?:\s+(?:a|para))?|Lembrete(?:\s+(?:para|de))?)(?::|\s+|-|–)/i;
 
     const match = title.match(prefixRegex);
     if (match) {
@@ -126,7 +126,8 @@ function parseActivityTitle(title: string, activityType?: string): { actionPrefi
     if (activityType) {
         const typeActionMap: Record<string, string> = {
             call: 'Ligar para ',
-            message: 'Mensagem para ',
+            message: 'Abordagem via WhatsApp para ',
+            instagram: 'Abordagem via Instagram para ',
             email: 'Enviar e-mail para ',
             meeting: 'Reunião com ',
             task: 'Follow UP: ',

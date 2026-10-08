@@ -113,7 +113,8 @@ export default function NewActivityModal({ isOpen, onClose, preselectedContactId
                                 value={type}
                                 onChange={e => setType(e.target.value as any)}
                             >
-                                <option value="message">💬 Mensagem</option>
+                                <option value="message">🟢 WhatsApp</option>
+                                <option value="instagram">📸 Instagram</option>
                                 <option value="email">📧 E-mail</option>
                                 <option value="call">📞 Ligação</option>
                                 <option value="task">✅ Follow UP</option>

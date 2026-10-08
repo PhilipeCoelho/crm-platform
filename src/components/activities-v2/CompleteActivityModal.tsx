@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { 
-    CheckCircle2, X, MessageSquare, Phone, Mail, 
+    CheckCircle2, X, Phone, Mail, 
     Clock, BarChart3, Video, Calendar,
-    Sparkles, Check
+    Sparkles, Check, Instagram
 } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/shared/WhatsAppIcon';
 import { Activity, ActivityType } from '@/types/schema';
 import { useCRM } from '@/contexts/CRMContext';
 import { cn } from '@/lib/utils';
@@ -14,8 +15,8 @@ const ICON_MAP: Record<string, any> = {
     call: Phone,
     email: Mail,
     meeting: Clock,
-    message: MessageSquare,
-    instagram: MessageSquare,
+    message: WhatsAppIcon,
+    instagram: Instagram,
     analysis: BarChart3,
     audit: Video,
     task: Calendar,

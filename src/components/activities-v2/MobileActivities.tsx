@@ -12,9 +12,10 @@ import { VoiceMicButton } from '@/components/shared/VoiceMicButton';
 
 const TYPE_THEME: Record<string, { label: string; icon: string; gradient: string; glow: string }> = {
   call:    { label: 'Ligar',    icon: 'phone',    gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', glow: 'rgba(59,130,246,0.25)' },
-  email:   { label: 'E-mail',   icon: 'mail',     gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', glow: 'rgba(139,92,246,0.25)' },
-  message: { label: 'WhatsApp', icon: 'whatsapp', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)', glow: 'rgba(34,197,94,0.25)' },
-  meeting: { label: 'Reunião',  icon: 'video',    gradient: 'linear-gradient(135deg, #f59e0b, #d97706)', glow: 'rgba(245,158,11,0.25)' },
+  email:     { label: 'E-mail',   icon: 'mail',     gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', glow: 'rgba(139,92,246,0.25)' },
+  message:   { label: 'WhatsApp', icon: 'whatsapp', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)', glow: 'rgba(34,197,94,0.25)' },
+  instagram: { label: 'Instagram', icon: 'instagram', gradient: 'linear-gradient(135deg, #ec4899, #be185d)', glow: 'rgba(236,72,153,0.25)' },
+  meeting:   { label: 'Reunião',  icon: 'video',    gradient: 'linear-gradient(135deg, #f59e0b, #d97706)', glow: 'rgba(245,158,11,0.25)' },
   task:    { label: 'Follow UP', icon: 'check',    gradient: 'linear-gradient(135deg, #64748b, #475569)', glow: 'rgba(100,116,139,0.25)' },
 };
 
@@ -474,7 +475,8 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                   
                   const getIcon = () => {
                     if (pa.type === 'call') return '📞';
-                    if (pa.type === 'message') return '💬';
+                    if (pa.type === 'message') return '🟢';
+                    if (pa.type === 'instagram') return '📸';
                     if (pa.type === 'email') return '✉️';
                     if (pa.type === 'meeting') return '👥';
                     return '✅';

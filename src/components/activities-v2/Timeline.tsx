@@ -2,6 +2,7 @@ import { Activity, DealLog } from '@/types/schema';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageSquare, Phone, Mail, Calendar, Info, BarChart3, Video, Instagram, CheckCircle2, StickyNote, History } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/shared/WhatsAppIcon';
 import { ActivityScriptPopover } from './ActivityScriptPopover';
 import { getScriptByTitle, formatScript } from '@/services/cadence';
 import { useCRM } from '@/contexts/CRMContext';
@@ -51,7 +52,7 @@ export default function Timeline({ activities, logs = [], onReopen, onEdit, onDe
             call: { icon: Phone, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
             email: { icon: Mail, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
             meeting: { icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-            message: { icon: MessageSquare, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
+            message: { icon: WhatsAppIcon, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
             instagram: { icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-100 dark:bg-pink-900/30' },
             analysis: { icon: BarChart3, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
             audit: { icon: Video, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' },

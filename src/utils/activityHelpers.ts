@@ -49,10 +49,16 @@ export const ACTIVITY_CONFIG = {
         bgColor: 'bg-orange-100'
     },
     message: {
-        label: 'Mensagem',
-        icon: 'MessageSquare',
-        color: 'text-primary',
-        bgColor: 'bg-primary'
+        label: 'WhatsApp',
+        icon: 'WhatsApp',
+        color: 'text-emerald-600',
+        bgColor: 'bg-emerald-100'
+    },
+    instagram: {
+        label: 'Instagram',
+        icon: 'Instagram',
+        color: 'text-pink-600',
+        bgColor: 'bg-pink-100'
     },
     analysis: {
         label: 'Análise',

@@ -2,12 +2,13 @@ import { useState, useMemo } from 'react';
 import { useCRM } from '@/contexts/CRMContext';
 import { CadenceTemplate } from '@/types/schema';
 import {
-    ArrowLeft, MessageSquare, Mail, Phone,
+    ArrowLeft, Mail, Phone,
     Video, BarChart3, CheckCircle2,
     Clock, AlertCircle, Instagram, Plus, Trash2,
     Pencil, GripVertical, Settings2,
     PlusCircle, Check, X
 } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/shared/WhatsAppIcon';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
@@ -32,7 +33,7 @@ const ICON_MAP: Record<string, any> = {
     call: Phone,
     email: Mail,
     meeting: Clock,
-    message: MessageSquare,
+    message: WhatsAppIcon,
     instagram: Instagram,
     analysis: BarChart3,
     audit: Video,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Deal } from '@/types/schema';
-import { CheckCircle2, Phone, Mail, MessageSquare, Users } from 'lucide-react';
+import { CheckCircle2, Phone, Mail, Instagram, Users } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/shared/WhatsAppIcon';
 import {
     Tooltip,
     TooltipContent,
@@ -28,7 +29,8 @@ export interface ActivityFormProps {
 }
 
 const QUICK_ACTIONS = [
-    { type: 'message', icon: MessageSquare, label: 'Mensagem', template: (name: string) => `Mensagem para ${name}` },
+    { type: 'message', icon: WhatsAppIcon, label: 'WhatsApp', template: (name: string) => `Abordagem via WhatsApp para ${name}` },
+    { type: 'instagram', icon: Instagram, label: 'Instagram', template: (name: string) => `Abordagem via Instagram para ${name}` },
     { type: 'email', icon: Mail, label: 'E-mail', template: (name: string) => `Enviar e-mail para ${name}` },
     { type: 'call', icon: Phone, label: 'Ligação', template: (name: string) => `Ligar para ${name}` },
     { type: 'task', icon: CheckCircle2, label: 'Follow UP', template: (name?: string) => name ? `Follow UP: ${name}` : `Follow UP:` },
@@ -70,7 +72,7 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
             return;
         }
 
-        const actionPrefixRegex = /^(ligar para|mensagem para|enviar e-?mail para|e-?mail para|reunião com|tarefa:?|follow[ -]?up:?)\s*/i;
+        const actionPrefixRegex = /^(ligar para|mensagem para|abordagem via whats[ -]?app para|abordagem via instagram para|whatsapp para|instagram para|enviar e-?mail para|e-?mail para|reunião com|tarefa:?|follow[ -]?up:?)\s*/i;
         const match = title.match(actionPrefixRegex);
 
         if (match) {
@@ -156,8 +158,16 @@ export default function ActivityForm({ deal, onSave, initialData, contactName = 
                                             className={`
                                                 h-5 w-5 flex items-center justify-center rounded-md transition-all
                                                 ${isSelected
-                                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                                    : 'text-muted-foreground/60 dark:text-muted-foreground/40 hover:bg-muted dark:hover:bg-muted/10 hover:text-foreground dark:hover:text-foreground/80'}
+                                                    ? (action.type === 'message'
+                                                        ? 'bg-[#25D366] text-white shadow-sm'
+                                                        : action.type === 'instagram'
+                                                            ? 'bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white shadow-sm'
+                                                            : 'bg-primary text-primary-foreground shadow-sm')
+                                                    : (action.type === 'message'
+                                                        ? 'text-muted-foreground/60 hover:text-[#25D366] hover:bg-[#25D366]/10'
+                                                        : action.type === 'instagram'
+                                                            ? 'text-muted-foreground/60 hover:text-[#E1306C] hover:bg-[#E1306C]/10'
+                                                            : 'text-muted-foreground/60 dark:text-muted-foreground/40 hover:bg-muted dark:hover:bg-muted/10 hover:text-foreground dark:hover:text-foreground/80')}
                                             `}
                                         >
                                             <Icon size={11} />

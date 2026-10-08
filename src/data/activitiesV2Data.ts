@@ -1,13 +1,14 @@
 // Activities V2 — Mock data, types & helpers
 
-export type ActivityType = 'call' | 'email' | 'whats' | 'meeting' | 'task';
+export type ActivityType = 'call' | 'email' | 'whats' | 'instagram' | 'meeting' | 'task';
 
 export const TYPES: Record<ActivityType, { label: string; icon: string; color: string; bg: string }> = {
-  call:    { label: 'Ligação',  icon: 'phone',    color: 'var(--vp-blue-500)', bg: 'var(--vp-blue-50)' },
-  email:   { label: 'E-mail',   icon: 'mail',     color: 'var(--vp-purple)',   bg: 'var(--vp-purple-bg)' },
-  whats:   { label: 'WhatsApp', icon: 'whatsapp', color: 'var(--vp-success)',  bg: 'var(--vp-success-bg)' },
-  meeting: { label: 'Reunião',  icon: 'video',    color: 'var(--vp-pink)',     bg: 'var(--vp-pink-bg)' },
-  task:    { label: 'Follow UP', icon: 'check',   color: 'var(--vp-ink-600)',  bg: 'var(--vp-ink-50)' },
+  call:      { label: 'Ligação',   icon: 'phone',     color: 'var(--vp-blue-500)', bg: 'var(--vp-blue-50)' },
+  email:     { label: 'E-mail',    icon: 'mail',      color: 'var(--vp-purple)',   bg: 'var(--vp-purple-bg)' },
+  whats:     { label: 'WhatsApp',  icon: 'whatsapp',  color: 'var(--vp-success)',  bg: 'var(--vp-success-bg)' },
+  instagram: { label: 'Instagram', icon: 'instagram', color: '#E1306C', bg: '#fde7f1' },
+  meeting:   { label: 'Reunião',   icon: 'video',     color: 'var(--vp-pink)',     bg: 'var(--vp-pink-bg)' },
+  task:      { label: 'Follow UP', icon: 'check',     color: 'var(--vp-ink-600)',  bg: 'var(--vp-ink-50)' },
 };
 
 export const STAGES = [

@@ -1,9 +1,10 @@
 import { Activity } from '@/types/schema';
 import {
     CheckCircle2, Circle, Calendar, Phone, Mail, Users, FileText,
-    StickyNote, Paperclip, Trash2, Clock, Pencil, MessageSquare,
+    StickyNote, Paperclip, Trash2, Clock, Pencil,
     History, Instagram, BarChart3, Video, XCircle, Copy
 } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/shared/WhatsAppIcon';
 import { ActivityScriptPopover } from './ActivityScriptPopover';
 import { getScriptByTitle, formatScript } from '@/services/cadence';
 import { useCRM } from '@/contexts/CRMContext';
@@ -27,7 +28,7 @@ const typeIcons: Record<string, any> = {
     followup: Calendar,
     note: StickyNote,
     fileUpload: Paperclip,
-    message: MessageSquare,
+    message: WhatsAppIcon,
     instagram: Instagram,
     analysis: BarChart3,
     audit: Video,
@@ -258,8 +259,9 @@ export default function ActivityList({ activities, onToggle, onDelete, onEdit, o
                             <div className="flex items-center gap-3 sm:gap-2 mt-2">
                                 <span className="inline-flex items-center gap-1 sm:gap-0.5 text-[8px] uppercase font-bold tracking-wider text-muted-foreground/60 bg-muted/40 px-1.5 py-0.5 rounded">
                                     <Icon size={10} className="sm:w-1.5 sm:h-1.5" />
-                                    {activity.type === 'message' ? 'Mensagem' :
-                                        activity.type === 'call' ? 'Ligação' :
+                                    {activity.type === 'message' ? 'WhatsApp' :
+                                        activity.type === 'instagram' ? 'Instagram' :
+                                            activity.type === 'call' ? 'Ligação' :
                                             activity.type === 'meeting' ? 'Reunião' :
                                                 activity.type === 'task' ? 'Follow UP' :
                                                     activity.type === 'email' ? 'E-mail' :

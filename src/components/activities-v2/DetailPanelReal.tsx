@@ -9,7 +9,8 @@ import { ptBR } from 'date-fns/locale';
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
   call:      { label: 'Ligar',   icon: 'phone',    color: 'var(--ax-blue)',   bg: 'var(--ax-blue-bg)' },
   email:     { label: 'E-mail',  icon: 'mail',     color: '#7c5cff',          bg: '#efebff' },
-  message:   { label: 'Mensagem', icon: 'whatsapp', color: 'var(--ax-success)', bg: '#defaee' },
+  message:   { label: 'WhatsApp', icon: 'whatsapp', color: 'var(--ax-success)', bg: '#defaee' },
+  instagram: { label: 'Instagram', icon: 'instagram', color: '#E1306C', bg: '#fde7f1' },
   meeting:   { label: 'Reunião', icon: 'video',    color: '#d23a82',          bg: '#fde7f1' },
   task:      { label: 'Follow UP', icon: 'check',   color: 'var(--ax-neutral)', bg: 'var(--ax-neutral-bg)' },
 };

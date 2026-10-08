@@ -2122,7 +2122,7 @@ async function sendDailySummaryForUser(supabase, userId, userEmail, userName) {
             call: '📞 Ligação',
             meeting: '📅 Reunião',
             email: '📧 E-mail',
-            message: '💬 Mensagem',
+            message: '🟢 WhatsApp',
             instagram: '📸 Instagram',
             analysis: '📊 Análise',
             audit: '🎥 Auditoria',
