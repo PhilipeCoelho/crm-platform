@@ -69,13 +69,20 @@ function createMcpServer(req) {
                 },
                 {
                     name: "search_deals",
-                    description: "Lista negócios filtrados.",
+                    description: "Lista negócios filtrados com suporte a coorte e data da primeira abordagem comercial (call, message, instagram, email concluídos), status, resposta e paginação.",
                     inputSchema: {
                         type: "object",
                         properties: {
-                            startDate: { type: "string" },
-                            endDate: { type: "string" },
-                            status: { type: "string" }
+                            firstApproachStartDate: { type: "string", description: "Data de início da PRIMEIRA ABORDAGEM realizada (YYYY-MM-DD)" },
+                            firstApproachEndDate: { type: "string", description: "Data de fim da PRIMEIRA ABORDAGEM realizada (YYYY-MM-DD)" },
+                            hasResponse: { type: "string", description: "Filtrar por resposta registrada ('true' ou 'false')" },
+                            startDate: { type: "string", description: "Data de início de criação do deal (YYYY-MM-DD)" },
+                            endDate: { type: "string", description: "Data de fim de criação do deal (YYYY-MM-DD)" },
+                            status: { type: "string", description: "Status do deal (open, won, lost, desqualificado, all)" },
+                            stage: { type: "string", description: "ID do estágio do funil" },
+                            search: { type: "string", description: "Busca textual por título do deal ou clínica" },
+                            page: { type: "string", description: "Número da página (padrão: 1)" },
+                            limit: { type: "string", description: "Quantidade por página (máx: 100, padrão: 20)" }
                         }
                     }
                 },
@@ -96,11 +103,11 @@ function createMcpServer(req) {
                 },
                 {
                     name: "get_deal_dossier",
-                    description: "Raio-X profundo e individual de uma clínica.",
+                    description: "Raio-X profundo, factual e individual de uma clínica/negócio: dados da empresa, contacto, diagnóstico, histórico COMPLETO de atividades e logs (sem truncamento) e timeline cronológica unificada.",
                     inputSchema: {
                         type: "object",
                         properties: {
-                            id: { type: "string" }
+                            id: { type: "string", description: "ID único do deal no CRM" }
                         },
                         required: ["id"]
                     }

@@ -7162,15 +7162,147 @@ app.get('/api/gpt/metrics', authenticateGpt, async (req, res) => {
     }
 });
 
+// ==============================================================================
+// 🎯 FUNÇÕES AUXILIARES FACTUAIS (PRIMEIRA ABORDAGEM & TIMELINE)
+// ==============================================================================
+
+const ELIGIBLE_APPROACH_TYPES = ['call', 'message', 'instagram', 'email'];
+
+/**
+ * Determina factual da primeira abordagem de um conjunto de atividades para um deal.
+ * Regra canônica:
+ * - Menor timestamp válido entre atividades elegíveis concluídas ('call', 'message', 'instagram', 'email').
+ * - Prioridade: completed_at.
+ * - Fallbacks: date (se data válida) ou created_at (estimativa histórica declarada).
+ */
+function calculateFirstApproach(activities = []) {
+    const eligibleCompleted = (activities || []).filter(a => {
+        if (!a) return false;
+        const type = (a.type || '').toLowerCase();
+        const isEligibleType = ELIGIBLE_APPROACH_TYPES.includes(type);
+        const isCompleted = a.completed === true || (a.status || '').toLowerCase() === 'completed';
+        return isEligibleType && isCompleted;
+    });
+
+    if (eligibleCompleted.length === 0) {
+        return {
+            primeira_abordagem_em: null,
+            grau_confiabilidade: 'nenhuma_abordagem_concluida',
+            origem_timestamp: null,
+            atividade_id: null,
+            tipo_canal: null
+        };
+    }
+
+    let bestCandidate = null;
+
+    for (const act of eligibleCompleted) {
+        let ts = null;
+        let reliability = null;
+        let sourceField = null;
+
+        if (act.completed_at) {
+            const parsed = new Date(act.completed_at).getTime();
+            if (!isNaN(parsed)) {
+                ts = parsed;
+                reliability = 'comprovada';
+                sourceField = 'completed_at';
+            }
+        }
+
+        if (ts === null && act.date) {
+            const parsed = new Date(act.date).getTime();
+            if (!isNaN(parsed)) {
+                ts = parsed;
+                reliability = 'estimada_data_agendada';
+                sourceField = 'date';
+            }
+        }
+
+        if (ts === null && act.created_at) {
+            const parsed = new Date(act.created_at).getTime();
+            if (!isNaN(parsed)) {
+                ts = parsed;
+                reliability = 'estimada_criacao_atividade';
+                sourceField = 'created_at';
+            }
+        }
+
+        if (ts !== null) {
+            if (!bestCandidate || ts < bestCandidate.timestamp) {
+                bestCandidate = {
+                    timestamp: ts,
+                    isoDate: new Date(ts).toISOString(),
+                    reliability,
+                    sourceField,
+                    activityId: act.id,
+                    channel: act.type
+                };
+            }
+        }
+    }
+
+    if (!bestCandidate) {
+        return {
+            primeira_abordagem_em: null,
+            grau_confiabilidade: 'desconhecida',
+            origem_timestamp: null,
+            atividade_id: null,
+            tipo_canal: null
+        };
+    }
+
+    return {
+        primeira_abordagem_em: bestCandidate.isoDate,
+        grau_confiabilidade: bestCandidate.reliability,
+        origem_timestamp: bestCandidate.sourceField,
+        atividade_id: bestCandidate.activityId,
+        tipo_canal: bestCandidate.channel
+    };
+}
+
+/**
+ * Converte string YYYY-MM-DD para limites ISO.
+ */
+function getDateRangeIso(startDateStr, endDateStr) {
+    let startIso = null;
+    let endIso = null;
+
+    if (startDateStr) {
+        if (startDateStr.length === 10) {
+            const d = new Date(`${startDateStr}T00:00:00.000Z`);
+            startIso = isNaN(d.getTime()) ? null : d.toISOString();
+        } else {
+            const d = new Date(startDateStr);
+            startIso = isNaN(d.getTime()) ? null : d.toISOString();
+        }
+    }
+
+    if (endDateStr) {
+        if (endDateStr.length === 10) {
+            const d = new Date(`${endDateStr}T23:59:59.999Z`);
+            endIso = isNaN(d.getTime()) ? null : d.toISOString();
+        } else {
+            const d = new Date(endDateStr);
+            endIso = isNaN(d.getTime()) ? null : d.toISOString();
+        }
+    }
+
+    return { startIso, endIso };
+}
+
 /**
  * 2. GET /api/gpt/deals
- * Consulta operacional e paginada de negócios (máx 50 registros por página).
+ * Consulta operacional e paginada de negócios com suporte a filtro por primeira abordagem e coortes.
  */
 app.get('/api/gpt/deals', authenticateGpt, async (req, res) => {
     try {
         const { 
             startDate, 
             endDate, 
+            firstApproachStartDate,
+            firstApproachEndDate,
+            hasResponse,
             status, 
             stage, 
             origin, 
@@ -7183,107 +7315,356 @@ app.get('/api/gpt/deals', authenticateGpt, async (req, res) => {
         } = req.query;
 
         const pageNum = Math.max(1, parseInt(page, 10) || 1);
-        const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
         const offset = (pageNum - 1) * limitNum;
 
         const supabase = getGptSupabaseClient();
-        let query = supabase
-            .from('deals')
-            .select(`
-                id, 
-                title, 
-                value, 
-                status, 
-                stage_id, 
-                pipeline_id, 
-                source, 
-                created_at, 
-                won_at, 
-                lost_at, 
-                lost_reason, 
-                contact_id,
-                contacts:contact_id(id, name, email, phone, role)
-            `, { count: 'exact' })
+
+        // 1. Carregar estágios para nomes legíveis
+        const { data: stagesData } = await supabase
+            .from('stages')
+            .select('id, name')
             .eq('user_id', req.targetUserId);
+        const stageMap = {};
+        (stagesData || []).forEach(s => { stageMap[s.id] = s.name; });
 
-        if (status && status !== 'all') {
-            query = query.eq('status', status);
+        // 2. Mapeamento de empresas
+        const { data: companiesData } = await supabase
+            .from('companies')
+            .select('id, name, website, phone, email');
+        const companyMap = {};
+        (companiesData || []).forEach(c => { companyMap[c.id] = c; });
+
+        const isFilteringByFirstApproach = !!(firstApproachStartDate || firstApproachEndDate);
+        const isFilteringByResponse = hasResponse !== undefined && hasResponse !== '';
+
+        if (isFilteringByFirstApproach || isFilteringByResponse) {
+            let baseDealsQuery = supabase
+                .from('deals')
+                .select(`
+                    id, 
+                    title, 
+                    value, 
+                    status, 
+                    stage_id, 
+                    pipeline_id, 
+                    source, 
+                    created_at, 
+                    won_at, 
+                    lost_at, 
+                    lost_reason, 
+                    contact_id,
+                    company_id,
+                    contacts:contact_id(id, name, email, phone, role)
+                `)
+                .eq('user_id', req.targetUserId);
+
+            if (status && status !== 'all') {
+                baseDealsQuery = baseDealsQuery.eq('status', status);
+            }
+            if (stage) {
+                baseDealsQuery = baseDealsQuery.eq('stage_id', stage);
+            }
+            const originFilter = origin || source;
+            if (originFilter) {
+                baseDealsQuery = baseDealsQuery.ilike('source', `%${originFilter}%`);
+            }
+            if (startDate) {
+                baseDealsQuery = baseDealsQuery.gte('created_at', startDate);
+            }
+            if (endDate) {
+                const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+                baseDealsQuery = baseDealsQuery.lte('created_at', endFilter);
+            }
+            if (minValue) {
+                baseDealsQuery = baseDealsQuery.gte('value', parseFloat(minValue));
+            }
+            if (maxValue) {
+                baseDealsQuery = baseDealsQuery.lte('value', parseFloat(maxValue));
+            }
+            if (search) {
+                baseDealsQuery = baseDealsQuery.ilike('title', `%${search}%`);
+            }
+
+            const { data: allDeals, error: dealsErr } = await baseDealsQuery;
+            if (dealsErr) {
+                logToFile(`❌ [GPT API /deals] Erro no Supabase: ${dealsErr.message}`);
+                return res.status(500).json({ success: false, error: dealsErr.message });
+            }
+
+            const dealIds = (allDeals || []).map(d => d.id);
+            let activitiesByDeal = {};
+
+            if (dealIds.length > 0) {
+                // Quebrar dealIds em chunks de 80 para não estourar o limite de URL do PostgREST
+                const CHUNK_SIZE = 80;
+                for (let i = 0; i < dealIds.length; i += CHUNK_SIZE) {
+                    const chunk = dealIds.slice(i, i + CHUNK_SIZE);
+                    const { data: actsBatch, error: actsErr } = await supabase
+                        .from('activities')
+                        .select('id, deal_id, type, title, date, completed, completed_at, houve_resposta, created_at')
+                        .eq('user_id', req.targetUserId)
+                        .in('deal_id', chunk);
+
+                    if (actsErr) {
+                        logToFile(`❌ [GPT API /deals] Erro ao buscar atividades em chunk: ${actsErr.message}`);
+                    } else if (actsBatch) {
+                        actsBatch.forEach(act => {
+                            if (!activitiesByDeal[act.deal_id]) activitiesByDeal[act.deal_id] = [];
+                            activitiesByDeal[act.deal_id].push(act);
+                        });
+                    }
+                }
+            }
+
+            const { startIso, endIso } = getDateRangeIso(firstApproachStartDate, firstApproachEndDate);
+            const wantResponse = hasResponse === 'true' || hasResponse === true;
+            const wantNoResponse = hasResponse === 'false' || hasResponse === false;
+
+            const enrichedList = [];
+            const coorteStats = {
+                total_coorte: 0,
+                total_com_resposta_registrada: 0,
+                total_ativos: 0,
+                total_perdidos: 0,
+                total_ganhos: 0,
+                total_desqualificados: 0,
+                distribuicao_motivos_perda: {},
+                sem_informacao_confiavel_resposta: 0,
+                aviso_qualidade_dados_resposta: "O campo houve_resposta possui registros históricos potencialmente contaminados por atalhos de envio no frontend. Respostas devem ser interpretadas como indícios a confirmar via logs."
+            };
+
+            for (const d of (allDeals || [])) {
+                const acts = activitiesByDeal[d.id] || [];
+                const firstApproach = calculateFirstApproach(acts);
+                const hasApproachDate = !!firstApproach.primeira_abordagem_em;
+
+                if (isFilteringByFirstApproach) {
+                    if (!hasApproachDate) continue;
+                    const approachTime = new Date(firstApproach.primeira_abordagem_em).getTime();
+                    if (startIso && approachTime < new Date(startIso).getTime()) continue;
+                    if (endIso && approachTime > new Date(endIso).getTime()) continue;
+                }
+
+                const hasRecordedResponse = acts.some(a => a.houve_resposta === true);
+                if (isFilteringByResponse) {
+                    if (wantResponse && !hasRecordedResponse) continue;
+                    if (wantNoResponse && hasRecordedResponse) continue;
+                }
+
+                coorteStats.total_coorte += 1;
+                const dStatus = (d.status || 'open').toLowerCase();
+                if (dStatus === 'won') coorteStats.total_ganhos += 1;
+                else if (dStatus === 'lost') {
+                    coorteStats.total_perdidos += 1;
+                    const reason = (d.lost_reason || 'Não informado').trim();
+                    coorteStats.distribuicao_motivos_perda[reason] = (coorteStats.distribuicao_motivos_perda[reason] || 0) + 1;
+                } else if (dStatus === 'desqualificado') {
+                    coorteStats.total_desqualificados += 1;
+                } else {
+                    coorteStats.total_ativos += 1;
+                }
+
+                if (hasRecordedResponse) {
+                    coorteStats.total_com_resposta_registrada += 1;
+                } else {
+                    coorteStats.sem_informacao_confiavel_resposta += 1;
+                }
+
+                const company = (d.company_id && companyMap[d.company_id]) ? companyMap[d.company_id] : null;
+                const stageName = (d.stage_id && stageMap[d.stage_id]) ? stageMap[d.stage_id] : d.stage_id;
+                const lastAct = acts.sort((a, b) => new Date(b.date || b.created_at).getTime() - new Date(a.date || a.created_at).getTime())[0];
+
+                enrichedList.push({
+                    id: d.id,
+                    clinica: d.title,
+                    empresa: company ? { id: company.id, nome: company.name } : null,
+                    contacto: d.contacts ? {
+                        nome: d.contacts.name,
+                        email: d.contacts.email || null,
+                        telefone: d.contacts.phone || null,
+                        cargo: d.contacts.role || null
+                    } : null,
+                    status: d.status,
+                    estagio: stageName,
+                    stage_id: d.stage_id,
+                    valor: Number(d.value) || 0,
+                    origem: d.source || 'desconhecida',
+                    created_at: d.created_at,
+                    primeira_abordagem: firstApproach,
+                    resposta_registrada: {
+                        houve_resposta_flag: hasRecordedResponse,
+                        confiabilidade: hasRecordedResponse ? 'indicio_requer_confirmacao_logs' : 'nenhuma_resposta_registrada'
+                    },
+                    quantidade_atividades: acts.length,
+                    data_ultima_atividade: lastAct ? (lastAct.completed_at || lastAct.date || lastAct.created_at) : null,
+                    data_ganho: d.won_at || null,
+                    data_perda: d.lost_at || null,
+                    motivo_perda: d.lost_reason || null
+                });
+            }
+
+            const totalRecords = enrichedList.length;
+            const totalPages = Math.ceil(totalRecords / limitNum);
+            const paginatedDeals = enrichedList.slice(offset, offset + limitNum);
+
+            return res.json({
+                success: true,
+                filtros_aplicados: {
+                    primeira_abordagem_inicio: firstApproachStartDate || null,
+                    primeira_abordagem_fim: firstApproachEndDate || null,
+                    criacao_inicio: startDate || null,
+                    criacao_fim: endDate || null,
+                    status: status || 'all',
+                    filtro_resposta: hasResponse !== undefined ? hasResponse : 'todos'
+                },
+                coorte_metricas: coorteStats,
+                paginacao: {
+                    pagina_atual: pageNum,
+                    registros_por_pagina: limitNum,
+                    total_registros: totalRecords,
+                    total_paginas: totalPages,
+                    tem_mais: pageNum < totalPages
+                },
+                negocios: paginatedDeals
+            });
+
+        } else {
+            // Consulta padrão paginada com enriquecimento factual
+            let query = supabase
+                .from('deals')
+                .select(`
+                    id, 
+                    title, 
+                    value, 
+                    status, 
+                    stage_id, 
+                    pipeline_id, 
+                    source, 
+                    created_at, 
+                    won_at, 
+                    lost_at, 
+                    lost_reason, 
+                    contact_id,
+                    company_id,
+                    contacts:contact_id(id, name, email, phone, role)
+                `, { count: 'exact' })
+                .eq('user_id', req.targetUserId);
+
+            if (status && status !== 'all') {
+                query = query.eq('status', status);
+            }
+
+            if (stage) {
+                query = query.eq('stage_id', stage);
+            }
+
+            const originFilter = origin || source;
+            if (originFilter) {
+                query = query.ilike('source', `%${originFilter}%`);
+            }
+
+            if (startDate) {
+                query = query.gte('created_at', startDate);
+            }
+
+            if (endDate) {
+                const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
+                query = query.lte('created_at', endFilter);
+            }
+
+            if (minValue) {
+                query = query.gte('value', parseFloat(minValue));
+            }
+
+            if (maxValue) {
+                query = query.lte('value', parseFloat(maxValue));
+            }
+
+            if (search) {
+                query = query.ilike('title', `%${search}%`);
+            }
+
+            query = query
+                .order('created_at', { ascending: false })
+                .range(offset, offset + limitNum - 1);
+
+            const { data: deals, count, error } = await query;
+
+            if (error) {
+                logToFile(`❌ [GPT API /deals] Erro no Supabase: ${error.message}`);
+                return res.status(500).json({ success: false, error: error.message });
+            }
+
+            const dealList = deals || [];
+            const dealIds = dealList.map(d => d.id);
+            let activitiesByDeal = {};
+
+            if (dealIds.length > 0) {
+                const { data: acts } = await supabase
+                    .from('activities')
+                    .select('id, deal_id, type, title, date, completed, completed_at, houve_resposta, created_at')
+                    .eq('user_id', req.targetUserId)
+                    .in('deal_id', dealIds);
+
+                (acts || []).forEach(act => {
+                    if (!activitiesByDeal[act.deal_id]) activitiesByDeal[act.deal_id] = [];
+                    activitiesByDeal[act.deal_id].push(act);
+                });
+            }
+
+            const formattedDeals = dealList.map(d => {
+                const acts = activitiesByDeal[d.id] || [];
+                const firstApproach = calculateFirstApproach(acts);
+                const hasRecordedResponse = acts.some(a => a.houve_resposta === true);
+                const company = (d.company_id && companyMap[d.company_id]) ? companyMap[d.company_id] : null;
+                const stageName = (d.stage_id && stageMap[d.stage_id]) ? stageMap[d.stage_id] : d.stage_id;
+                const lastAct = acts.sort((a, b) => new Date(b.date || b.created_at).getTime() - new Date(a.date || a.created_at).getTime())[0];
+
+                return {
+                    id: d.id,
+                    clinica: d.title,
+                    empresa: company ? { id: company.id, nome: company.name } : null,
+                    valor: Number(d.value) || 0,
+                    status: d.status,
+                    estagio: stageName,
+                    stage_id: d.stage_id,
+                    origem: d.source || 'desconhecida',
+                    contacto: d.contacts ? {
+                        nome: d.contacts.name,
+                        email: d.contacts.email || null,
+                        telefone: d.contacts.phone || null,
+                        cargo: d.contacts.role || null
+                    } : null,
+                    created_at: d.created_at,
+                    primeira_abordagem: firstApproach,
+                    resposta_registrada: {
+                        houve_resposta_flag: hasRecordedResponse,
+                        confiabilidade: hasRecordedResponse ? 'indicio_requer_confirmacao_logs' : 'nenhuma_resposta_registrada'
+                    },
+                    quantidade_atividades: acts.length,
+                    data_ultima_atividade: lastAct ? (lastAct.completed_at || lastAct.date || lastAct.created_at) : null,
+                    data_ganho: d.won_at || null,
+                    data_perda: d.lost_at || null,
+                    motivo_perda: d.lost_reason || null
+                };
+            });
+
+            const totalRecords = count || 0;
+            const totalPages = Math.ceil(totalRecords / limitNum);
+
+            return res.json({
+                success: true,
+                paginacao: {
+                    pagina_atual: pageNum,
+                    registros_por_pagina: limitNum,
+                    total_registros: totalRecords,
+                    total_paginas: totalPages,
+                    tem_mais: pageNum < totalPages
+                },
+                negocios: formattedDeals
+            });
         }
-
-        if (stage) {
-            query = query.eq('stage_id', stage);
-        }
-
-        const originFilter = origin || source;
-        if (originFilter) {
-            query = query.ilike('source', `%${originFilter}%`);
-        }
-
-        if (startDate) {
-            query = query.gte('created_at', startDate);
-        }
-
-        if (endDate) {
-            const endFilter = endDate.length === 10 ? `${endDate}T23:59:59.999Z` : endDate;
-            query = query.lte('created_at', endFilter);
-        }
-
-        if (minValue) {
-            query = query.gte('value', parseFloat(minValue));
-        }
-
-        if (maxValue) {
-            query = query.lte('value', parseFloat(maxValue));
-        }
-
-        if (search) {
-            query = query.ilike('title', `%${search}%`);
-        }
-
-        query = query
-            .order('created_at', { ascending: false })
-            .range(offset, offset + limitNum - 1);
-
-        const { data: deals, count, error } = await query;
-
-        if (error) {
-            logToFile(`❌ [GPT API /deals] Erro no Supabase: ${error.message}`);
-            return res.status(500).json({ success: false, error: error.message });
-        }
-
-        const formattedDeals = (deals || []).map(d => ({
-            id: d.id,
-            clinica: d.title,
-            valor: Number(d.value) || 0,
-            status: d.status,
-            estagio: d.stage_id,
-            origem: d.source || 'desconhecida',
-            contacto: d.contacts ? {
-                nome: d.contacts.name,
-                email: d.contacts.email || null,
-                telefone: d.contacts.phone || null,
-                cargo: d.contacts.role || null
-            } : null,
-            created_at: d.created_at,
-            data_ganho: d.won_at || null,
-            data_perda: d.lost_at || null,
-            motivo_perda: d.lost_reason || null
-        }));
-
-        const totalRecords = count || 0;
-        const totalPages = Math.ceil(totalRecords / limitNum);
-
-        return res.json({
-            success: true,
-            paginacao: {
-                pagina_atual: pageNum,
-                registros_por_pagina: limitNum,
-                total_registros: totalRecords,
-                total_paginas: totalPages,
-                tem_mais: pageNum < totalPages
-            },
-            negocios: formattedDeals
-        });
 
     } catch (err) {
         logToFile(`❌ [GPT API /deals] Exceção: ${err.message}`);
@@ -7550,7 +7931,7 @@ app.get('/api/gpt/market-signals', authenticateGpt, async (req, res) => {
 
 /**
  * 4. GET /api/gpt/deal-dossier/:id
- * Raio-X profundo e individual de uma clínica (diagnóstico, fugas, timeline e notas).
+ * Raio-X profundo, factual e individual de um negócio sem truncamentos arbitrários.
  */
 app.get('/api/gpt/deal-dossier/:id', authenticateGpt, async (req, res) => {
     try {
@@ -7572,6 +7953,7 @@ app.get('/api/gpt/deal-dossier/:id', authenticateGpt, async (req, res) => {
                 stage_id, 
                 pipeline_id, 
                 source, 
+                company_id,
                 created_at, 
                 won_at, 
                 lost_at, 
@@ -7587,7 +7969,31 @@ app.get('/api/gpt/deal-dossier/:id', authenticateGpt, async (req, res) => {
             return res.status(404).json({ success: false, error: 'Negócio não encontrado ou sem permissão.' });
         }
 
-        // 2. Diagnóstico estratégico da clínica
+        // 2. Buscar empresa vinculada (se houver company_id)
+        let companyData = null;
+        if (deal.company_id) {
+            const { data: comp } = await supabase
+                .from('companies')
+                .select('id, name, website, phone, email, created_at')
+                .eq('id', deal.company_id)
+                .maybeSingle();
+            companyData = comp || null;
+        }
+
+        // 3. Buscar nome do estágio atual
+        let stageName = deal.stage_id;
+        if (deal.stage_id) {
+            const { data: stageObj } = await supabase
+                .from('stages')
+                .select('id, name')
+                .eq('id', deal.stage_id)
+                .maybeSingle();
+            if (stageObj && stageObj.name) {
+                stageName = stageObj.name;
+            }
+        }
+
+        // 4. Diagnóstico estratégico da clínica (se existir)
         const { data: diagnostic } = await supabase
             .from('diagnostics')
             .select(`
@@ -7608,53 +8014,213 @@ app.get('/api/gpt/deal-dossier/:id', authenticateGpt, async (req, res) => {
             .eq('deal_id', id)
             .maybeSingle();
 
-        // 3. Atividades e Follow-ups recentes
-        const { data: activities } = await supabase
-            .from('activities')
-            .select('id, type, title, date, completed, notes, created_at')
-            .eq('deal_id', id)
-            .order('date', { ascending: false })
-            .limit(15);
+        // 5. Histórico COMPLETO de atividades (sem limite arbitrário de 15)
+        let allActivities = [];
+        let actFrom = 0;
+        const actBatchSize = 1000;
+        let actHasMore = true;
 
-        // 4. Timeline de Logs do negócio
-        const { data: logs } = await supabase
-            .from('deal_logs')
-            .select('id, content, log_type, created_at')
-            .eq('deal_id', id)
-            .order('created_at', { ascending: false })
-            .limit(20);
+        while (actHasMore) {
+            const { data: batch, error: batchErr } = await supabase
+                .from('activities')
+                .select('id, type, title, date, duration, completed, notes, created_at, completed_at, houve_resposta, status, origin_stage, sequence_step, tooltip_script, user_id')
+                .eq('deal_id', id)
+                .eq('user_id', req.targetUserId)
+                .order('date', { ascending: true })
+                .range(actFrom, actFrom + actBatchSize - 1);
 
-        // 5. Insights associados ao negócio
+            if (batchErr) {
+                logToFile(`❌ [GPT API /deal-dossier] Erro ao recuperar atividades: ${batchErr.message}`);
+                break;
+            }
+
+            if (batch && batch.length > 0) {
+                allActivities = allActivities.concat(batch);
+                actFrom += actBatchSize;
+                if (batch.length < actBatchSize) actHasMore = false;
+            } else {
+                actHasMore = false;
+            }
+        }
+
+        // 6. Histórico COMPLETO de logs (deal_logs) (sem limite arbitrário de 20)
+        let allLogs = [];
+        let logFrom = 0;
+        const logBatchSize = 1000;
+        let logHasMore = true;
+
+        while (logHasMore) {
+            const { data: batch, error: batchErr } = await supabase
+                .from('deal_logs')
+                .select('id, content, log_type, created_at, activity_id, created_by')
+                .eq('deal_id', id)
+                .order('created_at', { ascending: true })
+                .range(logFrom, logFrom + logBatchSize - 1);
+
+            if (batchErr) {
+                logToFile(`❌ [GPT API /deal-dossier] Erro ao recuperar logs: ${batchErr.message}`);
+                break;
+            }
+
+            if (batch && batch.length > 0) {
+                allLogs = allLogs.concat(batch);
+                logFrom += logBatchSize;
+                if (batch.length < logBatchSize) logHasMore = false;
+            } else {
+                logHasMore = false;
+            }
+        }
+
+        // 7. Insights associados ao negócio
         const { data: insights } = await supabase
             .from('insights_comerciais')
             .select('categoria, subcategoria, quote_original, tension, fact, resumo')
             .eq('negocio_id', id)
-            .limit(10);
+            .limit(20);
+
+        // 8. Cálculo Factual da Primeira Abordagem
+        const firstApproach = calculateFirstApproach(allActivities);
+
+        // 9. Construção da TIMELINE CRONOLÓGICA UNIFICADA
+        const timelineEvents = [];
+
+        // 9.1 Evento de Criação do Deal
+        if (deal.created_at) {
+            timelineEvents.push({
+                tipo_evento: 'criacao_negocio',
+                data_hora: deal.created_at,
+                origem_tabela: 'deals',
+                registro_id: deal.id,
+                titulo: `Negócio criado: ${deal.title}`,
+                detalhes: {
+                    origem: deal.source || 'direto',
+                    valor_inicial: Number(deal.value) || 0
+                },
+                confiabilidade_temporal: 'comprovada'
+            });
+        }
+
+        // 9.2 Eventos de Atividades
+        allActivities.forEach(act => {
+            const eventDate = act.completed_at || act.date || act.created_at;
+            const isCompleted = act.completed === true || (act.status || '').toLowerCase() === 'completed';
+            
+            timelineEvents.push({
+                tipo_evento: isCompleted ? 'atividade_concluida' : 'atividade_planejada',
+                data_hora: eventDate,
+                origem_tabela: 'activities',
+                registro_id: act.id,
+                titulo: act.title,
+                detalhes: {
+                    canal: act.type,
+                    concluida: isCompleted,
+                    completed_at: act.completed_at || null,
+                    houve_resposta: act.houve_resposta || false,
+                    houve_resposta_aviso: act.houve_resposta ? 'indicio_requer_confirmacao_logs' : 'nenhuma_resposta_registrada',
+                    notas: act.notes || null,
+                    sequence_step: act.sequence_step || null,
+                    origin_stage: act.origin_stage || null
+                },
+                confiabilidade_temporal: act.completed_at ? 'comprovada' : (act.date ? 'estimada_data_agendada' : 'estimada_criacao_atividade')
+            });
+        });
+
+        // 9.3 Eventos de Logs
+        allLogs.forEach(l => {
+            timelineEvents.push({
+                tipo_evento: l.log_type === 'activity_note' ? 'nota_atividade' : 'anotacao_manual',
+                data_hora: l.created_at,
+                origem_tabela: 'deal_logs',
+                registro_id: l.id,
+                titulo: `Log: ${l.log_type}`,
+                detalhes: {
+                    tipo_log: l.log_type,
+                    conteudo: l.content,
+                    atividade_vinculada_id: l.activity_id || null
+                },
+                confiabilidade_temporal: 'comprovada'
+            });
+        });
+
+        // 9.4 Evento de Ganho
+        if (deal.won_at) {
+            timelineEvents.push({
+                tipo_evento: 'negocio_ganho',
+                data_hora: deal.won_at,
+                origem_tabela: 'deals',
+                registro_id: deal.id,
+                titulo: `Negócio Ganho! Valor: €${deal.value || 0}`,
+                detalhes: {
+                    valor_fechado: Number(deal.value) || 0
+                },
+                confiabilidade_temporal: 'comprovada'
+            });
+        }
+
+        // 9.5 Evento de Perda
+        if (deal.lost_at) {
+            timelineEvents.push({
+                tipo_evento: 'negocio_perdido',
+                data_hora: deal.lost_at,
+                origem_tabela: 'deals',
+                registro_id: deal.id,
+                titulo: `Negócio Perdido. Motivo: ${deal.lost_reason || 'Não informado'}`,
+                detalhes: {
+                    motivo_estruturado: deal.lost_reason || null,
+                    investigacao_logs_necessaria: !deal.lost_reason
+                },
+                confiabilidade_temporal: 'comprovada'
+            });
+        }
+
+        // Ordenar Timeline do mais antigo para o mais recente (cronológico ascendente)
+        timelineEvents.sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+
+        // Contexto de perda estruturada vs factual
+        const perdaDetalhada = deal.status === 'lost' ? {
+            status: 'lost',
+            data_perda: deal.lost_at || null,
+            motivo_estruturado: deal.lost_reason || null,
+            tipo_informacao: deal.lost_reason ? 'motivo_estruturado_confirmado' : 'motivo_estruturado_ausente_verificar_logs',
+            logs_relevantes: allLogs.filter(l => (l.content || '').toLowerCase().includes('perda') || (l.content || '').toLowerCase().includes('desist') || (l.content || '').toLowerCase().includes('cancel'))
+        } : null;
 
         return res.json({
             success: true,
             negocio: {
                 id: deal.id,
                 clinica: deal.title,
+                empresa: companyData ? {
+                    id: companyData.id,
+                    nome: companyData.name,
+                    website: companyData.website || null,
+                    telefone: companyData.phone || null,
+                    email: companyData.email || null
+                } : null,
+                contacto: deal.contacts ? {
+                    id: deal.contacts.id,
+                    nome: deal.contacts.name,
+                    email: deal.contacts.email || null,
+                    telefone: deal.contacts.phone || null,
+                    cargo: deal.contacts.role || null,
+                    anotacoes: deal.contacts.notes || null
+                } : null,
                 valor: Number(deal.value) || 0,
                 status: deal.status,
-                estagio: deal.stage_id,
-                origem: deal.source,
+                estagio: stageName,
+                stage_id: deal.stage_id,
+                origem: deal.source || 'desconhecida',
                 created_at: deal.created_at,
-                data_ganho: deal.won_at,
-                data_perda: deal.lost_at,
-                motivo_perda: deal.lost_reason,
-                contacto: deal.contacts ? {
-                    nome: deal.contacts.name,
-                    email: deal.contacts.email,
-                    telefone: deal.contacts.phone,
-                    cargo: deal.contacts.role,
-                    anotacoes: deal.contacts.notes
-                } : null
+                data_ganho: deal.won_at || null,
+                data_perda: deal.lost_at || null,
+                motivo_perda: deal.lost_reason || null,
+                perda_detalhada: perdaDetalhada,
+                primeira_abordagem: firstApproach
             },
             diagnostico_estrategico: diagnostic || null,
-            atividades_followups: activities || [],
-            timeline_logs: logs || [],
+            atividades_followups: allActivities,
+            timeline_logs: allLogs,
+            timeline_cronologica: timelineEvents,
             insights_detectados: insights || []
         });
 
