@@ -724,7 +724,8 @@ export default function MobileActivities({ currency }: { currency: Currency }) {
                     else { notes = notes || "Mensagem enviada via WhatsApp."; }
 
                     if (act.type === 'message') {
-                      await completeActivityWithLog(act.id, notes, true);
+                      // Confirmar envio NÃO equivale a receber resposta — houve_resposta mantém-se false
+                      await completeActivityWithLog(act.id, notes, false);
                     } else {
                       await addActivity({ dealId: act.dealId, type: 'message', title: 'Mensagem enviada via WhatsApp', status: 'completed', completed: true, dueDate: new Date().toISOString(), notes });
                     }
