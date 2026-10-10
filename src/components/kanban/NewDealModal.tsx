@@ -18,13 +18,33 @@ const parseCurrency = (value: string): number => {
     return parseFloat(cleanValue) || 0;
 };
 
+const formatToDateInput = (dateVal?: string | Date | null): string => {
+    if (!dateVal) return '';
+    if (typeof dateVal === 'string') {
+        const trimmed = dateVal.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+        const d = new Date(trimmed);
+        if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        return trimmed.split('T')[0] || '';
+    }
+    const year = dateVal.getFullYear();
+    const month = String(dateVal.getMonth() + 1).padStart(2, '0');
+    const day = String(dateVal.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
     const { addDeal, updateDeal, companies, contacts, pipelines, addCompany, updateCompany, addContact, updateContact, isNewDealModalOpen, closeNewDealModal, newDealStageId, dealToEdit, isLoading } = useCRM();
 
     const [title, setTitle] = useState('Negócio');
     const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false);
     const [value, setValue] = useState('');
-    const [expectedCloseDate, setExpectedCloseDate] = useState(new Date().toISOString().split('T')[0]);
+    const [expectedCloseDate, setExpectedCloseDate] = useState(() => formatToDateInput(new Date()));
     const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
     const [selectedPipelineId, setSelectedPipelineId] = useState('sales');
     const [selectedStageId, setSelectedStageId] = useState('');
@@ -45,7 +65,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
         setTitle('Negócio');
         setIsTitleManuallyEdited(false);
         setValue('');
-        setExpectedCloseDate(new Date().toISOString().split('T')[0]);
+        setExpectedCloseDate(formatToDateInput(new Date()));
         setSelectedLabels([]);
         setSource('');
         setContactSearch('');
@@ -87,7 +107,8 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
             setTitle(dealToEdit.title);
             setIsTitleManuallyEdited(true);
             setValue(dealToEdit.value.toString());
-            setExpectedCloseDate(dealToEdit.expectedCloseDate || new Date().toISOString().split('T')[0]);
+            const dealAdditionDate = dealToEdit.createdAt || (dealToEdit as any).created_at || dealToEdit.expectedCloseDate;
+            setExpectedCloseDate(formatToDateInput(dealAdditionDate) || formatToDateInput(new Date()));
             setSelectedLabels(dealToEdit.tags || []);
             setSelectedPipelineId(dealToEdit.pipelineId || 'sales');
             setSelectedStageId(dealToEdit.stageId);
@@ -217,7 +238,7 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                 stageId: selectedStageId,
                 companyId: finalCoId,
                 contactId: finalCtId,
-                expectedCloseDate,
+                expectedCloseDate: dealToEdit ? (dealToEdit.expectedCloseDate || expectedCloseDate) : expectedCloseDate,
                 tags: selectedLabels,
                 source: source || undefined,
                 instagramUrl,
@@ -284,10 +305,22 @@ export default function NewDealModal({ currency = 'BRL' }: NewDealModalProps) {
                             <input type="text" className="w-full px-3 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs font-bold outline-none focus:border-primary" placeholder="0,00" value={value} onChange={(e) => setValue(e.target.value)} />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Data Adição</label>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1 flex items-center justify-between">
+                                <span>Data Adição</span>
+                                {dealToEdit && <span className="text-[9px] font-normal text-zinc-400 lowercase">(fixa no sistema)</span>}
+                            </label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-2.5 text-slate-400" size={14} />
-                                <input type="date" className="w-full pl-9 pr-2 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} required />
+                                <input
+                                    type="date"
+                                    className={`w-full pl-9 pr-2 py-2 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs outline-none focus:border-primary ${dealToEdit ? 'opacity-70 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400' : ''}`}
+                                    value={expectedCloseDate}
+                                    onChange={(e) => !dealToEdit && setExpectedCloseDate(e.target.value)}
+                                    disabled={!!dealToEdit}
+                                    readOnly={!!dealToEdit}
+                                    title={dealToEdit ? "A data de adição no sistema é fixa e não pode ser alterada." : undefined}
+                                    required
+                                />
                             </div>
                         </div>
                     </div>
