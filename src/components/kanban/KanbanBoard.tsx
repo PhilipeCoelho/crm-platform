@@ -20,8 +20,6 @@ import SuggestionModal from "./SuggestionModal";
 
 import { Filter, Search, Plus, Bell, Users, X } from "lucide-react";
 import { Currency } from "@/data/currencies";
-import MobileKanbanView from "./MobileKanbanView";
-import { useIsMobile } from "@/hooks/useMediaQuery";
 
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -38,7 +36,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
     const location = useLocation();
     const navigate = useNavigate();
-    const isMobile = useIsMobile();
     const [isLpBannerDismissed, setIsLpBannerDismissed] = useState(false);
 
     // Identifica novos contatos recebidos da Landing Page que ainda não têm negócio criado no funil
@@ -65,8 +62,11 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
     }, [currentPipelineId]);
 
     const currentPipeline = pipelines[currentPipelineId];
-    // Helper to get columns (stages)
-    const columns = currentPipeline?.stages || [];
+    // Helper to get columns (stages) deterministically sorted
+    const columns = useMemo(() => {
+        const raw = currentPipeline?.stages || [];
+        return [...raw].sort((a: any, b: any) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+    }, [currentPipeline?.stages]);
 
 
     // --- Filters State ---
@@ -355,171 +355,14 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
 
 
 
-    // Mobile View
-    if (isMobile) {
-        return (
-            <div className="flex flex-col h-full w-full overflow-hidden">
-                {/* Mobile Toolbar */}
-                <div className="min-h-[3rem] py-2 border-b border-border flex items-center justify-between px-3 bg-background shrink-0 z-30">
-                    {/* Search */}
-                    <div className="relative flex-1 max-w-[200px]">
-                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            value={searchInput}
-                            onChange={(e) => handleSearchChange(e.target.value)}
-                            className="pl-8 pr-2 py-1.5 text-sm border border-border/60 rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-full"
-                        />
-                    </div>
-
-                    {/* Filters Toggle */}
-                    <button
-                        id="filter-toggle-button"
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5 border ml-2 ${showFilters
-                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                            : 'hover:bg-muted text-muted-foreground border-border/60'
-                            }`}
-                    >
-                        <Filter size={14} />
-                    </button>
-                </div>
-
-                {/* Filters Dropdown (Mobile) */}
-                {showFilters && (
-                    <div
-                        ref={filterRef}
-                        className="absolute right-3 top-[7.5rem] w-[calc(100%-1.5rem)] max-w-sm bg-popover border border-border rounded-xl shadow-2xl z-50 p-3 space-y-4 animate-in fade-in zoom-in-95 duration-200"
-                    >
-                        {/* Status Filter */}
-                        <div className="space-y-2">
-                            <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Status do negócio</h3>
-                            <div className="grid grid-cols-2 gap-1">
-                                {[
-                                    { id: 'open', label: 'Abertos', icon: '🟢' },
-                                    { id: 'won', label: 'Ganhos', icon: '🏆' },
-                                    { id: 'lost', label: 'Perdidos', icon: '❌' },
-                                    { id: 'all', label: 'Todos', icon: '📑' }
-                                ].map((s) => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => {
-                                            if (statusFilter === s.id) setStatusFilter('all');
-                                            else setStatusFilter(s.id as StatusFilter);
-                                            setDateFilter({ start: null, end: null });
-                                        }}
-                                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all ${statusFilter === s.id
-                                            ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
-                                            : 'hover:bg-muted text-muted-foreground border border-transparent'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-xs">{s.icon}</span>
-                                            <span>{s.label}</span>
-                                        </div>
-                                        {statusFilter === s.id && <div className="w-1 h-1 rounded-full bg-primary" />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* View Mode Filter */}
-                        <div className="space-y-2">
-                            <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Prioridade</h3>
-                            <div className="grid grid-cols-2 gap-1">
-                                {[
-                                    { id: 'all', label: 'Ver tudo' },
-                                    { id: 'today', label: 'Hoje' },
-                                    { id: 'overdue', label: 'Atrasado' },
-                                    { id: 'high-value', label: 'Alto Valor' }
-                                ].map((v) => (
-                                    <button
-                                        key={v.id}
-                                        onClick={() => {
-                                            if (viewMode === v.id) setViewMode('all');
-                                            else setViewMode(v.id as ViewMode);
-                                        }}
-                                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all ${viewMode === v.id
-                                            ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
-                                            : 'hover:bg-muted text-muted-foreground border border-transparent'
-                                            }`}
-                                    >
-                                        <span>{v.label}</span>
-                                        {viewMode === v.id && <div className="w-1 h-1 rounded-full bg-primary" />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Pipeline Filter */}
-                        <div className="space-y-2">
-                            <h3 className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70 px-1">Funil</h3>
-                            <div className="grid grid-cols-1 gap-1">
-                                {Object.values(pipelines).map(p => (
-                                    <button
-                                        key={p.id}
-                                        onClick={() => setCurrentPipelineId(p.id)}
-                                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-all flex items-center justify-between ${currentPipelineId === p.id
-                                            ? 'bg-primary/10 text-primary font-semibold border border-primary/20'
-                                            : 'hover:bg-muted text-muted-foreground border border-transparent'
-                                            }`}
-                                    >
-                                        <span>{p.name}</span>
-                                        {currentPipelineId === p.id && <div className="w-1 h-1 rounded-full bg-primary" />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="pt-2 flex items-center justify-between border-t border-border/50">
-                            <button
-                                onClick={() => {
-                                    setStatusFilter('open');
-                                    setViewMode('all');
-                                    setSearchInput('');
-                                    setSearchTerm('');
-                                }}
-                                className="text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
-                            >
-                                Limpar filtros
-                            </button>
-                            <button
-                                onClick={() => setShowFilters(false)}
-                                className="text-[11px] font-bold text-foreground hover:bg-muted px-2 py-1 rounded transition-all"
-                            >
-                                Fechar
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Mobile Kanban View */}
-                <MobileKanbanView
-                    columns={columns}
-                    filteredDeals={filteredDeals}
-                    currency={currency}
-                    onDealClick={handleDealClick}
-                    onAddDeal={openNewDealModal}
-                />
-
-                {/* Modals */}
-
-
-                {/* Modals are now handled globally if they trigger focus mode */}
-            </div>
-        );
-    }
-
-    // Desktop View
     return (
         <div className="flex flex-col h-full w-full overflow-hidden">
             {/* Toolbar - Aligned with Dashboard */}
-            <div className="min-h-[3.5rem] py-2 border-b border-border flex items-center justify-center px-4 bg-transparent shrink-0 z-40">
+            <div className="min-h-[3.25rem] sm:min-h-[3.5rem] py-2 border-b border-border flex items-center justify-center px-3 sm:px-4 bg-transparent shrink-0 z-40">
                 <div className="w-full max-w-[1600px] flex flex-wrap items-center justify-between gap-2">
                     {/* Check Pipedrive Style Toolbar */}
                     <div className="flex items-center gap-2 mr-auto mb-1 sm:mb-0">
-                        <h1 className="text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors whitespace-nowrap">
+                        <h1 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2 cursor-pointer hover:bg-muted/50 px-1.5 sm:px-2 py-1 rounded-md transition-colors whitespace-nowrap">
                             {currentPipeline?.name}
                         </h1>
                         {lpLeadsWithoutDeal.length > 0 && (
@@ -543,7 +386,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                                 placeholder="Buscar negócios..."
                                 value={searchInput}
                                 onChange={(e) => handleSearchChange(e.target.value)}
-                                className="pl-8 pr-3 py-1.5 text-sm border border-border/60 rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-48 transition-all"
+                                className="pl-8 pr-3 py-1.5 text-xs sm:text-sm border border-border/60 rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-32 xs:w-36 sm:w-48 transition-all"
                             />
                         </div>
 
@@ -551,7 +394,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         <button
                             id="filter-toggle-button"
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 border ${showFilters
+                            className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 sm:gap-2 border ${showFilters
                                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                                 : 'hover:bg-muted text-muted-foreground border-border/60'
                                 }`}
@@ -564,7 +407,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         {showFilters && (
                             <div
                                 ref={filterRef}
-                                className="absolute right-4 top-16 w-72 bg-popover border border-border rounded-xl shadow-2xl z-50 p-4 space-y-5 animate-in fade-in zoom-in-95 duration-200"
+                                className="absolute right-2 sm:right-4 top-14 sm:top-16 w-[calc(100vw-1.5rem)] sm:w-72 max-w-sm bg-popover border border-border rounded-xl shadow-2xl z-50 p-4 space-y-5 animate-in fade-in zoom-in-95 duration-200"
                             >
                                 {/* GRUPO 1 — Status do negócio */}
                                 <div className="space-y-2">
@@ -673,10 +516,11 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                         {/* New Deal */}
                         <button
                             onClick={() => openNewDealModal(columns[0]?.id)}
-                            className="ml-2 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 shadow-sm transition-all"
+                            className="ml-1 sm:ml-2 bg-primary hover:bg-primary/90 text-primary-foreground px-2.5 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold flex items-center gap-1 shadow-sm transition-all whitespace-nowrap shrink-0"
                         >
-                            <Plus size={16} />
-                            <span>Novo Negócio</span>
+                            <Plus size={15} />
+                            <span className="hidden sm:inline">Novo Negócio</span>
+                            <span className="sm:hidden">Novo</span>
                         </button>
                     </div>
                 </div>
@@ -734,7 +578,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
                     {/* Horizontal Scroll Container with Controlled Width */}
                     <div className="h-full w-full overflow-x-auto overflow-y-hidden pb-3 custom-scrollbar">
                         {/* Columns Container - Fixed Width, Centered */}
-                        <div className="flex h-full min-w-max px-6 gap-6 mx-auto max-w-[1600px]">
+                        <div className="flex h-full min-w-max px-3 sm:px-6 gap-3 sm:gap-6 mx-auto max-w-[1600px]">
                             {isLoading && columns.length === 0 ? (
                                 /* Skeleton Loader */
                                 Array.from({ length: 4 }).map((_, i) => (

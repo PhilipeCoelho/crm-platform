@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: vamuss-crm-sdr
+    env: node
+    plan: free
+    region: frankfurt # Lower latency to Portugal
+    buildCommand: npm install
+    startCommand: node api/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SDR_AUTONOMOUS_WORKER
+        value: "true"
+      - key: SDR_OPERATOR_PHONE
+        value: "351964094865"
+      - key: SDR_OPERATOR_NAME
+        value: "Philipe Coelho"
+      - key: CALCOM_BOOKING_URL
+        value: "https://cal.com/euphilipecoelho-jxauxj/diagostico"
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

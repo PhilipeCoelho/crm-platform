@@ -14,6 +14,7 @@ import cron from 'node-cron';
 import { LeadProcessor } from './utils/leadProcessor.js';
 import { encrypt, decrypt } from './utils/crypto.js';
 import { sendMetaCAPIEvent, testMetaConnection } from './utils/capiSender.js';
+import { contentIntelligenceRouter } from './content_intelligence.js';
 
 const LOG_FILE = path.join(process.cwd(), 'crm_server.log');
 function logToFile(msg) {
@@ -39,7 +40,11 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'X-Api-Key', 'apikey']
 }));
 
-app.use(express.json());
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
@@ -60,6 +65,7 @@ const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM_NAME } = process.e
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/api/content-intelligence', contentIntelligenceRouter);
 
 /**
  * AUTH MIDDLEWARE
@@ -159,6 +165,40 @@ app.post('/api/webhooks/brevo', async (req, res) => {
     } catch (err) {
         logToFile(`🔥 [Webhook Brevo] Erro interno: ${err.message}`);
         return res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// CONTENT KANBAN PERSISTENCE ENDPOINTS
+// ==========================================
+const CONTENT_KANBAN_FILE = path.join(process.cwd(), 'data', 'content_kanban.json');
+
+app.get('/api/content-kanban', (req, res) => {
+    try {
+        if (fs.existsSync(CONTENT_KANBAN_FILE)) {
+            const raw = fs.readFileSync(CONTENT_KANBAN_FILE, 'utf8');
+            const data = JSON.parse(raw);
+            return res.json(data);
+        }
+        return res.json({ columns: [], cards: [] });
+    } catch (e) {
+        logToFile(`❌ [Content Kanban] Erro ao ler arquivo: ${e.message}`);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/content-kanban', (req, res) => {
+    try {
+        const { columns, cards } = req.body;
+        if (!Array.isArray(columns) || !Array.isArray(cards)) {
+            return res.status(400).json({ error: 'columns e cards devem ser arrays' });
+        }
+        fs.writeFileSync(CONTENT_KANBAN_FILE, JSON.stringify({ columns, cards, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
+        logToFile(`💾 [Content Kanban] Salvo no disco (${columns.length} colunas, ${cards.length} cartões)`);
+        return res.json({ success: true, columnsCount: columns.length, cardsCount: cards.length });
+    } catch (e) {
+        logToFile(`❌ [Content Kanban] Erro ao salvar arquivo: ${e.message}`);
+        return res.status(500).json({ error: e.message });
     }
 });
 
@@ -8294,14 +8334,33 @@ app.get('/api/gpt/content-memory', authenticateGpt, async (req, res) => {
 
 // Only start the server locally, otherwise export the app for Vercel Serverless
 
+app.get('/health', (req, res) => res.json({ status: 'healthy', timestamp: new Date().toISOString() }));
+app.get('/', (req, res) => res.json({ status: 'online', name: 'Vamuss CRM SDR API', timestamp: new Date().toISOString() }));
+
 import { setupMcp } from "./mcp.js";
 import { setupOAuth } from "./oauth.js";
+import { setupWhatsApp } from "./whatsapp.js";
+import { setupWhatsAppWebRoutes, initWhatsAppWeb } from "./whatsapp_web.js";
+import { setupSDREngine } from "./sdr_engine.js";
+import { setupCommercialAgentRoutes } from "./vamuss_commercial_agent.js";
 setupMcp(app);
 setupOAuth(app);
+setupWhatsApp(app);
+setupWhatsAppWebRoutes(app);
+setupSDREngine(app);
+setupCommercialAgentRoutes(app);
 
-if (process.env.NODE_ENV !== 'production' && process.env.VERCEL !== '1') {
+// Inicializar motor do WhatsApp Web
+initWhatsAppWeb().catch(err => console.warn('⚠️ [WhatsApp Web] Aviso na inicialização:', err.message));
+
+if (process.env.VERCEL !== '1') {
     app.listen(PORT, () => {
         console.log(`🚀 Hardened Server running on port ${PORT}`);
+        if (process.env.SDR_AUTONOMOUS_WORKER === 'true') {
+            import('./sdr_worker.js').then(({ defaultSDRWorker }) => {
+                defaultSDRWorker.start({ intervalMinutes: parseInt(process.env.SDR_WORKER_INTERVAL_MINUTES, 10) || 5 });
+            }).catch(err => console.error('❌ Falha ao iniciar SDR Worker:', err));
+        }
     });
 }
 

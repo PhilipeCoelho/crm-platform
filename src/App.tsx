@@ -6,8 +6,10 @@ import {
     LayoutDashboard, Users, CheckSquare, LogOut,
     ChevronRight, ChevronLeft, Loader2, Moon,
     Sun, Laptop as Monitor, Menu, X, CalendarDays, BarChart3,
-    Zap, DollarSign, Check, Mail, Eye, Inbox, Brain, Camera
+    Zap, DollarSign, Check, Mail, Eye, Inbox, Brain, Camera,
+    Clapperboard
 } from 'lucide-react';
+import ContentKanban from './pages/ContentKanban';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTheme } from "@/components/theme-provider"
 import KanbanBoard from '@/components/kanban/KanbanBoard';
@@ -39,13 +41,7 @@ import CadenceSettings from '@/pages/settings/CadenceSettings';
 import MetaLeadAdsSettings from '@/pages/settings/MetaLeadAdsSettings';
 import { Share2 } from 'lucide-react';
 import ActivitySuggestionModal from '@/components/activities-v2/ActivitySuggestionModal';
-import ContentLayout from '@/components/content/ContentLayout';
-import ContentToday from '@/pages/content/ContentToday';
-import ContentOpportunities from '@/pages/content/ContentOpportunities';
-import ContentIdeas from '@/pages/content/ContentIdeas';
-import ContentProduction from '@/pages/content/ContentProduction';
-import ContentReferences from '@/pages/content/ContentReferences';
-import ContentIntelligence from '@/pages/content/ContentIntelligence';
+import SDRWorkspace from '@/pages/SDRWorkspace';
 
 
 function Layout({ children, currency, setCurrency }: { children: React.ReactNode, currency: Currency, setCurrency: (c: Currency) => void }) {
@@ -80,11 +76,12 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
     const navItems = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/pipeline', label: 'Pipeline', icon: CheckSquare },
+        { path: '/sdr', label: 'SDR Vamuss', icon: Zap },
         { path: '/activities', label: 'Atividades', icon: CalendarDays },
         { path: '/contacts', label: 'Contatos', icon: Users },
+        { path: '/content', label: 'Conteúdo', icon: Clapperboard },
         { path: '/insights', label: 'Insights', icon: BarChart3 },
         { path: '/knowledge-base', label: 'Inteligência Comercial', icon: Brain },
-        // { path: '/content', label: 'Conteúdo', icon: PenTool }, // Ocultado temporariamente
     ];
 
     // Sidebar States: Pinned and Hovered
@@ -667,6 +664,7 @@ function App() {
                                 <KanbanBoard currency={selectedCurrency} />
                             </div>
                         } />
+                        <Route path="/sdr" element={<SDRWorkspace />} />
                         <Route path="/contacts" element={<Contacts />} />
                         <Route path="/activities" element={<ActivitiesV2 currency={selectedCurrency} />} />
                         <Route path="/campaigns/wizard" element={<CampaignWizard />} />
@@ -694,22 +692,9 @@ function App() {
                             </CampaignsLayout>
                         } />
 
-                        {/* Content Intelligence Module Routes */}
-                        <Route path="/content/*" element={
-                            <ContentLayout>
-                                <Routes>
-                                    <Route index element={<ContentToday />} />
-                                    <Route path="today" element={<Navigate to="/content" replace />} />
-                                    <Route path="opportunities" element={<ContentOpportunities />} />
-                                    <Route path="ideas" element={<ContentIdeas />} />
-                                    <Route path="production" element={<ContentProduction />} />
-                                    <Route path="references" element={<ContentReferences />} />
-                                    <Route path="publications" element={<Navigate to="/content/production" replace />} />
-                                    <Route path="intelligence" element={<ContentIntelligence />} />
-                                    <Route path="*" element={<Navigate to="" replace />} />
-                                </Routes>
-                            </ContentLayout>
-                        } />
+                        {/* Content Kanban Route */}
+                        <Route path="/content" element={<ContentKanban />} />
+                        <Route path="/content/*" element={<ContentKanban />} />
                     </Routes>
                 </Layout>
             </BrowserRouter>

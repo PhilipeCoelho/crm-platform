@@ -217,7 +217,7 @@ export const DealCardBase = React.memo(function DealCardBase({ deal, currency, o
             {...attributes}
             {...listeners}
             onClick={handleClick}
-            className={`group relative p-3 rounded-xl border transition-[shadow,transform] duration-200 cursor-pointer touch-none select-none hover:-translate-y-[1px] bg-card dark:bg-card dark:hover:bg-muted border-border premium-shadow shadow-sm hover:shadow-md ${deal.status === 'lost' ? 'opacity-75 bg-slate-50/50 dark:bg-slate-900/20' : ''}`}
+            className={`group relative p-3 rounded-xl border transition-[shadow,transform] duration-200 cursor-pointer touch-manipulation select-none hover:-translate-y-[1px] bg-card dark:bg-card dark:hover:bg-muted border-border premium-shadow shadow-sm hover:shadow-md ${deal.status === 'lost' ? 'opacity-75 bg-slate-50/50 dark:bg-slate-900/20' : ''}`}
         >
             {/* Status Indicator for Lost deals */}
             {deal.status === 'lost' && (

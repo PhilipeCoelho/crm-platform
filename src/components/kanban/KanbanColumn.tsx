@@ -97,19 +97,19 @@ const KanbanColumn = React.memo(function KanbanColumn({ column, tasks, onAdd, cu
     return (
         <div
             ref={setNodeRef}
-            className={`group/column flex flex-col h-full min-w-[300px] w-[300px] shrink-0
+            className={`group/column flex flex-col h-full min-w-[280px] w-[82vw] sm:w-[300px] sm:min-w-[300px] shrink-0
                 ${isOver ? 'bg-primary/[0.04] ring-2 ring-primary/20' : 'bg-secondary/30 dark:bg-transparent'}
                 rounded-2xl transition-all duration-300
                 `}
         >
             {/* Header - Modern SaaS Style */}
-            <div className="pt-5 px-4 pb-4 flex flex-col gap-2 shrink-0">
+            <div className="pt-4 sm:pt-5 px-3 sm:px-4 pb-3 sm:pb-4 flex flex-col gap-2 shrink-0">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2 overflow-hidden flex-1 cursor-pointer group/title" onClick={onEditStage}>
                         <span className="text-sm font-bold tracking-tight text-foreground truncate group-hover/title:text-primary transition-colors uppercase" title={column.title}>
                             {column.title}
                         </span>
-                        <Settings2 size={13} className="text-muted-foreground/30 opacity-0 group-hover/column:opacity-100 group-hover/title:text-primary transition-all" />
+                        <Settings2 size={13} className="text-muted-foreground/30 opacity-70 sm:opacity-0 sm:group-hover/column:opacity-100 sm:group-hover/title:text-primary transition-all" />
                     </div>
                 </div>
 
@@ -127,7 +127,7 @@ const KanbanColumn = React.memo(function KanbanColumn({ column, tasks, onAdd, cu
             </div>
 
             {/* Cards Area */}
-            <div className="flex-grow flex flex-col gap-4 px-3 overflow-x-hidden overflow-y-auto custom-scrollbar">
+            <div className="flex-grow flex flex-col gap-3 sm:gap-4 px-2.5 sm:px-3 overflow-x-hidden overflow-y-auto custom-scrollbar">
                 <SortableContext items={tasksIds}>
                     {sortedTasks.map((task) => (
                         <KanbanCard
@@ -142,8 +142,8 @@ const KanbanColumn = React.memo(function KanbanColumn({ column, tasks, onAdd, cu
                 </SortableContext>
 
                 {tasks.length === 0 && (
-                    <div className="h-full flex items-center justify-center opacity-0">
-                        <span className="text-xs text-muted-foreground">Arraste aqui</span>
+                    <div className="h-full flex items-center justify-center opacity-60 sm:opacity-0">
+                        <span className="text-xs text-muted-foreground">Nenhum negócio aqui</span>
                     </div>
                 )}
             </div>
@@ -152,7 +152,7 @@ const KanbanColumn = React.memo(function KanbanColumn({ column, tasks, onAdd, cu
             <div className="shrink-0 px-2 pb-2">
                 <button
                     onClick={() => onAdd(column.id)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-all duration-200 rounded-md bg-transparent text-muted-foreground hover:text-foreground opacity-0 group-hover/column:opacity-100"
+                    className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-all duration-200 rounded-md bg-transparent text-muted-foreground hover:text-foreground opacity-100 sm:opacity-0 sm:group-hover/column:opacity-100"
                     title="Adicionar novo negócio"
                 >
                     <Plus size={14} strokeWidth={2} />

@@ -481,8 +481,14 @@ export function useCRMStore(): CRMStore {
                         pipelineId: pid,
                         title: s.name,
                         color: s.color,
-                        probability: s.probability
+                        probability: s.probability,
+                        orderIndex: typeof s.order_index === 'number' ? s.order_index : 0
                     });
+                });
+
+                // Ensure stages within each pipeline are sorted in order
+                Object.keys(stagesByPipeline).forEach((pid) => {
+                    stagesByPipeline[pid].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
                 });
 
                 setPipelines((prev: any) => {

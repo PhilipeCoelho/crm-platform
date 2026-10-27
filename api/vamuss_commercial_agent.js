@@ -1,0 +1,1133 @@
+/**
+ * ============================================================================
+ * VAMUSS — AGENTE COMERCIAL AUTÓNOMO EXCLUSIVO (SDR + CLOSER)
+ * ============================================================================
+ * Este é o colaborador comercial digital autónomo da Vamuss (Portugal).
+ * Ele opera de ponta a ponta com iniciativa própria:
+ * 1. Prospeção ativa: varre deals perdidos no CRM (status = 'lost', >= 30 dias de perda).
+ * 2. Leitura profunda de contexto: histórico de atividades, notas, motivos da perda.
+ * 3. Pesquisa web factual: website institucional, Google Reviews, tratamentos destacados.
+ * 4. Estratégia e abordagem personalizada por WhatsApp (sem templates rígidos).
+ * 5. Closer consultivo (SPIN Selling): qualifica respostas, contorna objeções reais.
+ * 6. Fecho autónomo: envia o link do Cal.com e confirma a Reunião de Diagnóstico.
+ * 
+ * Arquitetura: OpenAI Function Calling / Tool-Calling Agent Loop
+ * Modelo: GPT-4o / GPT-4o-mini
+ * ============================================================================
+ */
+
+import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+import { sendWhatsAppWebMessage, getWhatsAppWebStatus } from './whatsapp_web.js';
+import { isWithinBusinessHours, validateDispatchTiming } from './sdr_business_hours.js';
+import { isPhoneSuppressedLocally, addLocalSuppression } from './suppression_store.js';
+import { generateClinicDossier } from './sdr_web_research.js';
+import {
+    getOrCreateSpinState,
+    analyzeInboundSpinProgress,
+    getNextSpinQuestion,
+    formatSpinSummaryForAlert,
+    saveSpinStateToStore,
+    CALCOM_BOOKING_LINK
+} from './sdr_spin_qualifier.js';
+import { readRecoveryPipelineStore, writeRecoveryPipelineStore } from './sdr_recovery_pipeline.js';
+
+// Cliente Supabase
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
+
+// Operador e Constantes
+export { CALCOM_BOOKING_LINK };
+export const OPERATOR_PHONE = '351964094865';
+export const OPERATOR_NAME = 'Philipe Coelho';
+export const DAILY_OUTBOUND_LIMIT = 5;
+export const AGENT_STATE_FILE = path.resolve(process.cwd(), 'data', 'vamuss_agent_state.json');
+
+/**
+ * Lê o estado de memória persistente do Agente
+ */
+export function readAgentState() {
+    try {
+        if (!fs.existsSync(AGENT_STATE_FILE)) {
+            const initial = {
+                totalOutboundsSent: 0,
+                totalRepliesHandled: 0,
+                totalMeetingsBooked: 0,
+                dailyDispatches: {},
+                recentActions: []
+            };
+            fs.mkdirSync(path.dirname(AGENT_STATE_FILE), { recursive: true });
+            fs.writeFileSync(AGENT_STATE_FILE, JSON.stringify(initial, null, 2), 'utf8');
+            return initial;
+        }
+        return JSON.parse(fs.readFileSync(AGENT_STATE_FILE, 'utf8'));
+    } catch {
+        return { totalOutboundsSent: 0, totalRepliesHandled: 0, totalMeetingsBooked: 0, dailyDispatches: {}, recentActions: [] };
+    }
+}
+
+/**
+ * Grava o estado de memória do Agente
+ */
+export function recordAgentAction(actionType, details) {
+    try {
+        const state = readAgentState();
+        const todayStr = new Date().toISOString().slice(0, 10);
+        state.dailyDispatches[todayStr] = state.dailyDispatches[todayStr] || 0;
+
+        if (actionType === 'OUTBOUND_DISPATCH') {
+            state.totalOutboundsSent += 1;
+            state.dailyDispatches[todayStr] += 1;
+        } else if (actionType === 'INBOUND_REPLY') {
+            state.totalRepliesHandled += 1;
+        } else if (actionType === 'CALCOM_SENT') {
+            state.totalMeetingsBooked += 1;
+        }
+
+        state.recentActions.unshift({
+            timestamp: new Date().toISOString(),
+            actionType,
+            details
+        });
+
+        if (state.recentActions.length > 100) {
+            state.recentActions = state.recentActions.slice(0, 100);
+        }
+
+        fs.writeFileSync(AGENT_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+        return true;
+    } catch (err) {
+        console.warn('⚠️ [Vamuss Agent] Falha ao registar ação do agente:', err.message);
+        return false;
+    }
+}
+
+/**
+ * Normaliza número de telemóvel para formato WhatsApp internacional (ex: 351912345678)
+ */
+export function normalizePhoneNumber(raw) {
+    if (!raw) return null;
+    let clean = String(raw).replace(/\D/g, '');
+    if (clean.length === 9 && clean.startsWith('9')) {
+        clean = '351' + clean;
+    }
+    return clean;
+}
+
+/**
+ * Verifica se é um telemóvel móvel português
+ */
+export function isPortugueseMobile(phone) {
+    const clean = normalizePhoneNumber(phone);
+    if (!clean) return false;
+    if (clean.startsWith('351') && clean.length === 12 && clean[3] === '9') return true;
+    if (clean.length === 9 && clean.startsWith('9')) return true;
+    return false;
+}
+
+/**
+ * ============================================================================
+ * AS FERRAMENTAS DO AGENTE (TOOLS DEFINITION)
+ * ============================================================================
+ */
+
+export const AGENT_TOOLS_DEFINITIONS = [
+    {
+        type: 'function',
+        function: {
+            name: 'scan_crm_lost_deals',
+            description: 'Varre o CRM Supabase em busca de negócios perdidos elegíveis para reaquecimento (status lost, móvel português, sem supressão ativa, perda >= 30 dias).',
+            parameters: {
+                type: 'object',
+                properties: {
+                    limit: {
+                        type: 'number',
+                        description: 'Quantidade máxima de negócios a retornar (padrão 5)'
+                    }
+                }
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'fetch_lead_full_dossier',
+            description: 'Recupera o histórico factual completo de um negócio: notas, propostas, atividades passadas, motivo de perda e contacto.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio no CRM'
+                    }
+                },
+                required: ['deal_id']
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'research_clinic_online',
+            description: 'Realiza pesquisa web na clínica para extrair factos reais comprovados: tratamentos de alto valor (implantes, ortodontia), presença no Google, avaliações.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio'
+                    },
+                    clinic_name: {
+                        type: 'string',
+                        description: 'Nome da clínica'
+                    },
+                    city: {
+                        type: 'string',
+                        description: 'Concelho ou cidade da clínica'
+                    },
+                    website: {
+                        type: 'string',
+                        description: 'Website oficial se disponível'
+                    }
+                },
+                required: ['deal_id', 'clinic_name']
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'send_whatsapp_message',
+            description: 'Dispara uma mensagem de WhatsApp via sessão do Philipe. Executa salvaguardas estritas de horário e supressão antes do envio.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio'
+                    },
+                    phone: {
+                        type: 'string',
+                        description: 'Telefone móvel do lead'
+                    },
+                    message_text: {
+                        type: 'string',
+                        description: 'Texto completo da mensagem em Português de Portugal'
+                    },
+                    intent: {
+                        type: 'string',
+                        enum: ['PRIMEIRA_ABORDAGEM', 'RESPOSTA_SPIN', 'LINK_CALCOM', 'SEGUIMENTO', 'CORTESIA'],
+                        description: 'Finalidade da mensagem'
+                    }
+                },
+                required: ['phone', 'message_text', 'intent']
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'send_calcom_booking_link',
+            description: 'Envia o convite para a Reunião de Diagnóstico de 20 minutos com o link oficial do Cal.com.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio'
+                    },
+                    phone: {
+                        type: 'string',
+                        description: 'Telefone móvel da clínica'
+                    },
+                    clinic_name: {
+                        type: 'string',
+                        description: 'Nome da clínica ou interlocutor'
+                    }
+                },
+                required: ['deal_id', 'phone']
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'update_spin_state',
+            description: 'Regista o avanço da qualificação SPIN (Situação, Problema, Implicação, Necessidade de Solução) com base no que a clínica disse.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio'
+                    },
+                    lead_reply_text: {
+                        type: 'string',
+                        description: 'Texto recebido da clínica'
+                    }
+                },
+                required: ['deal_id', 'lead_reply_text']
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'schedule_followup_return',
+            description: 'Regista no CRM que o lead pediu para voltar a falar numa data futura (ex: "fale daqui a 2 meses").',
+            parameters: {
+                type: 'object',
+                properties: {
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio'
+                    },
+                    return_date: {
+                        type: 'string',
+                        description: 'Data sugerida para retorno (YYYY-MM-DD)'
+                    },
+                    reason: {
+                        type: 'string',
+                        description: 'Motivo declarado pelo lead'
+                    }
+                },
+                required: ['deal_id', 'return_date']
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'register_opt_out',
+            description: 'Bloqueia definitivamente qualquer contacto com o número de telemóvel e cancela o negócio (cumprimento estrito de RGPD).',
+            parameters: {
+                type: 'object',
+                properties: {
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio'
+                    },
+                    phone: {
+                        type: 'string',
+                        description: 'Telefone do lead'
+                    },
+                    evidence: {
+                        type: 'string',
+                        description: 'Frase que originou o pedido de saída'
+                    }
+                },
+                required: ['phone']
+            }
+        }
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'alert_philipe_on_whatsapp',
+            description: 'Envia um alerta prioritário ao WhatsApp do Philipe Coelho para casos especiais que exigem a sua atenção.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    summary: {
+                        type: 'string',
+                        description: 'Resumo da ocorrência'
+                    },
+                    clinic_name: {
+                        type: 'string',
+                        description: 'Nome da clínica'
+                    },
+                    deal_id: {
+                        type: 'string',
+                        description: 'ID do negócio se houver'
+                    }
+                },
+                required: ['summary']
+            }
+        }
+    }
+];
+
+/**
+ * ============================================================================
+ * IMPLEMENTAÇÃO REAL DAS FERRAMENTAS DO AGENTE
+ * ============================================================================
+ */
+
+export const AgentToolImplementations = {
+    /**
+     * 1. Varre negócios perdidos no CRM
+     */
+    async scan_crm_lost_deals({ limit = 5 }) {
+        if (!supabase) return { success: false, error: 'SUPABASE_UNAVAILABLE' };
+
+        console.log(`🔍 [Vamuss Agent Tool] A varrer CRM por negócios perdidos (limite: ${limit})...`);
+
+        const { data: deals, error } = await supabase
+            .from('deals')
+            .select('id, user_id, contact_id, title, value, status, stage_id, lost_at, created_at, lost_reason, objection_tags')
+            .eq('status', 'lost')
+            .not('contact_id', 'is', null)
+            .order('lost_at', { ascending: true, nullsFirst: false })
+            .limit(100);
+
+        if (error) {
+            console.error('❌ [Vamuss Agent Tool] Erro na query de deals:', error.message);
+            return { success: false, error: error.message };
+        }
+
+        const now = Date.now();
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        const candidates = [];
+
+        // Ler pipeline de recuperação para verificar estados prévios
+        const pipelineStore = readRecoveryPipelineStore();
+
+        for (const deal of deals || []) {
+            if (candidates.length >= limit) break;
+
+            // 1. Respiro comercial de 30 dias
+            const lostTimestamp = deal.lost_at ? new Date(deal.lost_at).getTime() : new Date(deal.created_at).getTime();
+            if (now - lostTimestamp < thirtyDaysMs) {
+                continue;
+            }
+
+            // 2. Salvaguarda estrita: NUNCA abordar Odontoclinic (ex-cliente)
+            const titleLower = (deal.title || '').toLowerCase();
+            const reasonLower = (deal.lost_reason || '').toLowerCase().trim();
+            if (
+                titleLower.includes('odontoclinic') ||
+                titleLower.includes('odontclinic') ||
+                reasonLower.includes('encerrou o contrato') ||
+                reasonLower.includes('ex-cliente')
+            ) {
+                continue;
+            }
+
+            // 3. Não reativar se desqualificado expressamente ou grandes grupos corporativos
+            if (
+                reasonLower.includes('desqualificad') ||
+                reasonLower.includes('grupo muito grande') ||
+                reasonLower.includes('grande grupo') ||
+                reasonLower.includes('franquia') ||
+                deal.stage_id === 'disqualified'
+            ) {
+                continue;
+            }
+
+            // 4. Mapeamento de contexto do motivo para orientar a estratégia do agente
+            let targetCategory = 'GERAL_RECUPERAVEL';
+            if (reasonLower.includes('não responde') || reasonLower.includes('nao responde') || reasonLower.includes('sem resposta') || reasonLower.includes('perda de contat')) {
+                targetCategory = 'SEM_RESPOSTA';
+            } else if (reasonLower.includes('já tem') || reasonLower.includes('agência') || reasonLower.includes('equipa') || reasonLower.includes('anunciam') || reasonLower.includes('fornecedor')) {
+                targetCategory = 'FORNECEDOR_ATIVO';
+            } else if (!reasonLower || reasonLower === 'sem motivo' || reasonLower === 'sem motivo registrado') {
+                targetCategory = 'SEM_MOTIVO';
+            } else if (reasonLower.includes('sem fit') || reasonLower.includes('faltam recursos') || reasonLower.includes('momento') || reasonLower.includes('orçamento')) {
+                targetCategory = 'FALTA_RECURSOS_TIMING';
+            }
+
+            // 3. Obter contacto
+            const { data: contact } = await supabase
+                .from('contacts')
+                .select('id, name, phone, email, notes, role')
+                .eq('id', deal.contact_id)
+                .single();
+
+            if (!contact || !contact.phone) continue;
+
+            const cleanPhone = normalizePhoneNumber(contact.phone);
+            if (!isPortugueseMobile(cleanPhone)) continue;
+
+            // 4. Verificar supressão
+            if (isPhoneSuppressedLocally(cleanPhone, deal.id, contact.id)) {
+                continue;
+            }
+
+            // 5. Verificar se já foi contactado ou está em handoff no pipeline
+            const pipeEntry = pipelineStore[deal.id];
+            if (pipeEntry?.stage === 'agendamento_pendente_humano' || pipeEntry?.stage === 'reuniao_agendada' || pipeEntry?.stage === 'pronto_reabrir') {
+                continue;
+            }
+
+            candidates.push({
+                deal_id: deal.id,
+                contact_id: contact.id,
+                title: deal.title,
+                clinic_name: contact.name || deal.title.replace(/^Negócio\s+/i, ''),
+                phone: cleanPhone,
+                email: contact.email,
+                target_category: targetCategory,
+                lost_reason: deal.lost_reason || 'Sem motivo específico registado',
+                lost_at: deal.lost_at || deal.created_at,
+                days_since_loss: Math.round((now - lostTimestamp) / (1000 * 60 * 60 * 24))
+            });
+        }
+
+        console.log(`✅ [Vamuss Agent Tool] Varredura concluída: ${candidates.length} negócios elegíveis encontrados.`);
+        return { success: true, count: candidates.length, deals: candidates };
+    },
+
+    /**
+     * 2. Recupera dossiê completo de um negócio
+     */
+    async fetch_lead_full_dossier({ deal_id }) {
+        if (!supabase) return { success: false, error: 'SUPABASE_UNAVAILABLE' };
+
+        console.log(`📖 [Vamuss Agent Tool] A ler histórico profundo do deal ${deal_id}...`);
+
+        const { data: deal } = await supabase
+            .from('deals')
+            .select('*')
+            .eq('id', deal_id)
+            .single();
+
+        if (!deal) return { success: false, error: 'DEAL_NOT_FOUND' };
+
+        const { data: contact } = await supabase
+            .from('contacts')
+            .select('*')
+            .eq('id', deal.contact_id)
+            .single();
+
+        // Atividades históricas
+        const { data: activities } = await supabase
+            .from('activities')
+            .select('id, type, title, notes, completed, date, houve_resposta, tooltip_script')
+            .eq('deal_id', deal_id)
+            .order('date', { ascending: false })
+            .limit(10);
+
+        // Logs profundos de interação e anotações reais do CRM (deal_logs)
+        const { data: dealLogs } = await supabase
+            .from('deal_logs')
+            .select('id, deal_id, content, type, created_at')
+            .eq('deal_id', deal_id)
+            .order('created_at', { ascending: false })
+            .limit(15);
+
+        // Estado SPIN atual
+        const spinState = getOrCreateSpinState(deal_id, contact?.name || deal.title);
+
+        return {
+            success: true,
+            deal: {
+                id: deal.id,
+                title: deal.title,
+                lost_reason: deal.lost_reason,
+                lost_at: deal.lost_at,
+                value: deal.value,
+                objection_tags: deal.objection_tags || []
+            },
+            contact: {
+                id: contact?.id,
+                name: contact?.name,
+                phone: normalizePhoneNumber(contact?.phone),
+                email: contact?.email,
+                notes: contact?.notes
+            },
+            activities: activities || [],
+            deal_logs: (dealLogs || []).map(l => ({
+                date: l.created_at,
+                content: l.content || ''
+            })),
+            spin_summary: formatSpinSummaryForAlert(spinState),
+            is_ready_for_calcom: spinState?.necessidade?.status === 'confirmado' || spinState?.calComOffered || false
+        };
+    },
+
+    /**
+     * 3. Pesquisa factual da clínica na Web e Google
+     */
+    async research_clinic_online({ deal_id, clinic_name, city = '', website = '' }) {
+        console.log(`🌐 [Vamuss Agent Tool] A investigar clinicamente "${clinic_name}" (${city})...`);
+
+        try {
+            const dossier = await generateClinicDossier({
+                dealId: deal_id,
+                clinicName: clinic_name,
+                concelho: city,
+                websiteUrl: website
+            });
+
+            const topFact = dossier.verifiedFacts && dossier.verifiedFacts.length > 0 
+                ? dossier.verifiedFacts[0].fact 
+                : 'Trabalho exclusivamente com clínicas dentárias em Portugal para aumentar previsibilidade de tratamentos particulares de alto valor.';
+
+            return {
+                success: true,
+                has_website: Boolean(dossier.siteAnalysis?.hasWebsite),
+                treatments: dossier.siteAnalysis?.highlightedTreatments || [],
+                rating: dossier.visibilityAnalysis?.rating || null,
+                reviews_count: dossier.visibilityAnalysis?.reviewCount || null,
+                verified_facts: dossier.verifiedFacts || [],
+                best_hook_fact: topFact
+            };
+        } catch (err) {
+            console.warn(`⚠️ [Vamuss Agent Tool] Falha na pesquisa online: ${err.message}`);
+            return {
+                success: false,
+                best_hook_fact: 'Trabalho exclusivamente com clínicas dentárias em Portugal para aumentar previsibilidade de tratamentos particulares.'
+            };
+        }
+    },
+
+    /**
+     * 4. Envia mensagem de WhatsApp
+     */
+    async send_whatsapp_message({ deal_id, phone, message_text, intent }) {
+        const cleanPhone = normalizePhoneNumber(phone);
+
+        // 1. Salvaguarda fail-closed de supressão
+        if (isPhoneSuppressedLocally(cleanPhone, deal_id)) {
+            console.warn(`🛑 [Vamuss Agent Tool] Envio rejeitado: número +${cleanPhone} está na lista de supressão.`);
+            return { success: false, blocked: true, reason: 'SUPPRESSED' };
+        }
+
+        // 2. Salvaguarda de horário comercial (09h00-17h00 Europe/Lisbon Seg-Sex)
+        const timing = validateDispatchTiming();
+        if (!timing.isWithinHours) {
+            console.warn(`⏰ [Vamuss Agent Tool] Fora de horário comercial (${timing.reason}). Envio bloqueado para proteção do número.`);
+            return { success: false, blocked: true, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.nextWindow };
+        }
+
+        // 3. Verificar estado do WhatsApp Web
+        const waStatus = getWhatsAppWebStatus();
+        if (waStatus.status !== 'CONNECTED') {
+            console.warn(`📵 [Vamuss Agent Tool] WhatsApp Web não conectado (Estado: ${waStatus.status}).`);
+            return { success: false, error: 'WHATSAPP_DISCONNECTED' };
+        }
+
+        console.log(`💬 [Vamuss Agent Tool] A enviar WhatsApp para +${cleanPhone} (Intent: ${intent}):\n"${message_text}"`);
+
+        try {
+            const result = await sendWhatsAppWebMessage(cleanPhone, message_text);
+
+            // Registar ação na timeline do CRM
+            const validDealId = (deal_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deal_id)) ? deal_id : null;
+            if (supabase && validDealId) {
+                const { data: deal } = await supabase.from('deals').select('user_id').eq('id', validDealId).single();
+                if (deal?.user_id) {
+                    await supabase.from('activities').insert({
+                        user_id: deal.user_id,
+                        deal_id: validDealId,
+                        type: 'whatsapp',
+                        title: `SDR Autónomo: ${intent}`,
+                        notes: message_text,
+                        date: new Date().toISOString(),
+                        completed: true,
+                        is_automatic: true
+                    }).catch(() => {});
+                }
+            }
+
+            // Atualizar estado de memória do Agente
+            recordAgentAction('OUTBOUND_DISPATCH', {
+                deal_id,
+                phone: cleanPhone,
+                intent,
+                snippet: message_text.slice(0, 80)
+            });
+
+            return { success: true, result };
+        } catch (err) {
+            console.error(`❌ [Vamuss Agent Tool] Erro no envio WhatsApp para +${cleanPhone}:`, err.message);
+            return { success: false, error: err.message };
+        }
+    },
+
+    /**
+     * 5. Envia link do Cal.com
+     */
+    async send_calcom_booking_link({ deal_id, phone, clinic_name = '' }) {
+        const cleanPhone = normalizePhoneNumber(phone);
+        const inviteMessage = `Ótimo! Para vermos isso com clareza e sem rodeios, o melhor é uma breve Reunião de Diagnóstico de 20 minutos (sem qualquer compromisso).\n\nPode escolher diretamente o horário mais conveniente aqui:\n${CALCOM_BOOKING_LINK}\n\nAssim preparo uma análise específica para a sua clínica antes de falarmos.`;
+
+        console.log(`🎯 [Vamuss Agent Tool] Enviando link do Cal.com para +${cleanPhone}...`);
+
+        const sendRes = await AgentToolImplementations.send_whatsapp_message({
+            deal_id,
+            phone: cleanPhone,
+            message_text: inviteMessage,
+            intent: 'LINK_CALCOM'
+        });
+
+        if (sendRes.success) {
+            // Atualizar pipeline
+            const pipe = readRecoveryPipelineStore();
+            pipe[deal_id] = {
+                ...(pipe[deal_id] || {}),
+                stage: 'link_calcom_enviado',
+                calcomLinkSentAt: new Date().toISOString()
+            };
+            writeRecoveryPipelineStore(pipe);
+
+            recordAgentAction('CALCOM_SENT', { deal_id, phone: cleanPhone });
+
+            // Alerta informativo ao Philipe
+            await AgentToolImplementations.alert_philipe_on_whatsapp({
+                summary: `Link de Reunião de Diagnóstico enviado à clínica ${clinic_name} (+${cleanPhone})!`,
+                clinic_name,
+                deal_id
+            });
+        }
+
+        return sendRes;
+    },
+
+    /**
+     * 6. Atualiza qualificação SPIN
+     */
+    async update_spin_state({ deal_id, lead_reply_text }) {
+        const currentState = getOrCreateSpinState(deal_id);
+        const analysis = analyzeInboundSpinProgress({ inboundText: lead_reply_text, currentState });
+        saveSpinStateToStore(deal_id, analysis.updatedState);
+
+        return {
+            success: true,
+            spin_summary: formatSpinSummaryForAlert(analysis.updatedState),
+            is_ready_for_calcom: analysis.isReadyForCalCom,
+            is_objection: analysis.isObjection,
+            objection_type: analysis.objectionType,
+            suggested_action: analysis.suggestedAction,
+            exchange_count: analysis.updatedState.exchangeCount
+        };
+    },
+
+    /**
+     * 7. Agenda retorno futuro
+     */
+    async schedule_followup_return({ deal_id, return_date, reason = '' }) {
+        console.log(`📅 [Vamuss Agent Tool] Agendando retorno do deal ${deal_id} para ${return_date} (${reason})`);
+
+        const pipe = readRecoveryPipelineStore();
+        pipe[deal_id] = {
+            ...(pipe[deal_id] || {}),
+            stage: 'retorno_agendado',
+            scheduledReturnDate: return_date,
+            returnReason: reason,
+            aiAutonomySuspended: false
+        };
+        writeRecoveryPipelineStore(pipe);
+
+        if (supabase && deal_id) {
+            const { data: deal } = await supabase.from('deals').select('user_id').eq('id', deal_id).single();
+            if (deal?.user_id) {
+                await supabase.from('activities').insert({
+                    user_id: deal.user_id,
+                    deal_id: deal_id,
+                    type: 'follow_up',
+                    title: `Retorno Agendado pelo SDR para ${return_date}`,
+                    notes: `Lead pediu retorno. Motivo: ${reason}`,
+                    date: `${return_date}T09:30:00Z`,
+                    completed: false
+                }).catch(() => {});
+            }
+        }
+
+        return { success: true, scheduled: true, return_date };
+    },
+
+    /**
+     * 8. Regista Opt-Out
+     */
+    async register_opt_out({ deal_id, phone, evidence = '' }) {
+        const cleanPhone = normalizePhoneNumber(phone);
+        const validDealId = (deal_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deal_id)) ? deal_id : null;
+        console.log(`🛑 [Vamuss Agent Tool] Registando Opt-Out para +${cleanPhone}: "${evidence}"`);
+
+        addLocalSuppression({
+            deal_id: validDealId,
+            telefone_normalizado: cleanPhone,
+            motivo: 'OPTOUT_EXPLICITO',
+            motivo_bloqueio: 'OPTOUT_EXPLICITO'
+        });
+
+        if (supabase) {
+            await supabase.from('sdr_suppression_list').insert({
+                deal_id: validDealId,
+                telefone_normalizado: cleanPhone,
+                motivo_bloqueio: 'OPTOUT_EXPLICITO',
+                origem_bloqueio: 'AGENTE_AUTONOMO',
+                canal_bloqueado: 'TODOS',
+                evidencia: evidence,
+                estado: 'ativo'
+            }).catch(() => {});
+        }
+
+        return { success: true, suppressed: true };
+    },
+
+    /**
+     * 9. Alerta Philipe no WhatsApp
+     */
+    async alert_philipe_on_whatsapp({ summary, clinic_name = '', deal_id = '' }) {
+        const text = `🔔 *[Alerta Vamuss Comercial]*\n${summary}\n${clinic_name ? `• Clínica: ${clinic_name}\n` : ''}${deal_id ? `• Deal ID: ${deal_id}\n` : ''}`;
+        try {
+            await sendWhatsAppWebMessage(OPERATOR_PHONE, text);
+            return { success: true };
+        } catch (e) {
+            console.warn('⚠️ Não foi possível enviar alerta no WhatsApp do Philipe:', e.message);
+            return { success: false, error: e.message };
+        }
+    }
+};
+
+/**
+ * ============================================================================
+ * SYSTEM PROMPT DO AGENTE COMERCIAL VAMUSS
+ * ============================================================================
+ */
+
+export const VAMUSS_AGENT_SYSTEM_PROMPT = `
+És o Agente Comercial Autónomo da Agência Vamuss (Portugal), atuando em nome de Philipe Coelho.
+
+A TUA POSTURA E FILOSOFIA DE VENDAS:
+1. SDR: Volume com velocidade, curiosidade genuína e resiliência. Quem tenta vender na primeira mensagem queima o lead. O teu foco é abrir uma conversa qualificada, humana e fluida.
+2. CLOSER: Profundidade, escuta ativa, diagnóstico real e condução segura até ao próximo passo. Fechar é consequência de uma boa conversa e diagnóstico, não de truques.
+
+============================================================
+1. PAPEL DO SDR: ABRIR A PORTA (REAQUECIMENTO DE LEADS PERDIDOS)
+============================================================
+O trabalho do SDR é reabrir o diálogo a partir do histórico do CRM, com base no motivo da perda anterior.
+- NUNCA vendas na 1ª mensagem: Não fales de serviços da Vamuss, não apresentes propostas, não peças chamadas logo de início.
+- NUNCA uses clichês vazios: Proibido "espero que esteja bem", "olá tudo bem" ou textos padronizados de marketing.
+- NUNCA desmereças concorrentes: NUNCA ataques equipas ou agências existentes (proibido falar de "apenas likes e seguidores" ou diminuir ninguém).
+- NUNCA incluas avisos de opt-out no texto ("se não fizer sentido retiro o contacto"): isso soa a bot de spam e mata a conversa.
+- Abertura curta e cirúrgica: 2 a 3 linhas no máximo, citando o contexto real e terminando com UMA pergunta amigável e fácil de responder.
+
+DISTINÇÃO CRÍTICA: NOTA INTERNA DO PHILIPE vs. MENSAGEM DO CLIENTE:
+- O campo de motivo da perda no CRM frequentemente contém anotações pessoais do Philipe (ex: "grupo muito grande", "fora de perfil", "já anunciam").
+- NUNCA digas à clínica que ela disse algo que foi apenas uma nota interna do Philipe!
+- Apenas atribuis palavras ao cliente se houver prova explícita de mensagem recebida na timeline (ex: resposta real como na Mediminho). Se for uma nota interna, usa-a apenas como contexto silencioso para ti, abrindo a conversa de forma neutra e natural.
+
+SALVAGUARDA DE EX-CLIENTE (NUNCA ABORDAR):
+- A clínica Odontoclinic (ou Odontclinic) foi cliente da Vamuss no passado e está terminantemente BLOQUEADA de qualquer abordagem comercial do SDR ou Closer.
+
+LIBERDADE ESTRATÉGICA E REPERTÓRIO DE ABERTURA DO SDR:
+És um consultor autónomo e sénior, NÃO um robô a repetir guiões ou templates fixos. Tens total margem estratégica para analisar o contexto do CRM e a pesquisa da clínica para criar uma abordagem ÚNICA, viva e personalizada.
+
+ÂNGULOS DE ABERTURA QUE PODES COMBINAR E EXPLORAR LIVREMENTE:
+• Ângulo de Continuidade Histórica: Lembrar com simpatia e elegância o contacto anterior, retomando o fio à meada de forma fluida.
+• Ângulo de Especialidade / Foco Clínico: Usar factos reais descobertos na pesquisa web (ex.: tratamentos que a clínica promove, como implantes, ortodontia invisível ou reabilitação) e perguntar sobre o movimento de pacientes particulares nessas áreas.
+• Ângulo de Acompanhamento de Fornecedor: Se na altura tinham agência ou equipa, perguntar com curiosidade respeitosa se tem corrido tudo bem e se têm alcançado a consistência e os resultados que esperavam.
+• Ângulo de Evolução & Sazonalidade: Perguntar como tem corrido este ano, se têm sentido estabilidade no fluxo de primeiras consultas particulares ou oscilação mês a mês.
+• Ângulo de Reestruturação: Se no passado faltavam recursos, tempo ou estrutura, perguntar se as coisas agora estão mais desafogadas e organizadas.
+
+DIRETRIZES FUNDAMENTAIS DA MENSAGEM DO SDR (CONCISÃO EXTREMA DE WHATSAPP):
+- CONCISÃO CIRÚRGICA (MÁXIMO 2 A 3 LINHAS): No WhatsApp ninguém lê parágrafos compridos entre consultas. NUNCA despejes todo o histórico ou múltiplos temas na mesma mensagem.
+- UMA ÚNICA PERGUNTA: É TERMINANTEMENTE PROIBIDO fazer duas perguntas na 1ª mensagem. Escolhe apenas UMA pergunta de baixo atrito para iniciar o diálogo.
+- PING-PONG CONVERSACIONAL: A 1ª mensagem serve apenas para reabrir a porta e obter uma primeira resposta (ex: "Sim, sou eu", "Diga", "Tudo bem"). O aprofundamento do problema e os detalhes da clínica vêm DEPOIS que o lead responder!
+- PROIBIÇÃO ABSOLUTA DE LINGUAGEM DEFENSIVA OU SUBMISSA:
+  NUNCA coloques frases de encerramento do tipo:
+  • "ou prefere que não volte a tocar no assunto?"
+  • "ou prefere que não volte a incomodar?"
+  • "se não fizer sentido retiro o contacto"
+  • "ou diga-me e não chateio mais"
+  Isso destrói a postura executiva, transmite insegurança e parece desespero comercial.
+- A pergunta final deve ser assertiva, curta e de baixo atrito:
+  Exemplos reais de alto nível (2 linhas):
+  • "Dra. Catarina, boa tarde. Há uns meses enviei uma nota à sua atenção que suspeito ter ficado na receção da CClinic. Ainda é consigo que vejo a direção estratégica da clínica aí em Leiria?"
+  • "Olá Dr. Machado! Lembrei-me da nossa conversa anterior sobre a clínica. Como tem corrido este ano por aí?"
+- NUNCA vendas serviços da Vamuss na primeira mensagem, NUNCA peças reuniões na 1ª mensagem, NUNCA ataques concorrentes.
+
+============================================================
+2. PAPEL DO CLOSER: DIAGNOSTICAR, CONDUZIR E DECIDIR
+============================================================
+O Closer entra EM CENA APENAS quando a clínica responde à abordagem do SDR.
+- ESCUTA ATIVA & INTELIGÊNCIA EMOCIONAL: Falar menos que o cliente. Ler sinais de compra e preocupações não ditas. Quanto melhor for a pergunta de discovery, menos precisas de "convencer".
+- DIAGNÓSTICO PROFUNDO (Discovery): Descobre o problema real, o que já tentaram, o custo de não resolver e o impacto no dia a dia da clínica.
+- GESTÃO DE DECISOR (Multi-threading): Identifica se falas com a receção/secretária ou com o decisor clínico. Com a receção, sê impecável e pede encaminhamento; com o decisor, fala de rentabilidade e previsibilidade.
+- ENQUADRAR EM RETORNO (ROI): Clínicas dentárias pensam em valor de tratamentos (quanto vale um paciente de implantes ou ortodontia para a clínica), nunca em cliques, CPL ou vaidades.
+- FRAME CONTROL & CONTORNO DE OBJEÇÕES CIRÚRGICO:
+  • Se perguntar preço de imediato ("Quanto custa?"): Nunca atires um número no vazio nem fujas da pergunta. Reposiciona com elegância e firmeza: "Para lhe dar um valor exato sem adivinhar, preciso de 2 minutos para entender o vosso cenário e tratamentos prioritários. Pode ser?"
+  • Se disser "vou pensar" ou "falar com o sócio" (Isolamento da verdade): Diferencia a cortina de fumo da objeção real: "Compreendo perfeitamente. Além de alinhar com o seu sócio, há algum ponto da nossa abordagem que não faça sentido para si hoje?"
+  • Se disser "está caro": Acolhe e ancora em perda: "Compreendo. Quando diz caro, em relação a quê? Normalmente uma única reabilitação ou implante por mês cobre todo o investimento da estrutura."
+  • Se o lead disser que está 100% satisfeito com a equipa atual: Elogia com sinceridade ("Excelente, fico genuinamente contente! Ter estabilidade e consistência na clínica é o mais importante. Desejo-vos a continuação de muito sucesso!") e encerra com elegância.
+  • Se disser "Agora não / contacte daqui a uns meses": Usa 'schedule_followup_return'.
+  • Se disser que não tem interesse ou pedir para sair: Usa imediatamente 'register_opt_out'.
+- CONTROLO DO PRÓXIMO PASSO (Assertividade Equilibrada):
+  Quando o lead demonstra abertura, dor ou pergunta "como funciona?", propõe com confiança e naturalidade a Reunião de Diagnóstico de 20 minutos com o link do Cal.com:
+  "Para vermos isso com clareza e sem qualquer compromisso, o ideal seria uma breve conversa de diagnóstico de 20 minutos. Pode escolher o horário mais conveniente aqui: https://cal.com/euphilipecoelho-jxauxj/diagostico"
+
+DISCIPLINA DE CRM: Se não está registado, não aconteceu. Utiliza sempre as ferramentas disponíveis para atualizar notas, pipeline e atividades.
+`;
+
+/**
+ * ============================================================================
+ * O MOTOR DE RACIOCÍNIO AGÊNTICO (REASONING & TOOL-CALLING LOOP)
+ * ============================================================================
+ */
+
+export async function runAgentThinkingLoop(messages, maxIterations = 5) {
+    if (!process.env.OPENAI_API_KEY) {
+        throw new Error('OPENAI_API_KEY ausente no ambiente');
+    }
+
+    const conversationHistory = [...messages];
+
+    for (let i = 0; i < maxIterations; i++) {
+        console.log(`🤖 [Vamuss Agent Reasoning] Ciclo de raciocínio ${i + 1}/${maxIterations}...`);
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: conversationHistory,
+                tools: AGENT_TOOLS_DEFINITIONS,
+                tool_choice: 'auto',
+                temperature: 0.3
+            })
+        });
+
+        if (!response.ok) {
+            const errBody = await response.text();
+            throw new Error(`Erro na API OpenAI (${response.status}): ${errBody}`);
+        }
+
+        const data = await response.json();
+        const choice = data.choices[0];
+        const assistantMsg = choice.message;
+
+        conversationHistory.push(assistantMsg);
+
+        // Se o agente decidiu chamar ferramentas
+        if (assistantMsg.tool_calls && assistantMsg.tool_calls.length > 0) {
+            for (const toolCall of assistantMsg.tool_calls) {
+                const toolName = toolCall.function.name;
+                const toolArgs = JSON.parse(toolCall.function.arguments || '{}');
+
+                console.log(`🔧 [Vamuss Agent Executing Tool] "${toolName}" com argumentos:`, toolArgs);
+
+                const executor = AgentToolImplementations[toolName];
+                let toolResult = null;
+
+                if (typeof executor === 'function') {
+                    try {
+                        toolResult = await executor(toolArgs);
+                    } catch (toolErr) {
+                        toolResult = { error: toolErr.message };
+                    }
+                } else {
+                    toolResult = { error: `Ferramenta desconhecida: ${toolName}` };
+                }
+
+                conversationHistory.push({
+                    role: 'tool',
+                    tool_call_id: toolCall.id,
+                    content: JSON.stringify(toolResult)
+                });
+            }
+            // Continua o loop para o modelo reagir aos resultados das ferramentas
+            continue;
+        }
+
+        // Se o modelo terminou o raciocínio e respondeu em texto
+        return {
+            finalResponse: assistantMsg.content,
+            history: conversationHistory
+        };
+    }
+
+    return {
+        finalResponse: conversationHistory[conversationHistory.length - 1]?.content || 'Concluído.',
+        history: conversationHistory
+    };
+}
+
+/**
+ * ============================================================================
+ * CICLOS DE ENTRADA AUTÓNOMOS
+ * ============================================================================
+ */
+
+/**
+ * CICLO 1: PROSPEÇÃO ATIVA DE REAQUECIMENTO (Outbound Autónomo)
+ * Varre o CRM, seleciona até ao limite do dia (5), lê histórico profundo, pesquisa e dispara abordagem.
+ */
+export async function runAutonomousOutboundCycle({ force = false, limit = DAILY_OUTBOUND_LIMIT } = {}) {
+    console.log('\n============================================================');
+    console.log('🚀 [Vamuss Agent] INICIANDO CICLO AUTÓNOMO DE REAQUECIMENTO...');
+    console.log('============================================================');
+
+    // 1. Validar se estamos dentro do horário comercial (09h00-17h00 Seg-Sex)
+    const timing = validateDispatchTiming();
+    if (!timing.isWithinHours && !force) {
+        console.log(`⏰ [Vamuss Agent] Fora do horário comercial português (${timing.reason}).`);
+        console.log(`   Próxima janela de execução: ${timing.nextWindow}`);
+        return { success: false, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.nextWindow };
+    }
+
+    // 2. Verificar quota diária já disparada hoje
+    const state = readAgentState();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const sentToday = state.dailyDispatches[todayStr] || 0;
+    const remainingSlots = Math.max(0, limit - sentToday);
+
+    if (remainingSlots <= 0 && !force) {
+        console.log(`🛡️ [Vamuss Agent] Limite diário de segurança atingido (${sentToday}/${limit} leads hoje).`);
+        return { success: true, reachedLimit: true, sentToday };
+    }
+
+    console.log(`📊 [Vamuss Agent] Vagas disponíveis para hoje: ${remainingSlots} novos leads.`);
+
+    // 3. Executar o ciclo do agente
+    const prompt = `
+És o Agente Comercial Autónomo da Vamuss no teu PAPEL DE SDR (Reaquecimento Humano e Respeitoso).
+Por favor:
+1. Usa a ferramenta 'scan_crm_lost_deals' com limite ${remainingSlots} para encontrar negócios perdidos elegíveis.
+2. Para cada negócio encontrado:
+   a) Usa 'fetch_lead_full_dossier' para ler as notas, atividades antigas e o motivo exato da perda.
+   b) Usa 'research_clinic_online' para conhecer a clínica.
+   c) Elabora uma mensagem de REAQUECIMENTO DE SDR genuína e sob medida:
+      - Cordial, viva, autêntica e em Português de Portugal.
+      - Tens total margem estratégica para escolher o melhor ângulo de reabertura (continuidade do histórico, especialidade clínica/pesquisa web, evolução do ano, ou curiosidade respeitosa sobre como tem corrido a equipa/estrutura).
+      - NUNCA uses templates fixos nem frases engessadas. Cada clínica deve receber uma abordagem única adaptada ao seu perfil.
+      - NUNCA fales de serviços da Vamuss, NUNCA peças reuniões nem compromissos na 1ª mensagem, NUNCA critiques a equipa atual ou concorrentes, e NUNCA incluas frases burocráticas de opt-out.
+      - Termina com uma única pergunta aberta e amigável que convide com naturalidade à continuidade da conversa.
+   d) Usa 'send_whatsapp_message' com intent 'PRIMEIRA_ABORDAGEM' para enviar pelo WhatsApp.
+3. Resume no fim o que fizeste para cada lead.
+`;
+
+    try {
+        const result = await runAgentThinkingLoop([
+            { role: 'system', content: VAMUSS_AGENT_SYSTEM_PROMPT },
+            { role: 'user', content: prompt }
+        ]);
+
+        console.log('\n============================================================');
+        console.log('✅ [Vamuss Agent] CICLO DE REAQUECIMENTO CONCLUÍDO COM SUCESSO:');
+        console.log(result.finalResponse);
+        console.log('============================================================\n');
+
+        return { success: true, summary: result.finalResponse };
+    } catch (err) {
+        console.error('❌ [Vamuss Agent] Erro fatal no ciclo autónomo:', err.message);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
+ * CICLO 2: TRATAMENTO DE RESPOSTA DO LEAD (Inbound Closer)
+ * Chamado quando qualquer clínica responde no WhatsApp (texto ou áudio transcrito).
+ */
+export async function processInboundLeadTurn({ phone, text, isAudio = false }) {
+    const cleanPhone = normalizePhoneNumber(phone);
+    console.log(`\n📥 [Vamuss Agent Closer] Processando resposta inbound de +${cleanPhone}: "${text}" (Áudio: ${isAudio})`);
+
+    // Procurar o deal correspondente no CRM
+    let dealId = null;
+    let clinicName = 'Dra./Dr.';
+    if (supabase) {
+        const { data: contacts } = await supabase
+            .from('contacts')
+            .select('id, name')
+            .or(`phone.ilike.%${cleanPhone.slice(-9)}%`);
+
+        if (contacts && contacts.length > 0) {
+            clinicName = contacts[0].name;
+            const { data: deals } = await supabase
+                .from('deals')
+                .select('id')
+                .eq('contact_id', contacts[0].id)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (deals && deals.length > 0) {
+                dealId = deals[0].id;
+            }
+        }
+    }
+
+    const prompt = `
+A clínica "${clinicName}" (+${cleanPhone}) acabou de responder no WhatsApp:
+"${text}"
+(Aviso: esta mensagem veio de ${isAudio ? 'um áudio transcrito' : 'texto'}).
+${dealId ? `Deal ID no CRM: ${dealId}` : 'Nota: não encontramos dealID no CRM diretamente pelo número.'}
+
+Por favor age como o Closer Autónomo da Vamuss:
+1. Se a mensagem for recusa/opt-out, usa imediatamente 'register_opt_out'.
+2. Se tiver deal_id, usa 'update_spin_state' para registar a qualificação e verificar a maturidade SPIN.
+3. Se o lead pedir para falar mais tarde ou numa data específica, usa 'schedule_followup_return'.
+4. Se o lead já estiver pronto ou expressar interesse em ver como funciona, usa 'send_calcom_booking_link'.
+5. Caso contrário, formula uma resposta consultiva em pt-PT (curta, empática, tratando a objeção com foco em consultas particulares de alto valor) e usa 'send_whatsapp_message' com intent 'RESPOSTA_SPIN'.
+`;
+
+    try {
+        const result = await runAgentThinkingLoop([
+            { role: 'system', content: VAMUSS_AGENT_SYSTEM_PROMPT },
+            { role: 'user', content: prompt }
+        ]);
+
+        recordAgentAction('INBOUND_REPLY', {
+            phone: cleanPhone,
+            clinicName,
+            textSnippet: text.slice(0, 60),
+            agentResolution: result.finalResponse?.slice(0, 100)
+        });
+
+        return { success: true, resolution: result.finalResponse };
+    } catch (err) {
+        console.error('❌ [Vamuss Agent Closer] Erro ao processar resposta:', err.message);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
+ * ============================================================================
+ * ROTAS HTTP PARA CONTROLO E MONITORIZAÇÃO DO AGENTE
+ * ============================================================================
+ */
+export function setupCommercialAgentRoutes(app) {
+    // 1. Estado de memória e métricas do Agente
+    app.get('/api/sdr/agent/status', (req, res) => {
+        try {
+            const state = readAgentState();
+            const waStatus = getWhatsAppWebStatus();
+            const timing = validateDispatchTiming();
+            return res.json({
+                success: true,
+                status: 'ONLINE',
+                operator: { name: OPERATOR_NAME, phone: OPERATOR_PHONE },
+                whatsappWebStatus: waStatus.status,
+                isWithinBusinessHours: timing.isWithinHours,
+                nextBusinessWindow: timing.nextWindow,
+                memory: state
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    // 2. Disparo do ciclo autónomo sob demanda
+    app.post('/api/sdr/agent/run', async (req, res) => {
+        try {
+            const force = req.body?.force === true;
+            const limit = parseInt(req.body?.limit || `${DAILY_OUTBOUND_LIMIT}`, 10);
+            const result = await runAutonomousOutboundCycle({ force, limit });
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    // 3. Simulação ou encaminhamento de resposta inbound de teste
+    app.post('/api/sdr/agent/reply', async (req, res) => {
+        try {
+            const { phone, text, isAudio } = req.body;
+            if (!phone || !text) {
+                return res.status(400).json({ error: 'phone e text são obrigatórios' });
+            }
+            const result = await processInboundLeadTurn({ phone, text, isAudio: Boolean(isAudio) });
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+}

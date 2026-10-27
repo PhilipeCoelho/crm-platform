@@ -195,6 +195,7 @@ export interface Stage {
     title: string;
     probability?: number;
     color?: string;
+    orderIndex?: number;
 }
 
 export interface Pipeline {
