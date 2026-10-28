@@ -56,5 +56,10 @@
         "Números pessoais devem estar numa lista de bloqueio absoluto, independente do estado da memória do agente"
       ]
     }
+  ],
+  "regras_aprendidas": [
+    "TRANSPOSIÇÃO DE RECEÇÃO: Nunca vender para a rececionista. Pedir encaminhamento à direção clínica com extrema cortesia.",
+    "INTELIGÊNCIA CUMULATIVA: O aprendizado novo soma ao repertório validado, sem substituir as regras fundamentais de vendas.",
+    "DISPAROS ESPAÇADOS: Testar janelas diárias (10h15, 12h30, 15h15, 16h40) para identificar o horário com maior taxa de resposta."
   ]
 }
