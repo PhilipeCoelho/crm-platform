@@ -561,9 +561,18 @@ export const AgentToolImplementations = {
                 websiteUrl: website
             });
 
-            const topFact = dossier.verifiedFacts && dossier.verifiedFacts.length > 0 
-                ? dossier.verifiedFacts[0].fact 
-                : 'Trabalho exclusivamente com clínicas dentárias em Portugal para aumentar previsibilidade de tratamentos particulares de alto valor.';
+            // Filtro rigoroso: nunca permitir ganchos de amador como "não aparece no Google para..."
+            const filteredFacts = (dossier.verifiedFacts || []).filter(f => {
+                const txt = (f.fact || '').toLowerCase();
+                return !txt.includes('não surge na primeira página') && 
+                       !txt.includes('não aparece na primeira página') &&
+                       !txt.includes('visibilidade orgânica') &&
+                       !txt.includes('primeira página do google');
+            });
+
+            const topFact = filteredFacts.length > 0 
+                ? filteredFacts[0].fact 
+                : 'Acompanhamento clínico especializado em tratamentos particulares de valor acrescentado em Portugal.';
 
             return {
                 success: true,
@@ -571,14 +580,14 @@ export const AgentToolImplementations = {
                 treatments: dossier.siteAnalysis?.highlightedTreatments || [],
                 rating: dossier.visibilityAnalysis?.rating || null,
                 reviews_count: dossier.visibilityAnalysis?.reviewCount || null,
-                verified_facts: dossier.verifiedFacts || [],
+                verified_facts: filteredFacts,
                 best_hook_fact: topFact
             };
         } catch (err) {
             console.warn(`⚠️ [Vamuss Agent Tool] Falha na pesquisa online: ${err.message}`);
             return {
                 success: false,
-                best_hook_fact: 'Trabalho exclusivamente com clínicas dentárias em Portugal para aumentar previsibilidade de tratamentos particulares.'
+                best_hook_fact: 'Acompanhamento clínico especializado em tratamentos particulares de valor acrescentado em Portugal.'
             };
         }
     },
@@ -851,10 +860,30 @@ O trabalho do SDR é reabrir o diálogo a partir do histórico do CRM, com base 
 - NUNCA incluas avisos de opt-out no texto ("se não fizer sentido retiro o contacto"): isso soa a bot de spam e mata a conversa.
 - Abertura curta e cirúrgica: 2 a 3 linhas no máximo, citando o contexto real e terminando com UMA pergunta amigável e fácil de responder.
 
-DISTINÇÃO CRÍTICA: NOTA INTERNA DO PHILIPE vs. MENSAGEM DO CLIENTE:
-- O campo de motivo da perda no CRM frequentemente contém anotações pessoais do Philipe (ex: "grupo muito grande", "fora de perfil", "já anunciam").
-- NUNCA digas à clínica que ela disse algo que foi apenas uma nota interna do Philipe!
-- Apenas atribuis palavras ao cliente se houver prova explícita de mensagem recebida na timeline (ex: resposta real como na Mediminho). Se for uma nota interna, usa-a apenas como contexto silencioso para ti, abrindo a conversa de forma neutra e natural.
+DISTINÇÃO CRÍTICA & BLINDAGEM DE NOTAS INTERNAS DO PHILIPE:
+- O campo de motivo da perda no CRM frequentemente contém anotações pessoais e confidenciais do Philipe (ex: "já tem agência", "já anunciam", "já tem equipa", "fora de perfil", "grupo grande").
+- É TERMINANTEMENTE PROIBIDO CITAR OU CONFESSAR ESSAS NOTAS DIRETAMENTE À CLÍNICA!
+  • NUNCA digas: "Vi que já estão a anunciar", "Notei que já têm uma equipa a trabalhar convosco", "Como tem sido a experiência com a vossa agência?".
+  • Isso soa a espionagem rasteira e amadora, destrói a confiança e queima o contacto imediatamente!
+- O que fazer com essas notas: Usa-as APENAS como inteligência silenciosa para ti.
+  • Se a nota diz "já anunciam" ou "já tem agência": Não menciones anúncios nem agências! Fala apenas de previsibilidade de consultas particulares de alto valor (implantes, ortodontia, reabilitação).
+  • Apenas citas palavras da clínica se houver uma RESPOSTA FACTUAL escrita pela clínica no histórico (ex: "em março pediram para retomar contacto mais à frente"). Se for anotação do operador, mantém sigilo absoluto!
+
+PROIBIÇÃO DE GANCHOS DE MARKETING AMADOR (SPAM):
+- É TERMINANTEMENTE PROIBIDO usar ganchos do tipo:
+  • "Vi que não aparecem na primeira página do Google para [x]"
+  • "Como têm lidado com a visibilidade online?"
+  • "Alguma novidade interessante este ano?"
+  • "Como tem sido o movimento de pacientes particulares este ano?" (pergunta vazia e preguiçosa)
+- Nenhuma clínica respeitável responde a abordagens genéricas de agência que parecem tiradas de um guião de estagiário de marketing.
+
+EXEMPLOS REAIS DE ABORDAGEM CONSULTIVA E EXECUTIVA (SDR SÉNIOR VAMUSS):
+• Se a clínica já tem agência/anúncios (ex: Santa Zita / Machado Capelas):
+  "Dra. / Direção da clínica, boa tarde. Falámos há uns meses sobre a atração de pacientes em [Cidade]. Têm sentido este ano consistência no preenchimento de consultas de tratamentos de maior valor (como implantes/reabilitação) ou o fluxo ainda oscila mês a mês?"
+• Se a clínica pediu para falar mais tarde / sem interesse na altura (ex: Mediminho):
+  "Bom dia à equipa da clínica. Em março falaram com o Philipe e pediram para retomar o contacto mais à frente. Como tem corrido o segundo semestre aí na clínica a nível de primeiras consultas particulares?"
+• Se o contacto anterior foi frio / sem resposta:
+  "Doutor(a), boa tarde. Tinha-lhe deixado uma breve nota há uns meses que suspeito ter ficado pelo caminho. Mantêm o foco prioritário no preenchimento de consultas particulares de reabilitação/implantes este trimestre?"
 
 SALVAGUARDA DE EX-CLIENTE (NUNCA ABORDAR):
 - A clínica Odontoclinic (ou Odontclinic) foi cliente da Vamuss no passado e está terminantemente BLOQUEADA de qualquer abordagem comercial do SDR ou Closer.
