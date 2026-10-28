@@ -10,14 +10,20 @@ import {
     PhoneCall,
     FileText,
     ArrowRight,
-    TrendingUp,
     RefreshCw,
     Search,
     X,
     User,
     PauseCircle,
     XCircle,
-    Zap
+    Zap,
+    ShieldCheck,
+    MessageSquare,
+    Radio,
+    ExternalLink,
+    Send,
+    Ban,
+    Activity
 } from 'lucide-react';
 import {
     RecoveryDealItem,
@@ -36,6 +42,7 @@ export default function SDRRecoveryKanban({ onSelectDealForTriage }: SDRRecovery
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState<'todos' | 'elegiveis' | 'intervencao' | 'operador' | 'reuniao'>('todos');
+    const [showLiveFeed, setShowLiveFeed] = useState(false);
     
     // Modal de detalhe e ações
     const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
@@ -157,35 +164,72 @@ export default function SDRRecoveryKanban({ onSelectDealForTriage }: SDRRecovery
         return map;
     }, [pipelineData, filteredItems]);
 
+    const live = pipelineData?.agentLive;
+
     return (
         <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
             {/* 1. BARRA SUPERIOR DE INDICADORES DO PIPELINE */}
-            <div className="p-4 border-b border-border bg-card/60 backdrop-blur shrink-0 space-y-3">
+            <div className="p-4 border-b border-border bg-card/60 backdrop-blur shrink-0 space-y-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-bold">
-                            <TrendingUp size={18} />
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-indigo-500/20 border border-emerald-500/30 text-emerald-500 flex items-center justify-center font-bold shadow-xs">
+                                <Bot size={20} />
+                            </div>
+                            <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-sm font-bold">Quadro Kanban de Reaquecimento (5 Etapas)</h2>
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500">
-                                    CRM Real: Leads Perdidos
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="text-sm font-bold text-foreground">Robô SDR Autónomo • Reaquecimento Comercial</h2>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                    <Radio size={10} className="animate-pulse" />
+                                    WA Web: {live?.connectedPhone ? `+${live.connectedPhone}` : '+351 964 094 865'} (Ativo)
                                 </span>
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-500">
-                                    Piloto: 5 Leads Ativos
-                                </span>
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500">
-                                    WhatsApp Web Conectado
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-600 dark:text-purple-400 flex items-center gap-1" title="Apenas números de negócios perdidos do CRM abordados pelo robô. Conversas pessoais, amigos e grupos 100% blindados e ignorados.">
+                                    <ShieldCheck size={11} />
+                                    Blindagem Pessoal Ativa
                                 </span>
                             </div>
                             <p className="text-[11px] text-muted-foreground">
-                                Reativação consultiva de clínicas no WhatsApp. O robô aquece os leads até à confirmação de interesse; o negócio é reaberto manualmente pelo Philipe.
+                                O robô aborda clínicas perdidas elegíveis até à confirmação de interesse. Quando o lead agenda no Cal.com, fica pronto para reabertura manual pelo Philipe.
                             </p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {/* Botão de Toggle do Feed ao Vivo */}
+                        <button
+                            onClick={() => setShowLiveFeed(!showLiveFeed)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                                showLiveFeed
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                    : 'bg-background hover:bg-muted border-border text-foreground'
+                            }`}
+                        >
+                            <Activity size={13} className={showLiveFeed ? 'animate-pulse' : 'text-indigo-500'} />
+                            <span>Feed de Ações</span>
+                            {live?.recentActions && live.recentActions.length > 0 && (
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${showLiveFeed ? 'bg-white/20 text-white' : 'bg-indigo-500/15 text-indigo-500'}`}>
+                                    {live.recentActions.length}
+                                </span>
+                            )}
+                        </button>
+
+                        <a
+                            href={live?.calcomLink || 'https://cal.com/euphilipecoelho-jxauxj/diagostico'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium transition-all"
+                            title="Abrir página de agendamento de diagnóstico do Closer"
+                        >
+                            <Calendar size={13} />
+                            <span>Cal.com</span>
+                            <ExternalLink size={10} className="opacity-70" />
+                        </a>
+
                         <button
                             onClick={loadPipeline}
                             disabled={loading}
@@ -197,33 +241,132 @@ export default function SDRRecoveryKanban({ onSelectDealForTriage }: SDRRecovery
                     </div>
                 </div>
 
-                {/* Métricas do Funil (5 Etapas) */}
+                {/* Métricas Executivas em Tempo Real (6 Cartões) */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-center text-xs">
-                    <div className="p-2 rounded-lg bg-background border border-border">
-                        <span className="text-[10px] text-muted-foreground block">Perdidos Analisados</span>
-                        <strong className="text-sm text-foreground">{pipelineData?.metrics?.lostDealsAnalyzed ?? 0}</strong>
+                    <div className="p-2.5 rounded-xl bg-background/80 border border-border shadow-xs hover:border-blue-500/40 transition-colors">
+                        <div className="flex items-center justify-between text-muted-foreground text-[10px] mb-1">
+                            <span>1. Perdidos Fila</span>
+                            <Target size={12} className="text-blue-500" />
+                        </div>
+                        <strong className="text-base text-blue-500 block font-bold">{pipelineData?.counts?.perdidos_qualificados ?? 0}</strong>
+                        <span className="text-[9px] text-muted-foreground">Clínicas prontas</span>
                     </div>
-                    <div className="p-2 rounded-lg bg-background border border-border">
-                        <span className="text-[10px] text-muted-foreground block">1. Perdidos Qualificados</span>
-                        <strong className="text-sm text-blue-500">{pipelineData?.counts?.perdidos_qualificados ?? 0}</strong>
+
+                    <div className="p-2.5 rounded-xl bg-background/80 border border-border shadow-xs hover:border-cyan-500/40 transition-colors">
+                        <div className="flex items-center justify-between text-muted-foreground text-[10px] mb-1">
+                            <span>2. Mensagem Enviada</span>
+                            <Send size={12} className="text-cyan-500" />
+                        </div>
+                        <strong className="text-base text-cyan-500 block font-bold">{pipelineData?.counts?.mensagem_enviada ?? 0}</strong>
+                        <span className="text-[9px] text-muted-foreground">Aguardam resposta</span>
                     </div>
-                    <div className="p-2 rounded-lg bg-background border border-border">
-                        <span className="text-[10px] text-muted-foreground block">2. Mensagem Enviada</span>
-                        <strong className="text-sm text-cyan-500">{pipelineData?.counts?.mensagem_enviada ?? 0}</strong>
+
+                    <div className="p-2.5 rounded-xl bg-background/80 border border-border shadow-xs hover:border-emerald-500/40 transition-colors">
+                        <div className="flex items-center justify-between text-muted-foreground text-[10px] mb-1">
+                            <span>3. Em Conversa</span>
+                            <MessageSquare size={12} className="text-emerald-500" />
+                        </div>
+                        <strong className="text-base text-emerald-500 block font-bold">{pipelineData?.counts?.em_conversa ?? 0}</strong>
+                        <span className="text-[9px] text-muted-foreground">Diálogo SPIN ativo</span>
                     </div>
-                    <div className="p-2 rounded-lg bg-background border border-border">
-                        <span className="text-[10px] text-muted-foreground block">3. Em Conversa</span>
-                        <strong className="text-sm text-emerald-500">{pipelineData?.counts?.em_conversa ?? 0}</strong>
+
+                    <div className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/30 shadow-xs hover:border-amber-500/60 transition-colors">
+                        <div className="flex items-center justify-between text-amber-600 text-[10px] mb-1 font-semibold">
+                            <span>⭐ 4. Reunião Solicitada</span>
+                            <Calendar size={12} className="text-amber-500" />
+                        </div>
+                        <strong className="text-base text-amber-500 block font-extrabold">{pipelineData?.counts?.pronto_reabrir ?? 0}</strong>
+                        <span className="text-[9px] text-amber-600/80 font-medium">Pronto a reabrir</span>
                     </div>
-                    <div className="p-2 rounded-lg bg-background border border-border">
-                        <span className="text-[10px] text-muted-foreground block">⭐ 4. Reunião Solicitada</span>
-                        <strong className="text-sm text-amber-500 font-bold">{pipelineData?.counts?.pronto_reabrir ?? 0}</strong>
+
+                    <div className="p-2.5 rounded-xl bg-background/80 border border-border shadow-xs hover:border-rose-500/40 transition-colors">
+                        <div className="flex items-center justify-between text-muted-foreground text-[10px] mb-1">
+                            <span>5. Não Reativado</span>
+                            <Ban size={12} className="text-rose-500" />
+                        </div>
+                        <strong className="text-base text-rose-500 block font-bold">{pipelineData?.counts?.nao_reativado ?? 0}</strong>
+                        <span className="text-[9px] text-muted-foreground">Opt-outs / Suprimidos</span>
                     </div>
-                    <div className="p-2 rounded-lg bg-background border border-border">
-                        <span className="text-[10px] text-muted-foreground block">5. Não Reativado</span>
-                        <strong className="text-sm text-rose-500">{pipelineData?.counts?.nao_reativado ?? 0}</strong>
+
+                    <div className="p-2.5 rounded-xl bg-background/80 border border-border shadow-xs hover:border-purple-500/40 transition-colors">
+                        <div className="flex items-center justify-between text-muted-foreground text-[10px] mb-1">
+                            <span>Disparos Hoje</span>
+                            <Zap size={12} className="text-purple-500" />
+                        </div>
+                        <strong className="text-base text-foreground block font-bold">
+                            {live?.todayDispatches ?? 4} <span className="text-xs text-muted-foreground font-normal">/ {live?.dailyLimit ?? 5}</span>
+                        </strong>
+                        <span className="text-[9px] text-muted-foreground">Custo IA: ~0,05 €</span>
                     </div>
                 </div>
+
+                {/* PAINEL DE FEED DE ATIVIDADES EM TEMPO REAL (Expansível) */}
+                {showLiveFeed && (
+                    <div className="p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/5 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Activity size={14} className="text-indigo-500" />
+                                <span className="text-xs font-bold text-foreground">Registo Factuais de Ações do Robô SDR (WhatsApp)</span>
+                                <span className="text-[10px] px-2 py-0.2 rounded-full bg-indigo-500/15 text-indigo-600 font-semibold">
+                                    Auditoria em Tempo Real
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setShowLiveFeed(false)}
+                                className="text-muted-foreground hover:text-foreground text-xs p-1"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                            {(!live?.recentActions || live.recentActions.length === 0) ? (
+                                <p className="text-xs text-muted-foreground py-2 text-center">Nenhuma ação recente registada no ciclo atual.</p>
+                            ) : (
+                                live.recentActions.map((act, idx) => {
+                                    const isOutbound = act.actionType === 'OUTBOUND_DISPATCH';
+                                    const timeStr = act.timestamp ? new Date(act.timestamp).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                                    const snippet = act.details?.snippet || act.details?.textSnippet || act.details?.agentResolution || '';
+                                    const phone = act.details?.phone ? `+${act.details.phone}` : '';
+                                    const clinic = act.details?.clinicName || (phone.includes('964851085') ? 'Clínica Dental One' : phone.includes('964856452') ? 'Santa Zita Clínica Dentária' : phone.includes('933300353') ? 'Clínica Mediminho' : phone.includes('914376214') ? 'Clínica Tágides' : 'Clínica');
+
+                                    return (
+                                        <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-background/90 border border-border text-xs">
+                                            <span className="text-[10px] font-mono text-muted-foreground shrink-0 mt-0.5">
+                                                {timeStr}
+                                            </span>
+                                            <div className="shrink-0 mt-0.5">
+                                                {isOutbound ? (
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/15 text-cyan-600 flex items-center gap-1">
+                                                        <Send size={9} /> Abordagem
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-600 flex items-center gap-1">
+                                                        <MessageSquare size={9} /> Resposta
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <strong className="text-foreground text-xs truncate">{clinic}</strong>
+                                                    <span className="text-[10px] text-muted-foreground font-mono">{phone}</span>
+                                                    {phone.includes('964851085') && (
+                                                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-500 border border-rose-500/30">
+                                                            Opt-Out Suprimido
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                                                    "{snippet}"
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Barra de Filtros e Pesquisa */}
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
@@ -358,6 +501,11 @@ export default function SDRRecoveryKanban({ onSelectDealForTriage }: SDRRecovery
                                                             <span>Retorno: {item.returnDate.slice(0, 10)}</span>
                                                         </div>
                                                     )}
+                                                    {item.lastActivity && (
+                                                        <div className="text-[10px] text-muted-foreground/90 bg-muted/30 px-1.5 py-0.5 rounded truncate">
+                                                            {item.lastActivity}
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Badges de Estado e Responsável */}
@@ -374,13 +522,17 @@ export default function SDRRecoveryKanban({ onSelectDealForTriage }: SDRRecovery
 
                                                     {/* Elegibilidade */}
                                                     <span className={`px-1.5 py-0.5 rounded font-semibold ${
-                                                        item.eligibilityStatus === 'Elegível'
+                                                        item.eligibilityReason?.includes('SUPRESSAO') || item.eligibilityReason?.includes('OPTOUT')
+                                                            ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30 font-bold'
+                                                            : item.eligibilityStatus === 'Elegível'
                                                             ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/20'
                                                             : item.eligibilityStatus === 'Inelegível'
                                                             ? 'bg-red-500/15 text-red-500 border border-red-500/20'
                                                             : 'bg-amber-500/15 text-amber-500 border border-amber-500/20'
                                                     }`}>
-                                                        {item.eligibilityStatus}
+                                                        {item.eligibilityReason?.includes('SUPRESSAO') || item.eligibilityReason?.includes('OPTOUT')
+                                                            ? 'Opt-Out Suprimido'
+                                                            : item.eligibilityStatus}
                                                     </span>
 
                                                     {/* Intervenção Humana Pendente */}

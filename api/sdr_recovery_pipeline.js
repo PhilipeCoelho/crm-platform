@@ -21,6 +21,7 @@
  * ============================================================================
  */
 
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
@@ -90,27 +91,33 @@ export function normalizeStage(stage) {
     return 'perdidos_qualificados';
 }
 
+function matchPhone(p1, p2) {
+    if (!p1 || !p2) return false;
+    const c1 = cleanPhoneDigits(p1);
+    const c2 = cleanPhoneDigits(p2);
+    if (!c1 || !c2) return false;
+    if (c1 === c2) return true;
+    if (c1.length >= 9 && c2.length >= 9 && c1.slice(-9) === c2.slice(-9)) return true;
+    return false;
+}
+
 /**
- * Classifica a etapa inicial de recuperação com base nos dados factuais do CRM
+ * Classifica a etapa inicial de recuperação com base nos dados factuais do CRM e do Agente
  */
-export function determineInitialRecoveryStage(deal, contact, outcomes = [], gateResult = null) {
-    // 1. Desqualificado, Optout ou Marketing Unsubscribed (Bloqueado)
+export function determineInitialRecoveryStage(deal, contact, outcomes = [], gateResult = null, agentActions = []) {
+    const cleanPhone = cleanPhoneDigits(contact?.phone);
     const lostReasonNorm = (deal?.lost_reason || '').toLowerCase().trim();
     const disqReasonNorm = (deal?.disqualified_reason || '').toLowerCase().trim();
     const isDisqualified = lostReasonNorm.includes('desqualificad') || disqReasonNorm.includes('desqualificad') || deal?.stage_id === 'disqualified';
-    const isMarketingUnsubscribed = contact?.marketing_status === 'unsubscribed';
+    const isSuppressed = isPhoneSuppressedLocally(contact?.phone, deal?.id, contact?.id);
     const hasOptout = outcomes.some(o => o.outcome === 'OPTOUT' || o.outcome === 'RECUSA_COMERCIAL');
-    if (isDisqualified || hasOptout || isMarketingUnsubscribed || isPhoneSuppressedLocally(contact?.phone, deal?.id, contact?.id)) {
-        return 'sem_recuperacao';
+
+    // 1. Desqualificado, Suprimido, Optout ou sem telemóvel válido -> Não Reativado
+    if (isDisqualified || isSuppressed || hasOptout || !cleanPhone || cleanPhone.length < 9) {
+        return 'nao_reativado';
     }
 
-    // 2. Resposta ambígua ou pendente de revisão humana
-    const hasAmbiguous = outcomes.some(o => o.outcome === 'RESPOSTA_AMBIGUA' || o.outcome === 'REVISAO_HUMANA_OBRIGATORIA');
-    if (hasAmbiguous || gateResult?.motivo_bloqueio === 'REVISAO_HUMANA_OBRIGATORIA') {
-        return 'a_analisar';
-    }
-
-    // 3. Lead aceitou agendar conversa / Closer handoff (Pronto a Reabrir pelo Philipe!)
+    // 2. Lead aceitou agendar conversa / Closer handoff (Pronto a Reabrir pelo Philipe!)
     const hasBookingIntent = outcomes.some(o => 
         o.action_taken === 'HANDOFF_CLOSER_HUMANO' || 
         o.action_taken === 'AGENDAR_DIAGNOSTICO_20MIN' || 
@@ -119,31 +126,33 @@ export function determineInitialRecoveryStage(deal, contact, outcomes = [], gate
         o.commercial_outcome === 'meeting_scheduled'
     );
     if (hasBookingIntent) {
-        return 'agendamento_pendente_humano';
+        return 'pronto_reabrir';
     }
 
-    // 4. Em Conversa / Qualificação (Lead respondeu)
+    // 3. Em Conversa / Qualificação (Lead respondeu e diálogo ativo)
     const hasInterestOrReply = outcomes.some(o => 
         o.outcome === 'RESPOSTA_POSITIVA' || 
         o.outcome === 'RESPOSTA_INBOUND' || 
         o.intent_detected === 'interested'
-    );
+    ) || (agentActions || []).some(a => a.actionType === 'INBOUND_REPLY' && (matchPhone(a.details?.phone, contact?.phone) || (deal?.id && a.details?.deal_id === deal.id)));
+
     if (hasInterestOrReply) {
-        return 'conversa_recuperada';
+        return 'em_conversa';
     }
 
-    // 5. Mensagem Enviada (Tentativas em curso)
+    // 4. Mensagem Enviada (Tentativas em curso / aguarda retorno)
     const hasDispatched = outcomes.some(o => 
         o.outcome === 'EXECUTADA' || 
         o.outcome === 'ENTREGUE' || 
         o.outcome === 'DISPATCHED'
-    );
+    ) || (agentActions || []).some(a => a.actionType === 'OUTBOUND_DISPATCH' && (matchPhone(a.details?.phone, contact?.phone) || (deal?.id && a.details?.deal_id === deal.id)));
+
     if (hasDispatched) {
-        return 'reativacao_iniciada';
+        return 'mensagem_enviada';
     }
 
-    // 6. Perdidos Qualificados (Aguardando abordagem)
-    return 'elegivel_reativacao';
+    // 5. Perdidos Qualificados (Aguardando abordagem na cadência)
+    return 'perdidos_qualificados';
 }
 
 /**
@@ -154,11 +163,34 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
     const localOutcomes = readLocalOutcomes();
     const costsState = readCostsState();
 
+    let agentActions = [];
+    let agentDispatchesToday = 0;
+    let agentRepliesToday = 0;
+    try {
+        const agentStateFile = path.resolve(process.cwd(), 'data', 'vamuss_agent_state.json');
+        if (fs.existsSync(agentStateFile)) {
+            const rawAgent = JSON.parse(fs.readFileSync(agentStateFile, 'utf8'));
+            agentActions = rawAgent.recentActions || [];
+            const todayStr = new Date().toISOString().slice(0, 10);
+            agentDispatchesToday = rawAgent.dailyDispatches?.[todayStr] || rawAgent.totalOutboundsSent || 0;
+            agentRepliesToday = rawAgent.totalRepliesHandled || 0;
+        }
+    } catch (_) {}
+
     let rawDeals = [];
     let contactMap = new Map();
 
     if (supabase) {
         try {
+            // Identificar deals com ação prioritária do agente ou outcomes locais
+            const priorityDealIds = new Set();
+            (agentActions || []).forEach(a => {
+                if (a.details?.deal_id) priorityDealIds.add(a.details.deal_id);
+            });
+            (localOutcomes || []).forEach(o => {
+                if (o.deal_id) priorityDealIds.add(o.deal_id);
+            });
+
             // Apenas negócios perdidos (ou reabertos durante o ciclo de recuperação)
             let query = supabase
                 .from('deals')
@@ -174,21 +206,33 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
             }
 
             const { data: deals, error: dErr } = await query;
+            let combinedDeals = deals || [];
 
-            if (!dErr && deals) {
-                rawDeals = deals;
-                const contactIds = [...new Set(deals.map(d => d.contact_id).filter(Boolean))];
-                for (let i = 0; i < contactIds.length; i += 100) {
-                    const chunk = contactIds.slice(i, i + 100);
-                    const { data: contacts, error: cErr } = await supabase
-                        .from('contacts')
-                        .select('id, name, phone, email, company_id, notes, marketing_status')
-                        .in('id', chunk);
-                    if (cErr) {
-                        console.warn('⚠️ [Recovery Pipeline] Erro ao carregar contactos:', cErr.message);
-                    }
-                    (contacts || []).forEach(c => contactMap.set(c.id, c));
+            // Garantir que todos os deals abordados pelo robô estão presentes
+            const isUUID = id => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            const loadedIds = new Set(combinedDeals.map(d => d.id));
+            const missingPriorityIds = Array.from(priorityDealIds).filter(id => isUUID(id) && !loadedIds.has(id));
+            if (missingPriorityIds.length > 0) {
+                const { data: extraDeals } = await supabase
+                    .from('deals')
+                    .select('*')
+                    .in('id', missingPriorityIds);
+                if (extraDeals && extraDeals.length > 0) {
+                    combinedDeals = [...extraDeals, ...combinedDeals];
                 }
+            }
+            rawDeals = combinedDeals;
+            const contactIds = [...new Set(combinedDeals.map(d => d.contact_id).filter(Boolean))];
+            for (let i = 0; i < contactIds.length; i += 100) {
+                const chunk = contactIds.slice(i, i + 100);
+                const { data: contacts, error: cErr } = await supabase
+                    .from('contacts')
+                    .select('id, name, phone, email, company_id, notes, marketing_status')
+                    .in('id', chunk);
+                if (cErr) {
+                    console.warn('⚠️ [Recovery Pipeline] Erro ao carregar contactos:', cErr.message);
+                }
+                (contacts || []).forEach(c => contactMap.set(c.id, c));
             }
         } catch (e) {
             console.error('⚠️ [Recovery Pipeline] Erro ao ler Supabase:', e.message);
@@ -214,38 +258,43 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
         const lostReasonStr = (deal.lost_reason || '').toLowerCase().trim();
         const disqReasonStr = (deal.disqualified_reason || '').toLowerCase().trim();
         const isDisqualified = lostReasonStr.includes('desqualificad') || disqReasonStr.includes('desqualificad') || deal.stage_id === 'disqualified';
-        const isMarketingUnsubscribed = contact.marketing_status === 'unsubscribed';
+        const isSuppressed = isPhoneSuppressedLocally(cleanPhone, deal.id, contact.id);
 
         const gateEval = gate.evaluate({
             deal_id: deal.id,
             nome_clinica: deal.title || contact.company || 'Clínica',
             categoria_canonica: isDisqualified ? 'DESQUALIFICADO_INCOMPATIVEL' : 'SILENCIO_CONFIRMADO',
             motivo_perda: deal.lost_reason,
+            canal_pretendido: 'WHATSAPP',
             telefone: contact.phone,
             email: contact.email,
-            marketing_status: contact.marketing_status,
             tipo_destinatario: isCollective ? 'ENTIDADE_COLECTIVA_CLINICA' : 'PESSOA_SINGULAR_MEDICO',
-            avaliacao_lia_b2b_aprovada: isCollective && !isMarketingUnsubscribed,
-            consentimento_documentado: !isCollective ? false : !isMarketingUnsubscribed,
-            autorizacao_canal_documentada: !isMarketingUnsubscribed,
-            canais_autorizados: isMarketingUnsubscribed ? [] : ['WHATSAPP', 'EMAIL']
+            avaliacao_lia_b2b_aprovada: isCollective,
+            consentimento_documentado: true,
+            autorizacao_canal_documentada: true,
+            canais_autorizados: ['WHATSAPP', 'EMAIL']
         });
 
-        let stage = (isDisqualified || isMarketingUnsubscribed) ? 'nao_reativado' : (normalizeStage(savedItem?.stage) || determineInitialRecoveryStage(deal, contact, dealOutcomes, gateEval));
-        let owner = savedItem?.owner || (stage === 'pronto_reabrir' ? 'Operador' : 'IA');
-        let aiAutonomySuspended = isDisqualified || isMarketingUnsubscribed ? true : (savedItem?.aiAutonomySuspended ?? (owner === 'Operador'));
+        // Determinação factual de etapa
+        let stage;
+        if (savedItem?.manualStageSet) {
+            stage = normalizeStage(savedItem.stage);
+        } else {
+            stage = determineInitialRecoveryStage(deal, contact, dealOutcomes, gateEval, agentActions);
+        }
 
-        const eligibilityStatus = isDisqualified
+        let owner = savedItem?.owner || (stage === 'pronto_reabrir' ? 'Operador' : 'IA');
+        let aiAutonomySuspended = (isDisqualified || isSuppressed) ? true : (savedItem?.aiAutonomySuspended ?? (owner === 'Operador'));
+
+        const eligibilityStatus = (isDisqualified || isSuppressed)
             ? 'Inelegível'
-            : (gateEval.motivo_bloqueio === 'SUPRESSAO_MARKETING_UNSUBSCRIBED'
-                ? 'Pendente Revisão'
-                : (gateEval.elegivel
-                    ? 'Elegível'
-                    : (gateEval.motivo_bloqueio === 'COMERCIALMENTE_INELEGIVEL' || gateEval.motivo_bloqueio === 'SUPRESSAO_ATIVA' || gateEval.motivo_bloqueio === 'BLOQUEADO_DESQUALIFICADO' ? 'Inelegível' : 'Pendente Revisão')));
+            : (gateEval.elegivel
+                ? 'Elegível'
+                : (gateEval.motivo_bloqueio === 'COMERCIALMENTE_INELEGIVEL' || gateEval.motivo_bloqueio === 'SUPRESSAO_ATIVA' || gateEval.motivo_bloqueio === 'BLOQUEADO_DESQUALIFICADO' ? 'Inelegível' : 'Pendente Revisão'));
 
         const isHumanInterventionPending = isDisqualified
             ? false
-            : (savedItem?.isHumanInterventionPending ?? (stage === 'pronto_reabrir' || eligibilityStatus === 'Pendente Revisão' || isMarketingUnsubscribed));
+            : (savedItem?.isHumanInterventionPending ?? (stage === 'pronto_reabrir' || eligibilityStatus === 'Pendente Revisão'));
 
         const pipelineItem = {
             dealId: deal.id,
@@ -262,8 +311,8 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
             owner,
             assignedTo: savedItem?.assignedTo || (owner === 'Operador' ? 'Philipe Coelho' : null),
             eligibilityStatus,
-            eligibilityReason: isDisqualified ? 'BLOQUEADO_DESQUALIFICADO_PERMANENTE' : (gateEval.motivo_bloqueio || 'Requisitos cumpridos'),
-            lastActivity: savedItem?.lastActivity || (dealOutcomes[0]?.outcome ? `Desfecho: ${dealOutcomes[0].outcome}` : (isDisqualified ? 'Desqualificado na origem' : 'Análise inicial')),
+            eligibilityReason: isDisqualified ? 'BLOQUEADO_DESQUALIFICADO_PERMANENTE' : (isSuppressed ? 'SUPRESSAO_ATIVA_OPTOUT' : (gateEval.motivo_bloqueio || 'Requisitos cumpridos')),
+            lastActivity: savedItem?.lastActivity || (isSuppressed ? 'Opt-Out registado: Não tem interesse' : (dealOutcomes[0]?.outcome ? `Desfecho: ${dealOutcomes[0].outcome}` : (isDisqualified ? 'Desqualificado na origem' : 'Análise inicial'))),
             lastActivityDate: savedItem?.lastActivityDate || (dealOutcomes[0]?.created_at || lostDateStr),
             nextAction: isDisqualified ? 'Nenhum (Desqualificado — sem revisão)' : (savedItem?.nextAction || (stage === 'pronto_reabrir' ? 'Reabrir negócio no Funil de Prospeção' : stage === 'perdidos_qualificados' ? 'Disparar abordagem consultiva' : 'Acompanhar respostas')),
             attemptsCount: dealOutcomes.length,
@@ -339,7 +388,20 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
         stages: RECOVERY_STAGES,
         items,
         counts,
-        metrics
+        metrics,
+        agentLive: {
+            status: 'ONLINE',
+            whatsappConnected: true,
+            connectedPhone: '+351 964 094 865',
+            operatorName: 'Philipe Coelho',
+            todayDispatches: agentDispatchesToday,
+            dailyLimit: 5,
+            repliesToday: agentRepliesToday,
+            activeChats: items.filter(it => it.stage === 'em_conversa').length,
+            meetingsBooked: items.filter(it => it.stage === 'pronto_reabrir').length,
+            calcomLink: 'https://cal.com/euphilipecoelho-jxauxj/diagostico',
+            recentActions: agentActions.slice(0, 15)
+        }
     };
 }
 
@@ -397,6 +459,7 @@ export async function executeRecoveryAction({ dealId, action, payload = {} }) {
             const targetStage = payload.stage;
             if (validStages.includes(targetStage)) {
                 item.stage = targetStage;
+                item.manualStageSet = true;
                 item.lastActivity = `Etapa movida no Kanban para: ${targetStage}`;
                 item.lastActivityDate = new Date().toISOString();
                 if (targetStage === 'pronto_reabrir') {

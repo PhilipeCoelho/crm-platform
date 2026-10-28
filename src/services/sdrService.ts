@@ -669,6 +669,31 @@ export interface RecoveryPipelineResponse {
         rateIsEstimated: boolean;
         legalGateStatus: string;
     };
+    agentLive?: {
+        status: string;
+        whatsappConnected: boolean;
+        connectedPhone: string;
+        operatorName: string;
+        todayDispatches: number;
+        dailyLimit: number;
+        repliesToday: number;
+        activeChats: number;
+        meetingsBooked: number;
+        calcomLink: string;
+        recentActions: Array<{
+            timestamp: string;
+            actionType: string;
+            details: {
+                phone?: string;
+                clinicName?: string;
+                textSnippet?: string;
+                snippet?: string;
+                agentResolution?: string;
+                intent?: string;
+                deal_id?: string;
+            };
+        }>;
+    };
 }
 
 export async function fetchRecoveryPipeline(limit = 150): Promise<RecoveryPipelineResponse | null> {
