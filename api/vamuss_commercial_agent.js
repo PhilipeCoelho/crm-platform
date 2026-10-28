@@ -517,6 +517,39 @@ export const AgentToolImplementations = {
             .order('created_at', { ascending: false })
             .limit(15);
 
+        // Classificação e Triagem da Memória do CRM:
+        // Distingue o que é histórico de relacionamento factual (mencionável) de notas internas do operador (confidenciais)
+        const relationshipFacts = [];
+        const confidentialNotes = [];
+
+        // Tratar motivo da perda e notas
+        if (deal.lost_reason) {
+            confidentialNotes.push({
+                tipo: 'NOTA_INTERNA_OPERADOR',
+                conteudo: deal.lost_reason,
+                regra: 'CONFIDENCIAL — Inteligência interna. NUNCA citar nem confessar à clínica!'
+            });
+        }
+
+        (activities || []).forEach(act => {
+            if (act.type === 'message' || act.type === 'whatsapp' || act.type === 'email') {
+                relationshipFacts.push({
+                    tipo: `CONTACTO_${act.type.toUpperCase()}`,
+                    data: act.date?.slice(0, 10),
+                    titulo: act.title,
+                    resumo: act.notes || 'Mensagem enviada anteriormente pelo Philipe'
+                });
+            } else if (act.type === 'status_change') {
+                if (act.notes && !act.notes.includes(deal.lost_reason || '___')) {
+                    confidentialNotes.push({
+                        tipo: 'REGISTO_STATUS',
+                        conteudo: act.notes,
+                        regra: 'CONFIDENCIAL — Não citar diretamente.'
+                    });
+                }
+            }
+        });
+
         // Estado SPIN atual
         const spinState = getOrCreateSpinState(deal_id, contact?.name || deal.title);
 
@@ -525,17 +558,18 @@ export const AgentToolImplementations = {
             deal: {
                 id: deal.id,
                 title: deal.title,
-                lost_reason: deal.lost_reason,
                 lost_at: deal.lost_at,
-                value: deal.value,
-                objection_tags: deal.objection_tags || []
+                value: deal.value
             },
             contact: {
                 id: contact?.id,
                 name: contact?.name,
                 phone: normalizePhoneNumber(contact?.phone),
-                email: contact?.email,
-                notes: contact?.notes
+                email: contact?.email
+            },
+            intelligence: {
+                relationship_facts: relationshipFacts, // Pode citar com respeito e naturalidade
+                confidential_operator_notes: confidentialNotes // NUNCA citar — inteligência silenciosa
             },
             activities: activities || [],
             deal_logs: (dealLogs || []).map(l => ({
@@ -621,7 +655,43 @@ export const AgentToolImplementations = {
             return { success: false, blocked: true, reason: budgetCheck.error, detail: budgetCheck.reason };
         }
 
-        // Validação anti-repetição de conteúdo: não pode repetir a mensagem anterior
+        // 1c. CAMADA DE CRÍTICA RIGOROSA PRÉ-ENVIO (SANITY CHECK):
+        // Bloqueia qualquer mensagem que viole as diretrizes de SDR executivo
+        const textLower = message_text.toLowerCase();
+
+        // 1. Proibição de citações de notas internas do operador
+        const FORBIDDEN_CONFIDENTIAL_CITATIONS = [
+            'já estão a anunciar', 'já estao a anunciar', 'já anunciam',
+            'já têm uma equipa', 'ja tem uma equipa', 'uma equipa a trabalhar convosco',
+            'como tem sido a experiência com eles', 'experiência com as campanhas',
+            'fora de perfil', 'grupo muito grande'
+        ];
+        for (const badPhrase of FORBIDDEN_CONFIDENTIAL_CITATIONS) {
+            if (textLower.includes(badPhrase)) {
+                console.warn(`🛑 [Sanity Check] REJEITADA: Mensagem citou nota interna confidencial ("${badPhrase}"). Bloqueada.`);
+                return { success: false, blocked: true, reason: 'CONFIDENTIAL_NOTE_LEAK', detail: badPhrase };
+            }
+        }
+
+        // 2. Proibição de ganchos amadores de marketing digital
+        const FORBIDDEN_AMATEUR_HOOKS = [
+            'primeira página do google', 'primeira pagina do google',
+            'visibilidade online', 'alguma novidade interessante este ano',
+            'não aparecem no google', 'nao aparecem no google',
+            'não surgem na primeira página'
+        ];
+        for (const badHook of FORBIDDEN_AMATEUR_HOOKS) {
+            if (textLower.includes(badHook)) {
+                console.warn(`🛑 [Sanity Check] REJEITADA: Mensagem continha gancho amador de marketing ("${badHook}"). Bloqueada.`);
+                return { success: false, blocked: true, reason: 'AMATEUR_MARKETING_HOOK', detail: badHook };
+            }
+        }
+
+        // 3. Proibição de clichês vazios de abertura na 1ª mensagem
+        if (intent === 'PRIMEIRA_ABORDAGEM' && (textLower.includes('espero que esteja tudo bem') || textLower.includes('espero que esteja bem'))) {
+            console.warn(`🛑 [Sanity Check] REJEITADA: Cliché vazio proibido ("espero que esteja tudo bem"). Bloqueada.`);
+            return { success: false, blocked: true, reason: 'EMPTY_CLICHE_DETECTED' };
+        }
         const pastDispatches = (currentState.recentActions || []).filter(
             a => a.actionType === 'OUTBOUND_DISPATCH' &&
                  (a.details?.deal_id === deal_id || 

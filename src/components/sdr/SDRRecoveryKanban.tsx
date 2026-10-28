@@ -542,12 +542,14 @@ export default function SDRRecoveryKanban({ onSelectDealForTriage }: SDRRecovery
                                                         </span>
                                                     )}
 
-                                                    {/* Tentativas */}
-                                                    {item.attemptsCount > 0 && (
-                                                        <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                                                            {item.attemptsCount} {item.attemptsCount === 1 ? 'tentativa' : 'tentativas'}
-                                                        </span>
-                                                    )}
+                                                    {/* Tentativas (Trava de 3) */}
+                                                    <span className={`px-1.5 py-0.5 rounded font-medium ${
+                                                        (item.attemptsCount || 0) >= 2 
+                                                            ? 'bg-amber-500/10 text-amber-600 border border-amber-500/30 font-bold' 
+                                                            : 'bg-muted text-muted-foreground'
+                                                    }`}>
+                                                        {item.attemptsCount || 1}/3 tentativas
+                                                    </span>
                                                 </div>
 
                                                 {/* Próxima Ação */}
