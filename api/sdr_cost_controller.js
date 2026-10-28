@@ -314,9 +314,23 @@ export function checkAndReserveWhatsAppBudget({ phone, dealId, category = 'MARKE
         return { allowed: false, reason, error: 'CONTACT_MESSAGE_LIMIT_REACHED' };
     }
 
-    // 2. Limite de tentativas consecutivas sem resposta
+    // 2. Limite de tentativas consecutivas sem resposta (Auto-supressão por saturação)
     if (contactInfo.attemptsWithoutResponse >= COST_LIMITS.MAX_ATTEMPTS_WITHOUT_RESPONSE) {
-        const reason = `Contacto com ${contactInfo.attemptsWithoutResponse} tentativas sem resposta. Cadência pausada para evitar saturação e desperdício financeiro.`;
+        const reason = `Atingiu o limite de ${contactInfo.attemptsWithoutResponse} tentativas sem resposta. Negócio suprimido automaticamente para evitar saturação e desperdício de orçamento.`;
+        
+        // Auto-suprimir o contacto/deal de forma persistente
+        try {
+            import('./suppression_store.js').then(({ addLocalSuppression }) => {
+                addLocalSuppression({
+                    deal_id: dealId || null,
+                    telefone_normalizado: clean,
+                    motivo: 'LIMITE_TENTATIVAS_SEM_RESPOSTA',
+                    motivo_bloqueio: 'SATURACAO_CADENCIA_3_TENTATIVAS',
+                    notes: `Suprimido automaticamente após ${contactInfo.attemptsWithoutResponse} tentativas sem retorno.`
+                });
+            }).catch(() => {});
+        } catch (_) {}
+
         return { allowed: false, reason, error: 'CONSECUTIVE_UNANSWERED_LIMIT_REACHED' };
     }
 
@@ -425,6 +439,21 @@ export function recordWhatsAppCost({ reservationId, phone, dealId, category = 'M
         state.contacts[clean].count += 1;
         state.contacts[clean].attemptsWithoutResponse += 1; // Incrementa até haver resposta inbound
         state.contacts[clean].lastContactAt = new Date().toISOString();
+
+        // Se atingiu o limite de 3 tentativas sem resposta com este envio, suprime o negócio imediatamente
+        if (state.contacts[clean].attemptsWithoutResponse >= COST_LIMITS.MAX_ATTEMPTS_WITHOUT_RESPONSE) {
+            try {
+                import('./suppression_store.js').then(({ addLocalSuppression }) => {
+                    addLocalSuppression({
+                        deal_id: dealId || null,
+                        telefone_normalizado: clean,
+                        motivo: 'LIMITE_TENTATIVAS_SEM_RESPOSTA',
+                        motivo_bloqueio: 'SATURACAO_CADENCIA_3_TENTATIVAS',
+                        notes: `Suprimido automaticamente após atingir ${state.contacts[clean].attemptsWithoutResponse} tentativas sem resposta.`
+                    });
+                }).catch(() => {});
+            } catch (_) {}
+        }
     }
 
     // Atualizar custo acumulado por negócio (Trava de Valor por Lead)
