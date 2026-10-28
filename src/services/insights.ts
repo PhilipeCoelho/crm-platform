@@ -154,7 +154,7 @@ export async function getInsightsData(
             supabase.from('deals').select('id, stage_id, value').eq('status', 'open'),
             supabase
                 .from('activities')
-                .select('id, status, created_at, completed_at, deal_id, type')
+                .select('id, status, created_at, completed_at, deal_id, type, title, is_automatic')
                 .or(`and(created_at.gte.${startOfDay},created_at.lte.${endOfDay}),and(completed_at.gte.${startOfDay},completed_at.lte.${endOfDay})`),
             supabase
                 .from('deal_analytics')
@@ -179,6 +179,10 @@ export async function getInsightsData(
             const REAL_TYPES = ['call', 'meeting', 'task', 'email', 'message', 'instagram', 'analysis', 'audit'];
             if (!REAL_TYPES.includes(a.type)) return false;
             if (a.created_at < IGNORE_TEST_DATA_BEFORE) return false;
+            // Exclui abordagens automáticas e ações do Agente SDR da tela principal
+            const titleLower = (a.title || '').toLowerCase();
+            const isSdr = Boolean(a.is_automatic || titleLower.includes('sdr') || titleLower.startsWith('abordagem'));
+            if (isSdr) return false;
             return true;
         }) || [];
 
@@ -200,7 +204,13 @@ export async function getInsightsData(
         const dealsActive = validData.filter(d => (d.updated_at as string) >= startOfDay && (d.updated_at as string) <= endOfDay);
 
         const wonDeals = dealsClosed.filter(d => d.status_final === 'won');
-        const lostDeals = dealsClosed.filter(d => d.status_final === 'lost');
+        const lostDeals = dealsClosed.filter(d => {
+            if (d.status_final !== 'lost') return false;
+            // Negócios encerrados ou com opt-out no reaquecimento do SDR pertencem à área SDR
+            const reason = (d.deals?.lost_reason || '').toLowerCase();
+            if (reason.includes('opt-out') || reason.includes('sdr') || reason.includes('agente')) return false;
+            return true;
+        });
         const openDealsActive = dealsActive.filter(d => d.status_final === 'open');
 
         const totalDeals = dealsCreated.length;
