@@ -1,0 +1,177 @@
+{
+  "totalOutboundsSent": 8,
+  "totalRepliesHandled": 9,
+  "totalMeetingsBooked": 0,
+  "dailyDispatches": {
+    "2026-10-27": 0,
+    "2026-10-28": 8
+  },
+  "recentActions": [
+    {
+      "timestamp": "2026-10-28T11:00:14.103Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351911830205",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "tas a enganar",
+        "agentResolution": "O contacto foi removido da nossa lista e não será mais abordado. Se houver algo mais em que possa aj"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T11:00:12.696Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351911830205",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "Inventário?",
+        "agentResolution": "Enviei uma mensagem ao lead para esclarecer o nosso foco em ajudar clínicas a atrair mais pacientes "
+      }
+    },
+    {
+      "timestamp": "2026-10-28T11:00:09.946Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "phone": "351911830205",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Olá! Parece que houve um pequeno engano. Estamos aqui para ajudar clínicas a atr"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T11:00:09.625Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351911830205",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "Ki paxa menino?",
+        "agentResolution": "Enviei uma mensagem ao lead, abordando a possibilidade de explorar juntos formas de atrair mais paci"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T11:00:08.736Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "phone": "351911830205",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Olá! Parece que está tudo bem por aí. 😊 Estava a pensar em como podemos ajudar "
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:59:41.857Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351911830205",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "lol",
+        "agentResolution": "Enviei uma mensagem de resposta ao lead, abordando a surpresa e oferecendo apoio específico em áreas"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:59:40.747Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "phone": "351911830205",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Olá! Vejo que a mensagem anterior pode ter gerado alguma surpresa. Estou aqui pa"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:59:15.619Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351911830205",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "DHALIWAL tem de fazer formaçao de SA hoje sem falta \ne sst a",
+        "agentResolution": "A mensagem foi enviada com sucesso. Agora, aguardaremos a resposta para prosseguir com o diagnóstico"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:59:14.531Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "phone": "351911830205",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Olá! Parece que a mensagem foi enviada por engano. Aproveitando a oportunidade, "
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:40:35.341Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b",
+        "phone": "351964851085",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá, Dra. Fabrícia Luciano! Espero que esteja tudo bem. Como tem sido a procura "
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:40:34.711Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "8ce16830-e490-4f39-afc8-f263163d9feb",
+        "phone": "351964856452",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá, Santa Zita Clínica Dentária! Vi que não aparecem na primeira página do Goog"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:40:33.776Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "fc8af586-3017-404f-bd72-84646201a3ae",
+        "phone": "351933300353",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá, Mediminho! Espero que tudo esteja a correr bem por aí. Como tem sido o movi"
+      }
+    },
+    {
+      "timestamp": "2026-10-28T10:40:33.032Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
+        "phone": "351914376214",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá, Clínica Tágides! Notei que já têm uma equipa a trabalhar convosco. Como tem"
+      }
+    },
+    {
+      "timestamp": "2026-10-27T21:11:22.198Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351914376214",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "Por favor retirem o meu número, não quero receber mais mensa",
+        "agentResolution": "Informei o Philipe Coelho sobre o pedido de remoção do número +351914376214. Ele irá tratar deste as"
+      }
+    },
+    {
+      "timestamp": "2026-10-27T21:10:47.422Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351914376214",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "Não nos interessa e não voltem a mandar mensagens, obrigado.",
+        "agentResolution": "O Philipe Coelho foi alertado sobre o erro ao registar o pedido de opt-out para o número +3519143762"
+      }
+    },
+    {
+      "timestamp": "2026-10-27T21:10:35.226Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351914376214",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "Sim, tenho interesse. Como podemos marcar?",
+        "agentResolution": "Parece que estamos fora do horário comercial, por isso não consegui enviar o link de agendamento ago"
+      }
+    },
+    {
+      "timestamp": "2026-10-27T21:10:15.970Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351914376214",
+        "clinicName": "Dra./Dr.",
+        "textSnippet": "Olá, quanto custa o vosso serviço e como é que funciona para",
+        "agentResolution": "Parece que a tentativa de enviar a mensagem falhou porque está fora do horário comercial. Vou tentar"
+      }
+    }
+  ]
+}

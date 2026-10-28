@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "id": "ab_test_copy_abertura",
+      "name": "Abertura Direta vs Consultiva",
+      "status": "stopped_high_rejection",
+      "segment": "CLINICA_IMPLANTES",
+      "max_volume": 15,
+      "variants": [
+        {
+          "id": "var_curta",
+          "name": "Copy Curto 3 Linhas"
+        },
+        {
+          "id": "var_longa",
+          "name": "Copy Consultivo com Evidência"
+        }
+      ],
+      "stopped_at": "2026-10-19T23:27:06.721Z",
+      "stop_reason": "Taxa de recusa/optout acima de 30% (6/6)."
+    }
+  ]
+}

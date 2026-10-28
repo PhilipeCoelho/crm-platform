@@ -1,0 +1,260 @@
+{
+  "meta": {
+    "fase": "B.7",
+    "titulo": "VAMUSS SDR — PREPARAÇÃO OPERACIONAL, MÉTRICAS E CONTROLO DE ATIVAÇÃO",
+    "timestamp_execucao": "2026-10-10T09:23:37.301Z",
+    "modo_operacao": "DRY_RUN_EVALUATION",
+    "versao_sistema": "2.0.0-phase-b7-operational-governance"
+  },
+  "seguranca_operacional_e_integridade": {
+    "mensagens_reais_enviadas": 0,
+    "chamadas_api_whatsapp": 0,
+    "chamadas_api_brevo_smtp": 0,
+    "escritas_tabela_deals_crm": 0,
+    "escritas_supabase": 0,
+    "migracoes_producao_aplicadas": 0,
+    "circuit_breaker_operacional_armado": true,
+    "dry_run_estrito": true
+  },
+  "avaliacao_carteira_405_activation_gate": {
+    "total_negocios_avaliados": 405,
+    "total_autorizados_ativacao": 0,
+    "total_bloqueados": 405,
+    "distribuicao_motivos_bloqueio": {
+      "COMERCIALMENTE_INELEGIVEL": 192,
+      "INELEGIVEL_TECNICO_COMERCIAL": 0,
+      "BLOQUEIO_FALTA_BASE_LEGAL": 0,
+      "BLOQUEIO_LIA_B2B_PENDENTE": 102,
+      "BLOQUEIO_OPTIN_MEDICO_PENDENTE": 13,
+      "BLOQUEIO_FALTA_AUTORIZACAO_CANAL": 0,
+      "BLOQUEIO_FALTA_APROVACAO_OPERACIONAL": 0,
+      "SUPRESSAO_ATIVA": 26,
+      "ENDPOINT_PARTILHADO_BLOQUEADO": 0,
+      "SEM_ENDPOINT_VALIDO": 6,
+      "QUARENTENA_AGENCIA_ATIVA": 39,
+      "QUARENTENA_CONTINGENCIA_ATIVA": 3,
+      "RESTRICAO_CANAL_WHATSAPP": 0,
+      "REVISAO_HUMANA_OBRIGATORIA": 19,
+      "RESPOSTA_AUTOMATICA_PENDENTE_MANUAL": 4,
+      "ENCAMINHAMENTO_CLOSER_HUMANO": 1,
+      "PAUSA_GLOBAL_OPERACIONAL": 0,
+      "CIRCUIT_BREAKER_ATIVADO": 0,
+      "CANAL_BLOQUEADO_OPERACIONAL": 0,
+      "DEAL_BLOQUEADO_OPERACIONAL": 0,
+      "REVALIDACAO_CONTATO_PENDENTE": 0,
+      "DADOS_INSUFICIENTES": 0,
+      "SISTEMA_INDISPONIVEL": 0,
+      "OUTROS": 0
+    }
+  },
+  "framework_metricas_operacionais": {
+    "isolamento_simulado_vs_real": true,
+    "metricas_reais": {
+      "tentativas_executadas": 0,
+      "mensagens_aceites_provedor": 0,
+      "falhas_entrega": 0,
+      "bounces": 0,
+      "custo_real_eur": 0,
+      "consumo_por_canal": {
+        "WHATSAPP": 0,
+        "EMAIL": 0
+      }
+    },
+    "metricas_simuladas": {
+      "tentativas_executadas": 0,
+      "mensagens_aceites_provedor": 0,
+      "falhas_entrega": 0,
+      "bounces": 0,
+      "custo_estimado_eur": 0,
+      "consumo_por_canal": {
+        "WHATSAPP": 0,
+        "EMAIL": 0
+      }
+    },
+    "inbound_rastreado": {
+      "total_respostas_recebidas": 0,
+      "respostas_por_intencao": {
+        "INTERESSE_CONFIRMADO": 0,
+        "AGENCIA_OU_FORNECEDOR_ATUAL": 0,
+        "RECUSA_COMERCIAL_DIRETA": 0,
+        "OPOSICAO_ESTRITA_STOP": 0,
+        "RESPOSTA_AUTOMATICA": 0,
+        "DUVIDA_OU_PEDIDO_INFO": 0,
+        "AMBIGUO": 0,
+        "OUTRO": 0
+      },
+      "pedidos_oposicao_optout": 0,
+      "supressoes_imediatas_executadas": 0
+    },
+    "duplicacoes_prevenidas": {
+      "total": 0,
+      "por_supressao": 0,
+      "por_cadencia_intervalo": 0,
+      "por_endpoint_partilhado": 0,
+      "por_lock_concorrencia": 0
+    },
+    "resiliencia": {
+      "erros_integracao": 0,
+      "timeouts_crm": 0,
+      "ativacoes_circuit_breaker": 0,
+      "pausas_emergencia": 0
+    }
+  },
+  "controlos_operacionais_e_governanca": {
+    "suporte_pausa_global": true,
+    "suporte_retoma_com_operador_obrigatorio": true,
+    "suporte_bloqueio_por_canal": true,
+    "suporte_bloqueio_por_deal": true,
+    "kill_switch_emergencia_disponivel": true,
+    "mutex_concorrencia_in_flight_locks": true,
+    "interrupcao_imediata_por_inbound_stop": true,
+    "exportacao_importacao_estado": true,
+    "rollback_failsafe_ativo": true
+  },
+  "plano_operacional_piloto_futuro": {
+    "titulo": "PLANO OPERACIONAL DE ATIVAÇÃO DO PILOTO CONTROLADO DO VAMUSS SDR",
+    "estado_atual": "BLOQUEADO_AGUARDANDO_AUTORIZACAO_JURIDICA_EXTERNA",
+    "condicao_previa_inegociavel": [
+      "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido e homologado por assessor jurídico.",
+      "Homologação de condições contratuais específicas para canal WhatsApp Business e Email comercial.",
+      "Opt-in documental explícito para médicos em nome individual.",
+      "Aprovação operacional formal assinada por supervisor com data e motivo documentados."
+    ],
+    "criterios_de_entrada": {
+      "classificacao_canonica": "SILENCIO_CONFIRMADO",
+      "tipo_entidade": "ENTIDADE_COLECTIVA_CLINICA",
+      "canal_autorizado": "WHATSAPP_OU_EMAIL_HOMOLOGADO",
+      "dados_contacto_obrigatorios": [
+        "TELEFONE_MOVEL_VALIDADO_OU_EMAIL_CORPORATIVO"
+      ],
+      "verificacoes_obrigatorias": [
+        "Não constar da lista de supressão estrita (24 registos / 26 negócios)",
+        "Não partilhar endpoint com contacto suprimido",
+        "Passar cumulativamente em todas as 6 verificações do SDRActivationGate"
+      ]
+    },
+    "rampa_de_lancamento_recomendada": {
+      "fase_1_coorte_inicial": {
+        "volume_diario": "5 negócios por dia útil",
+        "duracao": "3 dias úteis (total 15 negócios)",
+        "janela_observacao": "48 horas de quarentena entre envios para avaliação de respostas"
+      },
+      "fase_2_expansao_controlada": {
+        "volume_diario": "10 a 15 negócios por dia útil",
+        "condicao_passagem": "Zero incidentes de privacidade, taxa de resposta > 8%, opt-out < 3%"
+      },
+      "fase_3_operacao_estavel": {
+        "volume_diario": "Máximo 25 negócios por dia útil",
+        "limite_absoluto_mensal": "Conforme capacidade de closer humano"
+      }
+    },
+    "metricas_de_sucesso_e_qualidade": {
+      "taxa_entrega_minima": "95%",
+      "taxa_resposta_esperada": ">= 8%",
+      "taxa_maxima_optout_tolerada": "<= 3%",
+      "taxa_maxima_erro_tecnico": "<= 1%",
+      "sla_supressao_imediata": "Tempo real (< 1 segundo perante STOP/SAIR/RECUSA)"
+    },
+    "criterios_de_interrupcao_imediata_kill_switch": [
+      "Ocorrência de 1 único pedido de STOP que não resulte em supressão imediata automática.",
+      "Taxa de opt-out ou recusa direta superior a 5% num único lote.",
+      "Qualquer reclamação formal de privacidade ou comunicação de spam.",
+      "Erro de integração com CRM ou provedor superior a 5% das tentativas.",
+      "Disparo simultâneo ou duplicado detetado por lock de concorrência."
+    ],
+    "procedimentos_de_supervisao_humana": {
+      "papeis_definidos": {
+        "operador_sdr": "Supervisão em tempo real da caixa de entrada, classificação de casos ambíguos e handover para closer.",
+        "supervisor_tecnico": "Monitorização horária de métricas de entrega, falhas, circuit breaker e locks de concorrência.",
+        "responsavel_juridico": "Revisão periódica dos pedidos de supressão e relatórios de conformidade RGPD."
+      },
+      "rotina_diaria": [
+        "Verificação do estado do Circuit Breaker antes do início da janela de envio (10:00 - 18:00)",
+        "Inspeção do log de supressões geradas nas últimas 24 horas",
+        "Auditoria da cadência em curso e respostas pendentes de triagem humana",
+        "Registo formal no diário operacional de ativação"
+      ]
+    }
+  },
+  "bateria_testes_integrados": {
+    "total_suites": 7,
+    "total_testes": 146,
+    "total_aprovados": 146,
+    "total_falhados": 0,
+    "taxa_aprovacao": "100%_PASS",
+    "detalhe_suites": [
+      {
+        "suite": "scripts/test_sdr_phase_b1.mjs",
+        "nome": "Fase B.1 - Triagem e Resposta Automática",
+        "testes": 28,
+        "aprovados": 28,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b2.mjs",
+        "nome": "Fase B.2 - Auditoria Corretiva e Supressão",
+        "testes": 29,
+        "aprovados": 29,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b3.mjs",
+        "nome": "Fase B.3 - Validação e Cadência Simulada",
+        "testes": 18,
+        "aprovados": 18,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b4.mjs",
+        "nome": "Fase B.4 - Reconciliação e Portão de Elegibilidade",
+        "testes": 13,
+        "aprovados": 13,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b5_integrated.mjs",
+        "nome": "Fase B.5 - Integração Operacional e Adapter",
+        "testes": 17,
+        "aprovados": 17,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b6.mjs",
+        "nome": "Fase B.6 - Simulação Piloto e Fail-Closed",
+        "testes": 21,
+        "aprovados": 21,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b7.mjs",
+        "nome": "Fase B.7 - Preparação Operacional e Ativação",
+        "testes": 20,
+        "aprovados": 20,
+        "falhados": 0,
+        "status": "PASS"
+      }
+    ]
+  },
+  "ficheiros_nucleares_b7": [
+    "scripts/sdr_activation_gate.mjs",
+    "scripts/sdr_operational_metrics.mjs",
+    "scripts/sdr_operational_controls.mjs",
+    "scripts/sdr_eligibility_gate.mjs",
+    "scripts/sdr_dispatcher_adapter.mjs",
+    "scripts/sdr_pilot_simulation_engine.mjs",
+    "scripts/sdr_suppression_engine.mjs",
+    "scripts/sdr_inbound_response_classifier.mjs",
+    "scripts/sdr_cadence_simulator.mjs",
+    "scripts/test_sdr_phase_b7.mjs"
+  ],
+  "parecer_final_prontidao_b7": {
+    "status": "CONCLUIDO_COM_SUCESSO_BLOQUEIO_MANTIDO",
+    "justificacao": "O sistema de ativação, métricas, governança operacional e controlo de concorrência da Fase B.7 está integralmente construído, testado (146/146 testes aprovados) e validado. O disparo real permanece rigorosamente a zero por ausência de autorização jurídica externa homologada (LIA B2B e opt-in). A Fase B.8 não foi iniciada."
+  }
+}

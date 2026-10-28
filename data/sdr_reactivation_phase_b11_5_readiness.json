@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "fase": "B.11.5",
+    "titulo": "Dossiê de Prontidão de Integração Real e Consistência do Pipeline SDR Vamuss",
+    "data_execucao": "2026-10-10T20:24:23.898Z",
+    "negocio_referencia": {
+      "id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+      "nome": "Negócio Clínica Dentária Diniz Salgueiro",
+      "concelho": "LISBOA",
+      "status_atual": "lost",
+      "etapa_atual": "stage_perdido"
+    },
+    "salvaguardas_estritas": {
+      "envios_reais_efetuados": 0,
+      "mutacoes_base_producao": 0,
+      "circuit_breaker": "ATIVO_FAIL_CLOSED"
+    }
+  },
+  "regra_de_silencio_e_6_estados": {
+    "definicao_obrigatoria": [
+      "O silêncio não demonstra interesse comercial.",
+      "Um negócio perdido não pode passar para open ou stage_lead_engajamento apenas por entrada na fila ou preparação de mensagem.",
+      "Preparar uma abordagem não equivale a enviá-la.",
+      "Enviar uma abordagem não equivale a obter resposta.",
+      "Uma resposta real deve ser interpretada antes de qualquer alteração de pipeline.",
+      "Só reativar um negócio mediante evento comercial real de interesse comprovado."
+    ],
+    "matriz_6_estados": [
+      {
+        "estado_ciclo": "1. Negócio perdido na fila de recuperação",
+        "status_crm": "lost",
+        "etapa_crm": "stage_perdido",
+        "reativado": false,
+        "transicao_permitida": false,
+        "mutacao_crm": false,
+        "acao_sdr": "AGUARDAR_ANALISE_CONTEXTUAL",
+        "justificacao": "Negócio na fila permanece estritamente lost com histórico e motivo preservados."
+      },
+      {
+        "estado_ciclo": "2. Mensagem preparada, mas não enviada",
+        "status_crm": "lost",
+        "etapa_crm": "stage_perdido",
+        "reativado": false,
+        "transicao_permitida": false,
+        "mutacao_crm": false,
+        "acao_sdr": "PROPOSTA_INTERNA_GERADA_SEM_DISPARO",
+        "justificacao": "Preparar abordagem é apenas trabalho analítico interno; não equivale a envio nem a resposta."
+      },
+      {
+        "estado_ciclo": "3. Mensagem enviada, sem resposta",
+        "status_crm": "lost",
+        "etapa_crm": "stage_perdido",
+        "reativado": false,
+        "transicao_permitida": false,
+        "mutacao_crm": false,
+        "acao_sdr": "REGISTO_TENTATIVA_E_RESPIRO_CADENCIA",
+        "justificacao": "O silêncio contínuo não demonstra interesse. O negócio permanece lost na fila aguardando respiro."
+      },
+      {
+        "estado_ciclo": "4. Resposta real sem interesse demonstrado",
+        "status_crm": "lost",
+        "etapa_crm": "stage_perdido",
+        "reativado": false,
+        "transicao_permitida": false,
+        "mutacao_crm": false,
+        "acao_sdr": "CLARIFICACAO_OU_REVISAO_HUMANA",
+        "justificacao": "Respostas ambíguas, evasivas ou automáticas não comprovam interesse; mantêm status lost sem transição."
+      },
+      {
+        "estado_ciclo": "5. Resposta real com interesse demonstrado",
+        "status_crm": "open",
+        "etapa_crm": "stage_lead_engajamento",
+        "reativado": true,
+        "transicao_permitida": true,
+        "mutacao_crm": true,
+        "acao_sdr": "QUALIFICACAO_EM_ENGAJAMENTO",
+        "justificacao": "Interesse explícito comprovado. O negócio transita legitimamente para Lead de Engajamento mantendo mesmo deal_id."
+      },
+      {
+        "estado_ciclo": "6. Recusa ou pedido de supressão",
+        "status_crm": "lost",
+        "etapa_crm": "stage_lost",
+        "reativado": false,
+        "transicao_permitida": false,
+        "mutacao_crm": false,
+        "supressao_ativa": true,
+        "acao_sdr": "SUPRESSAO_ESTRITA_PERMANENTE",
+        "justificacao": "Manifestação de recusa ou opt-out; status lost confirmado e supressão permanente ativada (RGPD)."
+      }
+    ],
+    "caso_diniz_salgueiro": {
+      "silencio_continuo": {
+        "novoStatus": "lost",
+        "novaEtapa": "stage_perdido",
+        "reativado": false,
+        "transicaoOcorreu": false,
+        "permaneceNaFila": true,
+        "motivo": "SILENCIO_OU_PREPARACAO_SEM_RESPOSTA",
+        "descricao": "O silêncio não demonstra interesse. Mantém status lost e etapa inalterada na Fila SDR."
+      },
+      "resposta_ambigua": {
+        "novoStatus": "lost",
+        "novaEtapa": "stage_perdido",
+        "reativado": false,
+        "transicaoOcorreu": false,
+        "permaneceNaFila": true,
+        "motivo": "RESPOSTA_SEM_INTERESSE_DEMONSTRADO",
+        "descricao": "Resposta real sem interesse demonstrado. Mantém status lost e etapa inalterada até manifestação explícita de interesse ou revisão humana."
+      },
+      "interesse_comprovado": {
+        "novoStatus": "open",
+        "novaEtapa": "stage_lead_engajamento",
+        "reativado": true,
+        "transicaoOcorreu": true,
+        "motivo": "INTERESSE_DEMONSTRADO",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      }
+    }
+  },
+  "integracao_crm_mapa_ferramentas": {
+    "status_conectividade_live": false,
+    "erro_real_sandbox": "TypeError: fetch failed",
+    "operacoes": [
+      {
+        "operacao": "consultar_negocio_atual",
+        "descricao": "Consulta direta a um negócio específico pelo ID na tabela deals",
+        "ferramenta": "crm_get_deal",
+        "chamada_codigo": "supabase.from(\"deals\").select(\"*\").eq(\"id\", deal_id).single()",
+        "estado_integracao": "INDISPONIVEL_AMBIENTE_EXECUCAO",
+        "detalhe_tecnico": "Ambiente de execução sandbox isolado sem rota de rede externa (TypeError: fetch failed). As credenciais existem no ambiente, mas a rede externa está vedada.",
+        "comprovacao": "Suportado factual e deterministicamente pelo dataset canónico auditado (data/sdr_reactivation_phase_b2_audit.json e data/sdr_reactivation_phase_b7_1_reconciliation.json)."
+      },
+      {
+        "operacao": "consultar_historico_atividades",
+        "descricao": "Consulta da timeline de notas e histórico na tabela activities",
+        "ferramenta": "crm_get_deal_history",
+        "chamada_codigo": "supabase.from(\"activities\").select(\"*\").eq(\"deal_id\", deal_id)",
+        "estado_integracao": "INDISPONIVEL_AMBIENTE_EXECUCAO",
+        "detalhe_tecnico": "Ambiente de execução sandbox isolado sem rota de rede externa (TypeError: fetch failed). As credenciais existem no ambiente, mas a rede externa está vedada.",
+        "comprovacao": "Suportado factual e deterministicamente pelo dataset canónico auditado (data/sdr_reactivation_phase_b2_audit.json e data/sdr_reactivation_phase_b7_1_reconciliation.json)."
+      },
+      {
+        "operacao": "pesquisar_negocios",
+        "descricao": "Pesquisa e contagem de negócios perdidos no pipeline comercial",
+        "ferramenta": "crm_search_deals",
+        "chamada_codigo": "supabase.from(\"deals\").select(\"*\", { count: \"exact\" }).eq(\"status\", \"lost\")",
+        "estado_integracao": "INDISPONIVEL_AMBIENTE_EXECUCAO",
+        "detalhe_tecnico": "Ambiente de execução sandbox isolado sem rota de rede externa (TypeError: fetch failed). As credenciais existem no ambiente, mas a rede externa está vedada.",
+        "comprovacao": "Suportado factual e deterministicamente pelo dataset canónico auditado (data/sdr_reactivation_phase_b2_audit.json e data/sdr_reactivation_phase_b7_1_reconciliation.json)."
+      },
+      {
+        "operacao": "propor_acao_comercial",
+        "descricao": "Raciocínio contextual e elaboração da próxima ação sem mutação de pipeline",
+        "ferramenta": "sdr_propose_next_action",
+        "chamada_codigo": "agent.evaluateConversationScenario() + recoveryPipeline.prepareNextCommercialAction()",
+        "estado_integracao": "INTEGRACAO_FUNCIONAL_COMPROVADA",
+        "detalhe_tecnico": "Executado deterministicamente pelo motor SDR e pelo modelo cognitivo com base no histórico factual.",
+        "comprovacao": "Testado e validado em 100% dos cenários comerciais."
+      },
+      {
+        "operacao": "alterar_etapa_apenas_quando_regra_permitir",
+        "descricao": "Atualização controlada de status e stage_id mediante evento real verificado",
+        "ferramenta": "crm_stage_transition",
+        "chamada_codigo": "recoveryPipeline.handleRecoveryTransition()",
+        "estado_integracao": "INTEGRACAO_IMPLEMENTADA_CONDICIONADA",
+        "detalhe_tecnico": "Lógica de salvaguarda operacional funcional no backend; mutação em produção bloqueada pelo Circuit Breaker e pelo isolamento de rede.",
+        "comprovacao": "Testado com sucesso em ambiente de simulação e controle de integridade."
+      }
+    ],
+    "resumo_classificacao": {
+      "funcional_comprovada": [
+        "propor_acao_comercial"
+      ],
+      "implementada_condicionada": [
+        "alterar_etapa_apenas_quando_regra_permitir"
+      ],
+      "indisponivel_sandbox_suportada_audit": [
+        "consultar_negocio_atual",
+        "consultar_historico_atividades",
+        "pesquisar_negocios"
+      ]
+    }
+  },
+  "integracao_calendario_especificacao": {
+    "ferramenta_ativa": false,
+    "status": "LIMITACAO_INTEGRACAO_CALENDARIO",
+    "motivo_desativacao": "Ausência de serviço server-side autenticado com a API da Google Agenda. O serviço existente no frontend (googleCalendarService.ts) opera via cliente web (localStorage/iCal read-only) e não confere capacidade transacional backend.",
+    "requisitos_para_ligacao_futura": [
+      {
+        "requisito_id": "REQ_CAL_01_AUTH",
+        "nome": "Autenticação e Credenciais Seguras",
+        "detalhe": "Configurar Google Cloud Service Account com permissões delegated authority (ou fluxo OAuth2 com Refresh Token persistido em cofre seguro / Supabase Vault), nunca em variáveis de ambiente expostas."
+      },
+      {
+        "requisito_id": "REQ_CAL_02_FREEBUSY",
+        "nome": "Consulta Determinística de Disponibilidade (FreeBusy)",
+        "detalhe": "Chamada à Google Calendar API endpoint freeBusy.query para verificar conflitos em tempo real na agenda do consultor/closer sem expor reuniões de outros clientes."
+      },
+      {
+        "requisito_id": "REQ_CAL_03_EVENT_CREATION",
+        "nome": "Criação Segura de Evento com Google Meet",
+        "detalhe": "Chamada a calendar.events.insert com conferenceDataVersion: 1 e createRequest para geração dinâmica de link Google Meet único, associando email da clínica e closer."
+      },
+      {
+        "requisito_id": "REQ_CAL_04_WEBHOOK_SYNC",
+        "nome": "Webhooks de Sincronização e Resiliência",
+        "detalhe": "Endpoint webhook assinado criptograficamente (HMAC) para receção de eventos de aceitação, recusa ou reagendamento efetuados fora do CRM."
+      },
+      {
+        "requisito_id": "REQ_CAL_05_STAGE_GATE",
+        "nome": "Transição Estrita Condicionada a Evento",
+        "detalhe": "Apenas quando a API retornar HTTP 200/201 com eventId válido e link de reunião gerado é permitida a transição do negócio para a etapa Reunião (status open, NUNCA won)."
+      }
+    ],
+    "regra_de_transicao_3_estados": {
+      "estado_1_proposta": {
+        "etapa": "stage_lead_engajamento",
+        "status": "open",
+        "regra": "Proposta apresentada em formato consultivo; negócio mantém-se em engajamento."
+      },
+      "estado_2_aceitacao": {
+        "etapa": "stage_lead_engajamento",
+        "status": "open",
+        "regra": "Interlocutor aceita reunir verbalmente; negócio mantém-se em engajamento até emissão efetiva do convite."
+      },
+      "estado_3_confirmacao_agenda": {
+        "etapa": "stage_reuniao",
+        "status": "open",
+        "regra": "Evento gerado com sucesso no calendário; negócio avança para Reunião (status open, NUNCA won)."
+      }
+    }
+  },
+  "auditoria_transicoes_pipeline": {
+    "entrada_fila": {
+      "sucesso": true,
+      "status_fila": "ENCERRADO_RECUSADO",
+      "motivo_perda_preservado": "LOST_NO_RESPONSE"
+    },
+    "idempotencia": {
+      "duplicado_ignorado": true
+    },
+    "preparacao_abordagem": {
+      "mensagem_pronta": true,
+      "mutacao_pipeline": false
+    },
+    "resposta_automatica": {
+      "transicao_bloqueada": true,
+      "motivo": "RESPOSTA_AUTOMATICA_IGNORADA"
+    },
+    "interesse_real": {
+      "transicao_efetuada": true,
+      "nova_etapa": "Lead de Engajamento",
+      "novo_status": "open"
+    },
+    "agendamento": {
+      "sugerida_sem_evento": {
+        "transicao_bloqueada": true,
+        "motivo": "REUNIAO_NAO_CONFIRMADA"
+      },
+      "confirmada_com_evento": {
+        "transicao_efetuada": true,
+        "nova_etapa": "Reunião",
+        "novo_status": "open"
+      }
+    },
+    "recusa_supressao": {
+      "bloqueado": true,
+      "supressao_ativa": true
+    }
+  },
+  "salvaguardas_operacionais": {
+    "gate_legal": {
+      "autorizado": false,
+      "motivo_bloqueio": "DEAL_BLOQUEADO_OPERACIONAL",
+      "regra": "Fail-Closed para todas as entidades coletivas sem LIA homologado"
+    },
+    "circuit_breaker": {
+      "ativo": true,
+      "disparos_reais_permitidos": false
+    },
+    "horario_comercial": {
+      "sabado_bloqueado": true,
+      "feriado_municipal_bloqueado": true,
+      "dia_util_permitido": true
+    },
+    "concorrencia_mutex": {
+      "lock_exclusivo_garantido": true
+    }
+  },
+  "criterios_aceitacao_b11_5": {
+    "regra_silencio_consistente_em_todo_codigo_e_docs": true,
+    "sem_transicoes_indevidas_por_preparacao_ou_silencio": true,
+    "estado_real_integracoes_documentado_com_evidencias": true,
+    "transicoes_reuniao_dependentes_de_confirmacao_efetiva": true,
+    "todas_salvaguardas_continuam_ativas": true,
+    "zero_envios_reais_zero_mutacoes_producao": true
+  }
+}

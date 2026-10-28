@@ -1,0 +1,742 @@
+[
+  {
+    "id": "7b6e6130-4b9f-4178-ad13-40fd0e5922ca",
+    "idempotency_key": "deal_error_meta_RESPOSTA_POSITIVA_WHATSAPP_2026-10-26",
+    "deal_id": "deal_error_meta",
+    "contact_id": "c_error",
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Resposta classificada como MENSAGEM_AMBIGUA_OU_INCOMPLETA: \"\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-26T22:16:47.217Z",
+    "outcome": "RESPOSTA_POSITIVA",
+    "notes": "Resposta classificada como MENSAGEM_AMBIGUA_OU_INCOMPLETA: \"\"",
+    "metadata": {
+      "inbound_text": "",
+      "response_classification": "MENSAGEM_AMBIGUA_OU_INCOMPLETA",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "MENSAGEM_AMBIGUA_OU_INCOMPLETA",
+        "evidencias": "",
+        "grau_confianca": "BAIXA",
+        "proxima_acao": "QUALIFICACAO_SPIN",
+        "mensagem_sugerida": "Olá! Agradecemos o seu contacto. Poderia partilhar um pouco mais sobre o que procura ou como podemos ajudar a sua clínica? Estamos aqui para esclarecer qualquer dúvida.",
+        "justificacao_comercial": "A mensagem recebida está vazia, o que indica uma falta de clareza sobre a intenção do lead. É necessário aprofundar a conversa para entender as necessidades da clínica.",
+        "informacao_em_falta": "Não sabemos qual é o interesse ou necessidade específica da clínica.",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "NAO_APLICAVEL",
+        "funnel_event": "REPLY_WITH_INTEREST",
+        "openai_token_usage": {
+          "prompt": 1287,
+          "completion": 218,
+          "total": 1505
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_46053_1za0)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-26T22:16:47.217Z"
+  },
+  {
+    "id": "cbce1297-45be-4902-9452-1f38ededc919",
+    "idempotency_key": "deal_closer_auto_1792941234667_INTERESSE_QUALIFICADO_WHATSAPP_2026-10-25",
+    "deal_id": "deal_closer_auto_1792941234667",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Interesse manifestado em resposta inbound: \"Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-25T15:13:58.270Z",
+    "outcome": "INTERESSE_QUALIFICADO",
+    "notes": "Interesse manifestado em resposta inbound: \"Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.\"",
+    "metadata": {
+      "inbound_text": "Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.",
+      "response_classification": "INTERESSE_QUALIFICADO",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "INTERESSE_GENUINO",
+        "evidencias": "gostaria de saber os valores para implantes e agendar diagnóstico",
+        "grau_confianca": "ALTA",
+        "proxima_acao": "QUALIFICACAO_SPIN",
+        "mensagem_sugerida": "Boa tarde! Agradeço o seu contacto. Para podermos ajudar da melhor forma, poderia partilhar qual a sua situação atual em relação aos implantes? Assim, conseguiremos fornecer informações mais precisas e agendar o diagnóstico. Aguardamos a sua resposta!",
+        "justificacao_comercial": "O cliente demonstra interesse genuíno ao solicitar informações sobre preços e agendar um diagnóstico, o que indica uma intenção de avançar com tratamentos.",
+        "informacao_em_falta": "Não sabemos a situação clínica do paciente nem as suas expectativas em relação aos implantes.",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "SITUACAO",
+        "funnel_event": "REPLY_WITH_INTEREST",
+        "openai_token_usage": {
+          "prompt": 902,
+          "completion": 243,
+          "total": 1145
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_21425_gr8s)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-25T15:13:58.270Z"
+  },
+  {
+    "id": "f7e51cb8-0b6a-4487-9b03-d4a8a0a006a6",
+    "idempotency_key": "deal_closer_auto_1792939853312_INTERESSE_QUALIFICADO_WHATSAPP_2026-10-25",
+    "deal_id": "deal_closer_auto_1792939853312",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Interesse manifestado em resposta inbound: \"Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-25T14:50:57.606Z",
+    "outcome": "INTERESSE_QUALIFICADO",
+    "notes": "Interesse manifestado em resposta inbound: \"Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.\"",
+    "metadata": {
+      "inbound_text": "Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.",
+      "response_classification": "INTERESSE_QUALIFICADO",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "INTERESSE_GENUINO",
+        "evidencias": "Gostaria de saber os valores para implantes e agendar diagnóstico.",
+        "grau_confianca": "ALTA",
+        "proxima_acao": "QUALIFICACAO_SPIN",
+        "mensagem_sugerida": "Boa tarde! Agradecemos o seu contacto. Para podermos fornecer informações mais precisas sobre os valores dos implantes e agendar o diagnóstico, poderia partilhar um pouco mais sobre a sua situação dental? Assim, poderemos ajudá-lo da melhor forma possível.",
+        "justificacao_comercial": "O cliente demonstra interesse genuíno em saber os valores e agendar um diagnóstico, o que indica uma oportunidade de qualificação e potencial conversão em paciente.",
+        "informacao_em_falta": "Não sabemos detalhes sobre a situação dental do cliente, que são importantes para fornecer informações precisas.",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "SITUACAO",
+        "funnel_event": "REPLY_WITH_INTEREST",
+        "openai_token_usage": {
+          "prompt": 902,
+          "completion": 246,
+          "total": 1148
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_20194_bmjg)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-25T14:50:57.606Z"
+  },
+  {
+    "id": "18321f2e-4490-4395-95eb-e322186a9f76",
+    "idempotency_key": "deal_closer_auto_1792939309393_INTERESSE_QUALIFICADO_WHATSAPP_2026-10-25",
+    "deal_id": "deal_closer_auto_1792939309393",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Interesse manifestado em resposta inbound: \"Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-25T14:41:53.955Z",
+    "outcome": "INTERESSE_QUALIFICADO",
+    "notes": "Interesse manifestado em resposta inbound: \"Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.\"",
+    "metadata": {
+      "inbound_text": "Boa tarde, gostaria de saber os valores para implantes e agendar diagnóstico.",
+      "response_classification": "INTERESSE_QUALIFICADO",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "INTERESSE_GENUINO",
+        "evidencias": "gostaria de saber os valores para implantes e agendar diagnóstico",
+        "grau_confianca": "ALTA",
+        "proxima_acao": "QUALIFICACAO_SPIN",
+        "mensagem_sugerida": "Boa tarde! Agradeço o seu contacto. Para podermos ajudar da melhor forma, poderia partilhar um pouco mais sobre a sua situação dental? Assim, poderemos fornecer informações mais precisas sobre os implantes e agendar um diagnóstico adequado. Aguardamos a sua resposta!",
+        "justificacao_comercial": "O cliente demonstrou interesse genuíno ao solicitar informações sobre valores e agendamento de diagnóstico, o que indica uma intenção de prosseguir com o tratamento.",
+        "informacao_em_falta": "Não sabemos a situação dental específica do cliente nem se tem alguma preferência ou urgência em relação ao tratamento.",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "SITUACAO",
+        "funnel_event": "REPLY_WITH_INTEREST",
+        "openai_token_usage": {
+          "prompt": 902,
+          "completion": 252,
+          "total": 1154
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_20021_eoel)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-25T14:41:53.955Z"
+  },
+  {
+    "id": "3a282d0d-e9a9-498e-a318-8e6e3f5d230f",
+    "idempotency_key": "deal_error_meta_RESPOSTA_POSITIVA_WHATSAPP_2026-10-25",
+    "deal_id": "deal_error_meta",
+    "contact_id": "c_error",
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Resposta classificada como MENSAGEM_AMBIGUA_OU_INCOMPLETA: \"\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-25T14:27:55.330Z",
+    "outcome": "RESPOSTA_POSITIVA",
+    "notes": "Resposta classificada como MENSAGEM_AMBIGUA_OU_INCOMPLETA: \"\"",
+    "metadata": {
+      "inbound_text": "",
+      "response_classification": "MENSAGEM_AMBIGUA_OU_INCOMPLETA",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "MENSAGEM_AMBIGUA_OU_INCOMPLETA",
+        "evidencias": "",
+        "grau_confianca": "BAIXA",
+        "proxima_acao": "PAUSA_TEMPORARIA",
+        "mensagem_sugerida": "Olá! Agradecemos o seu contacto. Poderia partilhar mais informações ou esclarecer como podemos ajudar? Estamos aqui para ajudar.",
+        "justificacao_comercial": "A mensagem recebida não contém informações suficientes para identificar uma intenção clara, portanto, é necessário solicitar mais detalhes.",
+        "informacao_em_falta": "Não sabemos qual é a necessidade ou interesse específico da clínica.",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "NAO_APLICAVEL",
+        "funnel_event": "NONE",
+        "openai_token_usage": {
+          "prompt": 877,
+          "completion": 191,
+          "total": 1068
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_19580_mw68)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-25T14:27:55.330Z"
+  },
+  {
+    "id": "58d35379-00d1-4721-8c24-bbc8948eb712",
+    "idempotency_key": "deal_test_suppression_precedence_INTERESSE_QUALIFICADO_WHATSAPP_2026-10-25",
+    "deal_id": "deal_test_suppression_precedence",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Interesse manifestado em resposta inbound: \"Olá, tenho muito interesse!\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-25T12:52:38.931Z",
+    "outcome": "INTERESSE_QUALIFICADO",
+    "notes": "Interesse manifestado em resposta inbound: \"Olá, tenho muito interesse!\"",
+    "metadata": {
+      "inbound_text": "Olá, tenho muito interesse!",
+      "response_classification": "INTERESSE_QUALIFICADO",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "INTERESSE_GENUINO",
+        "evidencias": "Olá, tenho muito interesse!",
+        "grau_confianca": "ALTA",
+        "proxima_acao": "QUALIFICACAO_SPIN",
+        "mensagem_sugerida": "Olá! Agradeço o seu interesse. Para podermos ajudar da melhor forma, poderia partilhar quais os tratamentos que mais lhe interessam? Assim, podemos entender melhor as suas necessidades.",
+        "justificacao_comercial": "A mensagem do cliente demonstra um interesse genuíno, o que nos permite avançar para uma qualificação mais detalhada sobre as suas necessidades específicas.",
+        "informacao_em_falta": "Não sabemos quais os tratamentos específicos que o cliente tem interesse.",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "SITUACAO",
+        "funnel_event": "REPLY_WITH_INTEREST",
+        "openai_token_usage": {
+          "prompt": 889,
+          "completion": 214,
+          "total": 1103
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_17108_ipka)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-25T12:52:38.931Z"
+  },
+  {
+    "id": "0dae1df0-1af5-4520-96b5-3ae362e63322",
+    "idempotency_key": "deal_disq_test_1792543332745_INTERESSE_QUALIFICADO_WHATSAPP_2026-10-21",
+    "deal_id": "deal_disq_test_1792543332745",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Interesse manifestado em resposta inbound: \"Olá, mudei de ideias! Quero agendar a reunião de diagnóstico.\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-21T00:42:16.365Z",
+    "outcome": "INTERESSE_QUALIFICADO",
+    "notes": "Interesse manifestado em resposta inbound: \"Olá, mudei de ideias! Quero agendar a reunião de diagnóstico.\"",
+    "metadata": {
+      "inbound_text": "Olá, mudei de ideias! Quero agendar a reunião de diagnóstico.",
+      "response_classification": "INTERESSE_QUALIFICADO",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "INTERESSE_GENUINO",
+        "evidencias": "Quero agendar a reunião de diagnóstico.",
+        "grau_confianca": "ALTA",
+        "proxima_acao": "AGENDAR_DIAGNOSTICO_20MIN",
+        "mensagem_sugerida": "Olá! Fico feliz em saber que deseja agendar a reunião de diagnóstico. Por favor, indique a sua disponibilidade para que possamos marcar. Obrigado!",
+        "justificacao_comercial": "A mensagem demonstra um interesse genuíno em avançar com o agendamento, o que indica uma oportunidade de conversão.",
+        "informacao_em_falta": "Não sabemos a disponibilidade do cliente para a reunião.",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "NAO_APLICAVEL",
+        "funnel_event": "REPLY_WITH_INTEREST",
+        "openai_token_usage": {
+          "prompt": 901,
+          "completion": 208,
+          "total": 1109
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_53123_48gf)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-21T00:42:16.365Z"
+  },
+  {
+    "id": "1267867d-74c6-4e4a-b9df-23514d4a15fb",
+    "idempotency_key": "deal_deliv_1792464800817_ENTREGUE_WHATSAPP_2026-10-20",
+    "deal_id": "deal_deliv_1792464800817",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Recibo de entrega confirmado para wamid_test_1792464800817",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-20T02:53:20.822Z",
+    "outcome": "ENTREGUE",
+    "notes": "Recibo de entrega confirmado para wamid_test_1792464800817",
+    "metadata": {},
+    "executed_by": "WhatsApp Webhook",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-20T02:53:20.822Z"
+  },
+  {
+    "id": "c5a40fa4-5d34-4ade-99b1-4ab062cda7de",
+    "idempotency_key": "deal_deliv_1792464800817_EXECUTADA_WHATSAPP_2026-10-20",
+    "deal_id": "deal_deliv_1792464800817",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Envio teste para recibo",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-20T02:53:20.819Z",
+    "outcome": "EXECUTADA",
+    "notes": "Envio teste para recibo",
+    "metadata": {},
+    "executed_by": "Test Runner",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-20T02:53:20.819Z"
+  },
+  {
+    "id": "f09b86f0-742d-466f-baf8-e1bf91c4c191",
+    "idempotency_key": "deal_inbound_351912999777_INTERESSE_QUALIFICADO_WHATSAPP_2026-10-20",
+    "deal_id": "deal_inbound_351912999777",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Interesse manifestado em resposta inbound: \"Boa tarde. A nossa clínica em Lisboa quer focar em implantes e cirurgia este trimestre. Como ajudam?\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-20T02:49:50.581Z",
+    "outcome": "INTERESSE_QUALIFICADO",
+    "notes": "Interesse manifestado em resposta inbound: \"Boa tarde. A nossa clínica em Lisboa quer focar em implantes e cirurgia este trimestre. Como ajudam?\"",
+    "metadata": {
+      "inbound_text": "Boa tarde. A nossa clínica em Lisboa quer focar em implantes e cirurgia este trimestre. Como ajudam?",
+      "response_classification": "INTERESSE_QUALIFICADO",
+      "conversational_decision": {
+        "source": "openai_gpt4o_mini_conversational",
+        "intencao_identificada": "INTERESSE_GENUINO",
+        "evidencias": "A nossa clínica em Lisboa quer focar em implantes e cirurgia este trimestre.",
+        "grau_confianca": "ALTA",
+        "proxima_acao": "QUALIFICACAO_SPIN",
+        "mensagem_sugerida": "Boa tarde! Agradecemos o seu contacto. Podemos ajudar a sua clínica a atrair pacientes para implantes e cirurgia através de estratégias focadas na pesquisa ativa no Google. Gostaria de discutir mais sobre os desafios que estão a enfrentar e como podemos ajudar? Estou disponível para uma conversa breve.",
+        "justificacao_comercial": "A mensagem demonstra um interesse genuíno em focar em implantes e cirurgia, o que se alinha com a proposta de valor da Vamuss. A qualificação SPIN permitirá entender melhor as necessidades da clínica.",
+        "informacao_em_falta": "Quais são os principais desafios que a clínica enfrenta na atração de pacientes para esses tratamentos?",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "spin_fase": "SITUACAO",
+        "funnel_event": "REPLY_WITH_INTEREST",
+        "openai_token_usage": {
+          "prompt": 906,
+          "completion": 267,
+          "total": 1173
+        },
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (worker_pilot_test)",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-20T02:49:50.581Z"
+  },
+  {
+    "id": "d12cc59c-ac7f-4f14-8b72-65a20dc185c6",
+    "idempotency_key": "deal_optout_learn_1792452426721_OPTOUT_WHATSAPP_2026-10-19",
+    "deal_id": "deal_optout_learn_1792452426721",
+    "contact_id": null,
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Contacto expressou oposição clara e pediu cancelamento.",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-19T23:27:06.721Z",
+    "outcome": "OPTOUT",
+    "notes": "Contacto expressou oposição clara e pediu cancelamento.",
+    "metadata": {},
+    "executed_by": "SDR Test",
+    "synced_to_supabase": false,
+    "created_at": "2026-10-19T23:27:06.721Z"
+  },
+  {
+    "id": "rej_0_1792452426720",
+    "deal_id": "deal_rej_0",
+    "outcome": "OPTOUT",
+    "created_at": "2026-10-19T23:27:06.720Z",
+    "metadata": {
+      "ab_test_id": "ab_test_copy_abertura"
+    }
+  },
+  {
+    "id": "rej_1_1792452426720",
+    "deal_id": "deal_rej_1",
+    "outcome": "OPTOUT",
+    "created_at": "2026-10-19T23:27:06.720Z",
+    "metadata": {
+      "ab_test_id": "ab_test_copy_abertura"
+    }
+  },
+  {
+    "id": "rej_2_1792452426720",
+    "deal_id": "deal_rej_2",
+    "outcome": "OPTOUT",
+    "created_at": "2026-10-19T23:27:06.720Z",
+    "metadata": {
+      "ab_test_id": "ab_test_copy_abertura"
+    }
+  },
+  {
+    "id": "rej_3_1792452426720",
+    "deal_id": "deal_rej_3",
+    "outcome": "RESPOSTA_NEGATIVA",
+    "created_at": "2026-10-19T23:27:06.720Z",
+    "metadata": {
+      "ab_test_id": "ab_test_copy_abertura"
+    }
+  },
+  {
+    "id": "rej_4_1792452426720",
+    "deal_id": "deal_rej_4",
+    "outcome": "RESPOSTA_NEGATIVA",
+    "created_at": "2026-10-19T23:27:06.720Z",
+    "metadata": {
+      "ab_test_id": "ab_test_copy_abertura"
+    }
+  },
+  {
+    "id": "rej_5_1792452426720",
+    "deal_id": "deal_rej_5",
+    "outcome": "RESPOSTA_NEGATIVA",
+    "created_at": "2026-10-19T23:27:06.720Z",
+    "metadata": {
+      "ab_test_id": "ab_test_copy_abertura"
+    }
+  },
+  {
+    "id": "calib_0_1792452426719",
+    "deal_id": "deal_c_0",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_1_1792452426719",
+    "deal_id": "deal_c_1",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_2_1792452426719",
+    "deal_id": "deal_c_2",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_3_1792452426719",
+    "deal_id": "deal_c_3",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_4_1792452426719",
+    "deal_id": "deal_c_4",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_5_1792452426719",
+    "deal_id": "deal_c_5",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_6_1792452426719",
+    "deal_id": "deal_c_6",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_7_1792452426719",
+    "deal_id": "deal_c_7",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_8_1792452426719",
+    "deal_id": "deal_c_8",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_9_1792452426719",
+    "deal_id": "deal_c_9",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_10_1792452426719",
+    "deal_id": "deal_c_10",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_11_1792452426719",
+    "deal_id": "deal_c_11",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_12_1792452426719",
+    "deal_id": "deal_c_12",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_13_1792452426719",
+    "deal_id": "deal_c_13",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_14_1792452426719",
+    "deal_id": "deal_c_14",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_15_1792452426719",
+    "deal_id": "deal_c_15",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_16_1792452426719",
+    "deal_id": "deal_c_16",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_17_1792452426719",
+    "deal_id": "deal_c_17",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_18_1792452426719",
+    "deal_id": "deal_c_18",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_19_1792452426719",
+    "deal_id": "deal_c_19",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_20_1792452426719",
+    "deal_id": "deal_c_20",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_21_1792452426719",
+    "deal_id": "deal_c_21",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_22_1792452426719",
+    "deal_id": "deal_c_22",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_23_1792452426719",
+    "deal_id": "deal_c_23",
+    "outcome": "RESPOSTA_POSITIVA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  },
+  {
+    "id": "calib_24_1792452426719",
+    "deal_id": "deal_c_24",
+    "outcome": "EXECUTADA",
+    "strategy": "TESTE_CALIBRADO",
+    "created_at": "2026-10-19T23:27:06.719Z",
+    "metadata": {
+      "whatsapp_cost_actual": 0.0485
+    }
+  }
+]

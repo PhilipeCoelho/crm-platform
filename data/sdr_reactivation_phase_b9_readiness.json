@@ -1,0 +1,175 @@
+{
+  "fase": "B.9",
+  "titulo": "Integração da Fila de Recuperação com o Pipeline Comercial",
+  "data_execucao": "2026-10-10T17:08:26.904Z",
+  "estado_geral": "CONCLUIDO_COM_SUCESSO",
+  "salvaguardas_estritas": {
+    "mensagens_reais_enviadas": 0,
+    "chamadas_apis_externas_disparo": 0,
+    "mutacoes_base_dados_producao": 0,
+    "circuit_breaker_ativo": true,
+    "principio_fail_closed_ativo": true
+  },
+  "integracao_pipeline": {
+    "etapas_configuradas": [
+      {
+        "id": "stage_prospect",
+        "title": "Prospect",
+        "pipelineId": "sales",
+        "orderIndex": 0
+      },
+      {
+        "id": "stage_lead_engajamento",
+        "title": "Lead de Engajamento",
+        "pipelineId": "sales",
+        "orderIndex": 1
+      },
+      {
+        "id": "stage_reuniao_diagnostico",
+        "title": "Reunião de Diagnóstico",
+        "pipelineId": "sales",
+        "orderIndex": 2
+      },
+      {
+        "id": "stage_proposta_apresentada",
+        "title": "Proposta Apresentada",
+        "pipelineId": "sales",
+        "orderIndex": 3
+      },
+      {
+        "id": "stage_fechamento",
+        "title": "Fechamento Comercial",
+        "pipelineId": "sales",
+        "orderIndex": 4
+      }
+    ],
+    "etapa_engajamento_resolvida": "stage_lead_engajamento",
+    "etapa_reuniao_resolvida": "stage_reuniao_diagnostico",
+    "total_negocios_reconciliados_enfileirados": 405,
+    "garantia_idempotencia": {
+      "total_tentativas_repetidas": 405,
+      "duplicados_gerados": 0,
+      "historico_preservado": true
+    },
+    "metricas_fila_recuperacao": {
+      "total_negocios_fila": 405,
+      "pendentes_analise": 375,
+      "prontos_disparo_simulado": 0,
+      "recuperados_engajamento": 1,
+      "recuperados_reuniao": 1,
+      "bloqueados_ou_suprimidos": 27,
+      "encerrados_recusa": 1,
+      "cadencia_esgotada_silencio": 1
+    },
+    "simulacoes_transicao": {
+      "caso_b_interesse_para_engajamento": {
+        "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+        "status_revertido": "open",
+        "etapa_destino": "Lead de Engajamento",
+        "motivo_perda_original_preservado": "Não responde ",
+        "data_perda_original_preservada": "2026-01-15T00:00:00.000Z"
+      },
+      "caso_c_reuniao_marcada": {
+        "deal_id": "b25e8400-687d-4463-a223-020f6cd4de9d",
+        "status_comercial": "open",
+        "etapa_destino": "Reunião",
+        "reuniao_data": "2026-11-10T11:00:00.000Z",
+        "marca_como_ganho": false
+      },
+      "caso_d_recusa_comercial": {
+        "deal_id": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+        "status_comercial": "lost",
+        "cadencia_interrompida": true,
+        "registado_em_supressao": true,
+        "motivo_supressao": "OPTOUT_EXPLICITO"
+      },
+      "caso_e_resposta_automatica": {
+        "deal_id": "fe3cc983-d52b-4c70-bb27-e848d3a83c58",
+        "transicao_executada": false,
+        "motivo_retencao": "RESPOSTA_AUTOMATICA_IGNORADA"
+      },
+      "caso_f_silencio_cadencia": {
+        "deal_id": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
+        "tentativas_registadas": 4,
+        "cadencia_concluida": true,
+        "avanco_indevido_etapa": false
+      }
+    }
+  },
+  "auditoria_testes": {
+    "total_suites": 10,
+    "total_testes_aprovados": 174,
+    "detalhe_suites": [
+      {
+        "suite": "Fase B.1 (Classificador Inbound)",
+        "script": "scripts/test_sdr_phase_b1.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 28
+      },
+      {
+        "suite": "Fase B.2 (Auditoria Factual)",
+        "script": "scripts/test_sdr_phase_b2.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 29
+      },
+      {
+        "suite": "Fase B.3 (Simulador de Cadência)",
+        "script": "scripts/test_sdr_phase_b3.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 18
+      },
+      {
+        "suite": "Fase B.4 (Dispatcher e Circuit Breaker)",
+        "script": "scripts/test_sdr_phase_b4.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 13
+      },
+      {
+        "suite": "Fase B.5 (Fluxo Integrado)",
+        "script": "scripts/test_sdr_phase_b5_integrated.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 17
+      },
+      {
+        "suite": "Fase B.6 (Simulação de Piloto DRY_RUN)",
+        "script": "scripts/test_sdr_phase_b6.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 21
+      },
+      {
+        "suite": "Fase B.7 (Controlos Operacionais)",
+        "script": "scripts/test_sdr_phase_b7.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 20
+      },
+      {
+        "suite": "Fase B.7.1 (Reconciliação e Ordem do Gate)",
+        "script": "scripts/test_sdr_phase_b7_1.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 7
+      },
+      {
+        "suite": "Fase B.8.1 (Dossiê de Homologação)",
+        "script": "scripts/test_sdr_phase_b8_1.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 9
+      },
+      {
+        "suite": "Fase B.9 (Integração Fila de Recuperação)",
+        "script": "scripts/test_sdr_phase_b9.mjs",
+        "status": "APROVADO",
+        "testes_aprovados": 12
+      }
+    ]
+  },
+  "conclusoes_operacionais": [
+    "A fila de recuperação do SDR está funcionalmente integrada com o pipeline comercial do CRM Vamuss.",
+    "Negócios perdidos entram de forma idempotente sem duplicação de registos nem perda de histórico.",
+    "O identificador original do negócio (deal_id) é estritamente preservado em todas as transições.",
+    "Respostas com interesse confirmado revertem o negócio para status open na etapa Lead de Engajamento, mantendo o histórico de perda intacto.",
+    "Agendamentos de reunião avançam para a etapa Reunião de Diagnóstico com status open, salvaguardando a regra de que uma reunião agendada NÃO é vitória comercial (won).",
+    "Respostas automáticas são filtradas e não geram falsos avanços.",
+    "Recusas expressas e pedidos de oposição geram supressão estrita imediata e travam a cadência.",
+    "Zero mensagens reais foram enviadas e zero chamadas a APIs de produção foram realizadas."
+  ]
+}

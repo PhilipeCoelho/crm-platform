@@ -1,0 +1,1188 @@
+[
+  {
+    "id": "insight_persist_1792452431445",
+    "timestamp": "2026-10-19T23:27:11.446Z",
+    "totalOutcomes": 10
+  },
+  {
+    "id": "insight_1792452431444",
+    "timestamp": "2026-10-19T23:27:11.444Z",
+    "period": {
+      "days": 30,
+      "from": "2026-09-19T23:27:06.722Z",
+      "to": "2026-10-19T23:27:06.722Z"
+    },
+    "totalOutcomes": 32,
+    "isCalibrated": true,
+    "kpis": {
+      "taxaResposta": {
+        "valor": 115.4,
+        "numerador": 15,
+        "denominador": 13,
+        "descricao": "Respostas relevantes / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaInteresseGenuino": {
+        "valor": 92.3,
+        "numerador": 12,
+        "denominador": 13,
+        "descricao": "Respostas positivas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaQualificacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 15,
+        "descricao": "Oportunidades qualificadas / Respostas recebidas",
+        "tipo": "facto"
+      },
+      "taxaReuniao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Reuniões confirmadas / Interesse qualificado",
+        "tipo": "facto"
+      },
+      "taxaConversaoVenda": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Vendas conquistadas / Reuniões realizadas",
+        "tipo": "facto"
+      },
+      "custoPorOportunidadeQualificada": {
+        "valor": 0,
+        "descricao": "Custo total (€) por oportunidade qualificada",
+        "tipo": "facto"
+      },
+      "custoPorReuniao": {
+        "valor": 0,
+        "descricao": "Custo total (€) por reunião realizada",
+        "tipo": "facto"
+      },
+      "custoPorClienteConquistado": {
+        "valor": 0,
+        "descricao": "Custo total (€) por cliente conquistado",
+        "tipo": "facto"
+      },
+      "mensagensMediasPorOportunidade": {
+        "valor": 0.4,
+        "descricao": "Mensagens médias por oportunidade contactada",
+        "tipo": "facto"
+      },
+      "taxaRejeicao": {
+        "valor": 23.1,
+        "numerador": 3,
+        "denominador": 13,
+        "descricao": "Respostas negativas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaOptout": {
+        "valor": 30.8,
+        "numerador": 4,
+        "denominador": 13,
+        "descricao": "Opt-outs / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaReclamacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 13,
+        "descricao": "Reclamações / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaIntervencaoHumana": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 32,
+        "descricao": "Intervenções humanas / Total de outcomes",
+        "tipo": "facto"
+      }
+    },
+    "costSummary": {
+      "totalWhatsapp": 1.21,
+      "totalOpenai": 0,
+      "totalCombined": 1.21,
+      "custoMedioPorAbordagem": 0.0933
+    },
+    "topPerformers": [
+      {
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "positivas": 12,
+        "taxaPositiva": 48,
+        "custoPorPositiva": 0.1,
+        "tipo_dado": "facto"
+      }
+    ],
+    "inefficiencies": [
+      {
+        "tipo": "ESTRATEGIA_CARA_SEM_RETORNO",
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "custo": 1.21,
+        "descricao": "Estratégia \"TESTE_CALIBRADO\" com 25 tentativas e €1.21 gastos sem gerar interesse qualificado.",
+        "recomendacao": "Avaliar a continuidade desta estratégia.",
+        "tipo_dado": "facto"
+      }
+    ],
+    "bySegment": {
+      "OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 31,
+        "sent": 13,
+        "responses": 15,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 115.4,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "byApproachType": {
+      "REGISTO_OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 6,
+        "sent": 0,
+        "responses": 3,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "TESTE_CALIBRADO": {
+        "total": 25,
+        "sent": 13,
+        "responses": 12,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 0,
+        "negative": 0,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 92.3,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "gptInsights": {
+      "summary": "A análise das interações do SDR Vamuss revela uma taxa de resposta elevada, mas sem conversões ou reuniões agendadas. A estratégia 'TESTE_CALIBRADO' gerou interesse, mas não resultou em qualificações.",
+      "patterns": [
+        {
+          "description": "Alta taxa de resposta mas baixa taxa de qualificação e conversão.",
+          "evidence": "Taxa de resposta de 115.4% e taxa de qualificação de 0%.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Estratégia 'TESTE_CALIBRADO' gera interesse mas não resulta em oportunidades qualificadas.",
+          "evidence": "25 tentativas com 12 positivas, mas custo por oportunidade qualificada é €0.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Taxa de opt-out elevada.",
+          "evidence": "Taxa de opt-out de 30.8%.",
+          "confidence": "alta",
+          "type": "facto"
+        }
+      ],
+      "hypotheses": [
+        {
+          "description": "Copy curto gera 15% mais respostas.",
+          "rationale": "A hipótese sugere que uma comunicação mais direta pode aumentar a taxa de resposta.",
+          "suggested_test": "Testar diferentes versões de copy com variações no comprimento e medir a taxa de resposta.",
+          "risk": "medio",
+          "type": "hipotese"
+        }
+      ],
+      "recommendations": [
+        {
+          "description": "Reavaliar a estratégia 'TESTE_CALIBRADO' devido à falta de qualificações.",
+          "expected_impact": "Possível redução de custos e aumento da eficiência nas interações.",
+          "risk_level": "medio",
+          "requires_approval": true,
+          "type": "recomendacao"
+        }
+      ],
+      "cost_optimization": [
+        {
+          "area": "Estratégia de contato",
+          "suggestion": "Considerar a redução de tentativas na estratégia 'TESTE_CALIBRADO' para evitar gastos desnecessários.",
+          "estimated_saving": "Redução de custos associados à estratégia ineficaz."
+        }
+      ],
+      "warnings": [
+        "A elevada taxa de opt-out pode indicar desinteresse ou insatisfação com as abordagens atuais."
+      ]
+    },
+    "gptTokenUsage": {
+      "prompt_tokens": 818,
+      "completion_tokens": 520,
+      "total_tokens": 1338,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "analysisTimeMs": 4722,
+    "source": "deterministic+gpt"
+  },
+  {
+    "id": "insight_persist_1792451684098",
+    "timestamp": "2026-10-19T23:14:44.098Z",
+    "totalOutcomes": 10
+  },
+  {
+    "id": "insight_1792451684096",
+    "timestamp": "2026-10-19T23:14:44.096Z",
+    "period": {
+      "days": 30,
+      "from": "2026-09-19T23:14:38.401Z",
+      "to": "2026-10-19T23:14:38.401Z"
+    },
+    "totalOutcomes": 32,
+    "isCalibrated": true,
+    "kpis": {
+      "taxaResposta": {
+        "valor": 115.4,
+        "numerador": 15,
+        "denominador": 13,
+        "descricao": "Respostas relevantes / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaInteresseGenuino": {
+        "valor": 92.3,
+        "numerador": 12,
+        "denominador": 13,
+        "descricao": "Respostas positivas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaQualificacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 15,
+        "descricao": "Oportunidades qualificadas / Respostas recebidas",
+        "tipo": "facto"
+      },
+      "taxaReuniao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Reuniões confirmadas / Interesse qualificado",
+        "tipo": "facto"
+      },
+      "taxaConversaoVenda": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Vendas conquistadas / Reuniões realizadas",
+        "tipo": "facto"
+      },
+      "custoPorOportunidadeQualificada": {
+        "valor": 0,
+        "descricao": "Custo total (€) por oportunidade qualificada",
+        "tipo": "facto"
+      },
+      "custoPorReuniao": {
+        "valor": 0,
+        "descricao": "Custo total (€) por reunião realizada",
+        "tipo": "facto"
+      },
+      "custoPorClienteConquistado": {
+        "valor": 0,
+        "descricao": "Custo total (€) por cliente conquistado",
+        "tipo": "facto"
+      },
+      "mensagensMediasPorOportunidade": {
+        "valor": 0.4,
+        "descricao": "Mensagens médias por oportunidade contactada",
+        "tipo": "facto"
+      },
+      "taxaRejeicao": {
+        "valor": 23.1,
+        "numerador": 3,
+        "denominador": 13,
+        "descricao": "Respostas negativas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaOptout": {
+        "valor": 30.8,
+        "numerador": 4,
+        "denominador": 13,
+        "descricao": "Opt-outs / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaReclamacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 13,
+        "descricao": "Reclamações / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaIntervencaoHumana": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 32,
+        "descricao": "Intervenções humanas / Total de outcomes",
+        "tipo": "facto"
+      }
+    },
+    "costSummary": {
+      "totalWhatsapp": 1.21,
+      "totalOpenai": 0,
+      "totalCombined": 1.21,
+      "custoMedioPorAbordagem": 0.0933
+    },
+    "topPerformers": [
+      {
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "positivas": 12,
+        "taxaPositiva": 48,
+        "custoPorPositiva": 0.1,
+        "tipo_dado": "facto"
+      }
+    ],
+    "inefficiencies": [
+      {
+        "tipo": "ESTRATEGIA_CARA_SEM_RETORNO",
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "custo": 1.21,
+        "descricao": "Estratégia \"TESTE_CALIBRADO\" com 25 tentativas e €1.21 gastos sem gerar interesse qualificado.",
+        "recomendacao": "Avaliar a continuidade desta estratégia.",
+        "tipo_dado": "facto"
+      }
+    ],
+    "bySegment": {
+      "OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 31,
+        "sent": 13,
+        "responses": 15,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 115.4,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "byApproachType": {
+      "REGISTO_OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 6,
+        "sent": 0,
+        "responses": 3,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "TESTE_CALIBRADO": {
+        "total": 25,
+        "sent": 13,
+        "responses": 12,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 0,
+        "negative": 0,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 92.3,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "gptInsights": {
+      "summary": "A análise das interações do SDR Vamuss revela uma taxa de resposta elevada, mas sem conversões qualificadas ou reuniões agendadas. A estratégia 'TESTE_CALIBRADO' gerou interesse, mas não resultou em oportunidades qualificadas.",
+      "patterns": [
+        {
+          "description": "Elevada taxa de resposta em relação ao número de tentativas.",
+          "evidence": "Taxa de resposta de 115.4% com 15 respostas em 13 tentativas.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Baixa taxa de qualificação e conversão.",
+          "evidence": "Taxa de qualificação de 0% e taxa de conversão de venda de 0%.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Estratégia 'TESTE_CALIBRADO' gera interesse, mas sem retorno qualificado.",
+          "evidence": "12 respostas positivas em 25 tentativas, mas 0% de qualificação.",
+          "confidence": "media",
+          "type": "facto"
+        },
+        {
+          "description": "Taxa de opt-out elevada.",
+          "evidence": "Taxa de opt-out de 30.8%.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Copy curto pode gerar mais respostas.",
+          "evidence": "Hipótese pendente sugere que copy curto gera 15% mais respostas.",
+          "confidence": "baixa",
+          "type": "hipotese"
+        }
+      ],
+      "hypotheses": [
+        {
+          "description": "Copy curto gera 15% mais respostas.",
+          "rationale": "A hipótese baseia-se na ideia de que mensagens mais curtas podem ser mais atraentes e diretas.",
+          "suggested_test": "Realizar um teste A/B com copies curtos e longos para medir a taxa de resposta.",
+          "risk": "medio",
+          "type": "hipotese"
+        }
+      ],
+      "recommendations": [
+        {
+          "description": "Rever a estratégia 'TESTE_CALIBRADO' para identificar melhorias.",
+          "expected_impact": "Melhoria na taxa de qualificação e conversão.",
+          "risk_level": "medio",
+          "requires_approval": true,
+          "type": "recomendacao"
+        }
+      ],
+      "cost_optimization": [
+        {
+          "area": "Estratégia de contacto",
+          "suggestion": "Reduzir tentativas na estratégia 'TESTE_CALIBRADO' até que melhorias sejam implementadas.",
+          "estimated_saving": "Redução de custos associados a tentativas sem retorno."
+        }
+      ],
+      "warnings": [
+        "A elevada taxa de opt-out pode indicar desinteresse ou saturação do público-alvo."
+      ]
+    },
+    "gptTokenUsage": {
+      "prompt_tokens": 818,
+      "completion_tokens": 633,
+      "total_tokens": 1451,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "analysisTimeMs": 5695,
+    "source": "deterministic+gpt"
+  },
+  {
+    "id": "insight_persist_1792451669264",
+    "timestamp": "2026-10-19T23:14:29.264Z",
+    "totalOutcomes": 10
+  },
+  {
+    "id": "insight_1792451669262",
+    "timestamp": "2026-10-19T23:14:29.262Z",
+    "period": {
+      "days": 30,
+      "from": "2026-09-19T23:14:24.054Z",
+      "to": "2026-10-19T23:14:24.054Z"
+    },
+    "totalOutcomes": 32,
+    "isCalibrated": true,
+    "kpis": {
+      "taxaResposta": {
+        "valor": 115.4,
+        "numerador": 15,
+        "denominador": 13,
+        "descricao": "Respostas relevantes / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaInteresseGenuino": {
+        "valor": 92.3,
+        "numerador": 12,
+        "denominador": 13,
+        "descricao": "Respostas positivas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaQualificacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 15,
+        "descricao": "Oportunidades qualificadas / Respostas recebidas",
+        "tipo": "facto"
+      },
+      "taxaReuniao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Reuniões confirmadas / Interesse qualificado",
+        "tipo": "facto"
+      },
+      "taxaConversaoVenda": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Vendas conquistadas / Reuniões realizadas",
+        "tipo": "facto"
+      },
+      "custoPorOportunidadeQualificada": {
+        "valor": 0,
+        "descricao": "Custo total (€) por oportunidade qualificada",
+        "tipo": "facto"
+      },
+      "custoPorReuniao": {
+        "valor": 0,
+        "descricao": "Custo total (€) por reunião realizada",
+        "tipo": "facto"
+      },
+      "custoPorClienteConquistado": {
+        "valor": 0,
+        "descricao": "Custo total (€) por cliente conquistado",
+        "tipo": "facto"
+      },
+      "mensagensMediasPorOportunidade": {
+        "valor": 0.4,
+        "descricao": "Mensagens médias por oportunidade contactada",
+        "tipo": "facto"
+      },
+      "taxaRejeicao": {
+        "valor": 23.1,
+        "numerador": 3,
+        "denominador": 13,
+        "descricao": "Respostas negativas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaOptout": {
+        "valor": 30.8,
+        "numerador": 4,
+        "denominador": 13,
+        "descricao": "Opt-outs / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaReclamacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 13,
+        "descricao": "Reclamações / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaIntervencaoHumana": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 32,
+        "descricao": "Intervenções humanas / Total de outcomes",
+        "tipo": "facto"
+      }
+    },
+    "costSummary": {
+      "totalWhatsapp": 1.21,
+      "totalOpenai": 0,
+      "totalCombined": 1.21,
+      "custoMedioPorAbordagem": 0.0933
+    },
+    "topPerformers": [
+      {
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "positivas": 12,
+        "taxaPositiva": 48,
+        "custoPorPositiva": 0.1,
+        "tipo_dado": "facto"
+      }
+    ],
+    "inefficiencies": [
+      {
+        "tipo": "ESTRATEGIA_CARA_SEM_RETORNO",
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "custo": 1.21,
+        "descricao": "Estratégia \"TESTE_CALIBRADO\" com 25 tentativas e €1.21 gastos sem gerar interesse qualificado.",
+        "recomendacao": "Avaliar a continuidade desta estratégia.",
+        "tipo_dado": "facto"
+      }
+    ],
+    "bySegment": {
+      "OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 31,
+        "sent": 13,
+        "responses": 15,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 115.4,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "byApproachType": {
+      "REGISTO_OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 6,
+        "sent": 0,
+        "responses": 3,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "TESTE_CALIBRADO": {
+        "total": 25,
+        "sent": 13,
+        "responses": 12,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 0,
+        "negative": 0,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 92.3,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "gptInsights": {
+      "summary": "A análise das interações do SDR Vamuss revela uma elevada taxa de resposta, mas a taxa de qualificação e conversão é nula. A estratégia 'TESTE_CALIBRADO' apresenta um custo elevado sem retorno em oportunidades qualificadas.",
+      "patterns": [
+        {
+          "description": "Elevada taxa de resposta com baixo retorno em qualificações.",
+          "evidence": "Taxa de resposta de 115.4% e taxa de qualificação de 0%.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Estratégia 'TESTE_CALIBRADO' não gera interesse qualificado.",
+          "evidence": "25 tentativas com 12 respostas positivas, mas 0 qualificações.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Taxa de opt-out elevada.",
+          "evidence": "Taxa de opt-out de 30.8%.",
+          "confidence": "alta",
+          "type": "facto"
+        }
+      ],
+      "hypotheses": [
+        {
+          "description": "Copy curto gera 15% mais respostas.",
+          "rationale": "A hipótese sugere que uma comunicação mais direta pode aumentar a taxa de resposta.",
+          "suggested_test": "Comparar taxas de resposta entre cópias curtas e longas em futuras interações.",
+          "risk": "baixo",
+          "type": "hipotese"
+        }
+      ],
+      "recommendations": [
+        {
+          "description": "Reavaliar a estratégia 'TESTE_CALIBRADO' devido ao custo sem retorno.",
+          "expected_impact": "Redução de custos e aumento da eficiência nas interações.",
+          "risk_level": "medio",
+          "requires_approval": true,
+          "type": "recomendacao"
+        }
+      ],
+      "cost_optimization": [
+        {
+          "area": "Estratégias de contato",
+          "suggestion": "Focar em estratégias que demonstraram gerar interesse qualificado.",
+          "estimated_saving": "Redução de custos em estratégias ineficazes."
+        }
+      ],
+      "warnings": [
+        "A elevada taxa de opt-out pode indicar desinteresse ou saturação do público-alvo."
+      ]
+    },
+    "gptTokenUsage": {
+      "prompt_tokens": 818,
+      "completion_tokens": 497,
+      "total_tokens": 1315,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "analysisTimeMs": 5208,
+    "source": "deterministic+gpt"
+  },
+  {
+    "id": "insight_persist_1792451651148",
+    "timestamp": "2026-10-19T23:14:11.148Z",
+    "totalOutcomes": 10
+  },
+  {
+    "id": "insight_1792451651146",
+    "timestamp": "2026-10-19T23:14:11.146Z",
+    "period": {
+      "days": 30,
+      "from": "2026-09-19T23:14:05.545Z",
+      "to": "2026-10-19T23:14:05.545Z"
+    },
+    "totalOutcomes": 32,
+    "isCalibrated": true,
+    "kpis": {
+      "taxaResposta": {
+        "valor": 115.4,
+        "numerador": 15,
+        "denominador": 13,
+        "descricao": "Respostas relevantes / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaInteresseGenuino": {
+        "valor": 92.3,
+        "numerador": 12,
+        "denominador": 13,
+        "descricao": "Respostas positivas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaQualificacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 15,
+        "descricao": "Oportunidades qualificadas / Respostas recebidas",
+        "tipo": "facto"
+      },
+      "taxaReuniao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Reuniões confirmadas / Interesse qualificado",
+        "tipo": "facto"
+      },
+      "taxaConversaoVenda": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 0,
+        "descricao": "Vendas conquistadas / Reuniões realizadas",
+        "tipo": "facto"
+      },
+      "custoPorOportunidadeQualificada": {
+        "valor": 0,
+        "descricao": "Custo total (€) por oportunidade qualificada",
+        "tipo": "facto"
+      },
+      "custoPorReuniao": {
+        "valor": 0,
+        "descricao": "Custo total (€) por reunião realizada",
+        "tipo": "facto"
+      },
+      "custoPorClienteConquistado": {
+        "valor": 0,
+        "descricao": "Custo total (€) por cliente conquistado",
+        "tipo": "facto"
+      },
+      "mensagensMediasPorOportunidade": {
+        "valor": 0.4,
+        "descricao": "Mensagens médias por oportunidade contactada",
+        "tipo": "facto"
+      },
+      "taxaRejeicao": {
+        "valor": 23.1,
+        "numerador": 3,
+        "denominador": 13,
+        "descricao": "Respostas negativas / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaOptout": {
+        "valor": 30.8,
+        "numerador": 4,
+        "denominador": 13,
+        "descricao": "Opt-outs / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaReclamacao": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 13,
+        "descricao": "Reclamações / Abordagens enviadas",
+        "tipo": "facto"
+      },
+      "taxaIntervencaoHumana": {
+        "valor": 0,
+        "numerador": 0,
+        "denominador": 32,
+        "descricao": "Intervenções humanas / Total de outcomes",
+        "tipo": "facto"
+      }
+    },
+    "costSummary": {
+      "totalWhatsapp": 1.21,
+      "totalOpenai": 0,
+      "totalCombined": 1.21,
+      "custoMedioPorAbordagem": 0.0933
+    },
+    "topPerformers": [
+      {
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "positivas": 12,
+        "taxaPositiva": 48,
+        "custoPorPositiva": 0.1,
+        "tipo_dado": "facto"
+      }
+    ],
+    "inefficiencies": [
+      {
+        "tipo": "ESTRATEGIA_CARA_SEM_RETORNO",
+        "estrategia": "TESTE_CALIBRADO",
+        "total": 25,
+        "custo": 1.21,
+        "descricao": "Estratégia \"TESTE_CALIBRADO\" com 25 tentativas e €1.21 gastos sem gerar interesse qualificado.",
+        "recomendacao": "Avaliar a continuidade desta estratégia.",
+        "tipo_dado": "facto"
+      }
+    ],
+    "bySegment": {
+      "OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 31,
+        "sent": 13,
+        "responses": 15,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 115.4,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "byApproachType": {
+      "REGISTO_OPERACIONAL": {
+        "total": 1,
+        "sent": 0,
+        "responses": 0,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 1,
+        "negative": 0,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "DESCONHECIDO": {
+        "total": 6,
+        "sent": 0,
+        "responses": 3,
+        "positive": 0,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 3,
+        "negative": 3,
+        "costTotal": 0,
+        "messages": 0,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 0,
+        "taxaPositiva": 0,
+        "custoPorPositiva": 0,
+        "isCalibrated": false
+      },
+      "TESTE_CALIBRADO": {
+        "total": 25,
+        "sent": 13,
+        "responses": 12,
+        "positive": 12,
+        "qualified": 0,
+        "meetings": 0,
+        "sales": 0,
+        "optouts": 0,
+        "negative": 0,
+        "costTotal": 1.21,
+        "messages": 13,
+        "complaints": 0,
+        "errors": 0,
+        "taxaResposta": 92.3,
+        "taxaPositiva": 92.3,
+        "custoPorPositiva": 0.1,
+        "isCalibrated": true
+      }
+    },
+    "gptInsights": {
+      "summary": "As interações do SDR mostram uma alta taxa de resposta, mas nenhuma qualificação ou conversão em reuniões ou vendas. A estratégia 'TESTE_CALIBRADO' gerou interesse, mas não resultou em oportunidades qualificadas.",
+      "patterns": [
+        {
+          "description": "Alta taxa de resposta com baixo retorno em qualificações.",
+          "evidence": "Taxa de resposta de 115.4% e taxa de qualificação de 0%.",
+          "confidence": "alta",
+          "type": "facto"
+        },
+        {
+          "description": "Estratégia 'TESTE_CALIBRADO' gera interesse, mas sem qualificações.",
+          "evidence": "12 positivas em 25 tentativas, mas taxa de qualificação de 0%.",
+          "confidence": "alta",
+          "type": "facto"
+        }
+      ],
+      "hypotheses": [
+        {
+          "description": "Copy curto gera 15% mais respostas.",
+          "rationale": "A hipótese sugere que uma comunicação mais direta pode aumentar a taxa de resposta.",
+          "suggested_test": "Comparar taxas de resposta entre cópias curtas e longas em futuras interações.",
+          "risk": "baixo",
+          "type": "hipotese"
+        }
+      ],
+      "recommendations": [
+        {
+          "description": "Rever a estratégia 'TESTE_CALIBRADO' para melhorar a conversão em qualificações.",
+          "expected_impact": "Aumento na taxa de qualificação e potencialmente nas reuniões.",
+          "risk_level": "medio",
+          "requires_approval": true,
+          "type": "recomendacao"
+        }
+      ],
+      "cost_optimization": [
+        {
+          "area": "Estratégia de contato",
+          "suggestion": "Reduzir tentativas na estratégia 'TESTE_CALIBRADO' até que sejam obtidos resultados qualificados.",
+          "estimated_saving": "Redução de custos associados a tentativas ineficazes."
+        }
+      ],
+      "warnings": [
+        "A alta taxa de opt-out (30.8%) pode indicar desinteresse ou insatisfação com a abordagem atual."
+      ]
+    },
+    "gptTokenUsage": {
+      "prompt_tokens": 818,
+      "completion_tokens": 471,
+      "total_tokens": 1289,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "analysisTimeMs": 5601,
+    "source": "deterministic+gpt"
+  }
+]

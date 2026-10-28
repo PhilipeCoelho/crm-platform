@@ -1,0 +1,1554 @@
+{
+  "meta": {
+    "projeto": "Vamuss SDR Automático — Fase A (Simulação de Reativação)",
+    "data_execucao": "2026-10-09T21:35:12.242Z",
+    "modo": "regras_comerciais_canonicas_vamuss",
+    "read_only_confirmado": true
+  },
+  "estatisticas": {
+    "total_encontrados": 405,
+    "total_analisado": 50,
+    "total_falhas": 0,
+    "por_decisao": {
+      "reativar_agora": 39,
+      "aguardar": 5,
+      "nao_reativar": 5,
+      "revisao_humana": 1
+    },
+    "motivos_mais_frequentes": {
+      "Não responde": 2,
+      "desqualificado": 1,
+      "Não respondeu - Não respondeu os contatos": 1,
+      "Já anuncia - Provavel já ter agência": 1,
+      "Grupo muito grande pra minha realidade atual": 1,
+      "fora do perfil": 2,
+      "Biblioteca de Anúncios confirmada — 3 anúncios activos desde 19 de março de 2026, campanhas estruturadas no Meta com vídeos de testemunhos, múltiplas versões, veiculação em Facebook, Instagram e Messenger.\nIsto não é boost de post — é campanha profissional com criativo de vídeo, copy de dor e CTA estruturado. Têm agência ou gestor de tráfego a trabalhar com eles.\nClínica Dentária do Marquês está fora. Próxima clínica.": 1,
+      "Já anuncia": 1,
+      "Já estão anunciando": 1,
+      "Não respondeu": 3,
+      "Secretaria sem educação e sem interesse em repassar a informação. \nMargarete, disse que clinica passa por uma migração e este não seria o melhor momento": 1,
+      "Não respondeu - Não respondeu as abordagens": 2,
+      "Não teve interesse": 1,
+      "Desqualificado": 21,
+      "Fora do perfil": 1,
+      "[Sem interesse no momento]\nBom dia Sr. Philipe\nAgradecemos o seu contato e o seu interesse, contudo neste momento não estamos interessados na sua proposta.\nGuardamos o seu contato caso no futuro seja necessário.\nMuito obrigado": 1,
+      "Já anuncia - Boa tarde, já temos quem trate das redes sociais e do marktingue . Obrigada pelo Contato.": 1,
+      "(sem motivo)": 1,
+      "Não respondeu - Não responde as abordagens": 1,
+      "Já anuncia - Sara, enviar proposta por email. já trabalha com mkt": 1,
+      "Já tem anúncios ativos": 1,
+      "Não respondeu - Não respondeu as mensagens": 1,
+      "Não respondeu - Não atende o telefone": 1,
+      "fora de perfil, não responde": 1,
+      "Não respondeu - depois das mensagens, email parou de responder": 1
+    },
+    "amostra_estimada_tokens": {
+      "tokens_entrada_por_deal_media": 731,
+      "tokens_saida_por_deal_media": 350,
+      "amostra_tokens_entrada_total": 36550,
+      "amostra_tokens_saida_total": 17500,
+      "custo_amostra_gpt_4o_mini_usd": 0.016,
+      "projecao_universo_405_deals_usd": 0.1295
+    }
+  },
+  "resultados_individuais": [
+    {
+      "identificacao": {
+        "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+        "nome": "Dra. Pamella Pessoa",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não responde ",
+        "data_ultima_atividade_conhecida": "2026-04-27T15:08:41.217+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 4 notas no histórico.",
+        "ultima_interacao_relevante": "Mensagem para Dra. Pamella Pessoa",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá, bom dia! tudo bem?\nVi o perfil da clínica e fiquei curioso com uma coisa.\nPosso te fazer uma pe",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não responde "
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 165 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Pamella Pessoa. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "b25e8400-687d-4463-a223-020f6cd4de9d",
+        "nome": "Dental One",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "desqualificado",
+        "data_ultima_atividade_conhecida": "2026-04-27T11:43:06.092+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "Email: Apresentação",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá, tudo bem?\nVi que a Dental One está sem presença digital estruturada. \n\nNão estou a enviar propo",
+        "objecoes_ou_motivos_perda_identificados": [
+          "desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 165 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dental One. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+        "nome": "Margarida Cortez",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - Não respondeu os contatos",
+        "data_ultima_atividade_conhecida": "2026-05-19T00:23:05.335+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 5 atividades e 9 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá, boa tarde! Tudo bem? \nvi que a Margarida Cortez tem uma presença digital muito bem estruturada.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu - Não respondeu os contatos"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 144 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Margarida Cortez. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "e50459c4-6442-44e2-a6ff-f8a3b2258a77",
+        "nome": "Realize Dental Clinic",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Já anuncia - Provavel já ter agência",
+        "data_ultima_atividade_conhecida": "2026-06-23T15:06:16.959+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 6 atividades e 6 notas no histórico.",
+        "ultima_interacao_relevante": "Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá, boas! Tudo bem?\n\nO meu nome é Phil. Estive a analisar a presença digital da Realize Dental Clin",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Já anuncia - Provavel já ter agência"
+        ],
+        "potencial_reativacao": "medio",
+        "fundamentacao_potencial": "Clínica indicou ter agência ou anúncios ativos em data anterior (108 dias atrás). Contratos de agência costumam ser revistos em ciclos de 3 a 6 meses. Reativação deve aguardar janela de reavaliação de parceiros.",
+        "incertezas_e_dados_em_falta": "Não se sabe se o contrato com a agência atual permanece ativo e gerando resultados satisfatórios."
+      },
+      "decisao": "aguardar",
+      "proxima_acao": {
+        "objetivo": "Sondagem diplomática sobre a satisfação com o volume atual de novas marcações geradas.",
+        "argumento_comercial": "Focar em gargalos de qualificação e conversão de pacientes que agências generalistas costumam ignorar.",
+        "assunto_a_evitar": "Criticar diretamente a agência ou o trabalho atual da clínica.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem convosco. Acompanhei os vossos conteúdos recentemente e recordo-me de termos falado sobre captação de pacientes. Sei que já tinham uma estrutura a trabalhar convosco na altura; com o fecho do trimestre, como tem corrido a consistência de novas primeiras consultas? Se fizer sentido, gostava de partilhar duas ideias práticas que temos implementado em clínicas semelhantes para aumentar o comparecimento. Um abraço!",
+        "justificacao_decisao": "Clínica tem potencial, mas requer timing adequado e abordagem consultiva focada em retenção/qualidade de marcações."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "fe3cc983-d52b-4c70-bb27-e848d3a83c58",
+        "nome": "Oral Project",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Grupo muito grande pra minha realidade atual ",
+        "data_ultima_atividade_conhecida": "2026-04-27T12:15:09.031+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi, boas! Tudo bem?\nGostaria de falar com responsável do marketing para ajudar com estratégias de ca",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Grupo muito grande pra minha realidade atual "
+        ],
+        "potencial_reativacao": "nulo",
+        "fundamentacao_potencial": "Desqualificação estrutural: grande rede corporativa fora do perfil de ticket/serviço da Vamuss.",
+        "incertezas_e_dados_em_falta": "Nenhuma. Critério restritivo de segurança comercial atingido."
+      },
+      "decisao": "nao_reativar",
+      "proxima_acao": {
+        "objetivo": "Arquivamento definitivo. Nenhuma ação comercial futura.",
+        "argumento_comercial": "Não aplicável.",
+        "assunto_a_evitar": "Qualquer abordagem comercial ou envio de mensagens.",
+        "canal_sugerido": "nenhum",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL PARA REATIVAÇÃO]",
+        "justificacao_decisao": "Desqualificação estrutural: grande rede corporativa fora do perfil de ticket/serviço da Vamuss."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
+        "nome": "Clínica Colombo e Silva",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "fora do perfil ",
+        "data_ultima_atividade_conhecida": "2026-04-27T12:13:49.597+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "Email: Apresentação",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Uma pergunta direta: qual é hoje a percentagem de pacientes de convenção vs particulares na clínica?",
+        "objecoes_ou_motivos_perda_identificados": [
+          "fora do perfil "
+        ],
+        "potencial_reativacao": "nulo",
+        "fundamentacao_potencial": "Desqualificação fundamentada no histórico comercial: \"fora do perfil \".",
+        "incertezas_e_dados_em_falta": "Nenhuma. Critério restritivo de segurança comercial atingido."
+      },
+      "decisao": "nao_reativar",
+      "proxima_acao": {
+        "objetivo": "Arquivamento definitivo. Nenhuma ação comercial futura.",
+        "argumento_comercial": "Não aplicável.",
+        "assunto_a_evitar": "Qualquer abordagem comercial ou envio de mensagens.",
+        "canal_sugerido": "nenhum",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL PARA REATIVAÇÃO]",
+        "justificacao_decisao": "Desqualificação fundamentada no histórico comercial: \"fora do perfil \"."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "81a92f33-9074-4526-bc71-2e10f9a6a6e4",
+        "nome": "Clínica do Marquês",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Biblioteca de Anúncios confirmada — 3 anúncios activos desde 19 de março de 2026, campanhas estruturadas no Meta com vídeos de testemunhos, múltiplas versões, veiculação em Facebook, Instagram e Messenger.\nIsto não é boost de post — é campanha profissional com criativo de vídeo, copy de dor e CTA estruturado. Têm agência ou gestor de tráfego a trabalhar com eles.\nClínica Dentária do Marquês está fora. Próxima clínica.",
+        "data_ultima_atividade_conhecida": "2026-04-27T15:46:53.45+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 5 atividades e 8 notas no histórico.",
+        "ultima_interacao_relevante": "Email: Apresentação",
+        "resposta_explicita_verificavel": true,
+        "detalhe_resposta": "Tive retorno da mensagem depois que comentei no perfil.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Biblioteca de Anúncios confirmada — 3 anúncios activos desde 19 de março de 2026, campanhas estruturadas no Meta com vídeos de testemunhos, múltiplas versões, veiculação em Facebook, Instagram e Messenger.\nIsto não é boost de post — é campanha profissional com criativo de vídeo, copy de dor e CTA estruturado. Têm agência ou gestor de tráfego a trabalhar com eles.\nClínica Dentária do Marquês está fora. Próxima clínica."
+        ],
+        "potencial_reativacao": "nulo",
+        "fundamentacao_potencial": "Desqualificação técnica confirmada: clínica já possui estrutura profissional de anúncios no Meta e agência ativa.",
+        "incertezas_e_dados_em_falta": "Nenhuma. Critério restritivo de segurança comercial atingido."
+      },
+      "decisao": "nao_reativar",
+      "proxima_acao": {
+        "objetivo": "Arquivamento definitivo. Nenhuma ação comercial futura.",
+        "argumento_comercial": "Não aplicável.",
+        "assunto_a_evitar": "Qualquer abordagem comercial ou envio de mensagens.",
+        "canal_sugerido": "nenhum",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL PARA REATIVAÇÃO]",
+        "justificacao_decisao": "Desqualificação técnica confirmada: clínica já possui estrutura profissional de anúncios no Meta e agência ativa."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+        "nome": "LT Smile",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não responde ",
+        "data_ultima_atividade_conhecida": "2026-04-15T14:04:59.86+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 6 atividades e 5 notas no histórico.",
+        "ultima_interacao_relevante": "Resposta + Pergunta Estratégica",
+        "resposta_explicita_verificavel": true,
+        "detalhe_resposta": "Estive a ver o perfil da LT Smile e chamou-me atenção a frequência com que falam de agenda aberta, l",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não responde "
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 177 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da LT Smile. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "a441070c-108c-4bed-9260-18109d9047fb",
+        "nome": "Master Dental Faro",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Já anuncia",
+        "data_ultima_atividade_conhecida": "2026-05-11T16:11:52.731+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 5 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Estive vendo o posicionamento da clinica e queria fazer uma pergunta. O posicionamento que tem hoje ",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Já anuncia"
+        ],
+        "potencial_reativacao": "medio",
+        "fundamentacao_potencial": "Clínica indicou ter agência ou anúncios ativos em data anterior (151 dias atrás). Contratos de agência costumam ser revistos em ciclos de 3 a 6 meses. Reativação deve aguardar janela de reavaliação de parceiros.",
+        "incertezas_e_dados_em_falta": "Não se sabe se o contrato com a agência atual permanece ativo e gerando resultados satisfatórios."
+      },
+      "decisao": "aguardar",
+      "proxima_acao": {
+        "objetivo": "Sondagem diplomática sobre a satisfação com o volume atual de novas marcações geradas.",
+        "argumento_comercial": "Focar em gargalos de qualificação e conversão de pacientes que agências generalistas costumam ignorar.",
+        "assunto_a_evitar": "Criticar diretamente a agência ou o trabalho atual da clínica.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem convosco. Acompanhei os vossos conteúdos recentemente e recordo-me de termos falado sobre captação de pacientes. Sei que já tinham uma estrutura a trabalhar convosco na altura; com o fecho do trimestre, como tem corrido a consistência de novas primeiras consultas? Se fizer sentido, gostava de partilhar duas ideias práticas que temos implementado em clínicas semelhantes para aumentar o comparecimento. Um abraço!",
+        "justificacao_decisao": "Clínica tem potencial, mas requer timing adequado e abordagem consultiva focada em retenção/qualidade de marcações."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+        "nome": "CliniCosta",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Já estão anunciando ",
+        "data_ultima_atividade_conhecida": "2026-04-27T11:21:48.107+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Perdido",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Atividade concluída sem observações.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Já estão anunciando "
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 165 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da CliniCosta. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "2ea560dd-905b-4660-9817-2cdf94f4e11f",
+        "nome": "MD Clínica",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "fora do perfil ",
+        "data_ultima_atividade_conhecida": "2026-04-27T15:34:57.065+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 4 notas no histórico.",
+        "ultima_interacao_relevante": "Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi, boas! \nVi que a Realize está a anunciar no Instagram, mas tudo indica que é via post impulsionad",
+        "objecoes_ou_motivos_perda_identificados": [
+          "fora do perfil "
+        ],
+        "potencial_reativacao": "nulo",
+        "fundamentacao_potencial": "Prospect solicitou explicitamente exclusão ou encerramento categórico de contacto.",
+        "incertezas_e_dados_em_falta": "Nenhuma. Critério restritivo de segurança comercial atingido."
+      },
+      "decisao": "nao_reativar",
+      "proxima_acao": {
+        "objetivo": "Arquivamento definitivo. Nenhuma ação comercial futura.",
+        "argumento_comercial": "Não aplicável.",
+        "assunto_a_evitar": "Qualquer abordagem comercial ou envio de mensagens.",
+        "canal_sugerido": "nenhum",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL PARA REATIVAÇÃO]",
+        "justificacao_decisao": "Prospect solicitou explicitamente exclusão ou encerramento categórico de contacto."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "532cc40e-0f38-43a1-ab06-f13e451a12a0",
+        "nome": "clinicacortez.dentalclinic",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu",
+        "data_ultima_atividade_conhecida": "2026-09-08T09:55:33.832+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 7 atividades e 7 notas no histórico.",
+        "ultima_interacao_relevante": "Instagram: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi, boa tarde! Tudo bem?\nVocê enviou\nEstive vendo o posicionamento da clinica e queria fazer uma per",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 32 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da clinicacortez.dentalclinic. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
+        "nome": "CMD Viseu",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Secretaria sem educação e sem interesse em repassar a informação. \nMargarete, disse que clinica passa por uma migração e este não seria o melhor momento \n",
+        "data_ultima_atividade_conhecida": "2026-04-28T14:23:24.077+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Vi que trabalham com Facetas estéticas - uma pergunta rápida: quando alguém pesquisa isso em Viseu n",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Secretaria sem educação e sem interesse em repassar a informação. \nMargarete, disse que clinica passa por uma migração e este não seria o melhor momento \n"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 164 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da CMD Viseu. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "nome": "Clínica Dentária Diniz Salgueiro",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - Não respondeu as abordagens",
+        "data_ultima_atividade_conhecida": "2026-06-19T17:34:13.765+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 5 atividades e 4 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": true,
+        "detalhe_resposta": "Olá,Dr Diniz! \nQuando um paciente pesquisa dentista em Lisboa no Google, a vossa clínica aparece?",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu - Não respondeu as abordagens"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 112 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Dentária Diniz Salgueiro. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "25f3e9d7-27e1-49a8-aa6e-5dd5bc72532e",
+        "nome": "Sensação Branca",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não teve interesse",
+        "data_ultima_atividade_conhecida": "2026-06-30T11:54:48.981+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 4 notas no histórico.",
+        "ultima_interacao_relevante": "Email: Apresentação",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá, bom dia! Tudo bem?\n\nEstive a ver o perfil da Sensação Branca — os conteúdos de bastidores e equ",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não teve interesse"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 101 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Sensação Branca. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "2ee3b134-a111-4624-81b8-c9eef850b5ed",
+        "nome": "C Clinic Leiria",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu",
+        "data_ultima_atividade_conhecida": "2026-06-23T16:45:00.648+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 6 atividades e 5 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá, bom dia! Tudo bem?\n\nDei uma olhada no perfil da CClinic — e vi que os conteúdos estão bem cuida",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 108 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da C Clinic Leiria. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "3c3fa28c-9d7d-43e9-9ec5-664508a1bb72",
+        "nome": "DentalCare Lisboa",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu",
+        "data_ultima_atividade_conhecida": "2026-05-19T00:25:07.833+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "Email: Apresentação",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi, boas! Tudo bem?\nVocê enviou\nEstava a analisar o perfil da DentalCare Lisboa e gostei bastante da",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 144 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da DentalCare Lisboa. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "97d17581-fbb7-4f79-bc31-728e918cb84d",
+        "nome": "MOC Porto",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:48:11.557+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 1 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "indeterminado",
+        "fundamentacao_potencial": "Histórico insuficiente no CRM para inferir o perfil atual da clínica sem risco de abordagem descontextualizada.",
+        "incertezas_e_dados_em_falta": "Não constam anotações detalhadas de objeções, decisores ou motivos específicos de perda."
+      },
+      "decisao": "revisao_humana",
+      "proxima_acao": {
+        "objetivo": "Validação manual prévia pelo consultor comercial antes de qualquer tentativa.",
+        "argumento_comercial": "Investigar se a clínica possui presença ativa no Instagram ou gestor interno.",
+        "assunto_a_evitar": "Disparo de mensagem sem contextualização prévia.",
+        "canal_sugerido": "nenhum",
+        "mensagem_proposta_pt_pt": "[AGUARDA REVISÃO HUMANA - Necessário confirmar decisor e situação cadastral]",
+        "justificacao_decisao": "Dados escassos no CRM. O princípio de segurança comercial exige revisão humana em casos de incerteza."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "606180ab-e1ef-4ada-a066-c14b31f12e94",
+        "nome": "The Practice Dental Clinic",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Fora do perfil",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:35:57.53+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Fora do perfil"
+        ],
+        "potencial_reativacao": "nulo",
+        "fundamentacao_potencial": "Desqualificação fundamentada no histórico comercial: \"Fora do perfil\".",
+        "incertezas_e_dados_em_falta": "Nenhuma. Critério restritivo de segurança comercial atingido."
+      },
+      "decisao": "nao_reativar",
+      "proxima_acao": {
+        "objetivo": "Arquivamento definitivo. Nenhuma ação comercial futura.",
+        "argumento_comercial": "Não aplicável.",
+        "assunto_a_evitar": "Qualquer abordagem comercial ou envio de mensagens.",
+        "canal_sugerido": "nenhum",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL PARA REATIVAÇÃO]",
+        "justificacao_decisao": "Desqualificação fundamentada no histórico comercial: \"Fora do perfil\"."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "fc8af586-3017-404f-bd72-84646201a3ae",
+        "nome": "Clínica Mediminho",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "[Sem interesse no momento]\nBom dia Sr. Philipe\nAgradecemos o seu contato e o seu interesse, contudo neste momento não estamos interessados na sua proposta.\nGuardamos o seu contato caso no futuro seja necessário.\nMuito obrigado ",
+        "data_ultima_atividade_conhecida": "2026-03-09T23:03:21.368+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Vi o perfil da Mediminho — a comunicação é bem cuidada, estética consistente e nota-se que a clínica",
+        "objecoes_ou_motivos_perda_identificados": [
+          "[Sem interesse no momento]\nBom dia Sr. Philipe\nAgradecemos o seu contato e o seu interesse, contudo neste momento não estamos interessados na sua proposta.\nGuardamos o seu contato caso no futuro seja necessário.\nMuito obrigado "
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 215 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Mediminho. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "fb4af26d-12ab-4d73-827a-7e978862d245",
+        "nome": "Clínica Campo das Hortas",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Já anuncia - Boa tarde, já temos quem trate das redes sociais e do marktingue . Obrigada pelo Contato.",
+        "data_ultima_atividade_conhecida": "2026-09-09T20:04:02.258+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá! Tudo bem?\n\nEstive a analisar o perfil da Clínica Campo das Hortas e também os anúncios que estã",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Já anuncia - Boa tarde, já temos quem trate das redes sociais e do marktingue . Obrigada pelo Contato."
+        ],
+        "potencial_reativacao": "medio",
+        "fundamentacao_potencial": "Clínica indicou ter agência ou anúncios ativos em data anterior (30 dias atrás). Contratos de agência costumam ser revistos em ciclos de 3 a 6 meses. Reativação deve aguardar janela de reavaliação de parceiros.",
+        "incertezas_e_dados_em_falta": "Não se sabe se o contrato com a agência atual permanece ativo e gerando resultados satisfatórios."
+      },
+      "decisao": "aguardar",
+      "proxima_acao": {
+        "objetivo": "Sondagem diplomática sobre a satisfação com o volume atual de novas marcações geradas.",
+        "argumento_comercial": "Focar em gargalos de qualificação e conversão de pacientes que agências generalistas costumam ignorar.",
+        "assunto_a_evitar": "Criticar diretamente a agência ou o trabalho atual da clínica.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem convosco. Acompanhei os vossos conteúdos recentemente e recordo-me de termos falado sobre captação de pacientes. Sei que já tinham uma estrutura a trabalhar convosco na altura; com o fecho do trimestre, como tem corrido a consistência de novas primeiras consultas? Se fizer sentido, gostava de partilhar duas ideias práticas que temos implementado em clínicas semelhantes para aumentar o comparecimento. Um abraço!",
+        "justificacao_decisao": "Clínica tem potencial, mas requer timing adequado e abordagem consultiva focada em retenção/qualidade de marcações."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "f2a19616-0297-4480-b7cb-e2ba6044fe4e",
+        "nome": "Implantprime Lisboa",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "(sem motivo registrado)",
+        "data_ultima_atividade_conhecida": "2026-05-26T11:40:54.34+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "Email: Apresentação",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá! Tudo bem?\n\nEstive a analisar o perfil da ImplantPrime e também os anúncios ativos que estão a c",
+        "objecoes_ou_motivos_perda_identificados": [],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 136 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Implantprime Lisboa. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "a9adf1a2-2ac1-4c07-b9cb-5dbc89086696",
+        "nome": "HC Dental Clinic",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - Não respondeu as abordagens",
+        "data_ultima_atividade_conhecida": "2026-06-11T16:39:53.443+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 6 atividades e 5 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi, bom dia! \n\nEstive vendo o perfil da Clinic — a comunicação é muito humana, com bastante foco em ",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu - Não respondeu as abordagens"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 120 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da HC Dental Clinic. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "cbbd6a9e-9577-44d1-905b-9c671625d98a",
+        "nome": "Dr. Jaime Guimarães",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - Não responde as abordagens",
+        "data_ultima_atividade_conhecida": "2026-06-11T16:41:12.802+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 6 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "Mensagem enviada via WhatsApp",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá Dr. Jaime, tudo bem?\n\nEstive a ver o seu perfil e também o site da Bocca Clínica — dá para perce",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu - Não responde as abordagens"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 120 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dr. Jaime Guimarães. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "3f3de593-aaeb-457a-b386-8469b7c194e2",
+        "nome": "Dra. Lorena Mariano",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:48:28.521+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 7 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi Dra. Lorena, tudo bem?\n\nEstive a ver o seu perfil e achei muito forte a forma como junta ciência,",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Lorena Mariano. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "58d78435-24ae-402f-bc95-c9ba27d3bc35",
+        "nome": "Dra. Renata Dias",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:49:00.386+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Renata Dias. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "8c80d243-c999-4d8c-a22a-e6073c616852",
+        "nome": "Dra. Rita Portugal",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:49:33.403+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Rita Portugal. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "79afe698-559c-4673-9c1c-e8c0d95b48c9",
+        "nome": "Dra. Sara Ribeiro",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:58:42.077+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Sara Ribeiro. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "fc565b62-9c84-46fe-8dc4-5605a2c3f47b",
+        "nome": "Easyclinic | Medicina dentária",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Já anuncia - Sara, enviar proposta por email. já trabalha com mkt",
+        "data_ultima_atividade_conhecida": "2026-06-15T12:02:09.194+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 4 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "WhatsApp: Mensagem inicial",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi João! Vi que a Easyclinic tem uma secção de Turismo de Saúde — isso é raro e é um diferencial eno",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Já anuncia - Sara, enviar proposta por email. já trabalha com mkt"
+        ],
+        "potencial_reativacao": "medio",
+        "fundamentacao_potencial": "Clínica indicou ter agência ou anúncios ativos em data anterior (116 dias atrás). Contratos de agência costumam ser revistos em ciclos de 3 a 6 meses. Reativação deve aguardar janela de reavaliação de parceiros.",
+        "incertezas_e_dados_em_falta": "Não se sabe se o contrato com a agência atual permanece ativo e gerando resultados satisfatórios."
+      },
+      "decisao": "aguardar",
+      "proxima_acao": {
+        "objetivo": "Sondagem diplomática sobre a satisfação com o volume atual de novas marcações geradas.",
+        "argumento_comercial": "Focar em gargalos de qualificação e conversão de pacientes que agências generalistas costumam ignorar.",
+        "assunto_a_evitar": "Criticar diretamente a agência ou o trabalho atual da clínica.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem convosco. Acompanhei os vossos conteúdos recentemente e recordo-me de termos falado sobre captação de pacientes. Sei que já tinham uma estrutura a trabalhar convosco na altura; com o fecho do trimestre, como tem corrido a consistência de novas primeiras consultas? Se fizer sentido, gostava de partilhar duas ideias práticas que temos implementado em clínicas semelhantes para aumentar o comparecimento. Um abraço!",
+        "justificacao_decisao": "Clínica tem potencial, mas requer timing adequado e abordagem consultiva focada em retenção/qualidade de marcações."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911",
+        "nome": "Clínica Catarina Fontes",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Já tem anúncios ativos",
+        "data_ultima_atividade_conhecida": "2026-04-27T15:48:01.639+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Perdido",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Oi, Tudobem? \n\nVi o perfil da Clínica e gostei muito da forma como vocês trabalham a autoridade — eq",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Já tem anúncios ativos"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 165 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Catarina Fontes. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "604f5292-536c-4942-bcf9-42df769d914e",
+        "nome": "Dra. Gabriela Correia",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:43:29.139+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Gabriela Correia. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "941348f0-3225-4dfc-95aa-7dbeb5ad85f2",
+        "nome": "Clínica Dr. João Neto",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - Não respondeu as mensagens",
+        "data_ultima_atividade_conhecida": "2026-06-15T12:06:08.743+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 5 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "Mensagem enviada via WhatsApp",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "22 de jan de 2026 11:57\nVocê enviou\nDei uma olhada no perfil da clínica e reparei que vocês já usam ",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu - Não respondeu as mensagens"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 116 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Dr. João Neto. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "667b4052-bdfe-4532-a41b-7ae0f840b7f4",
+        "nome": "Dra. Danielly Garcia",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:59:47.307+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Danielly Garcia. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "50becff4-b8d6-40fa-840e-60e8c308e02b",
+        "nome": "Dra. Rita Barbosa",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:59:33.143+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dra. Rita Barbosa. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "3e9a2333-2241-4a12-ab1d-0c49bea71181",
+        "nome": "Dr. Divo Fernandes",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:59:02.308+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-07, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dr. Divo Fernandes. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "c235ad81-3d7b-475c-b76c-b7839c3dbb2b",
+        "nome": "Clínica Dentária de Vila Nova de Foz Côa",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:47:22.922+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Desqualificado para Aberto",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Dentária de Vila Nova de Foz Côa. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "09dbab6c-70c2-47b9-835e-92091fe73d66",
+        "nome": "Clínica Dentária de Santiago do Cacém",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:47:40.071+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Dentária de Santiago do Cacém. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "5c00dd53-fe15-4cbf-8a0b-0e5ca70b8f7d",
+        "nome": "Clínica Integrada da Parede",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T08:47:55.437+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Integrada da Parede. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "e228b3a6-4f79-49e5-a74b-777b0c0545b0",
+        "nome": "M2 Clinic - Clínica Dentária Saldanha",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:04:45.706+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da M2 Clinic - Clínica Dentária Saldanha. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "0d89a10c-7ccc-4738-982c-08169ffa2ece",
+        "nome": "Infinit Smile Clínica",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:05:00.939+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Infinit Smile Clínica. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "e6bb55a9-7c00-46bd-8c23-61ab25cf6b8f",
+        "nome": "Medidental | FDMK Medicina Dentária e Wellness",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - Não atende o telefone",
+        "data_ultima_atividade_conhecida": "2026-06-15T11:59:40.931+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 5 atividades e 2 notas no histórico.",
+        "ultima_interacao_relevante": "Mensagem enviada via WhatsApp",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Boa noite! 😊\nObrigado pelo retorno.\n\nEstive a analisar com calma o perfil da Medidental e uma coisa",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu - Não atende o telefone"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 116 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Medidental | FDMK Medicina Dentária e Wellness. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "fc44e100-9a31-4794-a5b8-e30cd1404435",
+        "nome": "Dental Team",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:05:23.186+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dental Team. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b",
+        "nome": "Clinica Dentária Dental One",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "fora de perfil, não responde",
+        "data_ultima_atividade_conhecida": "2026-03-16T19:47:35.759+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 4 atividades e 3 notas no histórico.",
+        "ultima_interacao_relevante": "Instagram: Mensagem",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Olá, tudo bem?\nVi que a Dental One está sem presença digital estruturada. \n\nNão estou a enviar propo",
+        "objecoes_ou_motivos_perda_identificados": [
+          "fora de perfil, não responde"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 207 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clinica Dentária Dental One. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "b7830e6b-d1de-4f9e-994a-fd93a500c3cd",
+        "nome": "Clínica Hugo Madeira",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:06:28.139+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 5 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Hugo Madeira. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "fc3cbc07-b9c1-40ed-80a6-3fced93a16bb",
+        "nome": "Clínica Construímos Sorrisos",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - depois das mensagens, email parou de responder",
+        "data_ultima_atividade_conhecida": "2026-09-16T11:17:43.738+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 7 atividades e 5 notas no histórico.",
+        "ultima_interacao_relevante": "Mensagem enviada via WhatsApp",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Pode apresentar a proposta por e-mail e enviaremos aos directores clínicos que avaliam se têm intere",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Não respondeu - depois das mensagens, email parou de responder"
+        ],
+        "potencial_reativacao": "medio",
+        "fundamentacao_potencial": "Negócio perdido há apenas 23 dias. É necessário respeitar intervalo mínimo de respiro comercial (60 dias) para não gerar percepção de insistência excessiva.",
+        "incertezas_e_dados_em_falta": "Não se sabe se houve evolução nas prioridades da clínica no último mês."
+      },
+      "decisao": "aguardar",
+      "proxima_acao": {
+        "objetivo": "Aguardar período de maturação antes de nova abordagem.",
+        "argumento_comercial": "Acompanhar publicações recentes da clínica para encontrar novo gancho factual.",
+        "assunto_a_evitar": "Cobrar resposta sobre contacto anterior recente.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "[AGUARDAR PRAZO - Reavaliação recomendada após completar 60 dias de intervalo]",
+        "justificacao_decisao": "Intervalo de apenas 23 dias desde a última tentativa. Respeito ao tempo do prospect."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "f42a3aa3-f919-419d-8118-7f45ddb0f13c",
+        "nome": "Dental Home",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:07:18.624+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Dental Home. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "dab893a1-f5ed-4137-abbf-c018ada0f2a5",
+        "nome": "Heydoc Clínica Dentária",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:07:37.923+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Heydoc Clínica Dentária. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "e3c5c73b-3a0d-4cf9-9cc5-482646c86ea2",
+        "nome": "OralKlass Porto",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:30:23.185+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Perdido",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da OralKlass Porto. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "f7fca237-83e9-4486-8320-d53828d847c3",
+        "nome": "DentalCore - Centro Médico Dentário",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:31:44.468+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 5 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Desqualificado para Aberto",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da DentalCore - Centro Médico Dentário. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "a741cbc1-0993-4729-83e0-643e4ab00dce",
+        "nome": "Clínica Dentária do Heroísmo",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Desqualificado",
+        "data_ultima_atividade_conhecida": "2026-05-11T09:07:59.241+00:00"
+      },
+      "interpretacao_comercial": {
+        "resumo_factual_historico": "Criado em 2026-02-08, com 3 atividades e 0 notas no histórico.",
+        "ultima_interacao_relevante": "Status alterado de Aberto para Desqualificado",
+        "resposta_explicita_verificavel": false,
+        "detalhe_resposta": "Nenhum registo direto de fala.",
+        "objecoes_ou_motivos_perda_identificados": [
+          "Desqualificado"
+        ],
+        "potencial_reativacao": "alto",
+        "fundamentacao_potencial": "Negócio arquivado por falta de resposta há 152 dias, sem qualquer recusa explícita. Não há registo de conflito ou rejeição ao serviço. Mudança de ângulo e gancho contextual viabiliza nova tentativa.",
+        "incertezas_e_dados_em_falta": "Verificar se o interlocutor de contacto anterior ainda é o responsável pela receção ou direção clínica."
+      },
+      "decisao": "reativar_agora",
+      "proxima_acao": {
+        "objetivo": "Retomar contacto com foco numa pergunta direta e de baixo atrito sobre a agenda de tratamentos de maior valor.",
+        "argumento_comercial": "Estratégia focada em tratamentos de maior margem (implantologia, reabilitação oral, alinhadores) em vez de mensagens genéricas.",
+        "assunto_a_evitar": "Mencionar que \"já mandei mensagem antes\" ou cobrar retorno de conversas antigas.",
+        "canal_sugerido": "whatsapp",
+        "mensagem_proposta_pt_pt": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Dentária do Heroísmo. Estive a rever alguns casos de clínicas na vossa região e lembrei-me do vosso projeto. Uma questão rápida: neste momento, a prioridade da clínica para os próximos meses está mais focada em preencher horários vagos de clínica geral ou em atrair pacientes para tratamentos específicos de reabilitação e implantes? Se fizer sentido, posso partilhar um resumo de 3 minutos de como temos estruturado isso. Obrigado pela atenção!",
+        "justificacao_decisao": "A ausência de resposta anterior não representa desinteresse no serviço. O tempo transcorrido permite reabertura educada e objetiva."
+      }
+    }
+  ]
+}

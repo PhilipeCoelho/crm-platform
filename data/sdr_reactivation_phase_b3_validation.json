@@ -1,0 +1,2668 @@
+{
+  "meta": {
+    "projeto": "Vamuss SDR Automático — Fase B.3 (Validação Final da Carteira e Reconciliação)",
+    "data_execucao": "2026-10-09T23:49:21.385Z",
+    "modo": "validacao_simulacao_estrita_sem_escrita_producao",
+    "total_negocios_reconciliados": 405,
+    "read_only_confirmado": true
+  },
+  "reconciliacao_geral": {
+    "total_carteira": 405,
+    "distribuicao_canonica": {
+      "SILENCIO_CONFIRMADO": 116,
+      "DESQUALIFICADO_INCOMPATIVEL": 185,
+      "JA_TEM_AGENCIA_OU_ANUNCIA": 41,
+      "CONTINGENCIA_OU_ADIAMENTO": 3,
+      "RECUSA_COMERCIAL_DIRETA": 19,
+      "HISTORICO_INCOMPLETO_SEM_EVIDENCIA": 7,
+      "RESTRICAO_CANAL": 5,
+      "AMBIGUO_OU_GATEKEEPER": 19,
+      "INATINGIVEL_TECNICO": 5,
+      "RESPOSTA_AUTOMATICA": 4,
+      "SILENCIO_APOS_PROPOSTA": 1
+    },
+    "grupos_estrategicos": {
+      "1. DESQUALIFICADOS_ARQUIVADOS": 185,
+      "2. SILENCIO_CANDIDATO_CADENCIA": 116,
+      "3. QUARENTENA_AGENCIA_OU_ANUNCIA": 41,
+      "4. SUPRESSAO_ESTRITA_LEGAL_COMERCIAL": 24,
+      "5. REVISAO_HUMANA_OBRIGATORIA": 31,
+      "6. CASOS_ESPECIAIS_SEGUIMENTO": 8
+    }
+  },
+  "matriz_transicao_rastreavel": {
+    "RECUSA_COMERCIAL (B.1 = 28)": {
+      "total_b1": 28,
+      "destinos_finais": {
+        "RECUSA_COMERCIAL_DIRETA": 18,
+        "JA_TEM_AGENCIA_OU_ANUNCIA": 7,
+        "CONTINGENCIA_OU_ADIAMENTO": 1,
+        "AMBIGUO_OU_GATEKEEPER": 1,
+        "SILENCIO_APOS_PROPOSTA": 1
+      },
+      "detalhe_negocios": []
+    },
+    "SILENCIO (B.1 = 361)": {
+      "total_b1": 361,
+      "destinos_finais": {
+        "SILENCIO_CONFIRMADO": 116,
+        "DESQUALIFICADO_INCOMPATIVEL": 184,
+        "JA_TEM_AGENCIA_OU_ANUNCIA": 34,
+        "AMBIGUO_OU_GATEKEEPER": 15,
+        "INATINGIVEL_TECNICO": 5,
+        "RESPOSTA_AUTOMATICA": 4,
+        "RESTRICAO_CANAL": 2,
+        "CONTINGENCIA_OU_ADIAMENTO": 1
+      }
+    },
+    "RESTRICAO_CANAL (B.1 = 4)": {
+      "total_b1": 4,
+      "destinos_finais": {
+        "RESTRICAO_CANAL": 3,
+        "RECUSA_COMERCIAL_DIRETA": 1
+      }
+    },
+    "AMBIGUO (B.1 = 3)": {
+      "total_b1": 3,
+      "destinos_finais": {
+        "AMBIGUO_OU_GATEKEEPER": 2,
+        "DESQUALIFICADO_INCOMPATIVEL": 1
+      }
+    },
+    "SEM_EVIDENCIA (B.1 = 7)": {
+      "total_b1": 7,
+      "destinos_finais": {
+        "HISTORICO_INCOMPLETO_SEM_EVIDENCIA": 7
+      }
+    },
+    "CONTINGENCIA_OPERACIONAL (B.1 = 1)": {
+      "total_b1": 1,
+      "destinos_finais": {
+        "CONTINGENCIA_OU_ADIAMENTO": 1
+      }
+    },
+    "ADIAMENTO (B.1 = 1)": {
+      "total_b1": 1,
+      "destinos_finais": {
+        "AMBIGUO_OU_GATEKEEPER": 1
+      }
+    }
+  },
+  "validacao_detalhada_116_silencio": {
+    "estatisticas": {
+      "total_silencio_avaliados": 116,
+      "comercialmente_elegiveis": 116,
+      "canal_tecnicamente_disponivel": {
+        "whatsapp": 106,
+        "email_apenas": 10,
+        "nenhum": 0
+      },
+      "contacto_legalmente_elegivel": 115,
+      "contacto_com_restricao_herdada": 1,
+      "autorizacao_status": {
+        "PENDENTE_VALIDACAO_PREVIA": 110,
+        "AUTORIZADO_BASE_LEGAL_CONSULTADA": 0,
+        "NAO_AUTORIZADO": 0,
+        "INDETERMINADO": 6
+      },
+      "revisao_humana_necessaria": 6,
+      "prontos_para_simulacao_cadencia": 110
+    },
+    "negocios": [
+      {
+        "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+        "nome_clinica": "Negócio Dra. Pamella Pessoa",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não responde ",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351914056228",
+          "email_normalizado": null,
+          "duplicado_partilhado": null
+        }
+      },
+      {
+        "deal_id": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+        "nome_clinica": "Negócio Margarida Cortez",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu os contatos",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351912241187",
+          "email_normalizado": "margaridacortez.office@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+        "nome_clinica": "Negócio LT Smile",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não responde ",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351963780608",
+          "email_normalizado": null,
+          "duplicado_partilhado": null
+        }
+      },
+      {
+        "deal_id": "532cc40e-0f38-43a1-ab06-f13e451a12a0",
+        "nome_clinica": "Negócio clinicacortez.dentalclinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351927543290",
+          "email_normalizado": "geral@clinicacortez.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "nome_clinica": "Negócio Clínica Dentária Diniz Salgueiro",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu as abordagens",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351929238634",
+          "email_normalizado": "geral@dinizsalgueiro.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "2ee3b134-a111-4624-81b8-c9eef850b5ed",
+        "nome_clinica": "Negócio C Clinic Leiria",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351924148933",
+          "email_normalizado": "geral@cclinic.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "3c3fa28c-9d7d-43e9-9ec5-664508a1bb72",
+        "nome_clinica": "DentalCare Lisboa ",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351913913800",
+          "email_normalizado": "info@dentalcarelisboa.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "a9adf1a2-2ac1-4c07-b9cb-5dbc89086696",
+        "nome_clinica": "Negócio HC Dental Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu as abordagens",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "HERDADA_TELEFONE_WHATSAPP",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": false,
+        "autorizacao_contacto": "INDETERMINADO",
+        "motivo_bloqueio_ou_pendencia": "Telefone partilhado com negócio f73f5b7b-1128-457d-b896-c54627e5452e sob restrição RESTRICAO_CANAL (WHATSAPP)",
+        "revisao_humana_necessaria": true,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968704026",
+          "email_normalizado": "info@hdclinicalgarve.pt",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "cbbd6a9e-9577-44d1-905b-9c671625d98a",
+        "nome_clinica": "Negócio Dr. Jaime Guimarães",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não responde as abordagens",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351915181880",
+          "email_normalizado": "geral@boccaclinica.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "941348f0-3225-4dfc-95aa-7dbeb5ad85f2",
+        "nome_clinica": "Negócio Clínica Dr. João Neto",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu as mensagens",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "INDETERMINADO",
+        "motivo_bloqueio_ou_pendencia": "Telefone partilhado com outra clínica no CRM. Exige desambiguação de titularidade.",
+        "revisao_humana_necessaria": true,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351929190013",
+          "email_normalizado": "clidenteporto@gmail.com",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "e6bb55a9-7c00-46bd-8c23-61ab25cf6b8f",
+        "nome_clinica": "Negócio Medidental | FDMK Medicina Dentária e Wellness",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não atende o telefone",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "INDETERMINADO",
+        "motivo_bloqueio_ou_pendencia": "Telefone partilhado com outra clínica no CRM. Exige desambiguação de titularidade.",
+        "revisao_humana_necessaria": true,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351917703452",
+          "email_normalizado": "geral@medidental.pt",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "fc3cbc07-b9c1-40ed-80a6-3fced93a16bb",
+        "nome_clinica": "Negócio Clínica Construímos Sorrisos",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - depois das mensagens, email parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351967663053",
+          "email_normalizado": "clinica@construimossorrisos.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "c9f04383-a622-4e29-b59f-e79dee717180",
+        "nome_clinica": "Negócio Clínica Dr. Pedro Paúl",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351228317547",
+          "email_normalizado": "clinica@drpedropaul.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "b22778f4-3ce1-4219-84c8-4598cfcf0248",
+        "nome_clinica": "Negócio Clínica do Mar",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Várias mensagens, não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351229363811",
+          "email_normalizado": "info@clinicadomar.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "b4c2b718-08ff-4324-aaad-b9c61dd484a9",
+        "nome_clinica": "Negócio Dr. Vitor Familiar - Medicina Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu mais\n",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351222436781",
+          "email_normalizado": "geral@drvitorfamiliar.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "ee2a7d93-5b37-46c7-8103-127485adba41",
+        "nome_clinica": "Negócio Clínica Dentária Dra. Filipa Meneses",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351966946213",
+          "email_normalizado": "geral@filipameneses.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "f0d785fc-ff92-4f61-b79e-63c5ca6abaec",
+        "nome_clinica": "Negócio Dental Clínica Braga",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu os contatos de email e ligação",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351253339190",
+          "email_normalizado": "braga@dentalclinica.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "2f24950d-4eb7-4d5f-b245-c87f02e99f21",
+        "nome_clinica": "Negócio Clínica do Convento",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351917081016",
+          "email_normalizado": "geral@clinicadoconvento.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "a00a7a0a-b15e-4843-8ef4-f3f5b86b7f2d",
+        "nome_clinica": "Negócio Marlene Marques Clínica Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu as abordagens",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968144594",
+          "email_normalizado": "geral@marlenemarques.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "3064a0f1-7a92-46f3-8206-2b56adf08472",
+        "nome_clinica": "Negócio Master Dental Torres Vedras",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não atende",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351261313493",
+          "email_normalizado": "lisboa@masterdental.pt",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "760f6422-106f-4ddf-82fd-a1f82ae8f3b6",
+        "nome_clinica": "Negócio Cambraia Dental Care",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351910313081",
+          "email_normalizado": "cambraiadentalcare@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "cb09ad18-242a-4736-9766-44ca4d3cf78c",
+        "nome_clinica": "Negócio Majolive",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não responde as mensagens ",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351915359646",
+          "email_normalizado": "atendimento@majolive.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "c708d928-fddb-4133-a619-fe9f0e47192d",
+        "nome_clinica": "Negócio Clínica Lúcio Faria – Clínica Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351925663019",
+          "email_normalizado": "consultas@luciofaria.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "d1f3d3fe-3a55-40ce-b554-b0c55f62f742",
+        "nome_clinica": "Negócio Clínica Almedina",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351926340007",
+          "email_normalizado": "almedinaclinicamedicodentaria@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "c1fba026-89af-482e-90c4-205b74a1c9c0",
+        "nome_clinica": "Negócio Clínica Dentária Lacerda",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351914763123",
+          "email_normalizado": "geral@clinicadentarialacerda.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "1479f8e9-31e8-4be2-a1bc-1fd8c528daa6",
+        "nome_clinica": "Negócio Dental Care Institute",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu o email de continuação da abordagem",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351911841964",
+          "email_normalizado": "atendimento@dciporto.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "33682f45-ca95-4685-8086-fb2a2c83a307",
+        "nome_clinica": "Negócio Clínica Dentária Onlysmile",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351913400630",
+          "email_normalizado": "geral@onlysmile.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "fa412aa6-88de-41a2-8896-02f41618889c",
+        "nome_clinica": "Negócio Dental - Dr. Fábio Costa",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351936565729",
+          "email_normalizado": "geral@dentalclinica.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "7be624d6-1519-4e55-939a-5012e1841c62",
+        "nome_clinica": "Negócio Clínica Dr. João Neto",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "INDETERMINADO",
+        "motivo_bloqueio_ou_pendencia": "Telefone partilhado com outra clínica no CRM. Exige desambiguação de titularidade.",
+        "revisao_humana_necessaria": true,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351929190013",
+          "email_normalizado": "clidenteporto@gmail.com",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "12fcea58-39c8-4e61-9c53-d5f6e3bb0ff0",
+        "nome_clinica": "Negócio Dentista Foz Dental Clinic / Dra Silvia Fogli",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351913971840",
+          "email_normalizado": null,
+          "duplicado_partilhado": null
+        }
+      },
+      {
+        "deal_id": "23b7b287-e3ad-4755-80d0-42c89fee924b",
+        "nome_clinica": "Negócio Clínica Santo António - Alberto Dente",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351926665599",
+          "email_normalizado": "marcacoes@clinicasantoantonio.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "780e43be-3553-4ec1-bc2b-80ac69ede0ef",
+        "nome_clinica": "Negócio Clínica Médica Dentária de Merelim",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351939791794",
+          "email_normalizado": "geral@clinicamdmerelim.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "230ebbbe-648b-42ce-967a-e8320f225aff",
+        "nome_clinica": "Negócio CliFarias - Clínica Médica e Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351234022356",
+          "email_normalizado": "clinica@clifarias.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "05aa2bd7-9629-4b35-a5f2-dccf9f4741bb",
+        "nome_clinica": "Negócio Clínica Dentária Sancliden",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351935040400",
+          "email_normalizado": "anacastanheira@sancliden.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "593e1552-eeae-4f39-81b6-d9832f69a415",
+        "nome_clinica": "Negócio NUOVA - Dental & Aesthetics",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351916011007",
+          "email_normalizado": "info@nuova.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "bdbc8229-72a7-4a04-808a-13382cfa8ec5",
+        "nome_clinica": "Negócio Spot Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351935287050",
+          "email_normalizado": "info@spotclinic.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "1c5dc5ef-070c-4e0a-a9cc-958e516fbac8",
+        "nome_clinica": "Negócio Clínica Pure Dr. Filipe Aguilar",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968500181",
+          "email_normalizado": null,
+          "duplicado_partilhado": null
+        }
+      },
+      {
+        "deal_id": "5698ec9f-052d-480e-a152-a010087498f0",
+        "nome_clinica": "Negócio Prime Smile | Medicina Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351916060644",
+          "email_normalizado": "mail@primesmile.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "5b5bad09-b2ba-42d6-b0a3-5865bba80c5e",
+        "nome_clinica": "Negócio  Clínica Cautela",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351912030330",
+          "email_normalizado": "geral@clinicacautela.com",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "c4754fce-4909-400f-a2e8-81c3bf0af830",
+        "nome_clinica": "Negócio Clínica Do Alto - Medicina Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - sem resposta no wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351915643501",
+          "email_normalizado": "geral@clinicadoalto.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "b532ee3c-53a6-43eb-981f-b3d338cdc672",
+        "nome_clinica": "Negócio Neaural Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351919289700",
+          "email_normalizado": "geral@neaural.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "5e6acf76-ef0e-4455-bafb-b3be38d68a25",
+        "nome_clinica": "Negócio Sorriso Oral",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351925784712",
+          "email_normalizado": "geral@sorrisooral.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "05df255d-f891-4167-ac63-909e9d2c04a5",
+        "nome_clinica": "Negócio Clinica Geral e Dentária de J.M.Crespo de Carvalho",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351935013103",
+          "email_normalizado": "clinicajmcrespocarvalho@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "ce6e93a0-1542-468f-adb6-3cd177dc56f1",
+        "nome_clinica": "Negócio DentalFixe",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351967023640",
+          "email_normalizado": "dentalfixerecepcao@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "2ff467f2-66a0-48f7-bf69-a3a00fd5b9c0",
+        "nome_clinica": "Negócio Dentcare - Policlínica de Linda a Velha Dentcare - Policlínica de Linda a Velha",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu a abordagem",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351912506962",
+          "email_normalizado": "policlinica.lv@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "b6651c13-f704-45e4-9112-43d3f01c6977",
+        "nome_clinica": "Negócio  Dentalmedica",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu o wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351962282408",
+          "email_normalizado": "clinicadentalmedica@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "0ce16505-e4c8-460e-8cd9-4d14aa59dbe9",
+        "nome_clinica": "Negócio Clinica Médica E Dentária Dr. Alexandre Santos",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não obtive resposta",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "INDETERMINADO",
+        "motivo_bloqueio_ou_pendencia": "Telefone partilhado com outra clínica no CRM. Exige desambiguação de titularidade.",
+        "revisao_humana_necessaria": true,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351912405787",
+          "email_normalizado": "clinicadentariacarnaxide@gmail.com",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "d50a7544-86bb-4968-a6ab-d4b6bdc0b2b0",
+        "nome_clinica": "Negócio Med Clinic - Carnaxide",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - sem resposta no WhatsApp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351937725537",
+          "email_normalizado": "medclinic@sapo.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "fd756e5f-c2da-4c0a-a281-fa1534ba647d",
+        "nome_clinica": "Negócio VHQ - Clínica Dentária da Brandoa",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351939159966",
+          "email_normalizado": "geral@vhqclinica.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "8d60eb7d-2727-4e8c-99ad-e4daa2081026",
+        "nome_clinica": "Negócio Smart Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - não respondeu o wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351962429727",
+          "email_normalizado": "geral@smartclinic.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "770a0eea-c033-423a-9674-fe7a3e2aa93a",
+        "nome_clinica": "Negócio Clínica DBRClinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - não respondeu o wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351969187563",
+          "email_normalizado": "dbrclinicadentaria@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "ea243443-a10a-47ca-9402-aa221697f836",
+        "nome_clinica": "Negócio HI Clínicas Dentárias Avançadas",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - sem resposta no direct do instagram",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351214190921",
+          "email_normalizado": "clinicasdentariashi@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "3d2289c7-4e0f-4cbe-8ac7-c0f2e64230ff",
+        "nome_clinica": "Negócio João Cardigos Clínica Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu o contato",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351913208418",
+          "email_normalizado": "geral@joaocardigos.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "5f70dd0d-a6e3-4412-b1b2-db379fa32dcc",
+        "nome_clinica": "Negócio Vitabio - Gestão de Serviços de Saúde",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - não respondeu o wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351936377125",
+          "email_normalizado": "geral@vitabio.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "9c8b7eb2-8cda-47f7-af41-aae8b3ff1b73",
+        "nome_clinica": "Negócio  New Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351926992844",
+          "email_normalizado": "geral@newclinic.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "44a65d60-55dc-4cb1-9613-87302dbf198b",
+        "nome_clinica": "Negócio Centro de Saúde Oral SaniDent",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351910222288",
+          "email_normalizado": "carnaxide@sanident.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "d9dae556-26aa-4f25-afe8-57eccb37691d",
+        "nome_clinica": "Negócio Odous Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - não respondeu no Wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351938054105",
+          "email_normalizado": "odous.clinicadentaria@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "a2ef4527-eb9f-4d6d-9c85-7d22da3ddf81",
+        "nome_clinica": "Negócio  CARIDENTE - Clínica Dentária Lda",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - não respondeu a abordagem do whatsApp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351964308195",
+          "email_normalizado": "caridente.odivelas@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "7e894171-a4d8-4047-a40e-15846a3fd72e",
+        "nome_clinica": "Negócio  Central Clínica Creutzburg",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu o wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351964557055",
+          "email_normalizado": "comercial@centralclinica.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "7e4ad7c9-3414-4a72-8fb6-bd1d94072797",
+        "nome_clinica": "Negócio Dentalsense - Clínica Dentária, Médica e Estética",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Sem resposta no Wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351938578330",
+          "email_normalizado": "geral@dentalsense.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "0a83035a-e5f3-4a8b-80c6-67d97df4ecc6",
+        "nome_clinica": "Negócio Centro Clínico De Odivelas",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu o Wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351915004882",
+          "email_normalizado": "centroclinicodeodivelas@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "61128085-f3b0-4a56-8acb-8358fdf210b4",
+        "nome_clinica": "Negócio Dentismile - CIOA - Clínica de Implantologia e Ortodontia de Algés",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu o Wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351935193986",
+          "email_normalizado": "cioalges@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "139c08fe-6df0-4ea9-adfb-3dcdc789edea",
+        "nome_clinica": "Negócio Oralife DentalClinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu o Wpp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351965642596",
+          "email_normalizado": "clinicaoralife@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "2bb51400-4ebe-45bb-a1a9-c4ea8a2d53c0",
+        "nome_clinica": "Negócio Clínica Almirante Reis 70",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351910807877",
+          "email_normalizado": "clin.alm.reis70@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "35a97ce1-c168-4071-a936-499710eba4fb",
+        "nome_clinica": "Negócio  Medifides - ASMECI",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351969335295",
+          "email_normalizado": "medifides.asmeci@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "ab803856-5450-4d16-9a59-a291a6f1115e",
+        "nome_clinica": "Negócio  Instituto Médico Dentário S. Francisco",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351964821609",
+          "email_normalizado": "imdsfrancisco@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "f2ed9a25-0e54-4de0-b955-8ae11e7f80d1",
+        "nome_clinica": "Negócio Dentalstatus - Laboratório de Prótese Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351967364382",
+          "email_normalizado": "dentalstatus@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "25593e32-3edf-4590-af85-90c46aa10914",
+        "nome_clinica": "Negócio Saint Clinic Medicina Dentária e Medicina Estética",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351915814363",
+          "email_normalizado": "saintclinicportugal@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "8c147020-18f1-4556-aac1-6f4a4a0eee5e",
+        "nome_clinica": "Negócio Clínica De Todos Os Dentes",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351918782934",
+          "email_normalizado": "clinicatodososdentes@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "1518b768-c2f2-4240-bbc2-b28d1b1a96af",
+        "nome_clinica": "Negócio Sorriso Saudável",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351916498657",
+          "email_normalizado": "geral@sorrisosaudavel.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "03f57f3b-2e95-4fb0-a0ca-3d7f8ee9db6c",
+        "nome_clinica": "Negócio Dentão",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351914811445",
+          "email_normalizado": "dentao@sapo.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "33b94f8f-1aa3-4153-b347-db3ae3148a26",
+        "nome_clinica": "Negócio Centro Clínico e Dentário Santa Cruz - Bright Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351910268730",
+          "email_normalizado": "atendimento@brightclinic.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "23bd5f97-a134-4f7e-9d79-6aed93e99d5d",
+        "nome_clinica": "Negócio Clínica Médica Dentária de S. João do Estoril",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Sem resposta no WhatsApp",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351213173080",
+          "email_normalizado": "clinicadentariasjoao@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "c7a6f32e-3af3-48e4-9c3f-543278e0ccb6",
+        "nome_clinica": "Negócio Clínica Atlântida II",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351963884343",
+          "email_normalizado": "clinicaatlantida@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "4a13ea80-fe0c-4136-ba28-5d865cf69944",
+        "nome_clinica": "Negócio Center Care",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351964124939",
+          "email_normalizado": "centercarept@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "7fc36c51-abbf-45f2-b861-34ecd5eb922d",
+        "nome_clinica": "Negócio Clínica Artilharia Maso Tramontini",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351960209683",
+          "email_normalizado": "clinica.artilhariamt@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "0c609059-64f8-4a78-b685-a117f16dbf18",
+        "nome_clinica": "Negócio Clínica Médica E Dentária Acúrcio",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968198904",
+          "email_normalizado": "geral@clinicaacurcio.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "6ff6b362-3459-4308-a8a0-415f35853a69",
+        "nome_clinica": "Negócio Clínica De Serviços Dentários Dr. Cautela",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - mensagem e email não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "EMAIL",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351218202320",
+          "email_normalizado": "geral@clinicacautela.com",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "11a4b7e8-914f-48d8-820c-443acf5d3563",
+        "nome_clinica": "Negócio D Dente - Clinica de Medicina Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351967295714",
+          "email_normalizado": null,
+          "duplicado_partilhado": null
+        }
+      },
+      {
+        "deal_id": "e1592990-b7ea-4607-af27-b5a95f5484bb",
+        "nome_clinica": "Negócio Twentyone Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968248646",
+          "email_normalizado": "twentyoneclinic@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "6b57f5b1-a05e-4ec8-b0b8-00a302e5a7ff",
+        "nome_clinica": "Negócio Clinodent",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351913204199",
+          "email_normalizado": "clinodent@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "e8bccfbe-8f1a-417d-be76-6bf1f1f6e89a",
+        "nome_clinica": "Negócio Clínica de Santos",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351938592024",
+          "email_normalizado": "geral@clinicadesantos.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "4ed06de0-1c43-4420-a862-2173204d0f8a",
+        "nome_clinica": "Negócio Clínica Médica e Dentária do Chafariz",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968153942",
+          "email_normalizado": "clinicadentariachafariz@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "104ed5d7-7706-4eb5-968e-68eeb66dead0",
+        "nome_clinica": "Negócio Clínica São Dente - Medicina Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351965479515",
+          "email_normalizado": null,
+          "duplicado_partilhado": null
+        }
+      },
+      {
+        "deal_id": "bf516108-66d1-4d72-a157-c76160c50669",
+        "nome_clinica": "Negócio Clínica Dentária Dr. Cunha Coutinho",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351964476727",
+          "email_normalizado": "clinicadr.cunhacoutinho@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "85d2a17b-ce45-43cd-9000-07da4f630531",
+        "nome_clinica": "Negócio Clínica da Madragoa",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351914242462",
+          "email_normalizado": "j.l.bravoclinic@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "313bc41e-79de-43bf-967a-b914353fa1d0",
+        "nome_clinica": "Negócio Smile Lx - Clínica Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351963943506",
+          "email_normalizado": "info@smile-lx.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "74fc58d0-74a6-4106-a4bd-a822746ee239",
+        "nome_clinica": "Negócio What? Uncommon Dental & Aesthetic Spot",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351913823850",
+          "email_normalizado": "geral@what-spot.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "0adfcb91-b7a9-457d-b8cd-0e2cd1b95a65",
+        "nome_clinica": "Negócio Consultório Médico VBM",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351919702273",
+          "email_normalizado": "consultorio.vbm@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "e72b026a-a1ac-4fe5-8465-a692984716f5",
+        "nome_clinica": "Negócio Clínica Médico-Dentária Dr. Filipe Aguilar, Lda.",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351917939269",
+          "email_normalizado": "clinicafaguilar@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "e8f4a772-9e5e-4f30-9a86-96d12035f94b",
+        "nome_clinica": "Negócio Clínica Dentária Integralis Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351931325179",
+          "email_normalizado": "geral@integralisclinic.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "fa1f057d-292b-4e63-89bf-01c98d1a1f59",
+        "nome_clinica": "Negócio Dentofisis - Reabilitação Oro Facial",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351912257463",
+          "email_normalizado": null,
+          "duplicado_partilhado": null
+        }
+      },
+      {
+        "deal_id": "f3c03845-354c-4b10-b62a-3c3b9eece439",
+        "nome_clinica": "Negócio Clínica VitaCentro Lisboa",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351960317236",
+          "email_normalizado": "clisboa@vitacentro.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "3f298bd2-eddb-4b01-b83c-f58e17d20058",
+        "nome_clinica": "Negócio Clinicaldent Institute Entrecampos",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351915980601",
+          "email_normalizado": "clinicaldent.institute@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "eb0adcd4-e1dd-4de0-8a22-1e2df2bcb0d4",
+        "nome_clinica": "Negócio Clínica Médica Dentária Dentalshine",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351926484242",
+          "email_normalizado": "clinicadentalshine@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "041b3a9d-c7e5-4c52-a618-94c21d5acd77",
+        "nome_clinica": "Negócio Seven Dental Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - sem resposta",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351967987937",
+          "email_normalizado": "dentalclinicseven@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "081c77b7-c882-423a-b43b-7a82711103ea",
+        "nome_clinica": "Negócio Medidental – Clínicas Dentárias & Wellness",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "INDETERMINADO",
+        "motivo_bloqueio_ou_pendencia": "Telefone partilhado com outra clínica no CRM. Exige desambiguação de titularidade.",
+        "revisao_humana_necessaria": true,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351917703452",
+          "email_normalizado": "geral@medidental.pt",
+          "duplicado_partilhado": true
+        }
+      },
+      {
+        "deal_id": "105e2dc6-a009-449f-88d8-f72498522255",
+        "nome_clinica": "Negócio OP Alvalade",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351960018949",
+          "email_normalizado": "alvalade@oralproject.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "c2591929-37f8-4eda-b447-9a48b27439bb",
+        "nome_clinica": "Negócio Clínica de Medicina Dentária de Alvalade",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351916618891",
+          "email_normalizado": "climedalv@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "86e2c848-5e15-4dbb-99b2-0a17b5532694",
+        "nome_clinica": "Negócio Filipe Matias Clínica Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351936339181",
+          "email_normalizado": "geral@clinicafilipematias.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "c61e4f1f-fe15-46f0-9cc4-21cf75ef1a64",
+        "nome_clinica": "Negócio ClínicaCSS",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351934229366",
+          "email_normalizado": "geral@clinicacss.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "cc66e364-5a4d-4d9c-aa78-014a6e88c480",
+        "nome_clinica": "Negócio Joana Alves | Médica Dentista",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Nunca respondeu as abordagens",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351919675628",
+          "email_normalizado": "drjoanaalves@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "4331c061-47b0-4a51-8614-3f46b304fdac",
+        "nome_clinica": "Negócio Clínica Médica e Dentária Estrada da Luz",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351963044290",
+          "email_normalizado": "cmdluz@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "113d624b-0d4e-4670-b9e1-192f1c26b6fe",
+        "nome_clinica": "Negócio Appleton Medical Care",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351910127317",
+          "email_normalizado": "tomasappleton@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "30f8f4bd-c526-4bc8-ae65-408cb1a42e59",
+        "nome_clinica": "Negócio Clínica Médica São João",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968603468",
+          "email_normalizado": "clinicamedicasaojoao2@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "391346cb-f77b-49d7-b3ed-8aac48b60e31",
+        "nome_clinica": "Negócio LT Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - n]ao respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351932739200",
+          "email_normalizado": "geral@ltclinic.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "7de1e073-6f9f-4648-a4d5-0ff8150a5666",
+        "nome_clinica": "Negócio Clínica Lopes Fonseca",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351924453588",
+          "email_normalizado": "antunescalejo@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "5908531a-b695-43ed-bbb2-164c1ab0aff1",
+        "nome_clinica": "Negócio Clínica Dentária Happy",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351965799959",
+          "email_normalizado": "geral@clinicahappy.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "613b12d4-0cf7-4158-81b0-0ad57a5271af",
+        "nome_clinica": "Negócio DentSmile Clínica Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351935243935",
+          "email_normalizado": "dentsmilealmada@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "4351a3bd-126a-4dfb-ba24-0da2e105ee39",
+        "nome_clinica": "Negócio Sivane Coelho Cavelho - Medicina Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351912082555",
+          "email_normalizado": "sivane.cavelho@sapo.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "60c2b7a7-8c28-4b2a-91d6-21e539429c61",
+        "nome_clinica": "Negócio Projeto Saúde",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351926839256",
+          "email_normalizado": "prsaude@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "7b3c7305-e245-4f34-9c0b-4041c49bbb5c",
+        "nome_clinica": "Negócio Exubersorriso",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351910778377",
+          "email_normalizado": "info@exubersorriso.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "47241cee-8470-4a4c-96b8-c01e292ca067",
+        "nome_clinica": "Negócio Clínica Médica e Dentária Morgado",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351911970959",
+          "email_normalizado": "clinicamedicamorgado@gmail.com",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "0b3d3523-6807-479c-8f7c-6a4d727f9a8b",
+        "nome_clinica": "Negócio Clidec - Medicina Dentária",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - Não respondeu as abordagens",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351968475424",
+          "email_normalizado": "geral@clidec.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "a1b3983a-6bfa-43a3-93be-d072087fc245",
+        "nome_clinica": "Negócio Secret Beauty Clinic",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu - parou de responder",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351917393587",
+          "email_normalizado": "geral@secretbeauty.pt",
+          "duplicado_partilhado": false
+        }
+      },
+      {
+        "deal_id": "362bf3b7-26b7-4a57-9ea4-60c22264e8d6",
+        "nome_clinica": "Negócio Clínica Dentária Alta de Lisboa",
+        "classificacao_comercial": "SILENCIO_CONFIRMADO",
+        "evidencia_historica": "Não respondeu",
+        "historico_contacto_verificado": true,
+        "restricao_ativa": "NENHUMA",
+        "canal_candidato": "WHATSAPP",
+        "elegibilidade_comercial": true,
+        "contacto_legalmente_elegivel": true,
+        "autorizacao_contacto": "PENDENTE_VALIDACAO_PREVIA",
+        "motivo_bloqueio_ou_pendencia": "Pendente de aprovação final do operador para disparo da cadência",
+        "revisao_humana_necessaria": false,
+        "contacto_detalhe": {
+          "telefone_normalizado": "351934361389",
+          "email_normalizado": "cedal.altadelisboa@hotmail.com",
+          "duplicado_partilhado": false
+        }
+      }
+    ]
+  },
+  "auditoria_identidade_e_conflitos": {
+    "total_telefones_partilhados": 7,
+    "total_emails_partilhados": 9,
+    "conflitos_resolvidos_na_b3": [
+      {
+        "endpoint": "Telefone 351968704026",
+        "entidades": [
+          "HC Dental Clinic (a9adf1a2)",
+          "HDCLINIC (f73f5b7b)"
+        ],
+        "origem_restricao": "HDCLINIC (pediu apenas email; WhatsApp bloqueado)",
+        "resolucao_canonica": "Bloqueio estrito de WhatsApp aplicado ao número 351968704026. Ambas as entidades protegidas de receber WhatsApp.",
+        "status": "RESOLVIDO_POR_BLOQUEIO_ENDPOINT"
+      },
+      {
+        "endpoint": "Email geral@laclinic.pt",
+        "entidades": [
+          "LAclinic (f4e675dc)",
+          "LAclinic - Medicina Dentária (3c47cb1d)"
+        ],
+        "origem_restricao": "LAclinic Medicina Dentária (Recusa Comercial Expressa)",
+        "resolucao_canonica": "Bloqueio estrito aplicado ao email geral@laclinic.pt. Nenhuma entidade recebe comunicação neste email.",
+        "status": "RESOLVIDO_POR_BLOQUEIO_ENDPOINT"
+      },
+      {
+        "endpoint": "Telefone 351932569616",
+        "entidades": [
+          "SmileMed Lisboa (60d1bae4)",
+          "Clinica SmileMed (2d8131d3)"
+        ],
+        "origem_restricao": "SmileMed Lisboa (Recusa Comercial) e SmileMed (Canal Médico)",
+        "resolucao_canonica": "Bloqueio total (TODOS) no número 351932569616.",
+        "status": "RESOLVIDO_POR_BLOQUEIO_ENDPOINT"
+      },
+      {
+        "endpoint": "Telefone 351912405787",
+        "entidades": [
+          "Clínica de Carnaxide (5de8d9cf)",
+          "Dr. Alexandre Santos (0ce16505)"
+        ],
+        "origem_restricao": "Carnaxide está Desqualificada; Dr. Alexandre Santos é Silêncio",
+        "resolucao_canonica": "Encaminhado para Revisão Humana Obrigatória para evitar contacto cruzado indevido.",
+        "status": "PENDENTE_REVISAO_HUMANA"
+      },
+      {
+        "endpoint": "Email marketingclinicasantazita@gmail.com",
+        "entidades": [
+          "Santa Zita Viseu (8ce16830)",
+          "Guarda (2d5a3ded)",
+          "Castelo Branco (be63e23c)"
+        ],
+        "origem_restricao": "Viseu registou já ter agência de marketing",
+        "resolucao_canonica": "Quarentena comercial aplicada ao email centralizado para todas as 3 filiais.",
+        "status": "RESOLVIDO_QUARENTENA_CENTRALIZADA"
+      }
+    ]
+  },
+  "lista_supressao_consolidada_b3": {
+    "total": 24,
+    "registos": [
+      {
+        "deal_id": "25f3e9d7-27e1-49a8-aa6e-5dd5bc72532e",
+        "contact_id": "64918438-fab9-4854-8134-567299d2211e",
+        "telefone_normalizado": "351926470792",
+        "email_normalizado": "sensacaobranca@gmail.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.438Z"
+      },
+      {
+        "deal_id": "fc8af586-3017-404f-bd72-84646201a3ae",
+        "contact_id": "05f3c162-fbbe-403f-ad6d-4c8fc46efeab",
+        "telefone_normalizado": "351933300353",
+        "email_normalizado": "mediminho@gmail.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] [Sem interesse no momento]\nBom dia Sr. Philipe\nAgradecemos o seu contato e o seu interesse, contudo neste momento não estamos interessados na sua proposta.\nGuardamos o seu contato caso no futuro seja necessário.\nMuito obrigado",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.444Z"
+      },
+      {
+        "deal_id": "fc565b62-9c84-46fe-8dc4-5605a2c3f47b",
+        "contact_id": "14ed5ff5-b157-4a57-8c98-beb4884b676c",
+        "telefone_normalizado": "351918827099",
+        "email_normalizado": "easyclinicmd@gmail.com",
+        "motivo_bloqueio": "RESTRICAO_CANAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "WHATSAPP",
+        "evidencia": "[Auditoria B.2] Já anuncia - Sara, enviar proposta por email. já trabalha com mkt",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.445Z"
+      },
+      {
+        "deal_id": "b6b71fa3-a8f4-428a-b009-f61fef1c6edd",
+        "contact_id": "535b936e-04c7-4ac8-b5e9-d3ee024441ff",
+        "telefone_normalizado": "351259342330",
+        "email_normalizado": "geral@clinicaalexandrareis.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse - Só ficou enrola",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.446Z"
+      },
+      {
+        "deal_id": "1c106edd-610f-4b4a-81de-59873cd46bea",
+        "contact_id": "36e731b8-7d35-4863-b24a-5293c7217aba",
+        "telefone_normalizado": "351259321647",
+        "email_normalizado": "geral@clinicaemiliapires.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] não tem interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.446Z"
+      },
+      {
+        "deal_id": "f73f5b7b-1128-457d-b896-c54627e5452e",
+        "contact_id": "3ead73f5-6674-4233-989c-600a5f09f9bf",
+        "telefone_normalizado": "351968704026",
+        "email_normalizado": "clinicadentariadm@gmail.com",
+        "motivo_bloqueio": "RESTRICAO_CANAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "WHATSAPP",
+        "evidencia": "[Auditoria B.2] Já anuncia - Já anunciam no Meta e no Google. \nFalaram pra mandar email aos Cuidados da SARA, porém como não responderam no WhatsApp não vou dar continuidade.",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.446Z"
+      },
+      {
+        "deal_id": "123391ac-88e8-4435-a00e-e70a83046727",
+        "contact_id": "c83ed580-91e6-491c-bd29-1834fc46393c",
+        "telefone_normalizado": "351961161645",
+        "email_normalizado": "xlsmile@xlsmile.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.447Z"
+      },
+      {
+        "deal_id": "4c4dfbb2-7f62-4708-b44c-b8282ce117a5",
+        "contact_id": "5a609ff3-f2ec-4475-8ec6-858b5fb0225f",
+        "telefone_normalizado": "351917234298",
+        "email_normalizado": "info@valclinic.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse - Boa tarde,\nNão temos interesse em saber mais. Obrigado 🙏🏽",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.447Z"
+      },
+      {
+        "deal_id": "b1f27736-59e4-4169-bebc-0afbf5b8f59d",
+        "contact_id": "9b26b027-d669-44d7-ab2a-2e259c19e6a4",
+        "telefone_normalizado": "351918165562",
+        "email_normalizado": "clinicadosjeronimos@gmail.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse - Boa tarde, agradecemos o contacto mas de momento nao estamos interessados. Obrigada. Cumprimentos, Clinica dos Jeronimos.",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.447Z"
+      },
+      {
+        "deal_id": "3c47cb1d-f956-4168-b2ed-bae11cf79d39",
+        "contact_id": "5d6dd4c4-c6b0-44af-a1fa-5a1d8802f72b",
+        "telefone_normalizado": "351912681075",
+        "email_normalizado": "geral@laclinic.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse - Obrigada pelo contacto e pelo interesse. Neste momento, não estamos a necessitar de serviços de anúncios online ou marketing digital, pelo que não será necessário falar com a pessoa responsável.\n\nAgradecemos, ainda assim, a sua disponibilidade e o contacto.",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.447Z"
+      },
+      {
+        "deal_id": "727b2c30-c068-4037-980b-0527cbc2b48d",
+        "contact_id": "78ce4240-0614-4030-8f11-0bbeac7b3981",
+        "telefone_normalizado": "351961503205",
+        "email_normalizado": "consultas@dentibus.pt",
+        "motivo_bloqueio": "RESTRICAO_CANAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "WHATSAPP",
+        "evidencia": "[Auditoria B.2] Não respondeu - Boa Tarde , terá que enviar a informação para o nosso email. \nconsultas@dentibus.pt, porém já enviei alguns email e nunca responderam.",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.448Z"
+      },
+      {
+        "deal_id": "60d1bae4-69b5-44f0-9ac1-4df199f363a5",
+        "contact_id": "48fbb6e8-c356-41d9-b4e1-d2444188b49e",
+        "telefone_normalizado": "351932569616",
+        "email_normalizado": null,
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.448Z"
+      },
+      {
+        "deal_id": "7f90d4ad-66d0-414d-b6b6-88fcac1fd2cf",
+        "contact_id": "3eb9a754-af31-4b98-a5a0-cc1fa3627bc3",
+        "telefone_normalizado": "351913968283",
+        "email_normalizado": "luisgouv3ia@hotmail.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse - Agradecemos o seu contacto e a apresentação dos seus serviços. De momento, não temos interesse em avançar com este tipo de serviço.\nAgradecemos a disponibilidade e desejamos-lhe muito sucesso.",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.448Z"
+      },
+      {
+        "deal_id": "97ab64c1-1993-4c37-b7b4-8ffc592634ac",
+        "contact_id": "39c40f36-b7e0-409e-9511-c735222be626",
+        "telefone_normalizado": "351914508164",
+        "email_normalizado": "geral@plenosorriso.pt",
+        "motivo_bloqueio": "RESTRICAO_CANAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "WHATSAPP",
+        "evidencia": "[Auditoria B.2] Desqualificado - Obrigado pela sua mensagem.\n\nO WhatsApp não é o nosso meio de contacto habitual.\nPara marcações, dúvidas e esclarecimentos pedimos que nos ligue para:\n\n📲914 508 164\n☎️219 333 014\n\nAté já.",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.448Z"
+      },
+      {
+        "deal_id": "ed91d3ec-8cf5-40f9-b99a-fe9a01ed6a22",
+        "contact_id": "991acb39-a782-4aca-8ca2-4947b96b9537",
+        "telefone_normalizado": "351910615666",
+        "email_normalizado": "geral@mdclinica.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse - não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.449Z"
+      },
+      {
+        "deal_id": "0c12982c-73ec-4a0e-97db-523046992e19",
+        "contact_id": "f64ec48b-8443-4b5a-b285-2a5500f4bf9d",
+        "telefone_normalizado": "351916751436",
+        "email_normalizado": "cmdentarialisboa@gmail.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.449Z"
+      },
+      {
+        "deal_id": "66a26bbb-3a91-4b9d-b17c-711df92abc7e",
+        "contact_id": "1714c908-cded-4243-ae00-8a24af116825",
+        "telefone_normalizado": "351936712394",
+        "email_normalizado": "clinica@claridente.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.449Z"
+      },
+      {
+        "deal_id": "2d8131d3-9ac3-4163-b3de-39b6da84b74b",
+        "contact_id": "50cdc841-5c22-440e-b627-d3a44fdce89f",
+        "telefone_normalizado": "351932569616",
+        "email_normalizado": "contacto@smilemed.pt",
+        "motivo_bloqueio": "RESTRICAO_CANAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "WHATSAPP",
+        "evidencia": "[Auditoria B.2] Este é um canal de atendimento médico, marcações de consultas e questoes / situações derivadas das mesmas\n\nNao temos esse tipo de informação\n\nPodera enviar email para contacto@smilemed.pt",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.449Z"
+      },
+      {
+        "deal_id": "8e044741-f348-45e8-8cbd-39e87102376a",
+        "contact_id": "da7eb163-5974-498c-9f8b-fd436ac5da44",
+        "telefone_normalizado": "351210998037",
+        "email_normalizado": "previlegeclinicadentaria@gmail.com",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.449Z"
+      },
+      {
+        "deal_id": "07916398-a082-4c64-852f-4bc313719723",
+        "contact_id": "6b8fd443-3f49-4346-b0e9-0e84f37dd44f",
+        "telefone_normalizado": "351960223891",
+        "email_normalizado": "geral@twocare.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.449Z"
+      },
+      {
+        "deal_id": "3435ed16-5aa9-499c-96e0-d0362c8205c2",
+        "contact_id": "046de17e-f164-4387-a1e4-9b28b1bb1f4f",
+        "telefone_normalizado": "351936028384",
+        "email_normalizado": "dentalstudio@blag.com.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse - sem interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.450Z"
+      },
+      {
+        "deal_id": "b552444c-fc9c-4798-ae6a-2a17a452644d",
+        "contact_id": "7e756378-5fe2-4162-8d11-392ebec766ed",
+        "telefone_normalizado": "351935803188",
+        "email_normalizado": "geral@acqua-clinic.pt",
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.450Z"
+      },
+      {
+        "deal_id": "ee0b23ff-e65d-4704-b9fa-dd0ceb786365",
+        "contact_id": "1aa64aa0-9545-46d0-a9d3-808dbf2305d5",
+        "telefone_normalizado": "351915550999",
+        "email_normalizado": null,
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não teve interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.451Z"
+      },
+      {
+        "deal_id": "d59b02d9-a907-48f6-a4d3-aeef984c4316",
+        "contact_id": "d1ea6fd3-8645-4f63-a458-4ce862aaafe9",
+        "telefone_normalizado": "351964998643",
+        "email_normalizado": null,
+        "motivo_bloqueio": "RECUSA_COMERCIAL",
+        "origem_bloqueio": "HISTORICO_CRM",
+        "canal_bloqueado": "TODOS",
+        "evidencia": "[Auditoria B.2] Não respondeu - não tem interesse",
+        "estado": "ativo",
+        "data_bloqueio": "2026-10-09T23:41:08.451Z"
+      }
+    ]
+  }
+}

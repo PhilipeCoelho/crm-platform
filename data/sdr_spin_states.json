@@ -1,0 +1,306 @@
+{
+  "deal_test_spin_01": {
+    "dealId": "deal_test_spin_01",
+    "clinicName": "C Clinic Leiria",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-27T20:31:51.192Z",
+    "updatedAt": "2026-10-27T20:31:51.192Z"
+  },
+  "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6": {
+    "dealId": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
+    "clinicName": "Clínica Tágides",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-27T21:07:45.708Z",
+    "updatedAt": "2026-10-27T21:07:45.708Z"
+  },
+  "fc8af586-3017-404f-bd72-84646201a3ae": {
+    "dealId": "fc8af586-3017-404f-bd72-84646201a3ae",
+    "clinicName": "Mediminho - Clínica Médica e Dentária",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-27T21:37:04.086Z",
+    "updatedAt": "2026-10-27T21:37:04.086Z"
+  },
+  "fe3cc983-d52b-4c70-bb27-e848d3a83c58": {
+    "dealId": "fe3cc983-d52b-4c70-bb27-e848d3a83c58",
+    "clinicName": "Oral Project",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-27T21:37:27.898Z",
+    "updatedAt": "2026-10-27T21:37:27.898Z"
+  },
+  "927dc4a1-07c7-4227-bda1-60d16a9863b6": {
+    "dealId": "927dc4a1-07c7-4227-bda1-60d16a9863b6",
+    "clinicName": "Clínica Prof. Machado Capelas",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-27T21:43:06.900Z",
+    "updatedAt": "2026-10-27T21:43:06.900Z"
+  },
+  "2ee3b134-a111-4624-81b8-c9eef850b5ed": {
+    "dealId": "2ee3b134-a111-4624-81b8-c9eef850b5ed",
+    "clinicName": "CClinic - Clínica Médica e Medicina Dentária",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-27T21:54:30.246Z",
+    "updatedAt": "2026-10-27T21:54:30.246Z"
+  },
+  "8ce16830-e490-4f39-afc8-f263163d9feb": {
+    "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
+    "clinicName": "Santa Zita Clínica Dentária Viseu",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-27T21:54:33.399Z",
+    "updatedAt": "2026-10-27T21:54:33.399Z"
+  },
+  "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b": {
+    "dealId": "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b",
+    "clinicName": "Dra. Fabrícia Luciano",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-28T10:38:21.756Z",
+    "updatedAt": "2026-10-28T10:38:21.756Z"
+  }
+}

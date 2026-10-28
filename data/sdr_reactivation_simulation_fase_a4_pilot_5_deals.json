@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "projeto": "Vamuss SDR Automático — Fase A.4 (Análise Contextual GPT)",
+    "data_execucao": "2026-10-09T22:48:07.090Z",
+    "modelo": "gpt-4o-mini",
+    "modo": "openai_chat_completions_api",
+    "total_processado": 5,
+    "total_chamadas_api": 5,
+    "erros": 0,
+    "read_only_confirmado": true,
+    "consumo_tokens": {
+      "prompt_tokens": 7294,
+      "completion_tokens": 1673,
+      "total_tokens": 8967,
+      "custo_medido_usd": 0.0021
+    }
+  },
+  "resultados_individuais": [
+    {
+      "identificacao": {
+        "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+        "nome": "Dra. Pamella Pessoa",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não responde ",
+        "data_ultima_atividade_conhecida": "2026-04-27T15:08:41.217+00:00"
+      },
+      "analise_contextual_gpt": {
+        "decisao": "aguardar",
+        "elegibilidade_comercial": "quarentena_aguardar",
+        "autorizacao_contacto": "sem_consentimento_explicito_requer_optin",
+        "adequacao_canal": "whatsapp",
+        "justificativa_canal": "O canal WhatsApp foi utilizado para contacto, mas não houve consentimento explícito para abordagens frias. O telefone não é considerado consentimento prévio.",
+        "potencial_reativacao": "medio",
+        "resumo_factual_historico": "A Dra. Pamella Pessoa não respondeu a várias tentativas de contacto, sendo a última atividade registrada em abril de 2026, onde o status foi alterado para 'Perdido' devido à falta de resposta.",
+        "evidencias_especificas_decisao": "Motivo de perda registrado como 'Não responde' e histórico de atividades sem resposta.",
+        "objecoes_ou_sinais_incompatibilidade": [],
+        "grau_confianca": "medio",
+        "incertezas_dados_em_falta": "Não há informações adicionais sobre a razão da falta de resposta ou se houve interesse anterior.",
+        "razao_comercial_apropriada_ou_inapropriada": "A clínica é elegível, mas a falta de resposta sugere que pode haver um interesse temporário ou necessidade de reavaliação futura.",
+        "condicao_ou_data_reavaliacao": "Reavaliar em 3 meses.",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL]",
+        "guardrail_audit": {
+          "guardrail_acionado": false,
+          "decisao_original_gpt": "aguardar",
+          "motivo_intervencao": null
+        }
+      },
+      "meta_execucao": {
+        "api_chamada_sucesso": true,
+        "modelo_utilizado": "gpt-4o-mini",
+        "modo_inferencia": "openai_chat_completions_api",
+        "timestamp": "2026-10-09T22:47:52.955Z"
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "f2a19616-0297-4480-b7cb-e2ba6044fe4e",
+        "nome": "Implantprime Lisboa",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "(sem motivo registrado)",
+        "data_ultima_atividade_conhecida": "2026-05-26T11:40:54.34+00:00"
+      },
+      "analise_contextual_gpt": {
+        "decisao": "revisao_humana",
+        "elegibilidade_comercial": "indeterminado",
+        "autorizacao_contacto": "sem_consentimento_explicito_requer_optin",
+        "adequacao_canal": "whatsapp",
+        "justificativa_canal": "O prospect solicitou contacto exclusivamente por email, e a utilização de WhatsApp não é apropriada sem consentimento explícito.",
+        "potencial_reativacao": "indeterminado",
+        "resumo_factual_historico": "A clínica Implantprime Lisboa não forneceu um motivo claro para a perda do negócio. O histórico de atividades inclui tentativas de contacto por email e WhatsApp, mas não há resposta conclusiva do prospect.",
+        "evidencias_especificas_decisao": "Não há motivo registrado para a perda e o histórico de contacto é vago.",
+        "objecoes_ou_sinais_incompatibilidade": [],
+        "grau_confianca": "medio",
+        "incertezas_dados_em_falta": "Falta de informações sobre a razão específica da perda do negócio.",
+        "razao_comercial_apropriada_ou_inapropriada": "A razão comercial é indeterminada devido à falta de dados claros sobre a perda.",
+        "condicao_ou_data_reavaliacao": "Reavaliar em 3 meses.",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL]",
+        "guardrail_audit": {
+          "guardrail_acionado": false,
+          "decisao_original_gpt": "revisao_humana",
+          "motivo_intervencao": null
+        }
+      },
+      "meta_execucao": {
+        "api_chamada_sucesso": true,
+        "modelo_utilizado": "gpt-4o-mini",
+        "modo_inferencia": "openai_chat_completions_api",
+        "timestamp": "2026-10-09T22:47:56.710Z"
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "cdee8928-67dd-4117-944f-b84d56ca3ce4",
+        "nome": "Hiclinic Dental Care",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Conversei com a secretaria, ela disse que estava cansada de ligaççoes de agências... o contato parou nela, mas disse que a Dra, não teria interesse",
+        "data_ultima_atividade_conhecida": "2026-06-22T20:10:56.958+00:00"
+      },
+      "analise_contextual_gpt": {
+        "decisao": "nao_reativar",
+        "elegibilidade_comercial": "nao_elegivel",
+        "autorizacao_contacto": "recusa",
+        "adequacao_canal": "whatsapp",
+        "justificativa_canal": "O canal WhatsApp não é apropriado, pois a clínica expressou cansaço com ligações de agências e a Dra. não demonstrou interesse.",
+        "potencial_reativacao": "nulo",
+        "resumo_factual_historico": "A clínica Hiclinic Dental Care foi considerada não interessada após conversa com a secretaria, que mencionou estar cansada de ligações de agências. A Dra. também foi referida como não tendo interesse.",
+        "evidencias_especificas_decisao": "A secretaria afirmou que a Dra. não teria interesse e que estavam cansados de ligações de agências.",
+        "objecoes_ou_sinais_incompatibilidade": [
+          "Cansada de ligações de agências",
+          "Dra. não tem interesse"
+        ],
+        "grau_confianca": "alto",
+        "incertezas_dados_em_falta": "Não há dados em falta relevantes, a decisão é clara com base nas informações disponíveis.",
+        "razao_comercial_apropriada_ou_inapropriada": "Inapropriada, pois houve uma recusa clara da Dra. e da secretaria.",
+        "condicao_ou_data_reavaliacao": "N/A",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL]",
+        "guardrail_audit": {
+          "guardrail_acionado": false,
+          "decisao_original_gpt": "nao_reativar",
+          "motivo_intervencao": null
+        }
+      },
+      "meta_execucao": {
+        "api_chamada_sucesso": true,
+        "modelo_utilizado": "gpt-4o-mini",
+        "modo_inferencia": "openai_chat_completions_api",
+        "timestamp": "2026-10-09T22:48:00.601Z"
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "727b2c30-c068-4037-980b-0527cbc2b48d",
+        "nome": "Dentibus - Clínica Médica Dentária",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Não respondeu - Boa Tarde , terá que enviar a informação para o nosso email. \nconsultas@dentibus.pt, porém já enviei alguns email e nunca responderam.",
+        "data_ultima_atividade_conhecida": "2026-09-07T19:00:06.195+00:00"
+      },
+      "analise_contextual_gpt": {
+        "decisao": "revisao_humana",
+        "elegibilidade_comercial": "indeterminado",
+        "autorizacao_contacto": "sem_consentimento_explicito_requer_optin",
+        "adequacao_canal": "email",
+        "justificativa_canal": "O prospect solicitou que a comunicação fosse feita exclusivamente por email, portanto, o contacto por telefone não é considerado consentimento prévio.",
+        "potencial_reativacao": "indeterminado",
+        "resumo_factual_historico": "A clínica Dentibus não respondeu a múltiplos emails enviados, e o último contato foi marcado como perdido devido à falta de resposta.",
+        "evidencias_especificas_decisao": "A falta de resposta a vários emails indica que a clínica pode estar em reestruturação ou simplesmente não interessada no momento.",
+        "objecoes_ou_sinais_incompatibilidade": [],
+        "grau_confianca": "medio",
+        "incertezas_dados_em_falta": "Não há informações suficientes sobre a intenção da clínica em reavaliar a proposta.",
+        "razao_comercial_apropriada_ou_inapropriada": "A razão comercial é indeterminada, pois não há confirmação de desinteresse, mas também não há resposta.",
+        "condicao_ou_data_reavaliacao": "Reavaliar em 3 meses.",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL]",
+        "guardrail_audit": {
+          "guardrail_acionado": false,
+          "decisao_original_gpt": "revisao_humana",
+          "motivo_intervencao": null
+        }
+      },
+      "meta_execucao": {
+        "api_chamada_sucesso": true,
+        "modelo_utilizado": "gpt-4o-mini",
+        "modo_inferencia": "openai_chat_completions_api",
+        "timestamp": "2026-10-09T22:48:04.049Z"
+      }
+    },
+    {
+      "identificacao": {
+        "deal_id": "76c64ba3-a663-46e6-8d62-8da6b758b80c",
+        "nome": "Clínica AM SMILING",
+        "estado_atual": "lost",
+        "motivo_perda_registrado": "Boa tarde; \nneste momento estamos com a equipa completa. \nagradeçemos o contacto",
+        "data_ultima_atividade_conhecida": "2026-09-09T09:59:22.975+00:00"
+      },
+      "analise_contextual_gpt": {
+        "decisao": "aguardar",
+        "elegibilidade_comercial": "quarentena_aguardar",
+        "autorizacao_contacto": "sem_consentimento_explicito_requer_optin",
+        "adequacao_canal": "nenhum",
+        "justificativa_canal": "O contacto foi feito sem consentimento explícito, e o número de telefone não é considerado como autorização prévia.",
+        "potencial_reativacao": "medio",
+        "resumo_factual_historico": "A Clínica AM SMILING informou que está com a equipa completa e agradeceu o contacto, o que indica uma situação temporária.",
+        "evidencias_especificas_decisao": "A decisão de aguardar baseia-se na resposta da clínica sobre a equipa completa, sugerindo que a situação pode mudar no futuro.",
+        "objecoes_ou_sinais_incompatibilidade": [],
+        "grau_confianca": "medio",
+        "incertezas_dados_em_falta": "Não há informações adicionais sobre a data prevista para reavaliação ou se a situação da equipa mudará.",
+        "razao_comercial_apropriada_ou_inapropriada": "A razão comercial é apropriada, pois a clínica pode estar aberta a reavaliações futuras.",
+        "condicao_ou_data_reavaliacao": "Reavaliar em 3-6 meses.",
+        "mensagem_proposta_pt_pt": "[NENHUMA MENSAGEM - REGISTO NÃO ELEGÍVEL]",
+        "guardrail_audit": {
+          "guardrail_acionado": false,
+          "decisao_original_gpt": "aguardar",
+          "motivo_intervencao": null
+        }
+      },
+      "meta_execucao": {
+        "api_chamada_sucesso": true,
+        "modelo_utilizado": "gpt-4o-mini",
+        "modo_inferencia": "openai_chat_completions_api",
+        "timestamp": "2026-10-09T22:48:07.090Z"
+      }
+    }
+  ]
+}

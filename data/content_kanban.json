@@ -1,0 +1,84 @@
+{
+  "columns": [
+    {
+      "id": "966d87a7-2099-49e3-b287-7dde406f0a2e",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "name": "Ideias",
+      "orderIndex": 0,
+      "createdAt": "2026-10-16T21:17:28.0958+00:00",
+      "updatedAt": "2026-10-17T22:30:19.292+00:00"
+    },
+    {
+      "id": "14658974-a6a1-4a5e-bd88-7858de207b9f",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "name": "Desenvolver",
+      "orderIndex": 1,
+      "createdAt": "2026-10-16T21:17:28.243803+00:00",
+      "updatedAt": "2026-10-17T22:30:19.379+00:00"
+    },
+    {
+      "id": "cc8fb8e3-4b3d-41f0-a9c1-5eefeadef7d5",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "name": "para semana",
+      "orderIndex": 2,
+      "createdAt": "2026-10-16T21:17:28.34261+00:00",
+      "updatedAt": "2026-10-17T22:30:19.474+00:00"
+    },
+    {
+      "id": "566c6ab7-c5a8-4135-9b18-2f246a11f125",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "name": "Programado e Postado",
+      "orderIndex": 3,
+      "createdAt": "2026-10-16T21:55:41.048942+00:00",
+      "updatedAt": "2026-10-17T22:30:19.572+00:00"
+    }
+  ],
+  "cards": [
+    {
+      "id": "a9637376-97f2-4a2a-b240-f294ab36a6e9",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "columnId": "966d87a7-2099-49e3-b287-7dde406f0a2e",
+      "title": "Vou resolver uma coisa chata do seu negócio em 40 segundos.",
+      "description": "",
+      "completed": false,
+      "orderIndex": 0,
+      "createdAt": "2026-10-16T21:20:13.112371+00:00",
+      "updatedAt": "2026-10-17T22:30:19.658+00:00"
+    },
+    {
+      "id": "1398b9a8-da08-4836-b3b3-87e95702ca11",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "columnId": "cc8fb8e3-4b3d-41f0-a9c1-5eefeadef7d5",
+      "title": "Se eu tivesse que fazer um medico dentista crescer no instagram, comecaria assim.",
+      "description": "",
+      "completed": false,
+      "orderIndex": 0,
+      "createdAt": "2026-10-16T21:53:10.659921+00:00",
+      "updatedAt": "2026-10-17T22:30:19.745+00:00"
+    },
+    {
+      "id": "0b1102e6-8f1b-4a23-b15b-9a1397e66966",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "columnId": "566c6ab7-c5a8-4135-9b18-2f246a11f125",
+      "title": "Se a empresa não consegue responder, qualificar e converter os leads, aumentar o investimento em anúncios apenas aumenta o volume do problema.",
+      "description": "Siga o @euphilipecoelho para aprender a transformar marketing em oportunidades reais de negócio.\n\nSe a sua empresa 🇵🇹 não consegue responder, qualificar e converter os leads que já recebe, atrair mais pessoas pode não resolver o problema.\n\nAntes de aumentar o investimento em anúncios, olhe para o que acontece depois que o lead chega:\n\nQuanto tempo a sua equipa demora a responder?\nVocês sabem quais contatos têm maior potencial de compra?\nExiste um processo para acompanhar quem ainda não tomou uma decisão?\nVocê sabe quantas oportunidades se transformam em clientes?\n\nMais leads não significam mais vendas.\n\nSe o processo comercial não funciona, investir mais pode apenas aumentar o número de oportunidades perdidas.\n\nE na sua empresa, o maior desafio hoje é atrair clientes ou converter os que já chegam?",
+      "completed": false,
+      "dueDate": "2026-10-14T00:00:00+00:00",
+      "orderIndex": 0,
+      "createdAt": "2026-10-16T21:55:46.987469+00:00",
+      "updatedAt": "2026-10-17T22:30:20.284+00:00"
+    },
+    {
+      "id": "250d5232-a5bb-4ca7-8c4c-6cf5d257b607",
+      "userId": "9469fb08-7de5-405e-a4e7-d83cf818ea1e",
+      "columnId": "cc8fb8e3-4b3d-41f0-a9c1-5eefeadef7d5",
+      "title": "como distribuiria 500€ em aquisição de pacientes para uma clinica em Portugal.",
+      "description": "",
+      "completed": false,
+      "dueDate": "2026-10-20T00:00:00+00:00",
+      "orderIndex": 1,
+      "createdAt": "2026-10-16T21:53:20.978433+00:00",
+      "updatedAt": "2026-10-17T22:30:20.371+00:00"
+    }
+  ]
+}

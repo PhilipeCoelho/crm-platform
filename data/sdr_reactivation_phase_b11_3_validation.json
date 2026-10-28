@@ -1,0 +1,393 @@
+{
+  "meta": {
+    "fase": "B.11.3",
+    "data_execucao": "2026-10-10T19:51:38.951Z",
+    "negocio_auditado": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+    "clinica": "Negócio Clínica Dentária Diniz Salgueiro",
+    "concelho": "LISBOA",
+    "modo": "VALIDACAO_COMERCIAL_ASSISTIDA_SEM_DISPARO_REAL",
+    "mensagens_reais_enviadas": 0,
+    "mutacoes_producao_efetuadas": 0
+  },
+  "estado_crm": {
+    "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+    "title": "Negócio Clínica Dentária Diniz Salgueiro",
+    "nome_clinica": "Negócio Clínica Dentária Diniz Salgueiro",
+    "valor_estimado": 3000,
+    "moeda": "EUR",
+    "pipeline_id": "sales",
+    "etapa_atual": "stage_prospect",
+    "status_atual": "lost",
+    "motivo_perda_original": "Não respondeu - Não respondeu as abordagens",
+    "data_criacao": "2026-02-07T10:00:00.000Z",
+    "data_perda": "2026-06-19T17:34:13.765+00:00",
+    "dias_em_respiro": 113,
+    "interacoes_anteriores": [
+      {
+        "tipo": "CRIACAO",
+        "data": "2026-02-07T10:00:00Z",
+        "detalhe": "Negócio criado no CRM."
+      },
+      {
+        "tipo": "WHATSAPP_ENVIADO",
+        "data": "2026-06-19T17:34:13Z",
+        "detalhe": "Abordagem fria anterior sobre aparecer no Google."
+      },
+      {
+        "tipo": "PERDIDO_REGISTADO",
+        "data": "2026-06-19T17:34:13Z",
+        "detalhe": "Marcado como lost por falta de resposta."
+      }
+    ],
+    "total_tentativas_anteriores": 1,
+    "respostas_recebidas": 0,
+    "recusas_ou_optouts": 0,
+    "restricoes_canal": "NENHUMA",
+    "contacto": {
+      "nome": "Diniz Salgueiro",
+      "telefone": "+351929238634",
+      "email": "geral@dinizsalgueiro.pt",
+      "dominio": "clinicadinizsalgueiro.pt",
+      "concelho": "LISBOA"
+    }
+  },
+  "seguranca_e_gates": {
+    "autorizado_para_ativacao": false,
+    "motivo_decisao": "BLOQUEIO_LIA_B2B_PENDENTE",
+    "motivo_bloqueio": "BLOQUEIO_LIA_B2B_PENDENTE",
+    "detalhe": "Avaliação LIA B2B favorável e homologada não comprovada para entidade coletiva.",
+    "proxima_janela_util": null,
+    "estado_documental": "DOCUMENTACAO_EM_FALTA",
+    "timestamp": "2026-10-10T19:51:38.928Z",
+    "auditTrail": {
+      "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+      "nome_clinica": "Negócio Clínica Dentária Diniz Salgueiro",
+      "canal_pretendido": "WHATSAPP",
+      "timestamp_avaliacao": "2026-10-10T19:51:38.926Z",
+      "verificacoes": {
+        "circuit_breaker_ok": true,
+        "pausa_global_ok": true,
+        "elegibilidade_tecnica": {
+          "elegivel": false,
+          "autorizado_para_disparo": false,
+          "motivo_bloqueio": "AUSENCIA_AUTORIZACAO_CANAL",
+          "detalhe": "Ausência de evidência de autorização específica para o canal WHATSAPP.",
+          "canal_autorizado": null,
+          "etapa_falha": 5,
+          "metadata": {
+            "canal_requisitado": "WHATSAPP"
+          },
+          "audit_log": {
+            "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+            "timestamp": "2026-10-10T19:51:38.928Z",
+            "verificacoes": {
+              "10_integridade_dados": {
+                "status": "APROVADO"
+              },
+              "09_killswitch": {
+                "status": "APROVADO"
+              },
+              "01_identidade_origem": {
+                "status": "APROVADO",
+                "telefone": "351929238634",
+                "email": "geral@dinizsalgueiro.pt"
+              },
+              "02_supressao_endpoint": {
+                "status": "APROVADO"
+              },
+              "03_restricao_canal": {
+                "status": "APROVADO",
+                "canal": "WHATSAPP"
+              },
+              "04_elegibilidade_comercial": {
+                "status": "APROVADO",
+                "categoria": "SILENCIO_CONFIRMADO"
+              }
+            },
+            "resultado_final": {
+              "elegivel": false,
+              "autorizado_para_disparo": false,
+              "etapa_falha": 5,
+              "codigo_motivo": "AUSENCIA_AUTORIZACAO_CANAL",
+              "mensagem": "Ausência de evidência de autorização específica para o canal WHATSAPP.",
+              "metadata": {
+                "canal_requisitado": "WHATSAPP"
+              }
+            }
+          }
+        },
+        "base_legal_valida": false
+      }
+    }
+  },
+  "raciocinio_gpt": {
+    "factos_comprovados": [
+      "A entidade é uma clínica privada de medicina dentária em Portugal (Negócio Clínica Dentária Diniz Salgueiro).",
+      "Foi registada no CRM como perdida pelo motivo: \"Não respondeu - Não respondeu as abordagens\".",
+      "Encontra-se há aproximadamente 113 dias em respiro comercial sem interações recentes.",
+      "Dispõe publicamente de especialidades como: Cirurgia oral, Endodontia, Ortodontia, Odontopediatria."
+    ],
+    "hipoteses_estrategicas": [
+      "A mensagem anterior foi encarada como publicidade genérica pela triagem ou receção.",
+      "O interlocutor não percebeu a relevância específica para a rentabilidade da sua própria clínica."
+    ],
+    "dados_em_falta": [
+      "Nome específico do decisor clínico/executivo (a mensagem destina-se à direção da clínica).",
+      "Se a clínica tem capacidade ociosa de gabinetes no trimestre atual."
+    ],
+    "causa_provavel_perda_anterior": "Abordagem anterior centrada no produto/pesquisa sem ancoragem prévia nas dores reais de faturamento da clínica.",
+    "estrategia_escolhida": "REAQUECIMENTO_CONSULTIVO_BAIXO_ATRITO"
+  },
+  "primeira_abordagem": {
+    "alternativas": [
+      {
+        "alternativa_id": 1,
+        "angulo": "CLINICO_TECNOLOGIA_ESPECIALIDADE",
+        "descricao": "Foco na aposta comprovada em endodontia com microscopia operatória em Entrecampos",
+        "texto": "Boa tarde! Tudo bem?\nEstive a conhecer melhor o trabalho da Clínica Dentária Diniz Salgueiro e chamou-me a atenção a utilização de microscopia na endodontia.\nNa Vamuss, trabalhamos a forma como as empresas comunicam o seu valor e transformam essa diferenciação em oportunidades comerciais.\nFiquei com curiosidade: sentem que os pacientes que procuram a clínica já conhecem essa diferenciação antes de marcar, ou acabam por descobri-la apenas na consulta?\nObrigado!",
+        "pede_chamada_ou_reuniao": false,
+        "assume_problema_agenda": false,
+        "foco": "Reconhecimento técnico e pergunta aberta de diagnóstico clínico sem comparações artificiais"
+      },
+      {
+        "alternativa_id": 2,
+        "angulo": "TRIAGEM_PACIENTE_PRIMEIRA_CONSULTA",
+        "descricao": "Foco na rota de contacto de novos pacientes particulares para cirurgia e reabilitação",
+        "texto": "Boa tarde, equipa da Clínica Dentária Diniz Salgueiro. No acompanhamento do setor de medicina dentária em Lisboa, temos notado que pacientes que procuram reabilitação oral e cirurgia frequentemente têm dificuldade em distinguir clínicas diferenciadas de redes comerciais. Atualmente, a vossa receção recebe contactos qualificados que já valorizam o vosso perfil de especialidades, ou a triagem inicial ainda vos consome muito tempo? Cumprimentos.",
+        "pede_chamada_ou_reuniao": false,
+        "assume_problema_agenda": false,
+        "foco": "Pergunta de baixo atrito sobre percepção de valor na primeira abordagem"
+      },
+      {
+        "alternativa_id": 3,
+        "angulo": "REABERTURA_INSTITUCIONAL_LEVANTAMENTO_SETORIAL",
+        "descricao": "Reabertura respeitosa pós-silêncio oferecendo levantamento sobre pesquisa de tratamentos em Lisboa",
+        "texto": "Boa tarde, equipa da Clínica Diniz Salgueiro. Há alguns meses tentámos um contacto inicial que poderá não ter sido oportuno. Consolidámos recentemente um breve levantamento sobre o comportamento de pesquisa de tratamentos multidisciplinares em Lisboa. Faz sentido partilhar convosco este resumo para a vossa direção clínica, ou preferem que não o enviemos? Votos de uma excelente semana.",
+        "pede_chamada_ou_reuniao": false,
+        "assume_problema_agenda": false,
+        "foco": "Permissão explícita para partilha de dados de valor sem qualquer cobrança"
+      }
+    ],
+    "alternativa_selecionada": 1,
+    "justificacao": "A Alternativa 1 ancora a relação na identidade clínica e tecnológica real da clínica (microscópio operatório em endodontia), demonstrando respeito profissional genuíno. Evita o erro anterior de \"aparecer no Google\", não pede reuniões ou chamadas e não inventa problemas de agenda.",
+    "mensagem_final": "Boa tarde! Tudo bem?\nEstive a conhecer melhor o trabalho da Clínica Dentária Diniz Salgueiro e chamou-me a atenção a utilização de microscopia na endodontia.\nNa Vamuss, trabalhamos a forma como as empresas comunicam o seu valor e transformam essa diferenciação em oportunidades comerciais.\nFiquei com curiosidade: sentem que os pacientes que procuram a clínica já conhecem essa diferenciação antes de marcar, ou acabam por descobri-la apenas na consulta?\nObrigado!"
+  },
+  "simulacoes_conversacionais": [
+    {
+      "cenario_id": 1,
+      "nome_cenario": "Curiosidade sobre a abordagem",
+      "tipo_cenario_chave": "CURIOSIDADE_ABORDAGEM",
+      "input_recebido": "Como é que repararam no nosso trabalho e como funciona a vossa parceria?",
+      "interpretacao_agente": "O contacto manifestou curiosidade sobre como foi encontrado ou como funciona, sem ainda expressar dor concreta.",
+      "estrategia_adotada": "QUALIFICACAO_TRANSPARENTE_DE_INTERESSE",
+      "proxima_acao_recomendada": "Explicar a origem da pesquisa e aprofundar a perceção do paciente sobre tratamentos diferenciados sem vender reunião.",
+      "propor_reuniao_imediata": false,
+      "mensagem_proposta_pt_pt": "Com certeza. Acompanhamos clínicas de referência em Lisboa e chamou-nos a atenção a vossa aposta clínica em endodontia com microscopia. A nossa missão é ajudar clínicas a garantir que essa diferenciação técnica se traduza em consultas particulares constantes. Na vossa experiência, os novos pacientes chegam já informados sobre esse diferencial ou dependem da triagem em consulta?",
+      "transicao_crm_prevista": {
+        "acao": "Regressa ao funil ativo na etapa Lead de Engajamento",
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    },
+    {
+      "cenario_id": 2,
+      "nome_cenario": "Pedido de explicação sobre os serviços",
+      "tipo_cenario_chave": "PEDIDO_EXPLICACAO_SERVICOS",
+      "input_recebido": "Podem explicar melhor o que fazem exatamente na Vamuss?",
+      "interpretacao_agente": "O interlocutor solicita detalhe sobre os serviços da Vamuss antes de conceder tempo ou compromisso.",
+      "estrategia_adotada": "EXPLICACAO_CONCISA_DE_VALOR_SEM_VENDER_REUNIAO",
+      "proxima_acao_recomendada": "Explicar a metodologia de atração de pacientes particulares de alto valor sem posts genéricos e qualificar foco prioritário.",
+      "propor_reuniao_imediata": false,
+      "mensagem_proposta_pt_pt": "Com todo o gosto. Na Vamuss, não fazemos gestão genérica de redes sociais. O nosso trabalho é auditar e estruturar o caminho de pesquisa para que pacientes particulares qualificados encontrem a vossa clínica quando procuram tratamentos de maior diferenciação (como endodontia ou reabilitação), chegando à consulta predispostos ao valor do tratamento. Há alguma especialidade que tenham como prioridade de expansão neste momento?",
+      "transicao_crm_prevista": {
+        "acao": "Regressa ao funil ativo na etapa Lead de Engajamento",
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    },
+    {
+      "cenario_id": 3,
+      "nome_cenario": "Pergunta sobre preços",
+      "tipo_cenario_chave": "OBJECAO_PRECO",
+      "input_recebido": "Quanto é que custa o vosso serviço para uma clínica como a nossa?",
+      "interpretacao_agente": "Interlocutor questiona o valor financeiro antes de validar o modelo. Exige transparência sem promessas levianas.",
+      "estrategia_adotada": "ANCORAGEM_DE_ROI_E_TRATAMENTOS_ALTO_TICKET",
+      "proxima_acao_recomendada": "Esclarecer estrutura de investimento e qualificar viabilidade operacional sem formular promessas infundadas de retorno.",
+      "propor_reuniao_imediata": false,
+      "mensagem_proposta_pt_pt": "O investimento depende da estrutura de gabinetes e das especialidades prioritárias da clínica. Sem conhecermos a vossa estrutura de custos e margens reais, seria incorreto apresentar um valor fechado ou prometer retornos arbitrários. O nosso primeiro passo é sempre mapear a viabilidade operacional. Para ter uma ideia da vossa dimensão, quantos gabinetes têm atualmente em funcionamento?",
+      "transicao_crm_prevista": {
+        "acao": "Mantido em diálogo consultivo / Lead de Engajamento",
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    },
+    {
+      "cenario_id": 4,
+      "nome_cenario": "Indicação de que já existe uma agência",
+      "tipo_cenario_chave": "JA_TEM_AGENCIA",
+      "input_recebido": "Já temos uma agência de marketing a tratar da nossa comunicação há 2 anos.",
+      "interpretacao_agente": "A clínica já tem cultura e orçamento de marketing, mas pode estar insatisfeita com o retorno clínico real.",
+      "estrategia_adotada": "DIFERENCIACAO_CONSULTAS_VS_POSTS",
+      "proxima_acao_recomendada": "Elogiar investimento e perguntar se medem consultas pagas no consultório ou apenas métricas de vaidade.",
+      "propor_reuniao_imediata": false,
+      "mensagem_proposta_pt_pt": "Excelente, isso demonstra que a direção clínica já aposta em crescer. Muitas clínicas com quem trabalhamos já tinham agência de redes sociais, mas sentiam falta de métricas reais de consultas particulares pagas que entram na clínica todos os meses. No vosso caso, a agência atual já vos dá essa visibilidade de pacientes reais em consultório, ou focam-se mais em publicações e alcance?",
+      "transicao_crm_prevista": {
+        "acao": "Mantido em diálogo consultivo / Lead de Engajamento",
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    },
+    {
+      "cenario_id": 5,
+      "nome_cenario": "Identificação de uma necessidade comercial",
+      "tipo_cenario_chave": "NECESSIDADE_IDENTIFICADA",
+      "input_recebido": "Temos dois gabinetes vazios às terças e quintas e precisamos de atrair mais pacientes particulares para endodontia e cirurgia.",
+      "interpretacao_agente": "Dor comercial ou capacidade ociosa identificada com clareza. Momento oportuno para propor Reunião de Diagnóstico.",
+      "estrategia_adotada": "PROPOSTA_DIAGNOSTICO_20_MINUTOS",
+      "proxima_acao_recomendada": "Conectar o problema ao diagnóstico e propor Reunião de 20 minutos com duas opções de horário.",
+      "propor_reuniao_imediata": true,
+      "mensagem_proposta_pt_pt": "Compreendo perfeitamente o vosso desafio de preencher horários em especialidades específicas. Faz todo o sentido analisarmos o vosso caso numa breve Reunião de Diagnóstico de 20 minutos por Google Meet, onde partilhamos dados práticos sobre captação para esse perfil. Quinta-feira às 11h ou sexta-feira às 15h funcionaria melhor para si?",
+      "transicao_crm_prevista": {
+        "acao": "Regressa ao funil ativo na etapa Lead de Engajamento",
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    },
+    {
+      "cenario_id": 6,
+      "nome_cenario": "Resposta vaga ou inesperada",
+      "tipo_cenario_chave": "PERGUNTA_INESPERADA",
+      "input_recebido": "Qual é a vossa experiência prática com tratamentos de harmonização orofacial?",
+      "interpretacao_agente": "Dúvida fora do padrão direto ou teste de especialização. Exige resposta franca antes de qualquer avanço comercial.",
+      "estrategia_adotada": "RESPOSTA_DIRETA_TRANSPARENTE_ANTES_DE_VENDER",
+      "proxima_acao_recomendada": "Responder com clareza à questão antes de solicitar qualquer passo.",
+      "propor_reuniao_imediata": false,
+      "mensagem_proposta_pt_pt": "O nosso foco está na medicina dentária e especialidades clínicas onde o paciente pesquisa confiança técnica (como microscopia, reabilitação e implantes). No caso de áreas complementares, o princípio de captação de particulares aplica-se se houver médico responsável dedicado. É uma valência que a vossa equipa está a desenvolver neste momento?",
+      "transicao_crm_prevista": {
+        "acao": "Mantido em diálogo consultivo / Lead de Engajamento",
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    },
+    {
+      "cenario_id": 7,
+      "nome_cenario": "Recusa explícita",
+      "tipo_cenario_chave": "RECUSA_COMERCIAL",
+      "input_recebido": "Não temos qualquer interesse, por favor não voltem a contactar esta clínica.",
+      "interpretacao_agente": "Manifestação inequívoca de desinteresse ou pedido de paragem. Encerramento imediato e proteção RGPD.",
+      "estrategia_adotada": "ENCERRAMENTO_RESPEITOSO_E_SUPRESSAO",
+      "proxima_acao_recomendada": "Confirmar remoção de contactos e não insistir.",
+      "propor_reuniao_imediata": false,
+      "mensagem_proposta_pt_pt": "Entendido perfeitamente. Agradecemos a vossa atenção e retiramos de imediato os contactos da nossa lista de comunicação. Votos de muito sucesso para a Clínica Diniz Salgueiro.",
+      "transicao_crm_prevista": {
+        "acao": "Retirado definitivamente do funil ativo; registado em Supressão Estrita",
+        "novo_status": "lost",
+        "nova_etapa": "stage_prospect (fora do funil ativo)",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    },
+    {
+      "cenario_id": 8,
+      "nome_cenario": "Ausência de resposta (silêncio contínuo)",
+      "tipo_cenario_chave": "SILENCIO_SEM_RESPOSTA",
+      "input_recebido": null,
+      "interpretacao_agente": "Ausência de resposta à abordagem fria. O SDR não deve cobrar resposta (\"Viu a mensagem?\"), devendo respeitar a cadência.",
+      "estrategia_adotada": "RESPEITO_AO_RESPIRO_E_CADENCIA",
+      "proxima_acao_recomendada": "Aguardar intervalo de 5 a 7 dias úteis sem efetuar cobranças agressivas antes de novo follow-up com reavaliação.",
+      "propor_reuniao_imediata": false,
+      "mensagem_proposta_pt_pt": "(Nenhuma mensagem imediata; follow-up suave planeado após 6 dias úteis com reavaliação contextual)",
+      "transicao_crm_prevista": {
+        "acao": "Preserva status perdido na Fila SDR; aguarda intervalo de respiro",
+        "novo_status": "lost",
+        "nova_etapa": "stage_prospect (fila de recuperação)",
+        "preserva_historico": true,
+        "preserva_motivo_perda": true
+      }
+    }
+  ],
+  "validacao_horario_comercial": {
+    "teste_fora_de_horas": {
+      "permitido": false,
+      "motivo": "FIM_DE_SEMANA",
+      "detalhe": "Disparos estritamente proibidos ao fim de semana (Sábado). Janela autorizada: Seg-Sex das 09h00 às 17h00 Europe/Lisbon.",
+      "lisbon_time": {
+        "year": 2026,
+        "month": 10,
+        "day": 10,
+        "hour": 20,
+        "minute": 45,
+        "second": 0,
+        "millisecond": 0,
+        "weekday": "Sat",
+        "dayOfWeek": 6,
+        "formattedDate": "2026-10-10",
+        "formattedTime": "20:45:00",
+        "isoReference": "2026-10-10T19:45:00.000Z"
+      },
+      "proxima_janela_util": "2026-10-12T08:00:00.000Z"
+    },
+    "teste_feriado_municipal": {
+      "permitido": false,
+      "motivo": "FERIADO_MUNICIPAL_PORTUGAL",
+      "detalhe": "Disparos estritamente proibidos em feriados (Feriado Municipal de Lisboa (Santo António)). Janela autorizada: Seg-Sex das 09h00 às 17h00 Europe/Lisbon.",
+      "lisbon_time": {
+        "year": 2026,
+        "month": 6,
+        "day": 13,
+        "hour": 11,
+        "minute": 0,
+        "second": 0,
+        "millisecond": 0,
+        "weekday": "Sat",
+        "dayOfWeek": 6,
+        "formattedDate": "2026-06-13",
+        "formattedTime": "11:00:00",
+        "isoReference": "2026-06-13T10:00:00.000Z"
+      },
+      "proxima_janela_util": "2026-06-15T08:00:00.000Z"
+    },
+    "teste_janela_valida": {
+      "permitido": true,
+      "motivo": "DENTRO_DO_HORARIO_COMERCIAL",
+      "detalhe": "Horário comercial válido e autorizado (Mon 10:30:00 Europe/Lisbon).",
+      "lisbon_time": {
+        "year": 2026,
+        "month": 10,
+        "day": 12,
+        "hour": 10,
+        "minute": 30,
+        "second": 0,
+        "millisecond": 0,
+        "weekday": "Mon",
+        "dayOfWeek": 1,
+        "formattedDate": "2026-10-12",
+        "formattedTime": "10:30:00",
+        "isoReference": "2026-10-12T09:30:00.000Z"
+      },
+      "proxima_janela_util": null
+    },
+    "comportamento_fila_sdr": {
+      "bloqueado": true,
+      "reagendado_para": "2026-10-12T08:00:00.000Z",
+      "reavaliacao_contextual_obrigatoria_antes_de_disparar": true
+    }
+  },
+  "limitacoes_operacionais_ativas": [
+    "Avaliação de Impacto sobre a Proteção de Dados (LIA B2B) para clinicadinizsalgueiro.pt ainda pendente de homologação jurídica formal.",
+    "Aprovação operacional formal do supervisor responsável ainda não registada em sistema.",
+    "Circuit Breaker mantido estritamente ativado para prevenção de disparos acidentais."
+  ]
+}

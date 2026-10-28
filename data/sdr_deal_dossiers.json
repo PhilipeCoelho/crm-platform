@@ -1,0 +1,639 @@
+{
+  "deal_test_dossier_01": {
+    "dealId": "deal_test_dossier_01",
+    "clinicName": "Clínica Dentária Diniz Salgueiro",
+    "concelho": "Leiria",
+    "researchedAt": "2026-10-27T20:31:51.190Z",
+    "expiresAt": "2026-11-26T20:31:51.190Z",
+    "hasReliableData": true,
+    "siteAnalysis": {
+      "hasWebsite": true,
+      "url": "https://cclinic.pt/",
+      "accessible": true,
+      "highlightedTreatments": [
+        "Implantes Dentários / Implantologia",
+        "Ortodontia / Alinhadores Invisíveis",
+        "Estética Dental e Facetas",
+        "Periodontologia",
+        "Odontopediatria"
+      ],
+      "hasOnlineBooking": true,
+      "teamSizeDetected": null,
+      "servicesSourceUrl": "https://cclinic.pt/especialidades",
+      "extractedAt": "2026-10-27T20:31:49.917Z"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Dentária Diniz Salgueiro",
+      "concelho": "Leiria",
+      "searchQueries": [
+        "implantes dentários Leiria",
+        "clínica dentária Leiria"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T20:31:51.190Z"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_SITE_TREATMENTS",
+        "category": "TREATMENTS",
+        "fact": "A clínica promove e destaca no seu website tratamentos de Implantes Dentários / Implantologia e Ortodontia / Alinhadores Invisíveis.",
+        "source": "Website da clínica (https://cclinic.pt/especialidades)",
+        "confidence": "HIGH"
+      },
+      {
+        "factId": "FACT_SITE_BOOKING",
+        "category": "BOOKING",
+        "fact": "A clínica disponibiliza canais diretos de marcação/agendamento online para primeiras consultas.",
+        "source": "Website da clínica (https://cclinic.pt/)",
+        "confidence": "HIGH"
+      },
+      {
+        "factId": "FACT_LOCAL_SEARCH_GAP",
+        "category": "VISIBILITY",
+        "fact": "A clínica não surge na primeira página dos resultados diretos de pesquisa orgânica para \"implantes dentários Leiria\".",
+        "source": "Pesquisa pública de termos de valor em Leiria",
+        "confidence": "MEDIUM"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false
+    },
+    "savedAt": "2026-10-27T20:31:51.190Z"
+  },
+  "2ee3b134-a111-4624-81b8-c9eef850b5ed": {
+    "dealId": "2ee3b134-a111-4624-81b8-c9eef850b5ed",
+    "clinicName": "Dra. Catarina",
+    "concelho": "Leiria",
+    "researchedAt": "2026-10-27T20:32:19.534Z",
+    "expiresAt": "2026-11-26T20:32:19.534Z",
+    "hasReliableData": true,
+    "siteAnalysis": {
+      "hasWebsite": true,
+      "url": "https://cclinic.pt/",
+      "accessible": true,
+      "highlightedTreatments": [
+        "Implantes Dentários / Implantologia",
+        "Ortodontia / Alinhadores Invisíveis",
+        "Estética Dental e Facetas",
+        "Periodontologia",
+        "Odontopediatria"
+      ],
+      "hasOnlineBooking": true,
+      "teamSizeDetected": null,
+      "servicesSourceUrl": "https://cclinic.pt/especialidades",
+      "extractedAt": "2026-10-27T20:32:18.197Z"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Dra. Catarina",
+      "concelho": "Leiria",
+      "searchQueries": [
+        "implantes dentários Leiria",
+        "clínica dentária Leiria"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T20:32:19.534Z"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_SITE_TREATMENTS",
+        "category": "TREATMENTS",
+        "fact": "A clínica promove e destaca no seu website tratamentos de Implantes Dentários / Implantologia e Ortodontia / Alinhadores Invisíveis.",
+        "source": "Website da clínica (https://cclinic.pt/especialidades)",
+        "confidence": "HIGH"
+      },
+      {
+        "factId": "FACT_SITE_BOOKING",
+        "category": "BOOKING",
+        "fact": "A clínica disponibiliza canais diretos de marcação/agendamento online para primeiras consultas.",
+        "source": "Website da clínica (https://cclinic.pt/)",
+        "confidence": "HIGH"
+      },
+      {
+        "factId": "FACT_LOCAL_SEARCH_GAP",
+        "category": "VISIBILITY",
+        "fact": "A clínica não surge na primeira página dos resultados diretos de pesquisa orgânica para \"implantes dentários Leiria\".",
+        "source": "Pesquisa pública de termos de valor em Leiria",
+        "confidence": "MEDIUM"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false
+    },
+    "savedAt": "2026-10-27T20:32:19.534Z"
+  },
+  "feca6482-84d9-4ec3-a74c-80229a0e00a1": {
+    "dealId": "feca6482-84d9-4ec3-a74c-80229a0e00a1",
+    "clinicName": "Clínica Médica Central",
+    "concelho": null,
+    "researchedAt": "2026-10-27T20:44:38.897Z",
+    "expiresAt": "2026-11-26T20:44:38.897Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Médica Central",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": 10,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T20:44:38.897Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T20:44:38.897Z"
+  },
+  "3a663c7c-2c03-4e7a-a03e-6d796a3d900a": {
+    "dealId": "3a663c7c-2c03-4e7a-a03e-6d796a3d900a",
+    "clinicName": "medicalconcept.clinic",
+    "concelho": null,
+    "researchedAt": "2026-10-27T20:45:10.673Z",
+    "expiresAt": "2026-11-26T20:45:10.673Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "medicalconcept.clinic",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T20:45:10.673Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T20:45:10.673Z"
+  },
+  "62d3dc79-2a11-4742-92cb-d6713aa3a6b7": {
+    "dealId": "62d3dc79-2a11-4742-92cb-d6713aa3a6b7",
+    "clinicName": "Clínica Médica Jardim",
+    "concelho": null,
+    "researchedAt": "2026-10-27T20:45:27.241Z",
+    "expiresAt": "2026-11-26T20:45:27.241Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Médica Jardim",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T20:45:27.241Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T20:45:27.242Z"
+  },
+  "ee0b23ff-e65d-4704-b9fa-dd0ceb786365": {
+    "dealId": "ee0b23ff-e65d-4704-b9fa-dd0ceb786365",
+    "clinicName": "Atelier do Sorriso: Dentista Algarve, Harmonização & Rejuvenescimento Facial",
+    "concelho": null,
+    "researchedAt": "2026-10-27T20:45:43.928Z",
+    "expiresAt": "2026-11-26T20:45:43.928Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Atelier do Sorriso: Dentista Algarve, Harmonização & Rejuvenescimento Facial",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": 414,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T20:45:43.928Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T20:45:43.929Z"
+  },
+  "d59b02d9-a907-48f6-a4d3-aeef984c4316": {
+    "dealId": "d59b02d9-a907-48f6-a4d3-aeef984c4316",
+    "clinicName": "Policlínica Asrc Medical, Lda.",
+    "concelho": null,
+    "researchedAt": "2026-10-27T20:46:09.938Z",
+    "expiresAt": "2026-11-26T20:46:09.938Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Policlínica Asrc Medical, Lda.",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T20:46:09.938Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T20:46:09.938Z"
+  },
+  "9810639b-a21b-4c8b-8928-0522553165e7": {
+    "dealId": "9810639b-a21b-4c8b-8928-0522553165e7",
+    "clinicName": "Augusta Albuquerque",
+    "concelho": null,
+    "researchedAt": "2026-10-27T21:02:41.015Z",
+    "expiresAt": "2026-11-26T21:02:41.015Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Augusta Albuquerque",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T21:02:41.015Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T21:02:41.015Z"
+  },
+  "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6": {
+    "dealId": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
+    "clinicName": "Clínica Tágides",
+    "concelho": null,
+    "researchedAt": "2026-10-27T21:07:55.553Z",
+    "expiresAt": "2026-11-26T21:07:55.553Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Tágides",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T21:07:55.553Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T21:07:55.554Z"
+  },
+  "fc8af586-3017-404f-bd72-84646201a3ae": {
+    "dealId": "fc8af586-3017-404f-bd72-84646201a3ae",
+    "clinicName": "Mediminho - Clínica Médica e Dentária",
+    "concelho": null,
+    "researchedAt": "2026-10-27T21:37:16.585Z",
+    "expiresAt": "2026-11-26T21:37:16.585Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Mediminho - Clínica Médica e Dentária",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T21:37:16.585Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T21:37:16.585Z"
+  },
+  "fe3cc983-d52b-4c70-bb27-e848d3a83c58": {
+    "dealId": "fe3cc983-d52b-4c70-bb27-e848d3a83c58",
+    "clinicName": "Oral Project",
+    "concelho": null,
+    "researchedAt": "2026-10-27T21:37:38.255Z",
+    "expiresAt": "2026-11-26T21:37:38.255Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Oral Project",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": 4.1,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T21:37:38.255Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T21:37:38.256Z"
+  },
+  "927dc4a1-07c7-4227-bda1-60d16a9863b6": {
+    "dealId": "927dc4a1-07c7-4227-bda1-60d16a9863b6",
+    "clinicName": "Clínica Prof. Machado Capelas",
+    "concelho": null,
+    "researchedAt": "2026-10-27T21:43:08.282Z",
+    "expiresAt": "2026-11-26T21:43:08.282Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Prof. Machado Capelas",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T21:43:08.282Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-27T21:43:08.282Z"
+  },
+  "8ce16830-e490-4f39-afc8-f263163d9feb": {
+    "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
+    "clinicName": "Santa Zita Clínica Dentária",
+    "concelho": "Viseu",
+    "researchedAt": "2026-10-27T21:54:34.787Z",
+    "expiresAt": "2026-11-26T21:54:34.787Z",
+    "hasReliableData": true,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Santa Zita Clínica Dentária",
+      "concelho": "Viseu",
+      "searchQueries": [
+        "implantes dentários Viseu",
+        "clínica dentária Viseu"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-27T21:54:34.787Z"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_LOCAL_SEARCH_GAP",
+        "category": "VISIBILITY",
+        "fact": "A clínica não surge na primeira página dos resultados diretos de pesquisa orgânica para \"implantes dentários Viseu\".",
+        "source": "Pesquisa pública de termos de valor em Viseu",
+        "confidence": "MEDIUM"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false
+    },
+    "savedAt": "2026-10-27T21:54:34.787Z"
+  },
+  "cc66e364-5a4d-4d9c-aa78-014a6e88c480": {
+    "dealId": "cc66e364-5a4d-4d9c-aa78-014a6e88c480",
+    "clinicName": "Joana Alves",
+    "concelho": null,
+    "researchedAt": "2026-10-28T00:09:47.922Z",
+    "expiresAt": "2026-11-27T00:09:47.922Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Joana Alves",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-28T00:09:47.922Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-28T00:09:47.923Z"
+  },
+  "0b3d3523-6807-479c-8f7c-6a4d727f9a8b": {
+    "dealId": "0b3d3523-6807-479c-8f7c-6a4d727f9a8b",
+    "clinicName": "Clidec - Medicina Dentária",
+    "concelho": null,
+    "researchedAt": "2026-10-28T00:10:02.258Z",
+    "expiresAt": "2026-11-27T00:10:02.258Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clidec - Medicina Dentária",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-28T00:10:02.258Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-28T00:10:02.259Z"
+  },
+  "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b": {
+    "dealId": "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b",
+    "clinicName": "Dra. Fabrícia Luciano",
+    "concelho": null,
+    "researchedAt": "2026-10-28T10:38:25.811Z",
+    "expiresAt": "2026-11-27T10:38:25.811Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Dra. Fabrícia Luciano",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-28T10:38:25.811Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-28T10:38:25.812Z"
+  },
+  "e4f2c8ee-e2b6-496d-affc-7b77b91194ce": {
+    "dealId": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce",
+    "clinicName": "CLÍNICA MÉDICA DENTÁRIA - LACERDA",
+    "concelho": null,
+    "researchedAt": "2026-10-28T21:52:28.312Z",
+    "expiresAt": "2026-11-27T21:52:28.312Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "CLÍNICA MÉDICA DENTÁRIA - LACERDA",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-28T21:52:28.312Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-28T21:52:28.312Z"
+  }
+}

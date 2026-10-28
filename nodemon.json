@@ -1,5 +1,10 @@
 {
+  "watch": [
+    "api"
+  ],
   "ignore": [
-    "meta-capi-debug.json"
+    "data/*",
+    "meta-capi-debug.json",
+    "data/sdr_outcomes.json"
   ]
 }

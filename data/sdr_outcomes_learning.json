@@ -1,0 +1,36 @@
+{
+  "dispatches": [
+    {
+      "id": "disp_1793133111194_c9753",
+      "dealId": "deal_learn_01",
+      "contactId": "contact_01",
+      "phone": "351912345678",
+      "clinicName": "Clínica Sorriso Lisboa",
+      "variant": "A",
+      "angle": "CLINIC_SPECIFIC_FACT",
+      "lossReason": "Orçamento",
+      "usedWebFact": {
+        "factId": "FACT_SITE_TREATMENTS",
+        "fact": "Foco em implantes dentários",
+        "source": "Website"
+      },
+      "messageLengthChars": 50,
+      "messageLengthWords": 8,
+      "messagePreview": "Olá Dr. Na sequência do nosso contacto anterior...",
+      "fullMessage": "Olá Dr. Na sequência do nosso contacto anterior...",
+      "sentDayOfWeek": 2,
+      "sentHour": 20,
+      "sentAt": "2026-10-27T20:31:51.194Z",
+      "outcome": "RESPOSTA_POSITIVA",
+      "outcomeHistory": [
+        {
+          "outcome": "RESPOSTA_POSITIVA",
+          "timestamp": "2026-10-27T20:31:51.194Z",
+          "inboundSnippet": "Já trabalhamos com agência, mas como funciona o Google?"
+        }
+      ],
+      "exchangesCount": 1
+    }
+  ],
+  "version": 1
+}

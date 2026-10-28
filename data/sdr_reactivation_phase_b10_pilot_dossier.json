@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "fase": "B.10",
+    "data_preparacao": "2026-10-10T11:23:05.813Z",
+    "status": "PREPARADO_PARA_DECISAO_HUMANA",
+    "salvaguarda_estrita_envios": "ZERO_MENSAGENS_ENVIADAS"
+  },
+  "caso_piloto": {
+    "identificacao": {
+      "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+      "nome_negocio": "Negócio Clínica Dentária Diniz Salgueiro",
+      "empresa_associada": "Clínica Dentária Diniz Salgueiro",
+      "tipo_entidade": "ENTIDADE_COLECTIVA_CLINICA",
+      "contacto": {
+        "nome": "Diniz Salgueiro",
+        "telefone": "+351929238634",
+        "email": "geral@dinizsalgueiro.pt",
+        "dominio_proprio": "dinizsalgueiro.pt",
+        "partilhas_ou_duplicados": false
+      }
+    },
+    "contexto_historico_crm": {
+      "data_criacao": "2026-02-07T10:00:00.000Z",
+      "data_ultima_interacao": "2026-06-19T17:34:13.765+00:00",
+      "dias_em_respiro_comercial": 113,
+      "motivo_perda_original": "Não respondeu - Não respondeu as abordagens",
+      "resumo_interacoes_anteriores": "Criado em 2026-02-07, com 5 atividades e 4 notas no histórico.",
+      "ultima_mensagem_enviada_pelo_crm": "Olá,Dr Diniz! \nQuando um paciente pesquisa dentista em Lisboa no Google, a vossa clínica aparece?"
+    },
+    "estado_fila_sdr": {
+      "status_fila": "RECUPERADO_REUNIAO_AGENDADA",
+      "idempotencia_confirmada": true,
+      "duplicados_gerados": 0,
+      "motivo_perda_preservado": "Não respondeu - Não respondeu as abordagens",
+      "tentativas_realizadas": 0
+    },
+    "bloqueios_e_conformidade_legal": {
+      "categoria_canonica_b7_1": "AUTORIZACAO_PENDENTE",
+      "motivo_bloqueio_gate": "BLOQUEIO_LIA_B2B_PENDENTE",
+      "detalhe_bloqueio": "Avaliação LIA B2B favorável e homologada não comprovada para entidade coletiva.",
+      "supressao_ativa": false,
+      "quarentena_concorrencia": false,
+      "condicao_para_ativacao_real": "Homologação do parecer jurídico LIA B2B para o domínio dinizsalgueiro.pt e aprovação operacional do supervisor."
+    },
+    "diagnostico_comercial_gpt": {
+      "factos_comprovados": [
+        "A clínica é uma entidade coletiva privada de medicina dentária em Portugal.",
+        "Possui domínio web corporativo institucional próprio (dinizsalgueiro.pt).",
+        "Foi contactada pela primeira vez em fevereiro e novamente em junho de 2026.",
+        "Não respondeu às abordagens anteriores, sem expressar qualquer recusa ou pedido de opt-out.",
+        "O intervalo de silêncio (113 dias) cumpre amplamente o respiro comercial recomendado (mínimo 60 dias)."
+      ],
+      "hipoteses_estrategicas": [
+        "A mensagem anterior (\"aparece no Google?\") pode ter sido filtrada pela receção como contacto promocional genérico.",
+        "A direção clínica pode estar recetiva a uma conversa breve se a abordagem focar a qualificação de pacientes particulares e previsibilidade de faturação.",
+        "O email institucional (geral@dinizsalgueiro.pt) pode ser um canal complementar menos intrusivo se o WhatsApp não obtiver resposta."
+      ],
+      "dados_em_falta_identificados": [
+        "Identidade do gestor administrativo/comercial direto da clínica (contacto atual registado como genérico da equipa).",
+        "Especialidades de maior foco da clínica no momento (ex: implantologia vs ortodontia)."
+      ]
+    },
+    "proposta_acao_comercial": {
+      "objetivo_comercial": "Iniciar conversa consultiva de baixo atrito focada na captação de pacientes particulares de primeira consulta, visando agendamento de Reunião de Diagnóstico de 15 minutos.",
+      "canal_recomendado": "WHATSAPP",
+      "canal_alternativo_seguranca": "EMAIL",
+      "assuntos_a_evitar": [
+        "Cobrar resposta de mensagens enviadas em junho.",
+        "Afirmar que analisou a agenda interna da clínica.",
+        "Propor propostas comerciais fechadas antes do diagnóstico."
+      ],
+      "mensagem_personalizada_proposta": "Olá, boa tarde! Espero que esteja tudo bem com a equipa da Clínica Dentária Diniz Salgueiro. Retomo o contacto no seguimento da nossa mensagem anterior sobre atração de novos pacientes particulares. Se fizer sentido reavaliar este tema para os próximos meses, como está a vossa disponibilidade para uma breve troca de ideias? Obrigado pela atenção!"
+    },
+    "simulacao_comportamento_pipeline": {
+      "se_interesse_confirmado": {
+        "status_crm": "open",
+        "etapa_destino": "Lead de Engajamento",
+        "motivo_perda_preservado": "Não respondeu - Não respondeu as abordagens",
+        "mesmo_deal_id": true
+      },
+      "se_reuniao_confirmada": {
+        "status_crm": "open",
+        "etapa_destino": "Reunião",
+        "marca_como_ganho": false,
+        "mesmo_deal_id": true
+      }
+    }
+  }
+}

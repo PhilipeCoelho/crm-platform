@@ -3,6 +3,14 @@
         {
             "path": "/api/ping-db",
             "schedule": "0 0 * * *"
+        },
+        {
+            "path": "/api/sdr/worker/tick",
+            "schedule": "*/10 9-17 * * 1-5"
+        },
+        {
+            "path": "/api/sdr/learning/tick",
+            "schedule": "0 2 * * *"
         }
     ],
     "rewrites": [

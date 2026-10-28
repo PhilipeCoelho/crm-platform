@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-10-28T22:00:00Z",
+  "sessions": [
+    {
+      "session_date": "2026-10-28",
+      "pilot_deals": 4,
+      "dispatches_sent": 4,
+      "learnings": [
+        {
+          "id": "L001",
+          "categoria": "DUPLO_DISPARO",
+          "titulo": "Race condition no ciclo autónomo causou 4 dispatches em menos de 3 segundos",
+          "descricao": "O agente disparou para Dental One, Santa Zita, Mediminho e Tágides em 10:40:33 - 10:40:35. A verificação de idempotência lia o estado antes de qualquer dispatch ser gravado. Corrigido: trava de idempotência adicionada dentro do send_whatsapp_message para PRIMEIRA_ABORDAGEM.",
+          "status": "CORRIGIDO",
+          "corrected_at": "2026-10-28T22:00:00Z"
+        },
+        {
+          "id": "L002",
+          "categoria": "OPT_OUT_NAO_REGISTADO",
+          "titulo": "Tágides pediu opt-out em 27 Out mas não foi suprimida localmente",
+          "descricao": "Clínica Tágides (914376214) respondeu com interesse às 21:10:35 do dia 27 Out, mas depois enviou 3 mensagens de opt-out (21:10:47, 21:11:22). O agente registou na memória mas não adicionou ao sdr_suppression_active.json. No dia 28 Out enviou uma nova mensagem. Corrigido: Tágides agora na supressão. Lógica de classificação verifica opt-out nos INBOUND_REPLY ANTES de classificar como em_conversa.",
+          "status": "CORRIGIDO",
+          "corrected_at": "2026-10-28T22:00:00Z"
+        },
+        {
+          "id": "L003",
+          "categoria": "CLASSIFICACAO_ERRADA",
+          "titulo": "Lacerda aparecia em 'Em Conversa' sem ter recebido mensagem do agente",
+          "descricao": "Clínica Médica Dentária Lacerda (deal_id: e4f2c8ee) estava classificada como 'em_conversa' por causa de uma entrada falsa em sdr_outcomes.json. A entrada tinha outcome='RESPOSTA_POSITIVA' e notes='MENSAGEM_AMBIGUA_OU_INCOMPLETA: [Mensagem recebida do tipo undefined]'. Causado por uma mensagem de tipo desconhecido (possivelmente sticker/media) de um número que foi erroneamente processado. Corrigido: entrada removida. Lacerda agora em perdidos_qualificados.",
+          "status": "CORRIGIDO",
+          "corrected_at": "2026-10-28T22:00:00Z"
+        },
+        {
+          "id": "L004",
+          "categoria": "BLINDAGEM_PESSOAL_FALHOU",
+          "titulo": "Agente respondeu 5 vezes ao número pessoal do Philipe (911830205)",
+          "descricao": "O número 351911830205 (Philipe pessoal) enviou mensagens pessoais. O agente respondeu porque o número estava gravado como OUTBOUND_DISPATCH nos recentActions (de uma resposta ad hoc anterior sem deal_id). A função isEligibleSdrInboundTarget verificava apenas se havia OUTBOUND_DISPATCH para aquele número, sem verificar se existia deal_id válido. Corrigido: lista BLOCKED_PERSONAL_PHONES adicionada; isEligibleSdrInboundTarget agora exige deal_id no OUTBOUND_DISPATCH; processInboundLeadTurn bloqueia números pessoais primeiro.",
+          "status": "CORRIGIDO",
+          "corrected_at": "2026-10-28T22:00:00Z"
+        },
+        {
+          "id": "L005",
+          "categoria": "MENSAGEM_UNDEFINED",
+          "titulo": "Mensagens de tipo 'undefined' (stickers/media especial) triggeram o closer indevidamente",
+          "descricao": "Quando a Lacerda enviou uma mensagem de tipo não suportado, o WhatsApp listener passou '[Mensagem recebida do tipo undefined]' como texto para o processInboundLeadTurn. O agente classificou como MENSAGEM_AMBIGUA_OU_INCOMPLETA mas registou como RESPOSTA_POSITIVA, corrompendo o estado do deal. Melhoria necessária: filtrar mensagens com texto '[Mensagem recebida do tipo undefined]' e não as processar como interações reais.",
+          "status": "PENDENTE_MELHORIA",
+          "priority": "ALTA"
+        }
+      ],
+      "regras_aprendidas": [
+        "Sempre verificar opt-out nos INBOUND_REPLY ANTES de classificar como em_conversa",
+        "Idempotência deve ser fail-closed: bloquear no send_whatsapp_message, não apenas no scan",
+        "OUTBOUND_DISPATCH sem deal_id = resposta ad hoc, não conta como contacto legítimo de CRM",
+        "Mensagens de tipo undefined não devem ser processadas como resposta de lead",
+        "Números pessoais devem estar numa lista de bloqueio absoluto, independente do estado da memória do agente"
+      ]
+    }
+  ]
+}

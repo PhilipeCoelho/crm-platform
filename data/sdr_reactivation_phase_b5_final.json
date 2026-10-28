@@ -1,0 +1,607 @@
+{
+  "meta": {
+    "fase": "B.5",
+    "titulo": "VAMUSS SDR — FECHO DEFINITIVO, CONSOLIDAÇÃO TÉCNICA E VALIDAÇÃO INTEGRAL",
+    "timestamp": "2026-10-10T00:37:01.852Z",
+    "versao_sistema": "2.0.0-phase-b5-final"
+  },
+  "inventario_componentes": [
+    {
+      "ficheiro": "scripts/sdr_suppression_engine.mjs",
+      "estado": "VALIDADO_E_INTEGRADO",
+      "papel": "Firewall central de supressão por deal, telefone, email e canal",
+      "melhorias_fase_b5": "Fail-safe closed em consultas/listas nulas e isolamento multi-tenant por organization_id"
+    },
+    {
+      "ficheiro": "scripts/sdr_inbound_response_classifier.mjs",
+      "estado": "VALIDADO_E_INTEGRADO",
+      "papel": "Classificador determinístico de respostas inbound (Firewall Inbound)",
+      "melhorias_fase_b5": "Reconhecimento estrito de STOP, PARE, SAIR, CANCELAR como OPTOUT formal e deteção de pedidos de informação"
+    },
+    {
+      "ficheiro": "scripts/sdr_cadence_simulator.mjs",
+      "estado": "VALIDADO_E_INTEGRADO",
+      "papel": "Motor de cadência controlada (máx 2 tentativas, janela de 5-7 dias)",
+      "melhorias_fase_b5": "Mutex inFlightLocks atómico contra concorrência e serialização exportState/importState para crash recovery"
+    },
+    {
+      "ficheiro": "scripts/sdr_eligibility_gate.mjs",
+      "estado": "VALIDADO_E_INTEGRADO",
+      "papel": "Gate determinístico de 10 verificações pré-contacto (ponto único de controlo)",
+      "melhorias_fase_b5": "Criado na Fase B.5. Verificação de supressão de servidor precede inaptidão comercial. 100% fail-safe closed"
+    },
+    {
+      "ficheiro": "scripts/sdr_dispatcher_adapter.mjs",
+      "estado": "VALIDADO_E_INTEGRADO",
+      "papel": "Adaptador de envio com Circuit Breaker inegociável",
+      "melhorias_fase_b5": "SecurityException com bloqueio absoluto de chamadas externas em modo de simulação"
+    },
+    {
+      "ficheiro": "scripts/sdr_operational_pipeline.mjs",
+      "estado": "VALIDADO_E_INTEGRADO",
+      "papel": "Orquestrador de ponta-a-ponta do ciclo de vida de reativação SDR",
+      "melhorias_fase_b5": "Unificação dos 10 passos: seleção, CRM history, Gate, canal, prompt factual, envio simulado, classificação inbound, auto-supressão e auditoria"
+    },
+    {
+      "ficheiro": "scripts/test_sdr_phase_b5_integrated.mjs",
+      "estado": "VALIDADO_E_INTEGRADO",
+      "papel": "Bateria de 17 testes de integração profunda e segurança operacional",
+      "melhorias_fase_b5": "17/17 testes aprovados cobrindo todos os cenários críticos e edge cases de concorrência e supressão"
+    }
+  ],
+  "reconciliacao_405_negocios": {
+    "total_negocios": 405,
+    "total_ids_unicos": 405,
+    "distribuicao_canonica_gate": {
+      "SUPRESSAO_ATIVA": 26,
+      "COMERCIALMENTE_INELEGIVEL": 192,
+      "PENDENTE_AVALIACAO_LIA_B2B": 102,
+      "BLOQUEADO_PESSOA_SINGULAR_SEM_OPTIN": 13,
+      "QUARENTENA_AGENCIA_ATIVA": 39,
+      "QUARENTENA_CONTINGENCIA_ATIVA": 3,
+      "REVISAO_HUMANA_OBRIGATORIA": 19,
+      "SEM_ENDPOINT_VALIDO": 6,
+      "RESPOSTA_AUTOMATICA_PENDENTE_MANUAL": 4,
+      "ENCAMINHAMENTO_CLOSER_HUMANO": 1,
+      "AUTORIZADO_IMEDIATO": 0
+    },
+    "soma_conferida": true
+  },
+  "reconciliacao_supressoes": {
+    "total_registos_supressao_estrita_b2": 24,
+    "distribuicao_registos_supressao": {
+      "recusa_comercial_todos_canais": 19,
+      "restricao_canal_whatsapp": 5
+    },
+    "total_negocios_intercetados_supressao_gate": 26,
+    "explicacao_diferenca_24_vs_6_vs_26": {
+      "motivo_relatorio_anterior_6": "No relatório preliminar da B.5, a verificação de elegibilidade comercial (Check 2) antecedia a verificação de supressão (Check 3). Por conseguinte, os 19 negócios de recusa comercial eram classificados como COMERCIALMENTE_INELEGIVEL, deixando apenas 5 restrições de canal + 1 herdado = 6 na categoria de supressão ativa.",
+      "correcao_implementada_b5": "O SDREligibilityGate foi reordenado para que a Firewall de Supressão do Servidor (Check 2) prevaleça incondicionalmente antes de qualquer critério comercial. Com esta arquitetura, todos os 19 negócios de recusa comercial + 5 restrições de canal WhatsApp são intercetados diretamente pela Firewall de Supressão.",
+      "heranca_transversal_2_negocios": [
+        {
+          "deal_id": "a9adf1a2-2ac1-4c07-b9cb-5dbc89086696",
+          "nome_clinica": "HC Dental Clinic",
+          "origem_supressao": "Partilha de telefone (+351968704026) com HDCLINIC Drª Dina Martins (deal_id f73f5b7b-1128-457d-b896-c54627e5452e, que possui restrição expressa de WhatsApp no histórico).",
+          "bloqueio_aplicado": "RESTRICAO_CANAL_WHATSAPP herdada no endpoint telefónico."
+        },
+        {
+          "deal_id": "f4e675dc-91e9-4384-9323-8e8404d57d02",
+          "nome_clinica": "LAclinic",
+          "origem_supressao": "Partilha de email (geral@laclinic.pt) com LAclinic - Medicina Dentária (deal_id 3c47cb1d-f956-4168-b2ed-bae11cf79d39, que possui RECUSA_COMERCIAL estrita).",
+          "bloqueio_aplicado": "SUPRESSAO_ATIVA herdada no endpoint institucional."
+        }
+      ],
+      "conclusao": "Demonstração matemática e fidedigna de que a inaptidão comercial nunca mascara uma supressão ativa de servidor e que nenhum negócio herdeiro de endpoint suprimido é contactado."
+    }
+  },
+  "reconciliacao_entidades_coletivas_e_medicos": {
+    "total_silencio_confirmado": 116,
+    "pessoas_singulares_medicos": {
+      "total": 13,
+      "tratamento": "Bloqueio estrito sob BLOQUEADO_PESSOA_SINGULAR_SEM_OPTIN. O silêncio não confere consentimento ao abrigo do RGPD (Art. 6º/7º).",
+      "deal_ids": [
+        {
+          "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+          "nome": "Negócio Dra. Pamella Pessoa"
+        },
+        {
+          "deal_id": "cbbd6a9e-9577-44d1-905b-9c671625d98a",
+          "nome": "Negócio Dr. Jaime Guimarães"
+        },
+        {
+          "deal_id": "941348f0-3225-4dfc-95aa-7dbeb5ad85f2",
+          "nome": "Negócio Clínica Dr. João Neto"
+        },
+        {
+          "deal_id": "c9f04383-a622-4e29-b59f-e79dee717180",
+          "nome": "Negócio Clínica Dr. Pedro Paúl"
+        },
+        {
+          "deal_id": "b4c2b718-08ff-4324-aaad-b9c61dd484a9",
+          "nome": "Negócio Dr. Vitor Familiar - Medicina Dentária"
+        },
+        {
+          "deal_id": "ee2a7d93-5b37-46c7-8103-127485adba41",
+          "nome": "Negócio Clínica Dentária Dra. Filipa Meneses"
+        },
+        {
+          "deal_id": "fa412aa6-88de-41a2-8896-02f41618889c",
+          "nome": "Negócio Dental - Dr. Fábio Costa"
+        },
+        {
+          "deal_id": "7be624d6-1519-4e55-939a-5012e1841c62",
+          "nome": "Negócio Clínica Dr. João Neto"
+        },
+        {
+          "deal_id": "1c5dc5ef-070c-4e0a-a9cc-958e516fbac8",
+          "nome": "Negócio Clínica Pure Dr. Filipe Aguilar"
+        },
+        {
+          "deal_id": "0ce16505-e4c8-460e-8cd9-4d14aa59dbe9",
+          "nome": "Negócio Clinica Médica E Dentária Dr. Alexandre Santos"
+        },
+        {
+          "deal_id": "6ff6b362-3459-4308-a8a0-415f35853a69",
+          "nome": "Negócio Clínica De Serviços Dentários Dr. Cautela"
+        },
+        {
+          "deal_id": "bf516108-66d1-4d72-a157-c76160c50669",
+          "nome": "Negócio Clínica Dentária Dr. Cunha Coutinho"
+        },
+        {
+          "deal_id": "e72b026a-a1ac-4fe5-8465-a692984716f5",
+          "nome": "Negócio Clínica Médico-Dentária Dr. Filipe Aguilar, Lda."
+        }
+      ]
+    },
+    "entidades_coletivas_clinicas": {
+      "total_bruto": 103,
+      "intercetada_por_supressao_herdada": {
+        "total": 1,
+        "deal_id": "a9adf1a2-2ac1-4c07-b9cb-5dbc89086696",
+        "nome": "Negócio HC Dental Clinic",
+        "motivo": "Telefone partilhado com HDCLINIC suprimida em WhatsApp"
+      },
+      "pendentes_avaliacao_lia_b2b": {
+        "total_gate_b5": 102,
+        "explicacao_diferenca_100_vs_102": {
+          "total_b4": 100,
+          "total_b5": 102,
+          "ids_que_explicam_diferenca": [
+            {
+              "deal_id": "e6bb55a9-e0e6-427a-8f5c-897db9ba3f93",
+              "nome_clinica": "Medidental | FDMK Medicina Dentária e Wellness",
+              "motivo_b4": "Alocado na categoria de transição PENDENTE_DESAMBIGUACAO_PARTILHA por partilha de telefone.",
+              "motivo_b5": "Alocado na categoria canónica principal PENDENTE_AVALIACAO_LIA_B2B, mantendo ENDPOINT_PARTILHADO como atributo secundário de bloqueio."
+            },
+            {
+              "deal_id": "081c77b7-5a67-4bb9-af17-a02e646279f1",
+              "nome_clinica": "Medidental – Clínicas Dentárias & Wellness",
+              "motivo_b4": "Alocado na categoria de transição PENDENTE_DESAMBIGUACAO_PARTILHA por partilha de telefone.",
+              "motivo_b5": "Alocado na categoria canónica principal PENDENTE_AVALIACAO_LIA_B2B, mantendo ENDPOINT_PARTILHADO como atributo secundário de bloqueio."
+            }
+          ],
+          "conclusao": "No Gate B.5, a categoria principal reflete a base legal essencial (LIA B2B para pessoas coletivas), enquanto a partilha de endpoint é rastreada como atributo secundário impeditivo de disparo."
+        }
+      }
+    }
+  },
+  "matriz_problemas_p0_p1_p2": [
+    {
+      "id": "ISSUE-01",
+      "prioridade": "P0",
+      "categoria": "Segurança / Firewall",
+      "descricao": "Risco de bypass ou fail-open se a lista de supressão for corrompida ou nula",
+      "resolvido_em_b5": true,
+      "solucao": "Implementado Fail-Safe Closed estrito em checkSuppression() e SDREligibilityGate."
+    },
+    {
+      "id": "ISSUE-02",
+      "prioridade": "P0",
+      "categoria": "Segurança / Disparo Real",
+      "descricao": "Risco de invocação acidental de envio externo durante simulação",
+      "resolvido_em_b5": true,
+      "solucao": "Criado SDRDispatcherAdapter com SecurityException e Circuit Breaker inegociável."
+    },
+    {
+      "id": "ISSUE-03",
+      "prioridade": "P0",
+      "categoria": "Conformidade Legal / RGPD",
+      "descricao": "Risco de tratar silêncio comercial como autorização tácita para disparo",
+      "resolvido_em_b5": true,
+      "solucao": "Gate Central impõe BLOQUEADO_PESSOA_SINGULAR_SEM_OPTIN e PENDENTE_AVALIACAO_LIA_B2B."
+    },
+    {
+      "id": "ISSUE-04",
+      "prioridade": "P1",
+      "categoria": "Arquitetura / Orquestração",
+      "descricao": "Componentes isolados sem orquestrador integrado de ciclo de vida",
+      "resolvido_em_b5": true,
+      "solucao": "Criado SDROperationalPipeline unificando as 10 etapas operacionais."
+    },
+    {
+      "id": "ISSUE-05",
+      "prioridade": "P1",
+      "categoria": "Concorrência e Resiliência",
+      "descricao": "Ausência de trava atómica em voo e incapacidade de recuperar estado após crash",
+      "resolvido_em_b5": true,
+      "solucao": "Adicionado mutex inFlightLocks e métodos exportState() / importState() no simulador."
+    },
+    {
+      "id": "ISSUE-06",
+      "prioridade": "P1",
+      "categoria": "Classificação Inbound",
+      "descricao": "Respostas curtas de paragem (\"STOP\", \"PARE\") não reconhecidas como OPTOUT formal",
+      "resolvido_em_b5": true,
+      "solucao": "Atualizado classifyInboundResponse com dicionário estrito de termos de paragem imediata."
+    },
+    {
+      "id": "ISSUE-07",
+      "prioridade": "P2",
+      "categoria": "Interface de Utilizador (Backlog Futuro)",
+      "descricao": "Visualização da árvore de decisão do Gate no Kanban do CRM",
+      "resolvido_em_b5": false,
+      "fase_prevista": "Fase C (Interface Operacional)",
+      "justificacao": "Não bloqueia a validação técnica da carteira nem a infraestrutura de backend."
+    },
+    {
+      "id": "ISSUE-08",
+      "prioridade": "P2",
+      "categoria": "Métricas e Analytics (Backlog Futuro)",
+      "descricao": "Dashboard analítico de taxa de conversão pós-reativação no Supabase",
+      "resolvido_em_b5": false,
+      "fase_prevista": "Fase C (Relatórios e Monitorização)",
+      "justificacao": "Otimização analítica futura que não afeta a segurança operacional do piloto."
+    }
+  ],
+  "ficheiros_alterados_e_justificacoes": [
+    {
+      "caminho": "scripts/sdr_suppression_engine.mjs",
+      "acao": "REFORÇO_SEGURANÇA",
+      "justificacao": "Implementação de Fail-Safe Closed perante parâmetros nulos ou inválidos e suporte a multi-tenancy."
+    },
+    {
+      "caminho": "scripts/sdr_inbound_response_classifier.mjs",
+      "acao": "REFORÇO_CLASSIFICADOR",
+      "justificacao": "Suporte a termos isolados de paragem (STOP, PARE, SAIR, CANCELAR) como OPTOUT formal imediato."
+    },
+    {
+      "caminho": "scripts/sdr_cadence_simulator.mjs",
+      "acao": "REFORÇO_RESILIÊNCIA",
+      "justificacao": "Mutex inFlightLocks atómico contra concorrência e exportState/importState para recuperação de desastres."
+    },
+    {
+      "caminho": "scripts/sdr_dispatcher_adapter.mjs",
+      "acao": "CRIAÇÃO_CIRCUIT_BREAKER",
+      "justificacao": "Garantia inegociável de dry-run estrito com SecurityException em qualquer tentativa de disparo real em simulação."
+    },
+    {
+      "caminho": "scripts/sdr_eligibility_gate.mjs",
+      "acao": "CRIAÇÃO_GATE_CENTRAL",
+      "justificacao": "Ponto único de decisão com 10 verificações determinísticas, priorização da firewall de supressão sobre critérios comerciais e bloqueio fail-safe closed."
+    },
+    {
+      "caminho": "scripts/sdr_operational_pipeline.mjs",
+      "acao": "CRIAÇÃO_PIPELINE_INTEGRADO",
+      "justificacao": "Orquestração do fluxo ponta-a-ponta ligando seleção, CRM, Gate, canal, prompts grounded, envio simulado e inbound."
+    },
+    {
+      "caminho": "scripts/test_sdr_phase_b5_integrated.mjs",
+      "acao": "CRIAÇÃO_SUITE_INTEGRAÇÃO",
+      "justificacao": "17 testes de integração profunda cobrindo RGPD, fail-safe closed, concorrência, recuperação e killswitches."
+    },
+    {
+      "caminho": "scripts/sdr_phase_b5_final_consolidator.mjs",
+      "acao": "CRIAÇÃO_CONSOLIDADOR",
+      "justificacao": "Geração do relatório final canónico reconciliando os 405 negócios e declarando o fecho da B.5."
+    }
+  ],
+  "relatorio_testes_executados": {
+    "suites": [
+      {
+        "suite": "scripts/test_sdr_phase_b1.mjs",
+        "total_testes": 28,
+        "aprovados": 28,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b2.mjs",
+        "total_testes": 29,
+        "aprovados": 29,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b3.mjs",
+        "total_testes": 18,
+        "aprovados": 18,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b4.mjs",
+        "total_testes": 13,
+        "aprovados": 13,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b5_integrated.mjs",
+        "total_testes": 17,
+        "aprovados": 17,
+        "falhados": 0,
+        "status": "PASS"
+      }
+    ],
+    "total_testes": 105,
+    "total_aprovados": 105,
+    "total_falhados": 0,
+    "status_geral": "100%_PASS"
+  },
+  "auditoria_seguranca_operacional": {
+    "mensagens_reais_enviadas": 0,
+    "chamadas_api_whatsapp_ou_meta": 0,
+    "chamadas_api_brevo_ou_smtp": 0,
+    "escritas_tabela_deals_crm": 0,
+    "escritas_tabela_activities_crm": 0,
+    "escritas_tabela_supabase": 0,
+    "migracoes_producao_aplicadas": 0,
+    "segredos_ou_chaves_expostos": 0,
+    "circuit_breaker_ativo": true,
+    "dry_run_estrito": true
+  },
+  "dependencias_externas_em_aberto": [
+    {
+      "tipo": "JURÍDICA_RGPD",
+      "descricao": "Aprovação formal do Legitimate Interest Assessment (LIA B2B) por assessor jurídico qualificado para as 102 entidades coletivas.",
+      "impacto": "Enquanto não houver parecer jurídico documentado, nenhum disparo real poderá ocorrer (mantém PENDENTE_AVALIACAO_LIA_B2B)."
+    },
+    {
+      "tipo": "CONSENTIMENTO_RGPD",
+      "descricao": "Obtenção de consentimento expresso (opt-in documentado) para os 13 médicos pessoas singulares.",
+      "impacto": "Permanece bloqueio total sob BLOQUEADO_PESSOA_SINGULAR_SEM_OPTIN."
+    },
+    {
+      "tipo": "REVISÃO_HUMANA_COMERCIAL",
+      "descricao": "Revisão manual dos 19 negócios com atrito de receção / notas ambíguas e dos 4 casos de resposta automática isolada.",
+      "impacto": "Encaminhamento para SDR humano antes de qualquer inclusão em cadência futura."
+    }
+  ],
+  "decisao_fecho_fase_b5": {
+    "fase": "B.5",
+    "veredicto": "CONCLUIDA_COM_SUCESSO",
+    "fase_b6_iniciada": false,
+    "piloto_real_ativado": false,
+    "justificacao_tecnica": "A Fase B.5 está integralmente concluída no plano técnico, arquitetural e de validação. Todos os componentes foram reforçados, integrados e testados ponta-a-ponta (105/105 testes aprovados). A reconciliação dos 405 negócios por IDs únicos é matematicamente exata. As 26 supressões de servidor e as 102 entidades coletivas estão plenamente justificadas. Os 3 problemas P0 e os 3 problemas P1 foram resolvidos. O build passou sem erros. O sistema opera estritamente em memória com Circuit Breaker ativo e zero efeitos colaterais em produção. A transição para a Fase B.6 não foi iniciada e aguarda a deliberação dos stakeholders e a validação jurídica externa."
+  },
+  "detalhe_negocios_amostra": [
+    {
+      "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+      "nome_clinica": "Negócio Dra. Pamella Pessoa",
+      "categoria_b2_revisada": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "PESSOA_SINGULAR_MEDICO",
+      "telefone": "351914056228",
+      "email": null,
+      "categoria_canonica_gate": "BLOQUEADO_PESSOA_SINGULAR_SEM_OPTIN",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "BLOQUEADO_PESSOA_SINGULAR_SEM_OPTIN",
+      "atributos_secundarios": [
+        "REQUER_CONSENTIMENTO_OPTIN"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "b25e8400-687d-4463-a223-020f6cd4de9d",
+      "nome_clinica": "Negócio Dental One",
+      "categoria_b2_revisada": "DESQUALIFICADO_INCOMPATIVEL",
+      "tipo_destinatario": "PESSOA_SINGULAR_MEDICO",
+      "telefone": "351964851085",
+      "email": "clinica@dentalone.pt",
+      "categoria_canonica_gate": "COMERCIALMENTE_INELEGIVEL",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "COMERCIALMENTE_INELEGIVEL",
+      "atributos_secundarios": [
+        "ENDPOINT_PARTILHADO",
+        "REQUER_CONSENTIMENTO_OPTIN"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+      "nome_clinica": "Negócio Margarida Cortez",
+      "categoria_b2_revisada": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351912241187",
+      "email": "margaridacortez.office@gmail.com",
+      "categoria_canonica_gate": "PENDENTE_AVALIACAO_LIA_B2B",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "PENDENTE_AVALIACAO_LIA_B2B",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "e50459c4-6442-44e2-a6ff-f8a3b2258a77",
+      "nome_clinica": "Negócio Realize Dental Clinic",
+      "categoria_b2_revisada": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351913874750",
+      "email": null,
+      "categoria_canonica_gate": "QUARENTENA_AGENCIA_ATIVA",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "QUARENTENA_AGENCIA_ATIVA",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "fe3cc983-d52b-4c70-bb27-e848d3a83c58",
+      "nome_clinica": "Negócio Oral Project",
+      "categoria_b2_revisada": "DESQUALIFICADO_INCOMPATIVEL",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351916717459",
+      "email": "alvaiazere@oralproject.pt",
+      "categoria_canonica_gate": "COMERCIALMENTE_INELEGIVEL",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "COMERCIALMENTE_INELEGIVEL",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
+      "nome_clinica": "Negócio Clínica Colombo e Silva",
+      "categoria_b2_revisada": "DESQUALIFICADO_INCOMPATIVEL",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351912947745",
+      "email": "lagoa@colombosilva.pt",
+      "categoria_canonica_gate": "COMERCIALMENTE_INELEGIVEL",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "COMERCIALMENTE_INELEGIVEL",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "81a92f33-9074-4526-bc71-2e10f9a6a6e4",
+      "nome_clinica": "Negócio Clínica do Marquês",
+      "categoria_b2_revisada": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351211977188",
+      "email": "geral@clinicadomarques.pt",
+      "categoria_canonica_gate": "QUARENTENA_AGENCIA_ATIVA",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "QUARENTENA_AGENCIA_ATIVA",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+      "nome_clinica": "Negócio LT Smile",
+      "categoria_b2_revisada": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351963780608",
+      "email": null,
+      "categoria_canonica_gate": "PENDENTE_AVALIACAO_LIA_B2B",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "PENDENTE_AVALIACAO_LIA_B2B",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "a441070c-108c-4bed-9260-18109d9047fb",
+      "nome_clinica": "Negócio Master Dental Faro",
+      "categoria_b2_revisada": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351931886749",
+      "email": "lisboa@masterdental.pt",
+      "categoria_canonica_gate": "QUARENTENA_AGENCIA_ATIVA",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "QUARENTENA_AGENCIA_ATIVA",
+      "atributos_secundarios": [
+        "ENDPOINT_PARTILHADO",
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+      "nome_clinica": "Negócio CliniCosta",
+      "categoria_b2_revisada": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351961446489",
+      "email": "geral@clinicosta.pt",
+      "categoria_canonica_gate": "QUARENTENA_AGENCIA_ATIVA",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "QUARENTENA_AGENCIA_ATIVA",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "2ea560dd-905b-4660-9817-2cdf94f4e11f",
+      "nome_clinica": "Negócio MD Clínica",
+      "categoria_b2_revisada": "DESQUALIFICADO_INCOMPATIVEL",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": null,
+      "email": null,
+      "categoria_canonica_gate": "SEM_ENDPOINT_VALIDO",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "SEM_ENDPOINT_VALIDO",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "532cc40e-0f38-43a1-ab06-f13e451a12a0",
+      "nome_clinica": "Negócio clinicacortez.dentalclinic",
+      "categoria_b2_revisada": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351927543290",
+      "email": "geral@clinicacortez.pt",
+      "categoria_canonica_gate": "PENDENTE_AVALIACAO_LIA_B2B",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "PENDENTE_AVALIACAO_LIA_B2B",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
+      "nome_clinica": "Negócio CMD Viseu",
+      "categoria_b2_revisada": "CONTINGENCIA_OU_ADIAMENTO",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351966534735",
+      "email": "geral@cmdviseu.com",
+      "categoria_canonica_gate": "QUARENTENA_CONTINGENCIA_ATIVA",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "QUARENTENA_CONTINGENCIA_ATIVA",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+      "nome_clinica": "Negócio Clínica Dentária Diniz Salgueiro",
+      "categoria_b2_revisada": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351929238634",
+      "email": "geral@dinizsalgueiro.pt",
+      "categoria_canonica_gate": "PENDENTE_AVALIACAO_LIA_B2B",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "PENDENTE_AVALIACAO_LIA_B2B",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    },
+    {
+      "deal_id": "25f3e9d7-27e1-49a8-aa6e-5dd5bc72532e",
+      "nome_clinica": "Negócio Sensação Branca",
+      "categoria_b2_revisada": "RECUSA_COMERCIAL_DIRETA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "telefone": "351926470792",
+      "email": "sensacaobranca@gmail.com",
+      "categoria_canonica_gate": "SUPRESSAO_ATIVA",
+      "autorizado_imediato": false,
+      "motivo_bloqueio_primario": "SUPRESSAO_ATIVA",
+      "atributos_secundarios": [
+        "REQUER_VALIDACAO_LIA_B2B"
+      ],
+      "verificacoes_falhadas": []
+    }
+  ]
+}

@@ -1,0 +1,407 @@
+{
+  "meta": {
+    "fase": "B.11.4",
+    "titulo": "VALIDACAO_EVIDENCIAS_CALENDARIO_INTEGRIDADE_OPERACIONAL",
+    "data_execucao": "2026-10-10T20:20:22.593Z",
+    "negocio_referencia": {
+      "id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+      "nome": "Negócio Clínica Dentária Diniz Salgueiro",
+      "concelho": "LISBOA"
+    },
+    "mensagens_reais_enviadas": 0,
+    "mutacoes_producao_efetuadas": 0,
+    "circuit_breaker_ativo": true,
+    "modo_execucao": "SIMULACAO_CONTROLADA_ASSISTIDA"
+  },
+  "segregacao_fontes_dados": {
+    "dados_lidos_crm_live": {
+      "disponivel": false,
+      "observacao": "Conexão direta live indisponível no sandbox; limitação operacional declarada com transparência."
+    },
+    "dados_ficheiros_auditoria": {
+      "fonte": "data/sdr_reactivation_phase_b2_audit.json e data/sdr_reactivation_phase_b7_1_reconciliation.json",
+      "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+      "nome_clinica_crm": "Negócio Clínica Dentária Diniz Salgueiro",
+      "status": "lost",
+      "etapa_pipeline": "stage_perdido",
+      "motivo_perda_original": "Não respondeu - Não respondeu as abordagens",
+      "data_criacao": "2026-02-07T10:00:00.000Z",
+      "data_perda": "2026-06-19T17:34:13.765+00:00",
+      "dias_em_respiro": 113,
+      "interacoes_anteriores": 1,
+      "canal_utilizado_anterior": "WHATSAPP",
+      "conteudo_abordagem_anterior": "Abordagem fria sobre aparecer no Google (sem retorno)."
+    },
+    "informacao_publica_confirmada": {
+      "fonte": "Website oficial: clinicadinizsalgueiro.pt",
+      "nome_oficial": "Clínica Dentária Diniz Salgueiro",
+      "localizacao": "Avenida das Forças Armadas, 2A – 1º C, 1600-082 Lisboa (Entrecampos)",
+      "concelho": "LISBOA",
+      "especialidades_comprovadas": [
+        "Cirurgia oral",
+        "Endodontia",
+        "Ortodontia",
+        "Odontopediatria",
+        "Prostodontia",
+        "Reabilitação oral"
+      ],
+      "equipamentos_comprovados": [
+        "Microscópio endodôntico operatório",
+        "Radiologia digital"
+      ]
+    },
+    "hipoteses_comerciais": [
+      "A mensagem fria de junho de 2026 sobre \"aparecer no Google\" foi descartada pela receção como publicidade genérica.",
+      "Pacientes particulares que procuram endodontia avançada podem não ter conhecimento prévio da diferenciação da microscopia antes da consulta."
+    ],
+    "dados_nao_verificados_ou_em_falta": [
+      "Nome e contacto direto do diretor clínico / decisor executivo (o número é da linha geral da clínica).",
+      "Ocupação real de gabinetes e eventuais horários ociosos da equipa.",
+      "Tabelas de preços, ticket médio e margens operacionais da clínica.",
+      "Agenda em tempo real e vagas de consulta."
+    ]
+  },
+  "status_crm_live": {
+    "tentativa_conexao": "SUPABASE_REST_API",
+    "disponivel": false,
+    "motivo": "AMBIENTE_SANDBOX_SEM_ACESSO_REDE_EXTERNA",
+    "detalhe": "Acesso direto à API do Supabase em nuvem bloqueado pelo sandbox de execução local (fetch failed: ENOTFOUND / offline). O sistema recorre estritamente aos ficheiros auditados canónicos.",
+    "erro_capturado": "fetch failed"
+  },
+  "verificacao_afirmacoes_abertura": {
+    "texto": "Boa tarde! Tudo bem?\nEstive a conhecer melhor o trabalho da Clínica Dentária Diniz Salgueiro e chamou-me a atenção a utilização de microscopia na endodontia.\nNa Vamuss, trabalhamos a forma como as empresas comunicam o seu valor e transformam essa diferenciação em oportunidades comerciais.\nFiquei com curiosidade: sentem que os pacientes que procuram a clínica já conhecem essa diferenciação antes de marcar, ou acabam por descobri-la apenas na consulta?\nObrigado!",
+    "caracteristica_real_verificavel": true,
+    "relevancia_concisa_explicada": true,
+    "pergunta_aberta_natural": true,
+    "sem_pedido_reuniao_ou_chamada": true,
+    "sem_presuncao_problemas_agenda": true,
+    "sem_afirmacoes_infundadas_clinicas_referencia": true,
+    "sem_afirmacoes_infundadas_retorno": true
+  },
+  "simulacoes_10_cenarios": [
+    {
+      "id": 1,
+      "cenario": "CURIOSIDADE_ORIGEM_CONTACTO",
+      "descricao": "Curiosidade sobre a origem do contacto",
+      "mensagem_recebida": "Como é que encontraram a nossa clínica e porque estão a falar em microscopia?",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "O contacto manifestou curiosidade sobre como foi encontrado ou como funciona, sem ainda expressar dor concreta.",
+      "resposta_produzida_pt_pt": "Com certeza. Ao mapear o setor médico-dentário em Lisboa, chamou-me a atenção a vossa aposta clínica em microscopia na endodontia. Na Vamuss, trabalhamos a comunicação de valor e diferenciação técnica para apoiar a decisão de pacientes particulares. Fiquei com curiosidade legítima: sentem que os pacientes que vos procuram já compreendem essa diferenciação antes da primeira consulta, ou esse esclarecimento acontece habitualmente já em gabinete?",
+      "proximo_passo_recomendado": "Explicar a origem da pesquisa e aprofundar a perceção do paciente sobre tratamentos diferenciados sem vender reunião.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "evidencias_decisao": "QUALIFICACAO_TRANSPARENTE_DE_INTERESSE"
+    },
+    {
+      "id": 2,
+      "cenario": "PEDIDO_EXPLICACAO_VAMUSS",
+      "descricao": "Pedido de explicação sobre a Vamuss",
+      "mensagem_recebida": "Podem explicar melhor o que fazem exatamente na Vamuss?",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "O interlocutor solicita detalhe sobre os serviços da Vamuss antes de conceder tempo ou compromisso.",
+      "resposta_produzida_pt_pt": "Com todo o gosto. Na Vamuss, não fazemos gestão genérica de redes sociais. O nosso trabalho é auditar e estruturar o caminho de pesquisa para que pacientes particulares qualificados encontrem a vossa clínica quando procuram tratamentos de maior diferenciação (como endodontia ou reabilitação), chegando à consulta predispostos ao valor do tratamento. Há alguma especialidade que tenham como prioridade de expansão neste momento?",
+      "proximo_passo_recomendado": "Explicar a metodologia de atração de pacientes particulares de alto valor sem posts genéricos e qualificar foco prioritário.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "evidencias_decisao": "EXPLICACAO_CONCISA_DE_VALOR_SEM_VENDER_REUNIAO"
+    },
+    {
+      "id": 3,
+      "cenario": "PERGUNTA_PRECOS",
+      "descricao": "Pergunta sobre preços",
+      "mensagem_recebida": "Quanto é que custa o vosso serviço para uma clínica como a nossa?",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "Interlocutor questiona o valor financeiro antes de validar o modelo. Exige transparência sem promessas levianas.",
+      "resposta_produzida_pt_pt": "O investimento depende da estrutura de gabinetes e das especialidades prioritárias da clínica. Sem conhecermos a vossa estrutura de custos e margens reais, seria incorreto apresentar um valor fechado ou prometer retornos arbitrários. O nosso primeiro passo é sempre mapear a viabilidade operacional. Para ter uma ideia da vossa dimensão, quantos gabinetes têm atualmente em funcionamento?",
+      "proximo_passo_recomendado": "Esclarecer estrutura de investimento e qualificar viabilidade operacional sem formular promessas infundadas de retorno.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "evidencias_decisao": "ANCORAGEM_DE_ROI_E_TRATAMENTOS_ALTO_TICKET"
+    },
+    {
+      "id": 4,
+      "cenario": "JA_TEM_AGENCIA",
+      "descricao": "Indicação de que já trabalha com uma agência",
+      "mensagem_recebida": "Já temos uma agência de marketing a tratar da nossa comunicação há 2 anos.",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "A clínica já tem cultura e orçamento de comunicação, mas pode querer avaliar a conversão real em consultas.",
+      "resposta_produzida_pt_pt": "Excelente, isso demonstra que a direção clínica já aposta em crescer. No setor dentário, um desafio frequente é conseguir medir se o investimento se traduz em consultas particulares pagas que entram na clínica todos os meses ou se fica sobretudo pela visibilidade de publicações. No vosso caso, a agência atual já vos dá essa visibilidade de pacientes reais em consultório, ou focam-se mais em publicações e alcance?",
+      "proximo_passo_recomendado": "Elogiar investimento e perguntar se medem consultas pagas no consultório ou apenas métricas de vaidade.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "evidencias_decisao": "DIFERENCIACAO_CONSULTAS_VS_POSTS"
+    },
+    {
+      "id": 5,
+      "cenario": "MANIFESTACAO_NECESSIDADE",
+      "descricao": "Manifestação explícita de uma necessidade",
+      "mensagem_recebida": "Temos dois gabinetes vazios às terças e quintas e precisamos de atrair mais pacientes particulares para endodontia e cirurgia.",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base",
+        "calendar_check_availability"
+      ],
+      "interpretacao_agente": "Dor comercial ou capacidade ociosa identificada com clareza. Momento oportuno para propor Reunião de Diagnóstico.",
+      "resposta_produzida_pt_pt": "Compreendo perfeitamente o vosso objetivo em rentabilizar esses horários nessas especialidades. Faz todo o sentido analisarmos o vosso cenário numa breve Reunião de Diagnóstico de 20 minutos por videoconferência. Como a nossa agenda é coordenada diretamente com a equipa técnica, que período da manhã ou da tarde vos seria mais conveniente para validarmos a disponibilidade?",
+      "proximo_passo_recomendado": "Conectar o problema ao diagnóstico e propor Reunião de 20 minutos sem inventar vaga fixa de calendário.",
+      "propor_reuniao_agora": true,
+      "transicao_pipeline_prevista": {
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "evidencias_decisao": "PROPOSTA_DIAGNOSTICO_20_MINUTOS"
+    },
+    {
+      "id": 6,
+      "cenario": "PEDIDO_PROVAS_OU_EXEMPLOS",
+      "descricao": "Pedido de exemplos ou provas de resultados",
+      "mensagem_recebida": "Podem mostrar exemplos concretos ou provas de resultados que tenham obtido noutras clínicas dentárias?",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "O interlocutor solicita dados de desempenho ou provas de trabalho antes de avançar.",
+      "resposta_produzida_pt_pt": "Com total transparência: não partilhamos métricas genéricas nem fazemos promessas de retorno padrão, pois cada clínica tem especialidades, localização e custos de estrutura distintos. O que podemos partilhar é a metodologia documentada que utilizamos para analisar como os pacientes particulares pesquisam tratamentos diferenciados na vossa área geográfica e como a rota de contacto é desenhada. Faria sentido partilhar convosco um resumo dessa metodologia?",
+      "proximo_passo_recomendado": "Explicar a metodologia de pesquisa e rota de pacientes sem inventar números ou promessas levianas.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "evidencias_decisao": "TRANSPARENCIA_METODOLOGICA_SEM_PROMESSAS_FALSAS"
+    },
+    {
+      "id": 7,
+      "cenario": "PERGUNTA_FORA_ESPECIALIDADE",
+      "descricao": "Pergunta fora da especialidade",
+      "mensagem_recebida": "Qual é a vossa experiência prática com tratamentos de harmonização orofacial?",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "Dúvida fora do padrão direto ou teste de especialização. Exige resposta franca antes de qualquer avanço comercial.",
+      "resposta_produzida_pt_pt": "O nosso foco está na medicina dentária e especialidades clínicas onde o paciente pesquisa confiança técnica (como microscopia, reabilitação e implantes). No caso de áreas complementares, o princípio de captação de particulares aplica-se se houver médico responsável dedicado. É uma valência que a vossa equipa está a desenvolver neste momento?",
+      "proximo_passo_recomendado": "Responder com clareza à questão antes de solicitar qualquer passo.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "open",
+        "nova_etapa": "stage_lead_engajamento",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "evidencias_decisao": "RESPOSTA_DIRETA_TRANSPARENTE_ANTES_DE_VENDER"
+    },
+    {
+      "id": 8,
+      "cenario": "RECUSA_COMERCIAL",
+      "descricao": "Recusa ou pedido para não voltar a contactar",
+      "mensagem_recebida": "Não temos qualquer interesse, por favor não voltem a contactar esta clínica.",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base",
+        "gate_evaluate_safety"
+      ],
+      "interpretacao_agente": "Manifestação inequívoca de desinteresse ou pedido de paragem. Encerramento imediato e proteção RGPD.",
+      "resposta_produzida_pt_pt": "Entendido perfeitamente. Agradecemos a vossa atenção e retiramos de imediato os contactos da nossa lista de comunicação. Votos de muito sucesso para a Clínica Diniz Salgueiro.",
+      "proximo_passo_recomendado": "Confirmar remoção de contactos e não insistir.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "lost",
+        "nova_etapa": "stage_lost",
+        "descricao": "Negócio encerrado como perdido e registado em supressão estrita"
+      },
+      "evidencias_decisao": "ENCERRAMENTO_RESPEITOSO_E_SUPRESSAO"
+    },
+    {
+      "id": 9,
+      "cenario": "RESPOSTA_AMBIGUA",
+      "descricao": "Resposta ambígua ou evasiva",
+      "mensagem_recebida": "Talvez, depende. Vamos ver isso mais para a frente.",
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "Resposta vaga ou evasiva sem recusa declarada. O silêncio ou ambiguidade não constituem interesse demonstrado; manter status lost.",
+      "resposta_produzida_pt_pt": "Compreendo perfeitamente. Para não sermos inoportunos, preferem que façamos um breve ponto de situação daqui a algumas semanas, ou há algum tema específico que gostassem de avaliar antes?",
+      "proximo_passo_recomendado": "Agradecer a resposta, respeitar o momento e colocar uma pergunta suave sobre conveniência de contacto futuro.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "lost",
+        "nova_etapa": "stage_perdido",
+        "descricao": "Resposta real sem interesse demonstrado. Mantém status lost e etapa inalterada até manifestação explícita de interesse ou revisão humana."
+      },
+      "evidencias_decisao": "CLARIFICACAO_SUAVE_E_RESPIRO_SEM_PRESSAO"
+    },
+    {
+      "id": 10,
+      "cenario": "SILENCIO_SEM_RESPOSTA",
+      "descricao": "Ausência de resposta (silêncio contínuo)",
+      "mensagem_recebida": null,
+      "factos_crm_consultados": {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "status_anterior": "lost",
+        "especialidade_chave": "Endodontia com microscópio",
+        "concelho": "LISBOA"
+      },
+      "ferramentas_utilizadas": [
+        "crm_get_deal_history",
+        "web_research_clinic",
+        "vamuss_knowledge_base"
+      ],
+      "interpretacao_agente": "Ausência de resposta à abordagem fria. O SDR não deve cobrar resposta (\"Viu a mensagem?\"), devendo respeitar a cadência.",
+      "resposta_produzida_pt_pt": "(Nenhuma mensagem imediata; follow-up suave planeado após 6 dias úteis com reavaliação contextual)",
+      "proximo_passo_recomendado": "Aguardar intervalo de 5 a 7 dias úteis sem efetuar cobranças agressivas antes de novo follow-up com reavaliação.",
+      "propor_reuniao_agora": false,
+      "transicao_pipeline_prevista": {
+        "novo_status": "lost",
+        "nova_etapa": "stage_perdido",
+        "descricao": "O silêncio não demonstra interesse. Mantém status lost e etapa inalterada na Fila SDR."
+      },
+      "evidencias_decisao": "RESPEITO_AO_RESPIRO_E_CADENCIA"
+    }
+  ],
+  "validacao_calendario": {
+    "ferramenta_disponivel": false,
+    "status": "LIMITACAO_INTEGRACAO_CALENDARIO",
+    "detalhe": "Integração funcional com Google Agenda / Google Meet indisponível ou não autenticada no ambiente de execução do backend. O SDR está proibido de inventar slots de agenda ou confirmar reuniões automaticamente.",
+    "estados_demonstrados": {
+      "apenas_proposta": {
+        "novoStatus": "open",
+        "novaEtapa": "stage_lead_engajamento",
+        "reativado": true,
+        "transicaoOcorreu": true,
+        "motivo": "INTERESSE_DEMONSTRADO",
+        "descricao": "Interesse real demonstrado: reativação para status open na etapa Lead de Engajamento"
+      },
+      "aceitacao_sem_evento": {
+        "novoStatus": "open",
+        "novaEtapa": "stage_lead_engajamento",
+        "reativado": true,
+        "transicaoOcorreu": false,
+        "motivo": "AGUARDA_CRIACAO_EVENTO_CALENDARIO",
+        "descricao": "Permanece em Lead de Engajamento até evidência da criação efetiva do evento no calendário"
+      },
+      "evento_confirmado": {
+        "novoStatus": "open",
+        "novaEtapa": "stage_reuniao",
+        "reativado": true,
+        "transicaoOcorreu": true,
+        "motivo": "EVENTO_CALENDARIO_CONFIRMADO",
+        "descricao": "Avança no funil ativo para a etapa Reunião após evidência de confirmação no calendário"
+      }
+    }
+  },
+  "mecanismos_seguranca_caminhos_reais": {
+    "caminho_envio_normal_real_bloqueado": true,
+    "motivo_bloqueio_caminho1": "BusinessHoursException",
+    "caminho_concorrencia_mutex_lock": true,
+    "caminho_reprocessamento_idempotente": true,
+    "caminho_resposta_inbound_automatica_bloqueada": true,
+    "caminho_recusa_e_supressao_ativa": true,
+    "caminho_gate_legal_pendente_bloqueado": true,
+    "caminho_horario_fim_de_semana_bloqueado": true,
+    "caminho_horario_feriado_municipal_bloqueado": true,
+    "caminho_horario_util_autorizado": true
+  },
+  "criterios_aceitacao": {
+    "afirmacoes_sem_evidencia_eliminadas": true,
+    "origem_dados_identificada": true,
+    "progressao_10_cenarios_validada": true,
+    "agendamento_sem_vagas_ficticias": true,
+    "seguranca_testada_nos_caminhos_reais": true,
+    "crm_preserva_regras_e_rastreabilidade": true,
+    "circuit_breaker_e_gate_ativos": true
+  }
+}

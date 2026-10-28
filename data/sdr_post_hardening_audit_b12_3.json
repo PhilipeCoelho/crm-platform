@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "fase": "B.12.3",
+    "titulo": "Auditoria Pós-Hardening e Preparação para Teste de Leitura Real",
+    "data_execucao": "2026-10-10T21:46:51.039Z",
+    "status_geral": "AUDITORIA_CONCLUIDA_AGUARDA_CREDENCIAIS_E_RESOLUCAO_VULNERABILIDADES",
+    "salvaguardas": {
+      "insert_executados": 0,
+      "update_executados": 0,
+      "delete_executados": 0,
+      "rpc_transicao_executada": 0,
+      "mensagens_comerciais_enviadas": 0,
+      "circuit_breaker": "ATIVO_FAIL_CLOSED",
+      "gate_legal": "ATIVO_FAIL_CLOSED"
+    }
+  },
+  "diagnostico_ambiente": {
+    "supabase_url_configurada": true,
+    "supabase_url_host": "ueildehrskvsonnlegtx.supabase.co",
+    "anon_key_configurada": true,
+    "worker_email_configurado": true,
+    "worker_password_configurada": true
+  },
+  "auditoria_objetos_sql": {
+    "funcoes_criadas": [
+      {
+        "nome": "public.fn_is_sdr_worker",
+        "tipo": "SECURITY DEFINER",
+        "avaliador": "auth.jwt()->app_metadata->>role = sdr_worker",
+        "estado": "HOMOLOGADO_PARCIAL"
+      },
+      {
+        "nome": "public.fn_guard_sdr_deal_columns",
+        "tipo": "TRIGGER FUNCTION",
+        "colunas_protegidas": [
+          "value",
+          "contact_id",
+          "user_id",
+          "title",
+          "pipeline_id"
+        ],
+        "estado": "HOMOLOGADO"
+      },
+      {
+        "nome": "public.fn_sdr_transition_deal_stage",
+        "tipo": "SECURITY DEFINER RPC",
+        "estado": "NECESSITA_CORRECAO_SEGURANCA",
+        "vulnerabilidades": [
+          "SEC-RPC-01",
+          "SEC-RPC-02",
+          "SEC-RPC-03",
+          "SEC-RPC-04"
+        ]
+      }
+    ],
+    "triggers_criados": [
+      {
+        "nome": "trg_guard_sdr_deal_columns",
+        "tabela": "public.deals",
+        "evento": "BEFORE UPDATE",
+        "estado": "ATIVO"
+      }
+    ],
+    "politicas_rls_adicionadas": [
+      {
+        "nome": "SDR_Worker_Select_Deals",
+        "tabela": "public.deals",
+        "comando": "SELECT",
+        "condicao": "fn_is_sdr_worker() AND (status = lost OR stage_id IN (stage_lead_engajamento, stage_reuniao))"
+      },
+      {
+        "nome": "SDR_Worker_Update_Deals",
+        "tabela": "public.deals",
+        "comando": "UPDATE",
+        "condicao_using": "fn_is_sdr_worker() AND (status = lost OR stage_id IN (stage_lead_engajamento, stage_reuniao))",
+        "condicao_check": "fn_is_sdr_worker() AND status IN (open, lost) AND stage_id IN (stage_lead_engajamento, stage_reuniao, stage_perdido, stage_lost)"
+      },
+      {
+        "nome": "SDR_Worker_Select_Activities",
+        "tabela": "public.activities",
+        "comando": "SELECT",
+        "condicao": "fn_is_sdr_worker() AND EXISTS(deals com deal_id autorizado)"
+      },
+      {
+        "nome": "SDR_Worker_Insert_Activities",
+        "tabela": "public.activities",
+        "comando": "INSERT",
+        "condicao": "fn_is_sdr_worker() AND type IN (note, status_change, meeting) AND EXISTS(deals com deal_id autorizado)"
+      }
+    ]
+  },
+  "vulnerabilidades_confirmadas": [
+    {
+      "codigo": "SEC-RPC-01",
+      "objeto": "public.fn_sdr_transition_deal_stage",
+      "tipo": "SECURITY_DEFINER_SEARCH_PATH",
+      "severidade": "ALTA",
+      "descricao": "A função foi declarada SECURITY DEFINER sem cláusula explícita SET search_path = public, pg_temp;",
+      "risco": "Permite Search Path Hijacking se um utilizador malicioso criar tabelas/objetos temporários com nomes coincidentes.",
+      "mitigacao_proposta": "Adicionar \"SET search_path = public, pg_temp;\" na assinatura da função."
+    },
+    {
+      "codigo": "SEC-RPC-02",
+      "objeto": "public.fn_sdr_transition_deal_stage",
+      "tipo": "RPC_EXECUTE_GRANTS",
+      "severidade": "MEDIA",
+      "descricao": "Por omissão no PostgreSQL, novas funções têm permissão EXECUTE concedida a PUBLIC.",
+      "risco": "Embora a função verifique fn_is_sdr_worker() em runtime, falta a defesa em profundidade a nível de privilégios de concessão (GRANT/REVOKE).",
+      "mitigacao_proposta": "Executar \"REVOKE EXECUTE ON FUNCTION public.fn_sdr_transition_deal_stage FROM PUBLIC;\" e conceder apenas a authenticated."
+    },
+    {
+      "codigo": "SEC-RPC-03",
+      "objeto": "public.fn_sdr_transition_deal_stage",
+      "tipo": "STATE_TRANSITION_RULE_INTEGRITY",
+      "severidade": "MEDIA",
+      "descricao": "A RPC valida apenas se p_new_stage pertence à lista, mas não valida se a transição a partir do estado atual é válida comercialmente (ex: só transitar de lost para lead_engajamento se houver resposta válida).",
+      "risco": "Permite alterar etapas de negócios sem cumprir a máquina de estados comercial auditada na B.11.5.",
+      "mitigacao_proposta": "Adicionar verificação estrita: se p_new_stage = \"stage_lead_engajamento\", o negócio tem de estar previamente em \"lost\" e ter notas de resposta."
+    },
+    {
+      "codigo": "SEC-RPC-04",
+      "objeto": "public.fn_sdr_transition_deal_stage",
+      "tipo": "MEETING_CONFIRMATION_ENFORCEMENT",
+      "severidade": "MEDIA",
+      "descricao": "A RPC permite a transição para \"stage_reuniao\" sem requerer parâmetro com id de agendamento ou evidência comprovável de reunião.",
+      "risco": "Viola a regra da B.11.4: \"Reunião confirmada exige data e aceitação comprovada\".",
+      "mitigacao_proposta": "Exigir que a transição para stage_reuniao valide a existência de atividade do tipo meeting agendada."
+    },
+    {
+      "codigo": "SEC-RLS-01",
+      "objeto": "public.deals (RLS Policies existentes)",
+      "tipo": "LEGACY_POLICY_COEXISTENCE",
+      "severidade": "ALTA",
+      "descricao": "A política existente \"Users manage own deals\" (auth.uid() = user_id) concede ALL (incluindo INSERT, UPDATE, DELETE) para o utilizador que for proprietário do deal. Se o SDR worker autenticar com um user_id que seja também dono de deals, a política permissiva antiga prevalece (pois políticas RLS são avaliadas com OR permissivo por padrão no Postgres).",
+      "risco": "Se um negócio pertencer ao user_id do worker, o worker poderia fazer DELETE ou UPDATE de colunas contornando o RLS do SDR.",
+      "mitigacao_proposta": "Garantir que o utilizador do worker é um utilizador de sistema dedicado e NUNCA é definido como user_id (proprietário) de qualquer deal."
+    }
+  ],
+  "teste_autenticacao_e_leitura": {
+    "classificacao_execucao": "LIVE",
+    "detalhes": {
+      "sucesso": true,
+      "claim_validada": true,
+      "negocio_encontrado": true,
+      "negocio_status": "lost",
+      "atividades_encontradas": 5,
+      "deal_error": null,
+      "activities_error": null
+    }
+  },
+  "conclusao_tecnica": {
+    "apto_para_avancar_leitura_live": true,
+    "classificacao_leitura": "LIVE_COMPROVADA_COM_SUCESSO",
+    "detalhes": "Autenticação real validada via Supabase Auth, claim role: sdr_worker verificada no JWT, consulta ao negócio canónico retornou com sucesso, atividades vinculadas lidas via RLS e bloqueio em negócios ativos confirmado (0 linhas)."
+  }
+}

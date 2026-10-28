@@ -1,0 +1,353 @@
+{
+  "meta": {
+    "fase": "B.6",
+    "titulo": "VAMUSS SDR — PREPARAÇÃO E VALIDAÇÃO DO PILOTO CONTROLADO (DRY-RUN)",
+    "timestamp_execucao": "2026-10-10T01:02:27.363Z",
+    "modo_operacao": "DRY_RUN",
+    "versao_sistema": "2.0.0-phase-b6-dry-run"
+  },
+  "ficheiros_inspecionados": [
+    "scripts/sdr_eligibility_gate.mjs",
+    "scripts/sdr_dispatcher_adapter.mjs",
+    "scripts/sdr_operational_pipeline.mjs",
+    "scripts/sdr_suppression_engine.mjs",
+    "scripts/sdr_inbound_response_classifier.mjs",
+    "scripts/sdr_cadence_simulator.mjs",
+    "scripts/sdr_pilot_simulation_engine.mjs",
+    "scripts/test_sdr_phase_b6.mjs",
+    "data/sdr_reactivation_phase_b5_2_reconciliation.json"
+  ],
+  "auditoria_seguranca_operacional": {
+    "mensagens_reais_enviadas": 0,
+    "chamadas_api_whatsapp": 0,
+    "chamadas_api_brevo_smtp": 0,
+    "escritas_tabela_deals_crm": 0,
+    "escritas_supabase": 0,
+    "migracoes_producao_aplicadas": 0,
+    "circuit_breaker_ativo": true,
+    "dry_run_estrito": true
+  },
+  "resultado_simulacao_carteira_405": {
+    "total_negocios_simulados": 405,
+    "total_autorizados_disparo_imediato": 0,
+    "distribuicao_categorias_piloto": {
+      "BLOQUEADO": 74,
+      "COMERCIALMENTE_INELEGIVEL": 192,
+      "AUTORIZACAO_PENDENTE": 115,
+      "REVISAO_HUMANA_OBRIGATORIA": 24,
+      "ELEGIVEL_PARA_SIMULACAO": 0
+    }
+  },
+  "proposta_coorte_futura_validacao": {
+    "total_candidatos": 10,
+    "aviso_legal": "Nenhum destes candidatos está autorizado para envio real. Esta lista destina-se exclusivamente a triagem e auditoria jurídica antes de qualquer etapa de envio.",
+    "candidatos": [
+      {
+        "deal_id": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+        "nome_clinica": "Negócio Margarida Cortez",
+        "telefone_mascarado": "351***241187",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+        "nome_clinica": "Negócio LT Smile",
+        "telefone_mascarado": "351***780608",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "532cc40e-0f38-43a1-ab06-f13e451a12a0",
+        "nome_clinica": "Negócio clinicacortez.dentalclinic",
+        "telefone_mascarado": "351***543290",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+        "nome_clinica": "Negócio Clínica Dentária Diniz Salgueiro",
+        "telefone_mascarado": "351***238634",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "2ee3b134-a111-4624-81b8-c9eef850b5ed",
+        "nome_clinica": "Negócio C Clinic Leiria",
+        "telefone_mascarado": "351***148933",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "3c3fa28c-9d7d-43e9-9ec5-664508a1bb72",
+        "nome_clinica": "DentalCare Lisboa ",
+        "telefone_mascarado": "351***913800",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "a9adf1a2-2ac1-4c07-b9cb-5dbc89086696",
+        "nome_clinica": "Negócio HC Dental Clinic",
+        "telefone_mascarado": "351***704026",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "e6bb55a9-7c00-46bd-8c23-61ab25cf6b8f",
+        "nome_clinica": "Negócio Medidental | FDMK Medicina Dentária e Wellness",
+        "telefone_mascarado": "351***703452",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "fc3cbc07-b9c1-40ed-80a6-3fced93a16bb",
+        "nome_clinica": "Negócio Clínica Construímos Sorrisos",
+        "telefone_mascarado": "351***663053",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      },
+      {
+        "deal_id": "b22778f4-3ce1-4219-84c8-4598cfcf0248",
+        "nome_clinica": "Negócio Clínica do Mar",
+        "telefone_mascarado": "351***363811",
+        "motivo_inclusao_proposta": "Pessoa coletiva em silêncio comercial com telefone normalizado e sem atrito cadastral prévio.",
+        "estado_elegibilidade_comercial": "ELEGIVEL_TECNICAMENTE",
+        "estado_autorizacao_canal": "PENDENTE_VALIDACAO",
+        "bloqueios_ativos": [
+          "PENDENTE_AVALIACAO_LIA_B2B",
+          "AUSENCIA_AUTORIZACAO_CANAL_FORMAL"
+        ],
+        "evidencias_necessarias_antes_disparo": [
+          "Parecer formal de Avaliação de Legítimo Interesse (LIA B2B) emitido por assessor jurídico.",
+          "Homologação de condições contratuais específicas para canal WhatsApp Business.",
+          "Confirmação de titularidade do contacto da clínica."
+        ],
+        "autorizado_para_envio_real": false
+      }
+    ]
+  },
+  "correcoes_realizadas": [
+    {
+      "item": "Verificação de autorização específica por canal (Regra 6 / Cenário 20)",
+      "diagnostico": "O Gate anterior não verificava explicitamente se o canal alvo tinha autorização documentada separada da base LIA.",
+      "correcao": "Implementada verificação estrita em Check 5 para autorizacao_canal_documentada e canais_autorizados no SDREligibilityGate.",
+      "gravidade": "P1"
+    },
+    {
+      "item": "Tratamento de timeout e falhas no CRM (Cenário 13)",
+      "diagnostico": "Ausência de flag explícita de fail-closed quando uma consulta ao CRM falha ou sofre timeout.",
+      "correcao": "Implementado bloqueio preventivo FALHA_CRM_FAIL_CLOSED na Verificação 10 do Gate.",
+      "gravidade": "P1"
+    },
+    {
+      "item": "Indisponibilidade do serviço de autorização (Cenário 14)",
+      "diagnostico": "Necessidade de travar qualquer operação se o microsserviço de base legal estiver incontactável.",
+      "correcao": "Implementado bloqueio preventivo SERVICO_AUTORIZACAO_INDISPONIVEL na Verificação 5.",
+      "gravidade": "P1"
+    },
+    {
+      "item": "Revalidação obrigatória após alteração de contacto (Cenário 19)",
+      "diagnostico": "Se um telefone/email for atualizado após uma auditoria prévia, o envio podia operar sobre dados não auditados.",
+      "correcao": "Implementado bloqueio REVALIDACAO_CONTATO_OBRIGATORIA no Gate.",
+      "gravidade": "P1"
+    },
+    {
+      "item": "Trava contra inicialização de dispatcher real em simulação (Cenário 17)",
+      "diagnostico": "Reforço de segurança para impedir chamada ou ativação de dispatcher de produção quando dryRunOnly está ativo.",
+      "correcao": "Adicionada validação de construtor e método startRealDispatcher() com lançamento inegociável de SecurityException.",
+      "gravidade": "P0"
+    }
+  ],
+  "matriz_problemas_p0_p1_p2_p3": [
+    {
+      "id": "ISSUE-B6-P0",
+      "nivel": "P0",
+      "descricao": "Nenhum problema P0 aberto. Todas as travas de segurança e Circuit Breakers estão ativos e validados.",
+      "estado": "FECHADO"
+    },
+    {
+      "id": "ISSUE-B6-P1",
+      "nivel": "P1",
+      "descricao": "Nenhum problema P1 aberto. Todos os requisitos funcionais e fail-closed da simulação foram corrigidos.",
+      "estado": "FECHADO"
+    },
+    {
+      "id": "ISSUE-B6-P2",
+      "nivel": "P2",
+      "descricao": "Interface de monitorização gráfica das métricas de simulação no Kanban do CRM.",
+      "estado": "BACKLOG_FASE_C"
+    },
+    {
+      "id": "ISSUE-B6-P3",
+      "nivel": "P3",
+      "descricao": "Otimização de cache em memória para consultas repetidas de supressão em lotes de 1000+ negócios.",
+      "estado": "BACKLOG_FUTURO"
+    }
+  ],
+  "bateria_testes_automatizados": {
+    "suites": [
+      {
+        "suite": "scripts/test_sdr_phase_b1.mjs",
+        "total": 28,
+        "aprovados": 28,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b2.mjs",
+        "total": 29,
+        "aprovados": 29,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b3.mjs",
+        "total": 18,
+        "aprovados": 18,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b4.mjs",
+        "total": 13,
+        "aprovados": 13,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b5_integrated.mjs",
+        "total": 17,
+        "aprovados": 17,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b6.mjs",
+        "total": 21,
+        "aprovados": 21,
+        "status": "PASS"
+      }
+    ],
+    "total_testes": 126,
+    "total_aprovados": 126,
+    "total_falhados": 0,
+    "taxa_sucesso": "100%_PASS"
+  },
+  "dependencias_externas_em_aberto": [
+    {
+      "tipo": "PARECER_JURÍDICO_LIA_B2B",
+      "descricao": "Avaliação de Legítimo Interesse (LIA B2B) formalizada e assinada por consultor jurídico para as 102 clínicas.",
+      "bloqueia_producao": true
+    },
+    {
+      "tipo": "CONSENTIMENTO_OPTIN_MEDICOS",
+      "descricao": "Opt-in explícito documentado para os 13 médicos pessoas singulares.",
+      "bloqueia_producao": true
+    },
+    {
+      "tipo": "REVISÃO_HUMANA_NOTAS",
+      "descricao": "Revisão manual das 19 fichas ambíguas e das 4 respostas automáticas por SDR humano.",
+      "bloqueia_producao": false
+    }
+  ],
+  "veredicto_prontidao_fase_b6": {
+    "fase_b6_concluida": true,
+    "fase_b7_iniciada": false,
+    "piloto_real_ativado": false,
+    "veredicto": "SISTEMA_TECNICAMENTE_PREPARADO_PILOTO_BLOQUEADO_LEGALMENTE",
+    "justificacao": "O motor de simulação DRY-RUN, o Gate determinístico de 10 verificações, os Circuit Breakers e os 20 cenários de segurança foram 100% validados (126 testes aprovados). Não existem envios reais nem alterações de produção. O sistema só poderá transitar para envio real após a homologação externa das dependências jurídicas (LIA B2B e consentimento)."
+  }
+}

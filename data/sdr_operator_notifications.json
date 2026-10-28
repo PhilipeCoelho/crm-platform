@@ -1,0 +1,68 @@
+{
+  "notifications": {
+    "handoff_test_handoff_1793052919188_deal_01_0477c35d": {
+      "dealId": "test_handoff_1793052919188_deal_01",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:15:19.190Z",
+      "inboundText": "Sim, podemos marcar uma reunião amanhã às 15h."
+    },
+    "handoff_test_handoff_1793052946810_deal_01_0477c35d": {
+      "dealId": "test_handoff_1793052946810_deal_01",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:15:46.813Z",
+      "inboundText": "Sim, podemos marcar uma reunião amanhã às 15h."
+    },
+    "handoff_test_handoff_1793052963021_deal_01_0477c35d": {
+      "dealId": "test_handoff_1793052963021_deal_01",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:16:03.023Z",
+      "inboundText": "Sim, podemos marcar uma reunião amanhã às 15h."
+    },
+    "handoff_test_handoff_1793052963021_notif_fail_74d80387": {
+      "dealId": "test_handoff_1793052963021_notif_fail",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:16:03.095Z",
+      "inboundText": "Sim, quero agendar."
+    },
+    "handoff_test_handoff_1793052963021_dup_deal_8c80d001": {
+      "dealId": "test_handoff_1793052963021_dup_deal",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:16:03.096Z",
+      "inboundText": "Sim, podemos marcar uma reunião amanhã."
+    },
+    "handoff_test_handoff_1793053744378_deal_01_0477c35d": {
+      "dealId": "test_handoff_1793053744378_deal_01",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:29:04.382Z",
+      "inboundText": "Sim, podemos marcar uma reunião amanhã às 15h."
+    },
+    "handoff_test_handoff_1793053744378_notif_fail_74d80387": {
+      "dealId": "test_handoff_1793053744378_notif_fail",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:29:04.466Z",
+      "inboundText": "Sim, quero agendar."
+    },
+    "handoff_test_handoff_1793053744378_dup_deal_8c80d001": {
+      "dealId": "test_handoff_1793053744378_dup_deal",
+      "operatorPhone": "351964094865",
+      "status": "failed",
+      "error": "WHATSAPP_WEB_NOT_CONNECTED",
+      "failedAt": "2026-10-26T22:29:04.468Z",
+      "inboundText": "Sim, podemos marcar uma reunião amanhã."
+    }
+  }
+}

@@ -390,6 +390,12 @@ export async function initWhatsAppWeb(options = {}) {
 
                     if (!text || text.trim() === '') continue;
 
+                    // Ignorar mensagens de tipo não suportado que chegam como placeholder
+                    if (text.includes('[Mensagem recebida do tipo') || text.trim() === '[object Object]') {
+                        console.log(`ℹ️ [WhatsApp Web Inbound] Mensagem de tipo não suportado de +${fromPhone} ignorada.`);
+                        continue;
+                    }
+
                     const wamid = msg.key.id || `web_${Date.now()}`;
                     const timestamp = msg.messageTimestamp ? new Date(Number(msg.messageTimestamp) * 1000).toISOString() : new Date().toISOString();
 

@@ -104,7 +104,7 @@ function matchPhone(p1, p2) {
 /**
  * Classifica a etapa inicial de recuperação com base nos dados factuais do CRM e do Agente
  */
-export function determineInitialRecoveryStage(deal, contact, outcomes = [], gateResult = null, agentActions = []) {
+export async function determineInitialRecoveryStage(deal, contact, outcomes = [], gateResult = null, agentActions = []) {
     const cleanPhone = cleanPhoneDigits(contact?.phone);
     const lostReasonNorm = (deal?.lost_reason || '').toLowerCase().trim();
     const disqReasonNorm = (deal?.disqualified_reason || '').toLowerCase().trim();
@@ -130,11 +130,46 @@ export function determineInitialRecoveryStage(deal, contact, outcomes = [], gate
     }
 
     // 3. Em Conversa / Qualificação (Lead respondeu e diálogo ativo)
+    // ATENÇÃO: Verificar opt-out nos INBOUND_REPLY ANTES de classificar como em_conversa!
+    // Se houver qualquer resposta de opt-out, sobrepõe respostas positivas anteriores → nao_reativado
+    const OPT_OUT_KEYWORDS = ['não interessa', 'nao interessa', 'não tem interesse', 'não quero', 'nao quero',
+        'retirem', 'removam', 'parem', 'deixem de', 'não contactem', 'nao contactem', 
+        'obrigada', 'não voltem', 'nao voltem', 'unsubscribe', 'stop', 'sair', 'cancelar'];
+    
+    const agentActionsForPhone = (agentActions || []).filter(a => 
+        matchPhone(a.details?.phone, contact?.phone) || (deal?.id && a.details?.deal_id === deal.id)
+    );
+    
+    const hasOptoutInReplies = agentActionsForPhone.some(a => {
+        if (a.actionType !== 'INBOUND_REPLY') return false;
+        const txt = (a.details?.textSnippet || a.details?.text || '').toLowerCase();
+        return OPT_OUT_KEYWORDS.some(kw => txt.includes(kw));
+    });
+    
+    if (hasOptoutInReplies) {
+        // Auto-suprimir no ficheiro se ainda não está suprimido
+        try {
+            const { addLocalSuppression } = await import('./suppression_store.js');
+            const alreadySuppressed = isPhoneSuppressedLocally(contact?.phone, deal?.id, contact?.id);
+            if (!alreadySuppressed && contact?.phone) {
+                await addLocalSuppression({
+                    deal_id: deal?.id,
+                    contact_id: contact?.id,
+                    telefone_normalizado: contact?.phone,
+                    motivo: 'OPTOUT_EXPLICITO',
+                    motivo_bloqueio: 'OPTOUT_EXPLICITO',
+                    notes: 'Auto-suprimido: opt-out detetado nos INBOUND_REPLY do agente'
+                });
+            }
+        } catch (_) {}
+        return 'nao_reativado';
+    }
+
     const hasInterestOrReply = outcomes.some(o => 
         o.outcome === 'RESPOSTA_POSITIVA' || 
         o.outcome === 'RESPOSTA_INBOUND' || 
         o.intent_detected === 'interested'
-    ) || (agentActions || []).some(a => a.actionType === 'INBOUND_REPLY' && (matchPhone(a.details?.phone, contact?.phone) || (deal?.id && a.details?.deal_id === deal.id)));
+    ) || agentActionsForPhone.some(a => a.actionType === 'INBOUND_REPLY');
 
     if (hasInterestOrReply) {
         return 'em_conversa';
@@ -280,7 +315,7 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
         if (savedItem?.manualStageSet) {
             stage = normalizeStage(savedItem.stage);
         } else {
-            stage = determineInitialRecoveryStage(deal, contact, dealOutcomes, gateEval, agentActions);
+            stage = await determineInitialRecoveryStage(deal, contact, dealOutcomes, gateEval, agentActions);
         }
 
         let owner = savedItem?.owner || (stage === 'pronto_reabrir' ? 'Operador' : 'IA');

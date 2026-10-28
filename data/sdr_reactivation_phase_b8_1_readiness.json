@@ -1,0 +1,430 @@
+{
+  "meta": {
+    "fase": "B.8.1",
+    "titulo": "VAMUSS SDR — DOSSIÊ DE HOMOLOGAÇÃO EXTERNA E PREPARAÇÃO PARA ATIVAÇÃO",
+    "timestamp": "2026-10-10T09:36:01.799Z",
+    "modo": "DRY_RUN_HOMOLOGATION_PREPARATION",
+    "versao": "2.0.0-phase-b8-1-homologation"
+  },
+  "auditoria_seguranca_operacional": {
+    "mensagens_reais_enviadas": 0,
+    "chamadas_api_whatsapp": 0,
+    "chamadas_api_brevo_smtp": 0,
+    "escritas_tabela_deals_crm": 0,
+    "escritas_supabase": 0,
+    "migracoes_producao_aplicadas": 0,
+    "circuit_breaker_operacional_armado": true,
+    "dry_run_estrito": true
+  },
+  "estado_carteira_405_negocios": {
+    "total_auditados": 405,
+    "total_autorizados_disparo_real": 0,
+    "distribuicao_categorias_canonica": {
+      "COMERCIALMENTE_INELEGIVEL": 192,
+      "AUTORIZACAO_PENDENTE": 115,
+      "BLOQUEADO": 74,
+      "REVISAO_HUMANA_OBRIGATORIA": 24,
+      "ELEGIVEL_PARA_ATIVACAO": 0
+    },
+    "distribuicao_estados_documentais": {
+      "INELEGIVEL_TECNICO_OU_COMERCIAL": 290,
+      "DOCUMENTACAO_EM_FALTA": 115,
+      "DOCUMENTACAO_SUBMETIDA_NAO_VALIDADA": 0,
+      "VALIDACAO_JURIDICA_CONCLUIDA": 0,
+      "AUTORIZACAO_CANAL_CONFIRMADA": 0,
+      "APROVACAO_OPERACIONAL_PENDENTE": 0,
+      "ATIVACAO_AUTORIZADA": 0
+    },
+    "reconciliacao_b7_1_preservada": true
+  },
+  "dossie_homologacao_externa": {
+    "estrutura_dossie": {
+      "TITULO": "DOSSIÊ DE AVALIAÇÃO DE CONFORMIDADE E HOMOLOGAÇÃO JURÍDICA B2B",
+      "VERSAO": "1.0.0-phase-b8-1-draft",
+      "ESTADO_DOCUMENTAL": "SUBMETIDO_PARA_REVISAO_EXTERNA_PENDENTE",
+      "TIPOS_DESTINATARIOS": {
+        "ENTIDADE_COLECTIVA_CLINICA": {
+          "descricao": "Pessoas coletivas (sociedades comerciais ou entidades equiparadas) que exploram clínicas médicas e dentárias.",
+          "enquadramento": "B2B institucional (NIF iniciado por 5).",
+          "regime_legal": "Art. 6.º, n.º 1, al. f) RGPD conjugado com Art. 13.º-A do DL n.º 7/2004 (na redação da Lei n.º 46/2012).",
+          "requisito_primario": "Avaliação de Legítimo Interesse (LIA B2B) formalmente homologada por jurista com teste tripartido."
+        },
+        "PESSOA_SINGULAR_MEDICO": {
+          "descricao": "Profissionais liberais, médicos dentistas ou médicos em nome individual.",
+          "enquadramento": "Pessoa singular / profissional liberal (NIF iniciado por 1 ou 2).",
+          "regime_legal": "Art. 6.º, n.º 1, al. a) RGPD conjugado com Art. 13.º do DL n.º 7/2004.",
+          "requisito_primario": "Consentimento prévio, expresso, informado e documentado (Opt-in explícito). Proibida abordagem com base exclusiva em LIA."
+        }
+      },
+      "FINALIDADE_CONCRETA": {
+        "objeto": "Comunicação comercial informativa B2B dirigida a órgãos de gestão e direção clínica.",
+        "conteudo": "Apresentação de estudo de caso setorial sobre otimização da triagem de pacientes particulares e proposta de reunião exploratória de assessoria.",
+        "proibicoes": [
+          "Proibida qualquer comunicação promocional de teor massivo ou genérico sem enquadramento específico na atividade da clínica.",
+          "Proibida a recolha ou tratamento de dados de saúde de pacientes.",
+          "Proibida a reutilização dos contactos para fins distintos do pipeline comercial VAMUSS."
+        ]
+      },
+      "TESTE_TRIPARTIDO_LIA": {
+        "etapa_1_finalidade_purpose_test": {
+          "titulo": "Teste da Finalidade (Purpose Test)",
+          "criterio": "Existe um interesse comercial legítimo da VAMUSS na prossecução do contacto?",
+          "fundamentacao_proposta": "A VAMUSS possui interesse legítimo na prossecução da sua atividade económica de assessoria a clínicas privadas de saúde, promovendo soluções de eficiência comercial junto de contrapartes que já manifestaram interesse anterior ou interagiram no CRM.",
+          "avaliacao_necessaria": "O responsável jurídico deve confirmar a legitimidade económica e ausência de ilicitude do propósito comercial."
+        },
+        "etapa_2_necessidade_necessity_test": {
+          "titulo": "Teste da Necessidade (Necessity Test)",
+          "criterio": "O contacto direto via canal eletrónico é necessário e proporcional ao fim pretendido?",
+          "fundamentacao_proposta": "O contacto eletrónico direto (WhatsApp Business / Email corporativo) constitui o meio padrão de comunicação B2B com gestores clínicos, sendo mais proporcional e menos invasivo do que visitas presenciais não solicitadas ou chamadas telefónicas intempestivas.",
+          "avaliacao_necessaria": "O responsável jurídico deve validar se existem meios alternativos menos intrusivos com eficácia comparável."
+        },
+        "etapa_3_equilibrio_balancing_test": {
+          "titulo": "Teste de Equilíbrio / Ponderação dos Direitos (Balancing Test)",
+          "criterio": "Os interesses da VAMUSS prevalecem sobre os direitos, liberdades e expectativas razoáveis do titular?",
+          "fundamentacao_proposta": "O destinatário é uma clínica e o contacto é estabelecido com base em interação histórica do CRM. As salvaguardas incluem: (i) mecanismo imediato e incondicional de STOP/Opt-out no primeiro contacto, (ii) limite de cadência estrito a 2 tentativas, (iii) firewall de supressão central e (iv) quarentena de 90 dias.",
+          "avaliacao_necessaria": "O responsável jurídico deve ponderar se as expectativas razoáveis do titular são respeitadas e se as salvaguardas neutralizam o impacto nos seus direitos."
+        }
+      },
+      "REQUISITOS_CANAIS": {
+        "WHATSAPP_BUSINESS": {
+          "canal": "WHATSAPP",
+          "alerta_estrito": "Um parecer LIA B2B favorável NÃO autoriza automaticamente o canal WhatsApp. Exige autorização documental específica.",
+          "politica_aplicavel": "Política Comercial e Política de Mensagens do WhatsApp Business (Meta).",
+          "requisitos_obrigatorios": [
+            "Identificação clara e inequívoca da entidade remetente (\"VAMUSS\") na primeira linha da mensagem.",
+            "Menção expressa de que se trata de uma comunicação B2B informativa.",
+            "Instrução explícita e obrigatória de cancelamento: \"Responda STOP ou SAIR para não voltar a ser contactado\".",
+            "Utilização exclusiva de número comercial verificado associado à conta VAMUSS Business.",
+            "Processamento imediato e em tempo real (< 1 segundo) de qualquer pedido de oposição."
+          ]
+        },
+        "EMAIL_B2B": {
+          "canal": "EMAIL",
+          "alerta_estrito": "Envio restrito a emails corporativos institucionais de clínicas coletivas.",
+          "requisitos_obrigatorios": [
+            "Endereço de destino restrito a caixas institucionais de pessoas coletivas (ex.: geral@, clinica@, direcao@).",
+            "Cabeçalho e rodapé com identificação fiscal completa da VAMUSS (Firma, NIF, Sede e Contactos).",
+            "Ligação direta de desinscrição funcional e gratuita em rodapé (one-click opt-out).",
+            "Menção à base legal e aos direitos de oposição, acesso e apagamento nos termos do RGPD."
+          ]
+        }
+      },
+      "REQUISITOS_OPTIN_MEDICOS": {
+        "exigencia": "Prova documental rigorosa do consentimento prévio nos termos do Art. 13.º do DL 7/2004 e Art. 7.º do RGPD.",
+        "campos_obrigatorios_evidencia": [
+          "referencia_opt_in: Identificador único do formulário ou submissão.",
+          "data_opt_in: Carimbo de data/hora ISO 8601 da prestação do consentimento.",
+          "origem_opt_in: URL do formulário, evento presencial ou registo documental.",
+          "texto_clausula_consentimento: Texto exato que foi apresentado ao médico no momento da recolha.",
+          "validador_opt_in_juridico: Responsável jurídico que verificou a validade material do consentimento."
+        ]
+      },
+      "RESTRICOES_CADENCIA": {
+        "janela_horaria": "Dias úteis das 10:00 às 18:00 (Fuso horário de Lisboa).",
+        "dias_autorizados": [
+          "SEGUNDA",
+          "TERCA",
+          "QUARTA",
+          "QUINTA",
+          "SEXTA"
+        ],
+        "tentativas_maximas_por_ciclo": 2,
+        "intervalo_minimo_entre_tentativas_dias": 5,
+        "quarentena_pos_ciclo_sem_resposta_dias": 90,
+        "quarentena_agencia_concorrente_dias": 180,
+        "quarentena_contingencia_obras_dias": 90
+      },
+      "SUPRESSAO_E_ENDPOINTS": {
+        "lista_supressao_estrita": "24 registos ativos abrangendo 26 negócios protegidos de forma permanente.",
+        "regra_endpoint_partilhado": "Bloqueio preventivo de qualquer negócio cujo telefone ou email seja partilhado com registo em supressão.",
+        "tempo_resposta_supressao": "Processamento imediato e bloqueio de novos envios no mesmo ciclo de execução."
+      },
+      "CAMPOS_HOMOLOGACAO_RESPONSAVEL": {
+        "responsavel_homologacao_juridica": "Nome do DPO ou Advogado responsável pela decisão.",
+        "cedula_profissional_ou_registo": "Número de cédula na Ordem dos Advogados ou acreditação de DPO.",
+        "entidade_sociedade_juridica": "Sociedade de Advogados ou departamento jurídico emitente.",
+        "referencia_processo": "Código único do parecer (ex.: PROC-LIA-2026-VAMUSS-001).",
+        "data_decisao": "Data formal de homologação.",
+        "validade_parecer_meses": 12,
+        "ambito_decisao": "Lote delimitado de negócios e canais expressamente aprovados.",
+        "declaracao_responsabilidade": "Confirmação expressa de que o responsável analisou as evidências e assume a validação da base legal."
+      }
+    },
+    "estado_dependencias_documentais": {
+      "parecer_lia_b2b_clinicas_coletivas": {
+        "status": "PENDENTE_EMISSAO_E_HOMOLOGACAO_JURIDICA_EXTERNA",
+        "negocios_dependentes": 102,
+        "evidencias_necessarias": [
+          "Parecer formal com teste tripartido (Finalidade, Necessidade e Ponderação)",
+          "Identificação do DPO ou Advogado titular com cédula profissional",
+          "Fixação de prazo de validade (12 meses) e âmbito territorial/negocial"
+        ]
+      },
+      "opt_in_medicos_singulares": {
+        "status": "PENDENTE_COMPROVACAO_DOCUMENTAL_PREVIA",
+        "negocios_dependentes": 13,
+        "evidencias_necessarias": [
+          "Ficha documental ou carimbo digital de consentimento prévio nos termos do Art. 13º DL 7/2004",
+          "Registo de data, timestamp, formulário e cláusula subscrita"
+        ]
+      },
+      "homologacao_especifica_canal_whatsapp": {
+        "status": "PENDENTE_AUTORIZACAO_CONTRATUAL_E_POLITICA_META",
+        "alerta": "LIA favorável não autoriza WhatsApp automaticamente"
+      },
+      "sign_off_operacional_supervisor": {
+        "status": "PENDENTE_APOS_HOMOLOGACAO_JURIDICA"
+      }
+    }
+  },
+  "alteracoes_efetuadas_no_gate": [
+    {
+      "modulo": "scripts/sdr_activation_gate.mjs",
+      "alteracao": "Introdução do enum ESTADOS_DOCUMENTAIS_ATIVACAO para distinguir DOCUMENTACAO_EM_FALTA, DOCUMENTACAO_SUBMETIDA_NAO_VALIDADA, VALIDACAO_JURIDICA_CONCLUIDA, AUTORIZACAO_CANAL_CONFIRMADA e ATIVACAO_AUTORIZADA.",
+      "impacto": "Permite rastreio transparente do estado documental no auditTrail sem alterar a segurança fail-closed."
+    },
+    {
+      "modulo": "scripts/sdr_activation_gate.mjs",
+      "alteracao": "Introdução do parâmetro requireExplicitLegalSigner para impedir aceitação de números de referência sem validador jurídico identificado.",
+      "impacto": "Elimina risco de aprovação de referências fictícias ou não autenticadas."
+    },
+    {
+      "modulo": "scripts/sdr_homologation_dossier.mjs",
+      "alteracao": "Criação do módulo estruturado com os 12 requisitos mandatórios do Dossiê de Homologação Externa.",
+      "impacto": "Fornece minuta padronizada para análise de juristas e DPOs."
+    }
+  ],
+  "plano_ativacao_condicionada_piloto": {
+    "titulo": "PLANO DE ATIVAÇÃO CONDICIONADA DO PILOTO CONTROLADO DO VAMUSS SDR",
+    "natureza": "HIPOTESE_OPERACIONAL_SUJEITA_A_HOMOLOGACAO_JURIDICA",
+    "aviso_legal": "As métricas, limites e volumes propostos constituem hipóteses operacionais a validar formalmente por assessor jurídico e direção executiva antes da ativação real.",
+    "criterios_entrada": {
+      "classificacao_obrigatoria": "SILENCIO_CONFIRMADO",
+      "natureza_juridica": "ENTIDADE_COLECTIVA_CLINICA (NIF 5xx xxx xxx)",
+      "validacao_lia_b2b": "Parecer formal favorável com teste tripartido emitido por jurista/DPO identificado",
+      "autorizacao_canal": "Homologação expressa e individualizada do canal WhatsApp Business / Email B2B",
+      "aprovacao_operacional": "Sign-off formal de operador humano com carimbo temporal",
+      "supressao": "Negócio e contactos ausentes da lista de supressão e sem endpoint partilhado"
+    },
+    "dimensao_inicial_proposta": {
+      "lote_fase_1": "5 contactos/dia durante os primeiros 3 dias úteis (total 15 negócios)",
+      "janela_observacao": "Quarentena de 48 horas de observação de respostas antes da emissão do lote seguinte",
+      "rampa_fase_2": "10 a 15 contactos/dia sujeita a zero incidentes"
+    },
+    "canais_aprovados": {
+      "whatsapp": "Requer cumprimento integral das Políticas Comerciais da Meta, identificação do remetente e STOP obrigatório",
+      "email": "Requer envio exclusivo para endereços institucionais com one-click unsubscribe em rodapé"
+    },
+    "limites_cadencia": {
+      "tentativas_maximas": 2,
+      "intervalo_minimo_dias": 5,
+      "janela_horaria": "Dias úteis das 10:00 às 18:00 (Lisboa)",
+      "quarentena_pos_ciclo_dias": 90
+    },
+    "metricas_qualidade_e_limites_interrupcao": {
+      "taxa_entrega_minima_esperada": "95%",
+      "taxa_resposta_esperada": ">= 8%",
+      "taxa_maxima_optout_tolerada": "<= 3%",
+      "criterios_kill_switch_imediato": [
+        "Ocorrência de 1 único pedido de STOP/SAIR/RECUSA não suprimido automaticamente em < 1 segundo.",
+        "Taxa de opt-out ou oposição superior a 5% num único lote.",
+        "Qualquer comunicação ou denúncia de privacidade/spam.",
+        "Taxa de erro técnico ou timeout no CRM/provedor superior a 5%.",
+        "Deteção de conflito de concorrência por mutex em voo."
+      ]
+    },
+    "procedimento_incidente_e_reversao": {
+      "gatilho": "Detetada qualquer violação ou disparo indevido",
+      "acoes_imediatas": [
+        "Ativação imediata do Kill Switch global (pauseGlobal() + tripCircuitBreaker()).",
+        "Cancelamento de todos os mutex locks em voo (inFlightLocks.clear()).",
+        "Registo formal no diário de auditoria com identificação do operador.",
+        "Execução de rollbackToSafeState() restaurando estado fail-closed estrito.",
+        "Notificação do DPO e assessoria jurídica em prazo inferior a 24 horas."
+      ]
+    }
+  },
+  "bateria_testes_automatizados": {
+    "suites_executadas": [
+      {
+        "suite": "scripts/test_sdr_phase_b1.mjs",
+        "nome": "Fase B.1 - Triagem e Resposta Automática",
+        "testes": 28,
+        "aprovados": 28,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b2.mjs",
+        "nome": "Fase B.2 - Auditoria Corretiva e Supressão",
+        "testes": 29,
+        "aprovados": 29,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b3.mjs",
+        "nome": "Fase B.3 - Validação e Cadência Simulada",
+        "testes": 18,
+        "aprovados": 18,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b4.mjs",
+        "nome": "Fase B.4 - Reconciliação e Portão de Elegibilidade",
+        "testes": 13,
+        "aprovados": 13,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b5_integrated.mjs",
+        "nome": "Fase B.5 - Integração Operacional e Adapter",
+        "testes": 17,
+        "aprovados": 17,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b6.mjs",
+        "nome": "Fase B.6 - Simulação Piloto e Fail-Closed",
+        "testes": 21,
+        "aprovados": 21,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b7.mjs",
+        "nome": "Fase B.7 - Preparação Operacional e Ativação",
+        "testes": 20,
+        "aprovados": 20,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b7_1.mjs",
+        "nome": "Fase B.7.1 - Reconciliação B.6.6 vs B.7",
+        "testes": 7,
+        "aprovados": 7,
+        "falhados": 0,
+        "status": "PASS"
+      },
+      {
+        "suite": "scripts/test_sdr_phase_b8_1.mjs",
+        "nome": "Fase B.8.1 - Dossiê de Homologação e Ativação",
+        "testes": 9,
+        "aprovados": 9,
+        "falhados": 0,
+        "status": "PASS"
+      }
+    ],
+    "total_testes": 162,
+    "total_aprovados": 162,
+    "total_falhados": 0,
+    "taxa_aprovacao": "100%_PASS"
+  },
+  "inventario_amostra_candidatos": [
+    {
+      "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+      "nome_clinica": "Negócio Dra. Pamella Pessoa",
+      "categoria_canonica": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "PESSOA_SINGULAR_MEDICO",
+      "motivo_bloqueio": "BLOQUEIO_OPTIN_MEDICO_PENDENTE",
+      "estado_documental": "DOCUMENTACAO_EM_FALTA",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "b25e8400-687d-4463-a223-020f6cd4de9d",
+      "nome_clinica": "Negócio Dental One",
+      "categoria_canonica": "DESQUALIFICADO_INCOMPATIVEL",
+      "tipo_destinatario": "PESSOA_SINGULAR_MEDICO",
+      "motivo_bloqueio": "COMERCIALMENTE_INELEGIVEL",
+      "estado_documental": "INELEGIVEL_TECNICO_OU_COMERCIAL",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+      "nome_clinica": "Negócio Margarida Cortez",
+      "categoria_canonica": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "BLOQUEIO_LIA_B2B_PENDENTE",
+      "estado_documental": "DOCUMENTACAO_EM_FALTA",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "e50459c4-6442-44e2-a6ff-f8a3b2258a77",
+      "nome_clinica": "Negócio Realize Dental Clinic",
+      "categoria_canonica": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "QUARENTENA_AGENCIA_ATIVA",
+      "estado_documental": "INELEGIVEL_TECNICO_OU_COMERCIAL",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "fe3cc983-d52b-4c70-bb27-e848d3a83c58",
+      "nome_clinica": "Negócio Oral Project",
+      "categoria_canonica": "DESQUALIFICADO_INCOMPATIVEL",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "COMERCIALMENTE_INELEGIVEL",
+      "estado_documental": "INELEGIVEL_TECNICO_OU_COMERCIAL",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
+      "nome_clinica": "Negócio Clínica Colombo e Silva",
+      "categoria_canonica": "DESQUALIFICADO_INCOMPATIVEL",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "COMERCIALMENTE_INELEGIVEL",
+      "estado_documental": "INELEGIVEL_TECNICO_OU_COMERCIAL",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "81a92f33-9074-4526-bc71-2e10f9a6a6e4",
+      "nome_clinica": "Negócio Clínica do Marquês",
+      "categoria_canonica": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "QUARENTENA_AGENCIA_ATIVA",
+      "estado_documental": "INELEGIVEL_TECNICO_OU_COMERCIAL",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+      "nome_clinica": "Negócio LT Smile",
+      "categoria_canonica": "SILENCIO_CONFIRMADO",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "BLOQUEIO_LIA_B2B_PENDENTE",
+      "estado_documental": "DOCUMENTACAO_EM_FALTA",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "a441070c-108c-4bed-9260-18109d9047fb",
+      "nome_clinica": "Negócio Master Dental Faro",
+      "categoria_canonica": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "QUARENTENA_AGENCIA_ATIVA",
+      "estado_documental": "INELEGIVEL_TECNICO_OU_COMERCIAL",
+      "autorizado_ativacao": false
+    },
+    {
+      "deal_id": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+      "nome_clinica": "Negócio CliniCosta",
+      "categoria_canonica": "JA_TEM_AGENCIA_OU_ANUNCIA",
+      "tipo_destinatario": "ENTIDADE_COLECTIVA_CLINICA",
+      "motivo_bloqueio": "QUARENTENA_AGENCIA_ATIVA",
+      "estado_documental": "INELEGIVEL_TECNICO_OU_COMERCIAL",
+      "autorizado_ativacao": false
+    }
+  ],
+  "criterios_fecho_b8_1": {
+    "dossie_documentado_e_estruturado": true,
+    "criterios_ativacao_claramente_delimitados": true,
+    "dependencias_externas_mapeadas": true,
+    "classificacao_405_preservada_integralmente": true,
+    "testes_e_build_aprovados": true
+  },
+  "veredicto_final": {
+    "declaracao": "PREPARAÇÃO CONCLUÍDA — PILOTO REAL BLOQUEADO",
+    "fundamentacao": "O processo documental, o dossiê de homologação para análise do responsável jurídico, os controlos do gate e os procedimentos de incidente da Fase B.8.1 foram integralmente preparados e testados (162/162 testes aprovados). A ativação real permanece rigorosamente bloqueada a 0 envios até emissão e assinatura formal de parecer jurídico externo homologado. A Fase B.8.2 não foi iniciada."
+  }
+}

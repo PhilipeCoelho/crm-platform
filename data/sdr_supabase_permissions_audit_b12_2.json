@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "fase": "B.12.2",
+    "titulo": "Revisão de Segurança das Permissões Supabase do SDR Vamuss",
+    "data_execucao": "2026-10-10T21:30:15.000Z",
+    "status": "PROPOSTA_TECNICA_CONCLUIDA_AGUARDA_HOMOLOGACAO_DBA",
+    "salvaguardas_estritas": {
+      "sql_executado_em_producao": false,
+      "envios_reais_efetuados": 0,
+      "mutacoes_producao": 0,
+      "circuit_breaker": "ATIVO_FAIL_CLOSED",
+      "gate_legal": "ATIVO_FAIL_CLOSED"
+    }
+  },
+  "auditoria_critica_politicas_b12_1": {
+    "vulnerabilidades_identificadas": [
+      {
+        "id": "VULN_01_EXPOSICAO_ANON",
+        "severidade": "CRITICA",
+        "descricao": "A proposta da B.12.1 incluía 'TO authenticated, anon' na leitura de deals e activities. A concessão a 'anon' permitiria a qualquer pessoa na posse da chave pública do frontend ler negócios do CRM via PostgREST sem autenticação.",
+        "correcao_b12_2": "Revogada concessão a 'anon'. Criada função fn_is_sdr_worker() restrita a chamadores com JWT autenticado contendo a claim app_metadata.role = 'sdr_worker'."
+      },
+      {
+        "id": "VULN_02_ACTIVITIES_USING_TRUE",
+        "severidade": "ALTA",
+        "descricao": "A política anterior de activities continha 'USING (true)', anulando o isolamento de dados. Qualquer chamador com permissão de leitura podia descarregar notas e reuniões confidenciais de clientes de outros comerciais.",
+        "correcao_b12_2": "Substituído por relação estrita: activities só é legível se o deal_id pertencer a um negócio que o worker tem permissão expressa de aceder (EXISTS subquery)."
+      },
+      {
+        "id": "VULN_03_AMBITO_EXCESSIVO_DEALS",
+        "severidade": "MEDIA",
+        "descricao": "A condição 'status IN (lost, open)' permitia ao worker consultar todos os negócios ativos ('open') da empresa, mesmo os que estão em fecho corporativo e fora do âmbito do SDR.",
+        "correcao_b12_2": "Restrito a status = 'lost' ou deals já integrados na recuperação (stage_id = 'stage_lead_engajamento' ou 'stage_reuniao')."
+      },
+      {
+        "id": "VULN_04_AUSENCIA_CONTROLO_COLUNAS",
+        "severidade": "ALTA",
+        "descricao": "RLS atua em nível de linha, não de coluna. Um UPDATE irrestrito permitiria ao worker corromper campos financeiros (value), trocar o titular (user_id) ou o contacto associado (contact_id).",
+        "correcao_b12_2": "Implementado Trigger de defesa de colunas (trg_guard_sdr_deal_columns) e função RPC controlada (fn_sdr_transition_deal_stage) que aceita unicamente stage_id e status."
+      },
+      {
+        "id": "VULN_05_INSERT_ACTIVITIES_SEM_VINCULO",
+        "severidade": "MEDIA",
+        "descricao": "A inserção de atividades não validava se o deal_id pertencia a um negócio elegível, permitindo enxertar atividades em negócios de terceiros.",
+        "correcao_b12_2": "Exigência cumulativa no WITH CHECK: tipo autorizado ('note', 'status_change', 'meeting') e deal_id comprovadamente elegível."
+      }
+    ]
+  },
+  "matriz_permissoes_revisada": [
+    {
+      "tabela": "deals",
+      "operacao": "SELECT",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "status = 'lost' OR stage_id IN ('stage_lead_engajamento', 'stage_reuniao')",
+      "restricao_colunas": "Todas as colunas permitidas para leitura factual",
+      "efeito": "PERMITIDO (Apenas âmbito de recuperação)"
+    },
+    {
+      "tabela": "deals",
+      "operacao": "UPDATE",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "status = 'lost' OR stage_id IN ('stage_lead_engajamento', 'stage_reuniao')",
+      "restricao_colunas": "Apenas stage_id, status e updated_at (Value, user_id, contact_id, title bloqueados via trigger)",
+      "efeito": "CONDICIONADO ESTREITO"
+    },
+    {
+      "tabela": "deals",
+      "operacao": "INSERT",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "Nenhum",
+      "restricao_colunas": "Nenhum",
+      "efeito": "BLOQUEADO (DENY ALL - O SDR recupera deals existentes, nunca cria novos)"
+    },
+    {
+      "tabela": "deals",
+      "operacao": "DELETE",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "Nenhum",
+      "restricao_colunas": "Nenhum",
+      "efeito": "BLOQUEADO (DENY ALL - Proibição incondicional de eliminação)"
+    },
+    {
+      "tabela": "activities",
+      "operacao": "SELECT",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "deal_id pertencente a deal elegível",
+      "restricao_colunas": "Todas as colunas necessárias para timeline",
+      "efeito": "PERMITIDO (Vinculado ao deal autorizado)"
+    },
+    {
+      "tabela": "activities",
+      "operacao": "INSERT",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "deal_id pertencente a deal elegível",
+      "restricao_colunas": "type IN ('note', 'status_change', 'meeting')",
+      "efeito": "PERMITIDO (Apenas registo de timeline SDR)"
+    },
+    {
+      "tabela": "activities",
+      "operacao": "UPDATE",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "Nenhum",
+      "restricao_colunas": "Nenhum",
+      "efeito": "BLOQUEADO (DENY ALL - Timeline é imutável)"
+    },
+    {
+      "tabela": "activities",
+      "operacao": "DELETE",
+      "identidade": "sdr_worker",
+      "filtro_linhas": "Nenhum",
+      "restricao_colunas": "Nenhum",
+      "efeito": "BLOQUEADO (DENY ALL)"
+    }
+  ],
+  "ficheiro_sql_proposta": "supabase_sdr_permissions_hardening.sql",
+  "testes_automatizados_b12_2": {
+    "script_executado": "scripts/test_sdr_supabase_permissions_review.mjs",
+    "total_testes": 7,
+    "testes_aprovados": 7,
+    "testes_falhados": 0,
+    "detalhe": [
+      "1. Princípio do Menor Privilégio: Ausência de credenciais administrativas no frontend [APROVADO]",
+      "2. Acesso de leitura permitido ao negócio canónico elegível (status lost) [APROVADO]",
+      "3. Acesso negado a negócios fora do âmbito do SDR [APROVADO]",
+      "4. Acesso negado a atividades de negócios não autorizados [APROVADO]",
+      "5. Atualização negada de campos protegidos (value, contact_id, user_id, title) [APROVADO]",
+      "6. Inserção de atividades restrita a tipos autorizados e deal elegível [APROVADO]",
+      "7. Bloqueio absoluto de operações de eliminação (DELETE) [APROVADO]"
+    ]
+  },
+  "passos_para_validacao_dba_supabase": [
+    "1. Não executar o script em produção sem revisão prévia;",
+    "2. Abrir o Supabase Studio em ambiente de staging / réplica de testes;",
+    "3. Executar o ficheiro supabase_sdr_permissions_hardening.sql no SQL Editor de staging;",
+    "4. Criar um utilizador de teste no auth.users do staging com role 'sdr_worker' nos metadados;",
+    "5. Testar consultas com o token desse utilizador e certificar que o erro 42501 é emitido perante tentativas de atualizar colunas proibidas ou ler deals de outros pipelines;",
+    "6. Validar o comportamento do RPC fn_sdr_transition_deal_stage;",
+    "7. Somente após homologação formal do DBA e aprovação do DPO, agendar a janela de migração em produção."
+  ]
+}

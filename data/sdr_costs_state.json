@@ -1,0 +1,26 @@
+{
+  "today": "2026-10-28",
+  "month": "2026-10",
+  "openai": {
+    "todayCost": 0.00038385,
+    "todayTokens": 1929,
+    "monthCost": 0.0031988999999999993,
+    "monthTokens": 14312,
+    "callsCountToday": 1
+  },
+  "whatsapp": {
+    "todayCost": 0,
+    "todayDispatches": 0,
+    "monthCost": 0,
+    "monthDispatches": 0,
+    "todayDelivered": 0
+  },
+  "contacts": {
+    "919999000": {
+      "count": 3,
+      "attemptsWithoutResponse": 2
+    }
+  },
+  "reservations": {},
+  "blockedReasons": []
+}

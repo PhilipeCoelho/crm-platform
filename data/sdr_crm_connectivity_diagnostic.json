@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "data_execucao": "2026-10-10T21:12:17.436Z",
+    "negocio_auditado": "5b0f44c1-57d3-4a30-8de5-7df432207b34",
+    "modo": "READ_ONLY_DIAGNOSTIC"
+  },
+  "configuracao": {
+    "supabase_url_presente": true,
+    "supabase_url_formato_valido": true,
+    "supabase_url_host_declarado": "ueildehrskvsonnlegtx.supabase.co",
+    "api_key_presente": true,
+    "api_key_tipo_identificado": "ANON_PUBLISHABLE_KEY",
+    "segredos_expostos": false
+  },
+  "fases_diagnostico": {
+    "fase_1_rede_dns": {
+      "executada": true,
+      "sucesso": false,
+      "erro": "Isolamento de rede / Falha de DNS: TypeError: fetch failed",
+      "categoria": "FALHA_REDE_DNS"
+    },
+    "fase_2_autenticacao": {
+      "executada": false,
+      "sucesso": false,
+      "erro": null,
+      "categoria": null
+    },
+    "fase_3_permissoes_rls": {
+      "executada": false,
+      "sucesso": false,
+      "erro": null,
+      "categoria": null
+    },
+    "fase_4_leitura_negocio": {
+      "executada": false,
+      "sucesso": false,
+      "dados": null,
+      "erro": null,
+      "categoria": null
+    },
+    "fase_5_leitura_historico": {
+      "executada": false,
+      "sucesso": false,
+      "total_atividades": 0,
+      "erro": null,
+      "categoria": null
+    }
+  },
+  "mutacoes_tentadas": {
+    "insert": 0,
+    "update": 0,
+    "delete": 0,
+    "mutacao_base_producao": 0
+  },
+  "conclusao_tecnica": {
+    "estado_geral": "BLOQUEIO_DE_REDE_SANDBOX",
+    "diagnostico_resumido": "O ambiente atual opera em isolamento de rede determinístico (sandbox de desenvolvimento), impedindo resolução de DNS e conexões externas para ueildehrskvsonnlegtx.supabase.co.",
+    "credenciais_validas_declaradas": true,
+    "distincao_fontes": {
+      "dados_live_crm": "Indisponíveis no ambiente atual devido ao bloqueio de rede externa;",
+      "dados_canónicos_utilizados": "Auditados e comprovados através dos relatórios estruturados data/sdr_reactivation_phase_b2_audit.json e data/sdr_reactivation_phase_b7_1_reconciliation.json;",
+      "garantia_transparencia": "Os testes de integridade operacional utilizam o dataset canónico auditado, declarando formalmente que não houve consulta live em tempo real."
+    }
+  },
+  "requisitos_ambiente_autorizado": {
+    "passos_configuracao_humana": [
+      "1. Habilitar rota de tráfego de saída HTTPS (porta 443) para o host ueildehrskvsonnlegtx.supabase.co no ambiente de execução do worker backend;",
+      "2. Manter as credenciais exclusivamente em ficheiro .env seguro do servidor ou serviço de segredos (ex: Doppler, AWS Secrets Manager, Vercel Environment Variables);",
+      "3. NUNCA expor ou commitar SUPABASE_SERVICE_ROLE_KEY ou chaves privadas no repositório de código ou no bundle de frontend;",
+      "4. Garantir que as políticas de RLS do Supabase autorizam consultas SELECT às tabelas deals e activities para o papel (role) do worker do SDR;",
+      "5. Executar o script scripts/sdr_crm_connectivity_diagnostic.mjs no ambiente autorizado para certificar a conectividade antes de qualquer piloto."
+    ]
+  }
+}

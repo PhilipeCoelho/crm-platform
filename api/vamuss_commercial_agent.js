@@ -592,10 +592,30 @@ export const AgentToolImplementations = {
     async send_whatsapp_message({ deal_id, phone, message_text, intent }) {
         const cleanPhone = normalizePhoneNumber(phone);
 
+        // 0. TRAVA ABSOLUTA: Números pessoais bloqueados NUNCA recebem mensagens
+        if (BLOCKED_PERSONAL_PHONES.some(b => cleanPhone.endsWith(b.slice(-9)))) {
+            console.warn(`🛑 [Vamuss Agent Tool] Envio BLOQUEADO: +${cleanPhone} é número pessoal bloqueado.`);
+            return { success: false, blocked: true, reason: 'PERSONAL_PHONE_BLOCKED' };
+        }
+
         // 1. Salvaguarda fail-closed de supressão
         if (isPhoneSuppressedLocally(cleanPhone, deal_id)) {
             console.warn(`🛑 [Vamuss Agent Tool] Envio rejeitado: número +${cleanPhone} está na lista de supressão.`);
             return { success: false, blocked: true, reason: 'SUPPRESSED' };
+        }
+
+        // 1b. TRAVA DE IDEMPOTÊNCIA: Nunca enviar 2 mensagens OUTBOUND ao mesmo deal/phone no mesmo dia
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const currentState = readAgentState();
+        const alreadySentTodayToThisDeal = (currentState.recentActions || []).some(
+            a => a.actionType === 'OUTBOUND_DISPATCH' &&
+                 a.timestamp?.slice(0, 10) === todayStr &&
+                 (a.details?.deal_id === deal_id || 
+                  (a.details?.phone && normalizePhoneNumber(a.details.phone).endsWith(cleanPhone.slice(-9))))
+        );
+        if (alreadySentTodayToThisDeal && intent === 'PRIMEIRA_ABORDAGEM') {
+            console.warn(`🛑 [Vamuss Agent Tool] Idempotência: já foi enviada PRIMEIRA_ABORDAGEM hoje para +${cleanPhone} (deal: ${deal_id}). Envio bloqueado.`);
+            return { success: false, blocked: true, reason: 'ALREADY_DISPATCHED_TODAY' };
         }
 
         // 2. Salvaguarda de horário comercial (09h00-17h00 Europe/Lisbon Seg-Sex)
@@ -1056,23 +1076,59 @@ Por favor:
     }
 }
 
+// Números pessoais permanentemente bloqueados para o agente SDR
+const BLOCKED_PERSONAL_PHONES = [
+    '351911830205', '911830205',  // Philipe pessoal
+];
+
 /**
  * Validação ultrarrápida para o listener do WhatsApp:
  * Retorna true APENAS se o número for de um negócio perdido do CRM que o Agente abordou.
+ * 
+ * BLINDAGEM REFORÇADA:
+ * 1. Números pessoais bloqueados SEMPRE ignorados.
+ * 2. Suprimidos → ignorados.
+ * 3. Apenas considera OUTBOUND_DISPATCH de negócios com deal_id (não respostas ad hoc).
+ * 4. Valida via Supabase que o deal existe com status='lost'.
  */
 export async function isEligibleSdrInboundTarget(phone) {
     try {
         const cleanPhone = normalizePhoneNumber(phone);
         const last9 = cleanPhone.slice(-9);
 
+        // BLINDAGEM ABSOLUTA: números pessoais bloqueados nunca passam
+        if (BLOCKED_PERSONAL_PHONES.some(b => cleanPhone.endsWith(b.slice(-9)) || b.endsWith(last9))) {
+            console.log(`🛡️ [SDR Guard] Número +${cleanPhone} é número pessoal bloqueado. Ignorado.`);
+            return false;
+        }
+
         if (isPhoneSuppressedLocally(cleanPhone)) return false;
 
+        // Apenas considera OUTBOUND_DISPATCH que TEM deal_id válido (contatos reais do CRM)
+        // Exclui dispatches ad hoc (respostas a mensagens pessoais recebidas por erro)
         const agentMem = readAgentState();
         const wasContactedLocally = (agentMem.recentActions || []).some(
             a => a.actionType === 'OUTBOUND_DISPATCH' &&
+                 a.details?.deal_id &&  // DEVE ter deal_id - se não tem, foi resposta ad hoc
                  a.details?.phone &&
                  normalizePhoneNumber(a.details.phone).endsWith(last9)
         );
+
+        // Verificação adicional: o deal_id tem status='lost' no Supabase?
+        if (wasContactedLocally && supabase) {
+            const matchingAction = (agentMem.recentActions || []).find(
+                a => a.actionType === 'OUTBOUND_DISPATCH' &&
+                     a.details?.deal_id &&
+                     a.details?.phone &&
+                     normalizePhoneNumber(a.details.phone).endsWith(last9)
+            );
+            if (matchingAction?.details?.deal_id) {
+                const { data: d } = await supabase.from('deals').select('id,status').eq('id', matchingAction.details.deal_id).single();
+                if (d && d.status === 'lost') return true;
+                console.log(`🛡️ [SDR Guard] Deal ${matchingAction.details.deal_id} não é 'lost' (status: ${d?.status}). Ignorado.`);
+                return false;
+            }
+        }
 
         if (wasContactedLocally) return true;
 
@@ -1115,6 +1171,12 @@ export async function isEligibleSdrInboundTarget(phone) {
 export async function processInboundLeadTurn({ phone, text, isAudio = false }) {
     const cleanPhone = normalizePhoneNumber(phone);
     console.log(`\n📥 [Vamuss Agent Closer] Processando resposta inbound de +${cleanPhone}: "${text}" (Áudio: ${isAudio})`);
+
+    // 0. BLINDAGEM ABSOLUTA: Números pessoais nunca são processados
+    if (BLOCKED_PERSONAL_PHONES.some(b => cleanPhone.endsWith(b.slice(-9)))) {
+        console.log(`🛡️ [Vamuss Agent Closer] +${cleanPhone} é número pessoal bloqueado. Ignorado absolutamente.`);
+        return { success: false, ignored: true, reason: 'PERSONAL_PHONE_BLOCKED' };
+    }
 
     // Procurar o deal correspondente no CRM
     let dealId = null;
