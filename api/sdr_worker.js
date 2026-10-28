@@ -1764,21 +1764,58 @@ export class SDROperationalWorker {
             this.tick().catch(err => console.error('❌ Erro no tick do worker:', err));
         }, intervalMinutes * 60 * 1000);
 
-        // Agendamento do resumo diário das 17h30 de Segunda a Sexta (Horário de Lisboa)
+        // Agendamento dos ciclos de prospeção espaçados (Horário de Lisboa):
+        // Em vez de disparar as 5 mensagens de uma vez às 09h, o agente espaça ao longo do dia para testar horários:
+        // Slot 1: 10h15 (2 novos leads)
+        // Slot 2: 12h30 (1 novo lead — intervalo de almoço)
+        // Slot 3: 15h15 (1 novo lead — meio da tarde)
+        // Slot 4: 16h40 (1 novo lead + follow-up de silêncio para quem não respondeu)
         try {
-            // Cron matinal: Prospeção autónoma do Agente Comercial Vamuss às 09h15 de Segunda a Sexta
-            cron.schedule('15 9 * * 1-5', async () => {
-                console.log('⏰ [Cron 09h15 Seg-Sex] Disparando Ciclo Autónomo do Agente Comercial Vamuss...');
+            // Slot 1 — 10h15: 2 leads
+            cron.schedule('15 10 * * 1-5', async () => {
+                console.log('⏰ [Cron 10h15 Seg-Sex] Disparando Slot 1 do Agente SDR (2 leads)...');
                 try {
                     const { runAutonomousOutboundCycle } = await import('./vamuss_commercial_agent.js');
-                    await runAutonomousOutboundCycle();
+                    await runAutonomousOutboundCycle({ limit: 2 });
                 } catch (e) {
-                    console.warn('⚠️ [SDR Worker] Erro no cron matinal do Agente Comercial:', e.message);
+                    console.warn('⚠️ [SDR Worker] Erro no Slot 1 das 10h15:', e.message);
                 }
-            }, {
-                timezone: 'Europe/Lisbon'
-            });
-            console.log('📅 [SDR Worker] Cron matinal do Agente Comercial às 09h15 (Europe/Lisbon) ativo.');
+            }, { timezone: 'Europe/Lisbon' });
+
+            // Slot 2 — 12h30: 1 lead
+            cron.schedule('30 12 * * 1-5', async () => {
+                console.log('⏰ [Cron 12h30 Seg-Sex] Disparando Slot 2 do Agente SDR (1 lead - almoço)...');
+                try {
+                    const { runAutonomousOutboundCycle } = await import('./vamuss_commercial_agent.js');
+                    await runAutonomousOutboundCycle({ limit: 3 }); // cumulativo até 3
+                } catch (e) {
+                    console.warn('⚠️ [SDR Worker] Erro no Slot 2 das 12h30:', e.message);
+                }
+            }, { timezone: 'Europe/Lisbon' });
+
+            // Slot 3 — 15h15: 1 lead
+            cron.schedule('15 15 * * 1-5', async () => {
+                console.log('⏰ [Cron 15h15 Seg-Sex] Disparando Slot 3 do Agente SDR (1 lead - tarde)...');
+                try {
+                    const { runAutonomousOutboundCycle } = await import('./vamuss_commercial_agent.js');
+                    await runAutonomousOutboundCycle({ limit: 4 }); // cumulativo até 4
+                } catch (e) {
+                    console.warn('⚠️ [SDR Worker] Erro no Slot 3 das 15h15:', e.message);
+                }
+            }, { timezone: 'Europe/Lisbon' });
+
+            // Slot 4 — 16h40: 1 lead + follow-ups
+            cron.schedule('40 16 * * 1-5', async () => {
+                console.log('⏰ [Cron 16h40 Seg-Sex] Disparando Slot 4 do Agente SDR (fecho de quota e follow-ups)...');
+                try {
+                    const { runAutonomousOutboundCycle } = await import('./vamuss_commercial_agent.js');
+                    await runAutonomousOutboundCycle({ limit: 5 }); // completa a quota de 5
+                } catch (e) {
+                    console.warn('⚠️ [SDR Worker] Erro no Slot 4 das 16h40:', e.message);
+                }
+            }, { timezone: 'Europe/Lisbon' });
+
+            console.log('📅 [SDR Worker] Cadência espaçada ativa: 10h15, 12h30, 15h15 e 16h40 (Europe/Lisbon).');
 
             cron.schedule('30 17 * * 1-5', async () => {
                 console.log('⏰ [Cron 17h30] Disparando resumo diário operacional para o Philipe...');
