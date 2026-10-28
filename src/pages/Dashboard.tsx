@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useCRM } from '@/contexts/CRMContext';
-import { Plus, Settings, Calendar, ChevronDown, Check, Lock, Eye } from 'lucide-react';
+import { Plus, Settings, Calendar, ChevronDown, Check, Lock, Eye, ArrowRight, Sparkles } from 'lucide-react';
 import { Currency } from '@/data/currencies';
 import { getInsightsData, InsightsData } from '@/services/insights';
 import { generateStrategicRecommendations } from '@/services/recommendations';
@@ -263,11 +263,20 @@ export default function Dashboard({ currency }: { currency: Currency }) {
         const openRealActivities = realActivities.filter(a => !a.completed && a.status !== 'canceled');
         const now = new Date();
 
+        // Função de filtro: Tarefas de abordagem fria e cadências automáticas pertencem à área SDR
+        const isSdrOrOutreachActivity = (a: Activity, deal: Deal | null | undefined) => {
+            if (!deal || deal.status !== 'open') return true;
+            const titleLower = (a.title || '').toLowerCase();
+            const isAuto = Boolean(a.isAutomatic || (a as any).is_automatic || (a as any).sequence_id);
+            const isOutreachTitle = titleLower.startsWith('abordagem') || titleLower.includes('sdr') || titleLower.includes('cadência') || titleLower.includes('cadencia');
+            return isAuto || isOutreachTitle;
+        };
+
         const overdueActivities = openRealActivities
             .filter(a => {
                 if (!a.dueDate) return false;
                 const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
-                if (deal && deal.status !== 'open') return false;
+                if (isSdrOrOutreachActivity(a, deal)) return false;
                 const dueDate = parseISO(a.dueDate);
                 return isBefore(dueDate, now) && !isToday(dueDate);
             })
@@ -284,7 +293,7 @@ export default function Dashboard({ currency }: { currency: Currency }) {
             .filter(a => {
                 if (!a.dueDate) return false;
                 const deal = a.dealId ? deals.find(d => d.id === a.dealId) : null;
-                if (deal && deal.status !== 'open') return false;
+                if (isSdrOrOutreachActivity(a, deal)) return false;
                 return isToday(parseISO(a.dueDate));
             })
             .sort((a, b) => {
@@ -293,9 +302,11 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                 return timeA - timeB;
             });
 
-        // Optimized: build Set of dealIds with open activities (O(n) instead of O(n²))
+        // Optimized: build Set of dealIds with open activities (apenas ações reais humanas)
         const dealsWithOpenActivityIds = new Set(
-            openRealActivities.filter(a => a.dealId).map(a => a.dealId!)
+            openRealActivities
+                .filter(a => a.dealId && !isSdrOrOutreachActivity(a, deals.find(d => d.id === a.dealId)))
+                .map(a => a.dealId!)
         );
 
         const dealsWithoutAction = deals.filter(deal =>
@@ -466,8 +477,38 @@ export default function Dashboard({ currency }: { currency: Currency }) {
                             </section>
                         )}
 
-                        {/* BLOCO CUSTOMIZÁVEL - WIDGETS ESTRATÉGICOS */}
+                        {/* BANNER EXECUTIVO - AGENTE COMERCIAL SDR */}
                         <section className="pt-2">
+                            <div className="bg-gradient-to-r from-blue-900/15 via-primary/5 to-transparent border border-blue-500/20 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-500 font-bold shrink-0">
+                                        <Sparkles size={18} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-semibold text-foreground">Agente Comercial Autónomo (SDR)</span>
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                Ativo e Monitorizado
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                            As abordagens automáticas, qualificação SPIN e reaquecimento de negócios perdidos são operados exclusivamente na Área SDR.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleNavigate('/sdr')}
+                                    className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all shrink-0 self-start sm:self-auto shadow-xs cursor-pointer"
+                                >
+                                    <span>Aceder à Área SDR</span>
+                                    <ArrowRight size={14} />
+                                </button>
+                            </div>
+                        </section>
+
+                        {/* BLOCO CUSTOMIZÁVEL - WIDGETS ESTRATÉGICOS */}
+                        <section className="pt-1">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
                                     Widgets Estratégicos

@@ -446,7 +446,19 @@ export const AgentToolImplementations = {
                 continue;
             }
 
-            // 5. Verificar se já foi contactado ou está em handoff no pipeline
+            // 5. Garantia de Idempotência: Nunca contactar o mesmo deal/telefone duas vezes no mesmo dia
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const agentMem = readAgentState();
+            const alreadySentToday = (agentMem.recentActions || []).some(
+                a => a.actionType === 'OUTBOUND_DISPATCH' &&
+                     (a.details?.deal_id === deal.id || a.details?.phone === cleanPhone) &&
+                     a.timestamp?.slice(0, 10) === todayStr
+            );
+            if (alreadySentToday) {
+                continue;
+            }
+
+            // 6. Verificar se já foi contactado ou está em handoff no pipeline
             const pipeEntry = pipelineStore[deal.id];
             if (pipeEntry?.stage === 'agendamento_pendente_humano' || pipeEntry?.stage === 'reuniao_agendada' || pipeEntry?.stage === 'pronto_reabrir') {
                 continue;
@@ -588,9 +600,9 @@ export const AgentToolImplementations = {
 
         // 2. Salvaguarda de horário comercial (09h00-17h00 Europe/Lisbon Seg-Sex)
         const timing = validateDispatchTiming();
-        if (!timing.isWithinHours) {
-            console.warn(`⏰ [Vamuss Agent Tool] Fora de horário comercial (${timing.reason}). Envio bloqueado para proteção do número.`);
-            return { success: false, blocked: true, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.nextWindow };
+        if (!timing.permitido) {
+            console.warn(`⏰ [Vamuss Agent Tool] Fora de horário comercial (${timing.motivo}). Envio bloqueado para proteção do número.`);
+            return { success: false, blocked: true, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.proxima_janela_util };
         }
 
         // 3. Verificar estado do WhatsApp Web
@@ -610,16 +622,18 @@ export const AgentToolImplementations = {
             if (supabase && validDealId) {
                 const { data: deal } = await supabase.from('deals').select('user_id').eq('id', validDealId).single();
                 if (deal?.user_id) {
-                    await supabase.from('activities').insert({
-                        user_id: deal.user_id,
-                        deal_id: validDealId,
-                        type: 'whatsapp',
-                        title: `SDR Autónomo: ${intent}`,
-                        notes: message_text,
-                        date: new Date().toISOString(),
-                        completed: true,
-                        is_automatic: true
-                    }).catch(() => {});
+                    try {
+                        await supabase.from('activities').insert({
+                            user_id: deal.user_id,
+                            deal_id: validDealId,
+                            type: 'whatsapp',
+                            title: `SDR Autónomo: ${intent}`,
+                            notes: message_text,
+                            date: new Date().toISOString(),
+                            completed: true,
+                            is_automatic: true
+                        });
+                    } catch (_) {}
                 }
             }
 
@@ -715,15 +729,17 @@ export const AgentToolImplementations = {
         if (supabase && deal_id) {
             const { data: deal } = await supabase.from('deals').select('user_id').eq('id', deal_id).single();
             if (deal?.user_id) {
-                await supabase.from('activities').insert({
-                    user_id: deal.user_id,
-                    deal_id: deal_id,
-                    type: 'follow_up',
-                    title: `Retorno Agendado pelo SDR para ${return_date}`,
-                    notes: `Lead pediu retorno. Motivo: ${reason}`,
-                    date: `${return_date}T09:30:00Z`,
-                    completed: false
-                }).catch(() => {});
+                try {
+                    await supabase.from('activities').insert({
+                        user_id: deal.user_id,
+                        deal_id: deal_id,
+                        type: 'follow_up',
+                        title: `Retorno Agendado pelo SDR para ${return_date}`,
+                        notes: `Lead pediu retorno. Motivo: ${reason}`,
+                        date: `${return_date}T09:30:00Z`,
+                        completed: false
+                    });
+                } catch (_) {}
             }
         }
 
@@ -746,15 +762,17 @@ export const AgentToolImplementations = {
         });
 
         if (supabase) {
-            await supabase.from('sdr_suppression_list').insert({
-                deal_id: validDealId,
-                telefone_normalizado: cleanPhone,
-                motivo_bloqueio: 'OPTOUT_EXPLICITO',
-                origem_bloqueio: 'AGENTE_AUTONOMO',
-                canal_bloqueado: 'TODOS',
-                evidencia: evidence,
-                estado: 'ativo'
-            }).catch(() => {});
+            try {
+                await supabase.from('sdr_suppression_list').insert({
+                    deal_id: validDealId,
+                    telefone_normalizado: cleanPhone,
+                    motivo_bloqueio: 'OPTOUT_EXPLICITO',
+                    origem_bloqueio: 'AGENTE_AUTONOMO',
+                    canal_bloqueado: 'TODOS',
+                    evidencia: evidence,
+                    estado: 'ativo'
+                });
+            } catch (_) {}
         }
 
         return { success: true, suppressed: true };
@@ -867,6 +885,8 @@ export async function runAgentThinkingLoop(messages, maxIterations = 5) {
     }
 
     const conversationHistory = [...messages];
+    let totalPromptTokens = 0;
+    let totalCompletionTokens = 0;
 
     for (let i = 0; i < maxIterations; i++) {
         console.log(`🤖 [Vamuss Agent Reasoning] Ciclo de raciocínio ${i + 1}/${maxIterations}...`);
@@ -892,6 +912,11 @@ export async function runAgentThinkingLoop(messages, maxIterations = 5) {
         }
 
         const data = await response.json();
+        if (data.usage) {
+            totalPromptTokens += data.usage.prompt_tokens || 0;
+            totalCompletionTokens += data.usage.completion_tokens || 0;
+        }
+
         const choice = data.choices[0];
         const assistantMsg = choice.message;
 
@@ -929,15 +954,33 @@ export async function runAgentThinkingLoop(messages, maxIterations = 5) {
         }
 
         // Se o modelo terminou o raciocínio e respondeu em texto
+        const costUsd = (totalPromptTokens * 2.50 / 1000000) + (totalCompletionTokens * 10.00 / 1000000);
+        console.log(`💰 [Vamuss Agent Cost] Total de tokens: ${totalPromptTokens + totalCompletionTokens} (Prompt: ${totalPromptTokens}, Completion: ${totalCompletionTokens}) -> Custo estimado: $${costUsd.toFixed(4)} USD (~${(costUsd * 0.92).toFixed(4)} €)`);
+
         return {
             finalResponse: assistantMsg.content,
-            history: conversationHistory
+            history: conversationHistory,
+            usage: {
+                promptTokens: totalPromptTokens,
+                completionTokens: totalCompletionTokens,
+                totalTokens: totalPromptTokens + totalCompletionTokens,
+                costUsd,
+                costEur: costUsd * 0.92
+            }
         };
     }
 
+    const costUsd = (totalPromptTokens * 2.50 / 1000000) + (totalCompletionTokens * 10.00 / 1000000);
     return {
         finalResponse: conversationHistory[conversationHistory.length - 1]?.content || 'Concluído.',
-        history: conversationHistory
+        history: conversationHistory,
+        usage: {
+            promptTokens: totalPromptTokens,
+            completionTokens: totalCompletionTokens,
+            totalTokens: totalPromptTokens + totalCompletionTokens,
+            costUsd,
+            costEur: costUsd * 0.92
+        }
     };
 }
 
@@ -958,10 +1001,10 @@ export async function runAutonomousOutboundCycle({ force = false, limit = DAILY_
 
     // 1. Validar se estamos dentro do horário comercial (09h00-17h00 Seg-Sex)
     const timing = validateDispatchTiming();
-    if (!timing.isWithinHours && !force) {
-        console.log(`⏰ [Vamuss Agent] Fora do horário comercial português (${timing.reason}).`);
-        console.log(`   Próxima janela de execução: ${timing.nextWindow}`);
-        return { success: false, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.nextWindow };
+    if (!timing.permitido && !force) {
+        console.log(`⏰ [Vamuss Agent] Fora do horário comercial português (${timing.motivo}).`);
+        console.log(`   Próxima janela de execução: ${timing.proxima_janela_util}`);
+        return { success: false, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.proxima_janela_util };
     }
 
     // 2. Verificar quota diária já disparada hoje
@@ -1006,10 +1049,62 @@ Por favor:
         console.log(result.finalResponse);
         console.log('============================================================\n');
 
-        return { success: true, summary: result.finalResponse };
+        return { success: true, summary: result.finalResponse, usage: result.usage };
     } catch (err) {
         console.error('❌ [Vamuss Agent] Erro fatal no ciclo autónomo:', err.message);
         return { success: false, error: err.message };
+    }
+}
+
+/**
+ * Validação ultrarrápida para o listener do WhatsApp:
+ * Retorna true APENAS se o número for de um negócio perdido do CRM que o Agente abordou.
+ */
+export async function isEligibleSdrInboundTarget(phone) {
+    try {
+        const cleanPhone = normalizePhoneNumber(phone);
+        const last9 = cleanPhone.slice(-9);
+
+        if (isPhoneSuppressedLocally(cleanPhone)) return false;
+
+        const agentMem = readAgentState();
+        const wasContactedLocally = (agentMem.recentActions || []).some(
+            a => a.actionType === 'OUTBOUND_DISPATCH' &&
+                 a.details?.phone &&
+                 normalizePhoneNumber(a.details.phone).endsWith(last9)
+        );
+
+        if (wasContactedLocally) return true;
+
+        if (supabase) {
+            const { data: contacts } = await supabase
+                .from('contacts')
+                .select('id')
+                .or(`phone.ilike.%${last9}%`);
+
+            if (contacts && contacts.length > 0) {
+                const { data: deals } = await supabase
+                    .from('deals')
+                    .select('id')
+                    .eq('contact_id', contacts[0].id)
+                    .eq('status', 'lost')
+                    .limit(1);
+
+                if (deals && deals.length > 0) {
+                    const { data: acts } = await supabase
+                        .from('activities')
+                        .select('id')
+                        .eq('deal_id', deals[0].id)
+                        .ilike('title', '%SDR Autónomo%')
+                        .limit(1);
+
+                    if (acts && acts.length > 0) return true;
+                }
+            }
+        }
+        return false;
+    } catch (_) {
+        return false;
     }
 }
 
@@ -1043,6 +1138,56 @@ export async function processInboundLeadTurn({ phone, text, isAudio = false }) {
                 dealId = deals[0].id;
             }
         }
+    }
+
+    // 1. Blindagem Pessoal: Se o número NÃO existe no CRM de Clínicas, é um contacto pessoal do Philipe. IGNORAR!
+    if (!dealId) {
+        console.log(`🛡️ [Vamuss Agent Closer] Número +${cleanPhone} não pertence a nenhum negócio do CRM. Mensagem pessoal ignorada com sucesso.`);
+        return { success: false, ignored: true, reason: 'PERSONAL_OR_NON_CRM_CONTACT' };
+    }
+
+    // 2. Salvaguarda de Supressão: Se já pediu Opt-Out ou foi suprimido, não responder!
+    if (isPhoneSuppressedLocally(cleanPhone, dealId)) {
+        console.log(`🛑 [Vamuss Agent Closer] Número +${cleanPhone} está na lista de supressão. Nenhuma resposta será enviada.`);
+        return { success: false, suppressed: true, reason: 'LEAD_IS_SUPPRESSED' };
+    }
+
+    // 3. Trava Estrita do Philipe: Apenas responder a negócios PERDIDOS do CRM
+    let dealData = null;
+    if (supabase && dealId) {
+        const { data: d } = await supabase.from('deals').select('id, status, title').eq('id', dealId).single();
+        dealData = d;
+    }
+
+    if (dealData && dealData.status !== 'lost') {
+        console.log(`🛡️ [Vamuss Agent Closer] Negócio "${dealData.title}" não é um negócio perdido (Status: ${dealData.status}). Mensagem ignorada.`);
+        return { success: false, ignored: true, reason: 'NOT_A_LOST_DEAL' };
+    }
+
+    // 4. Trava de Iniciativa do Agente: Só responder se o PRÓPRIO agente enviou mensagem prévia para este número/deal
+    const agentMem = readAgentState();
+    const wasContactedLocally = (agentMem.recentActions || []).some(
+        a => a.actionType === 'OUTBOUND_DISPATCH' &&
+             (a.details?.deal_id === dealId || (a.details?.phone && normalizePhoneNumber(a.details.phone).endsWith(cleanPhone.slice(-9))))
+    );
+
+    let wasContactedInDb = false;
+    if (supabase && dealId) {
+        const { data: sdrActs } = await supabase
+            .from('activities')
+            .select('id')
+            .eq('deal_id', dealId)
+            .ilike('title', '%SDR Autónomo%')
+            .limit(1);
+
+        if (sdrActs && sdrActs.length > 0) {
+            wasContactedInDb = true;
+        }
+    }
+
+    if (!wasContactedLocally && !wasContactedInDb) {
+        console.log(`🛡️ [Vamuss Agent Closer] O número +${cleanPhone} pertence ao CRM mas o Agente Comercial NÃO entrou em contacto com ele previamente. Mensagem ignorada.`);
+        return { success: false, ignored: true, reason: 'NOT_CONTACTED_BY_AGENT' };
     }
 
     const prompt = `
@@ -1096,8 +1241,8 @@ export function setupCommercialAgentRoutes(app) {
                 status: 'ONLINE',
                 operator: { name: OPERATOR_NAME, phone: OPERATOR_PHONE },
                 whatsappWebStatus: waStatus.status,
-                isWithinBusinessHours: timing.isWithinHours,
-                nextBusinessWindow: timing.nextWindow,
+                isWithinBusinessHours: timing.permitido,
+                nextBusinessWindow: timing.proxima_janela_util,
                 memory: state
             });
         } catch (err) {

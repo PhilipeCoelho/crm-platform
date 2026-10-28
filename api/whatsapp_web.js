@@ -297,9 +297,38 @@ export async function initWhatsAppWeb(options = {}) {
 
                     const remoteJid = msg.key.remoteJid || '';
                     // Ignora mensagens de grupos (@g.us) ou status
-                    if (!remoteJid.endsWith('@s.whatsapp.net')) continue;
+                    if (remoteJid.endsWith('@g.us') || remoteJid.includes('status@broadcast')) continue;
 
-                    const fromPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+                    let fromPhone = '';
+                    if (remoteJid.endsWith('@s.whatsapp.net')) {
+                        fromPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+                    } else if (remoteJid.endsWith('@lid')) {
+                        const lid = remoteJid.replace('@lid', '').replace(/\D/g, '');
+                        const reversePath = path.join(AUTH_DIR, `lid-mapping-${lid}_reverse.json`);
+                        if (fs.existsSync(reversePath)) {
+                            try {
+                                fromPhone = JSON.parse(fs.readFileSync(reversePath, 'utf8')).replace(/\D/g, '');
+                            } catch (_) {}
+                        }
+                        if (!fromPhone && msg.key.participant) {
+                            fromPhone = msg.key.participant.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+                        }
+                    }
+
+                    if (!fromPhone) continue;
+
+                    // TRAVA DE SEGURANÇA E PRIVACIDADE DO PHILIPE:
+                    // Apenas processa se for um negócio 'lost' do CRM que foi abordado pelo Agente Comercial Autónomo.
+                    // Qualquer contacto pessoal, amigo, família, grupo ou número fora do escopo é 100% ignorado!
+                    try {
+                        const { isEligibleSdrInboundTarget } = await import('./vamuss_commercial_agent.js');
+                        const isTarget = await isEligibleSdrInboundTarget(fromPhone);
+                        if (!isTarget) {
+                            continue;
+                        }
+                    } catch (_) {
+                        continue;
+                    }
                     
                     // Detetar tipo de mensagem
                     const isAudio = Boolean(msg.message?.audioMessage);

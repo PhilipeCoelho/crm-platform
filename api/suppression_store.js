@@ -120,11 +120,11 @@ export function addLocalSuppression(entry) {
         (async () => {
             try {
                 if (entry.email) {
-                    await supabase.from('unsubscribed_emails').insert({ email: entry.email.toLowerCase().trim() }).catch(() => {});
+                    await supabase.from('unsubscribed_emails').insert({ email: entry.email.toLowerCase().trim() });
                 }
                 if (cleanPhone) {
                     // Armazena também identificador virtual do telefone no unsubscribe para consulta global
-                    await supabase.from('unsubscribed_emails').insert({ email: `phone_${cleanPhone}@vamuss-optout.internal` }).catch(() => {});
+                    await supabase.from('unsubscribed_emails').insert({ email: `phone_${cleanPhone}@vamuss-optout.internal` });
                 }
             } catch (err) {
                 console.warn('⚠️ [Suppression Store] Aviso ao sincronizar com Supabase:', err.message);

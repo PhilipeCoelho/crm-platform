@@ -257,7 +257,13 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             const matchesSearch = directMatch || noSpacesMatch || digitsMatch || wordsMatch;
 
             if (!matchesSearch) return false;
-            if (searchTerm) return true; // Bypass all filters when searching
+
+            const matchesStatus = statusFilter === 'all'
+                ? true
+                : deal.status === statusFilter;
+
+            if (!matchesStatus) return false;
+            if (searchTerm) return true; // Matches search within the current status filter
 
             // Priority / View Mode Logic
             let matchesView = true;
@@ -286,10 +292,6 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
             }
 
             if (!matchesView) return false;
-
-            const matchesStatus = statusFilter === 'all'
-                ? true // Since desqualificado is gone, 'all' means all statuses
-                : deal.status === statusFilter;
 
             const isActuallyActive = statusFilter === 'open' ? deal.status === 'open' : true;
 

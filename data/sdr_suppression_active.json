@@ -1,5 +1,29 @@
 [
   {
+    "id": "supp_1793186414245_lo8o",
+    "deal_id": "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b",
+    "contact_id": null,
+    "telefone_normalizado": "351964851085",
+    "email": null,
+    "motivo": "OPTOUT_EXPLICITO",
+    "motivo_bloqueio": "OPTOUT_EXPLICITO",
+    "estado": "ativo",
+    "canal_bloqueado": "TODOS",
+    "created_at": "2026-10-28T11:20:14.245Z"
+  },
+  {
+    "id": "supp_1793185213087_ckvt",
+    "deal_id": null,
+    "contact_id": null,
+    "telefone_normalizado": "351911830205",
+    "email": null,
+    "motivo": "OPTOUT_EXPLICITO",
+    "motivo_bloqueio": "OPTOUT_EXPLICITO",
+    "estado": "ativo",
+    "canal_bloqueado": "TODOS",
+    "created_at": "2026-10-28T11:00:13.087Z"
+  },
+  {
     "id": "supp_ex_cliente_odontoclinic",
     "deal_id": "ad2470e7-4e66-4cfc-bf53-ddee520369d0",
     "contact_id": "b63e7e84-633c-4e3d-a3d2-a5bd5f84d0e9",

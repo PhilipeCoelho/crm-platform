@@ -356,11 +356,16 @@ export async function getInsightsData(
         );
         const negociosSemAtividade = openDealsIds.size > 0 ? Math.max(0, openDealsIds.size - dealsComAtividadeNoPeriodo.size) : 0;
 
-        // Fase 9: Abordagens
+        // Fase 9: Abordagens da Operação Principal (Exclui reaquecimentos automáticos do SDR)
         const ABORDAGEM_TYPES = ['call', 'email', 'message', 'instagram'];
         const dealsAbordados = new Set(
             periodCompletedActivities
-                .filter(a => ABORDAGEM_TYPES.includes(a.type) && a.deal_id)
+                .filter(a => {
+                    if (!ABORDAGEM_TYPES.includes(a.type) || !a.deal_id) return false;
+                    // Excluir abordagens de reaquecimento do robô SDR em deals perdidos
+                    const isSdrRobot = Boolean((a as any).is_automatic || (a as any).title?.includes('SDR Autónomo') || (a as any).title?.includes('SDR'));
+                    return !isSdrRobot;
+                })
                 .map(a => String(a.deal_id).toLowerCase())
         );
         const abordadosTotal = dealsAbordados.size;
