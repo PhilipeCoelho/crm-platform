@@ -34,8 +34,12 @@ export const COST_LIMITS = {
 
     // Contact Limits
     MAX_MESSAGES_PER_CONTACT: parseInt(process.env.SDR_MAX_MESSAGES_PER_CONTACT || '3', 10),
-    MAX_ATTEMPTS_WITHOUT_RESPONSE: parseInt(process.env.SDR_MAX_ATTEMPTS_WITHOUT_RESPONSE || '2', 10),
+    MAX_ATTEMPTS_WITHOUT_RESPONSE: parseInt(process.env.SDR_MAX_ATTEMPTS_WITHOUT_RESPONSE || '3', 10),
     MAX_NEW_CONTACTS_PER_DAY: parseInt(process.env.SDR_MAX_NEW_CONTACTS_PER_DAY || '10', 10),
+
+    // Limite de Custo Máximo Acumulado por Negócio / Lead (€)
+    // Para gastar o mínimo possível com o maior retorno (ex: tokens GPT + envio)
+    MAX_COST_PER_DEAL: parseFloat(process.env.SDR_MAX_COST_PER_DEAL || '0.15'),
 
     // Concurrency Limit
     MAX_CONCURRENT_TASKS: parseInt(process.env.SDR_MAX_CONCURRENT_TASKS || '3', 10),
@@ -237,7 +241,7 @@ export function checkAndReserveOpenAIBudget({ estimatedTokens = 1500 } = {}) {
 /**
  * Confirma e taxa o custo real da chamada OpenAI após resposta
  */
-export function recordOpenAICost({ reservationId, usage = null, estimatedTokens = 1500 } = {}) {
+export function recordOpenAICost({ reservationId, dealId = null, usage = null, estimatedTokens = 1500 } = {}) {
     const state = readCostsState();
     refreshDateBuckets(state);
 
@@ -259,6 +263,12 @@ export function recordOpenAICost({ reservationId, usage = null, estimatedTokens 
     state.openai.monthCost += actualCost;
     state.openai.monthTokens += totalTokens;
     state.openai.callsCountToday += 1;
+
+    // Atualizar custo acumulado do negócio se informado
+    if (dealId) {
+        state.dealsCost = state.dealsCost || {};
+        state.dealsCost[dealId] = Number(((state.dealsCost[dealId] || 0) + actualCost).toFixed(5));
+    }
 
     // Libertar reserva
     if (reservationId && state.reservations[reservationId]) {
@@ -306,8 +316,19 @@ export function checkAndReserveWhatsAppBudget({ phone, dealId, category = 'MARKE
 
     // 2. Limite de tentativas consecutivas sem resposta
     if (contactInfo.attemptsWithoutResponse >= COST_LIMITS.MAX_ATTEMPTS_WITHOUT_RESPONSE) {
-        const reason = `Contacto com ${contactInfo.attemptsWithoutResponse} tentativas sem resposta. Cadência pausada para evitar saturação.`;
+        const reason = `Contacto com ${contactInfo.attemptsWithoutResponse} tentativas sem resposta. Cadência pausada para evitar saturação e desperdício financeiro.`;
         return { allowed: false, reason, error: 'CONSECUTIVE_UNANSWERED_LIMIT_REACHED' };
+    }
+
+    // 2b. Limite de Custo Total por Negócio (Trava de Valor por Lead)
+    state.dealsCost = state.dealsCost || {};
+    const dealKey = dealId || clean;
+    const currentDealCost = state.dealsCost[dealKey] || 0;
+    if (currentDealCost >= COST_LIMITS.MAX_COST_PER_DEAL) {
+        const reason = `Teto financeiro de €${COST_LIMITS.MAX_COST_PER_DEAL.toFixed(2)} por negócio atingido (gasto atual: €${currentDealCost.toFixed(3)}). Envio bloqueado para maximizar ROI.`;
+        addBlockedReason(state, 'DEAL_BUDGET_CAP_REACHED', reason);
+        writeCostsState(state);
+        return { allowed: false, reason, error: 'DEAL_BUDGET_CAP_REACHED' };
     }
 
     // 3. Determinar custo aplicável
@@ -361,7 +382,7 @@ export function checkAndReserveWhatsAppBudget({ phone, dealId, category = 'MARKE
 /**
  * Confirma o envio de WhatsApp, atualiza contadores e custo real
  */
-export function recordWhatsAppCost({ reservationId, phone, category = 'MARKETING', isDelivered = false } = {}) {
+export function recordWhatsAppCost({ reservationId, phone, dealId, category = 'MARKETING', isDelivered = false } = {}) {
     const state = readCostsState();
     refreshDateBuckets(state);
 
@@ -404,6 +425,13 @@ export function recordWhatsAppCost({ reservationId, phone, category = 'MARKETING
         state.contacts[clean].count += 1;
         state.contacts[clean].attemptsWithoutResponse += 1; // Incrementa até haver resposta inbound
         state.contacts[clean].lastContactAt = new Date().toISOString();
+    }
+
+    // Atualizar custo acumulado por negócio (Trava de Valor por Lead)
+    state.dealsCost = state.dealsCost || {};
+    const dKey = dealId || clean;
+    if (dKey) {
+        state.dealsCost[dKey] = Number(((state.dealsCost[dKey] || 0) + cost).toFixed(4));
     }
 
     if (reservationId && state.reservations[reservationId]) {

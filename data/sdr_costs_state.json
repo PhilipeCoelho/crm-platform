@@ -9,10 +9,10 @@
     "callsCountToday": 1
   },
   "whatsapp": {
-    "todayCost": 0,
-    "todayDispatches": 0,
-    "monthCost": 0,
-    "monthDispatches": 0,
+    "todayCost": 0.194,
+    "todayDispatches": 4,
+    "monthCost": 0.194,
+    "monthDispatches": 4,
     "todayDelivered": 0
   },
   "contacts": {
@@ -21,6 +21,17 @@
       "attemptsWithoutResponse": 2
     }
   },
-  "reservations": {},
-  "blockedReasons": []
+  "reservations": {
+    "res_wa_1793225576056_88g6": {
+      "type": "WHATSAPP",
+      "phone": "914376214",
+      "dealId": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
+      "amount": 0.0485,
+      "category": "MARKETING",
+      "createdAt": "2026-10-28T22:12:56.056Z",
+      "expiresAt": "2026-10-28T22:13:56.056Z"
+    }
+  },
+  "blockedReasons": [],
+  "dealsCost": {}
 }

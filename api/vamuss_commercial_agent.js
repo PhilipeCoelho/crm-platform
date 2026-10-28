@@ -33,6 +33,7 @@ import {
     CALCOM_BOOKING_LINK
 } from './sdr_spin_qualifier.js';
 import { readRecoveryPipelineStore, writeRecoveryPipelineStore } from './sdr_recovery_pipeline.js';
+import { checkAndReserveWhatsAppBudget, recordWhatsAppCost, recordOpenAICost, COST_LIMITS } from './sdr_cost_controller.js';
 
 // Cliente Supabase
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
@@ -446,15 +447,11 @@ export const AgentToolImplementations = {
                 continue;
             }
 
-            // 5. Garantia de Idempotência: Nunca contactar o mesmo deal/telefone duas vezes no mesmo dia
-            const todayStr = new Date().toISOString().slice(0, 10);
-            const agentMem = readAgentState();
-            const alreadySentToday = (agentMem.recentActions || []).some(
-                a => a.actionType === 'OUTBOUND_DISPATCH' &&
-                     (a.details?.deal_id === deal.id || a.details?.phone === cleanPhone) &&
-                     a.timestamp?.slice(0, 10) === todayStr
-            );
-            if (alreadySentToday) {
+            // 5. Trava de Valor / ROI por Negócio (Saturação e Teto de Custo)
+            // Se já atingiu o teto financeiro ou limite de tentativas sem resposta, não insiste
+            const budgetCheck = checkAndReserveWhatsAppBudget({ phone: cleanPhone, dealId: deal.id });
+            if (!budgetCheck.allowed) {
+                console.log(`🛡️ [Vamuss Agent Tool] Negócio ${deal.id} (${cleanPhone}) ignorado: ${budgetCheck.reason}`);
                 continue;
             }
 
@@ -604,18 +601,31 @@ export const AgentToolImplementations = {
             return { success: false, blocked: true, reason: 'SUPPRESSED' };
         }
 
-        // 1b. TRAVA DE IDEMPOTÊNCIA: Nunca enviar 2 mensagens OUTBOUND ao mesmo deal/phone no mesmo dia
-        const todayStr = new Date().toISOString().slice(0, 10);
+        // 1b. TRAVA DE VALOR POR NEGÓCIO & ANTI-REPETIÇÃO:
+        // - Retira a proibição rígida de apenas 1 por dia (permite follow-up em horário/dia diferente)
+        // - Garante que não envia o mesmo texto (anti-repetição)
+        // - Limita o teto financeiro / tentativas totais por negócio para gastar o mínimo com o maior retorno
         const currentState = readAgentState();
-        const alreadySentTodayToThisDeal = (currentState.recentActions || []).some(
+        const budgetCheck = checkAndReserveWhatsAppBudget({ phone: cleanPhone, dealId: deal_id });
+        if (!budgetCheck.allowed) {
+            console.warn(`🛑 [Vamuss Agent Tool] Trava de valor / saturação ativada para +${cleanPhone}: ${budgetCheck.reason}`);
+            return { success: false, blocked: true, reason: budgetCheck.error, detail: budgetCheck.reason };
+        }
+
+        // Validação anti-repetição de conteúdo: não pode repetir a mensagem anterior
+        const pastDispatches = (currentState.recentActions || []).filter(
             a => a.actionType === 'OUTBOUND_DISPATCH' &&
-                 a.timestamp?.slice(0, 10) === todayStr &&
                  (a.details?.deal_id === deal_id || 
                   (a.details?.phone && normalizePhoneNumber(a.details.phone).endsWith(cleanPhone.slice(-9))))
         );
-        if (alreadySentTodayToThisDeal && intent === 'PRIMEIRA_ABORDAGEM') {
-            console.warn(`🛑 [Vamuss Agent Tool] Idempotência: já foi enviada PRIMEIRA_ABORDAGEM hoje para +${cleanPhone} (deal: ${deal_id}). Envio bloqueado.`);
-            return { success: false, blocked: true, reason: 'ALREADY_DISPATCHED_TODAY' };
+        const isDuplicateContent = pastDispatches.some(a => {
+            const snippet = (a.details?.snippet || '').trim().toLowerCase();
+            const newSnippet = message_text.slice(0, 80).trim().toLowerCase();
+            return snippet && newSnippet && (snippet.startsWith(newSnippet.slice(0, 30)) || newSnippet.startsWith(snippet.slice(0, 30)));
+        });
+        if (isDuplicateContent) {
+            console.warn(`🛑 [Vamuss Agent Tool] Mensagem rejeitada por anti-repetição: conteúdo semelhante ao já enviado para +${cleanPhone}.`);
+            return { success: false, blocked: true, reason: 'DUPLICATE_MESSAGE_CONTENT' };
         }
 
         // 2. Salvaguarda de horário comercial (09h00-17h00 Europe/Lisbon Seg-Sex)
@@ -664,6 +674,11 @@ export const AgentToolImplementations = {
                 intent,
                 snippet: message_text.slice(0, 80)
             });
+
+            // Registar custo contabilístico do envio no controlador financeiro
+            try {
+                recordWhatsAppCost({ phone: cleanPhone, dealId: validDealId, reservationId: budgetCheck.reservationId });
+            } catch (_) {}
 
             return { success: true, result };
         } catch (err) {
@@ -846,6 +861,13 @@ SALVAGUARDA DE EX-CLIENTE (NUNCA ABORDAR):
 
 LIBERDADE ESTRATÉGICA E REPERTÓRIO DE ABERTURA DO SDR:
 És um consultor autónomo e sénior, NÃO um robô a repetir guiões ou templates fixos. Tens total margem estratégica para analisar o contexto do CRM e a pesquisa da clínica para criar uma abordagem ÚNICA, viva e personalizada.
+
+INTELIGÊNCIA DE CADÊNCIA & ANTI-REPETIÇÃO OBRIGATÓRIA (TENTATIVAS SUBSEQUENTES):
+- Como SDR de alta performance, tens autonomia para decidir se aguardas ou se fazes nova tentativa noutro dia ou noutro horário (ex: final da tarde vs. manhã) para tentar obter resposta.
+- REGRA ABSOLUTA DE NÃO-REPETIÇÃO: É TERMINANTEMENTE PROIBIDO repetir a abordagem ou ângulo anterior.
+  • Se a 1ª abordagem foi pelo ângulo da especialidade (ex: implantes), a próxima tentativa DEVE mudar completamente de ângulo (ex: sazonalidade, equipa, ou evolução do ano).
+  • NUNCA cobres o silêncio anterior (proibido "Viu a minha mensagem?", "Enviei-lhe mensagem de manhã", etc.). Cada tentativa deve parecer uma nota fresca, leve e independente.
+- MAXIMIZAÇÃO DE ROI & TRAVA DE VALOR: O objetivo é gastar o mínimo possível com o maior retorno. Por isso, cada negócio tem um limite financeiro e um máximo de 3 tentativas sem resposta. Não insistas cegamente onde não há retorno.
 
 ÂNGULOS DE ABERTURA QUE PODES COMBINAR E EXPLORAR LIVREMENTE:
 • Ângulo de Continuidade Histórica: Lembrar com simpatia e elegância o contacto anterior, retomando o fio à meada de forma fluida.
