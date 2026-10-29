@@ -1,5 +1,262 @@
 [
   {
+    "id": "50cc3806-070c-4941-89de-0bc9dcd1a238",
+    "idempotency_key": "30f8f4bd-c526-4bc8-ae65-408cb1a42e59_ANALYZE_DEAL_WHATSAPP_2026-10-29",
+    "deal_id": "30f8f4bd-c526-4bc8-ae65-408cb1a42e59",
+    "contact_id": "e640707a-024c-4e16-965d-99f23151e5c0",
+    "task_type": "ANALYZE_DEAL",
+    "channel": "WHATSAPP",
+    "state": "FALHADA",
+    "priority": "PRIORIDADE_MEDIA",
+    "attempts": 3,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:36:16.135Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Negócio Clínica Médica São João",
+      "contactPerson": "Clínica Médica São João",
+      "phone": "968603468",
+      "lostReason": "Não respondeu",
+      "daysSinceLost": 30,
+      "isNonMessaging": false,
+      "isPilotOutbound": true
+    },
+    "result": null,
+    "error": "Cannot read properties of undefined (reading 'filter')",
+    "created_at": "2026-10-29T00:11:14.665Z",
+    "updated_at": "2026-10-29T00:41:16.386Z"
+  },
+  {
+    "id": "d15dc068-f2a8-46a8-af78-479fa8b1bc26",
+    "idempotency_key": "0b3d3523-6807-479c-8f7c-6a4d727f9a8b_ANALYZE_DEAL_WHATSAPP_2026-10-29",
+    "deal_id": "0b3d3523-6807-479c-8f7c-6a4d727f9a8b",
+    "contact_id": "c6874ee6-64bb-46da-a8ed-c936bd75d0e3",
+    "task_type": "ANALYZE_DEAL",
+    "channel": "WHATSAPP",
+    "state": "FALHADA",
+    "priority": "BAIXA_PRIORIDADE",
+    "attempts": 3,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:36:16.458Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Negócio Clidec - Medicina Dentária",
+      "contactPerson": "Clidec - Medicina Dentária",
+      "phone": "968475424",
+      "lostReason": "Não respondeu - Não respondeu as abordagens",
+      "daysSinceLost": 139,
+      "isNonMessaging": false,
+      "isPilotOutbound": true
+    },
+    "result": null,
+    "error": "Cannot read properties of undefined (reading 'filter')",
+    "created_at": "2026-10-29T00:11:14.644Z",
+    "updated_at": "2026-10-29T00:41:16.838Z"
+  },
+  {
+    "id": "f5dde29e-2c02-4b91-bb12-3ac580c133ce",
+    "idempotency_key": "62d3dc79-2a11-4742-92cb-d6713aa3a6b7_ANALYZE_DEAL_WHATSAPP_2026-10-29",
+    "deal_id": "62d3dc79-2a11-4742-92cb-d6713aa3a6b7",
+    "contact_id": "9f6a6f78-3fd8-4bea-aea3-03e1f671e8ce",
+    "task_type": "ANALYZE_DEAL",
+    "channel": "WHATSAPP",
+    "state": "FALHADA",
+    "priority": "BAIXA_PRIORIDADE",
+    "attempts": 3,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:36:16.685Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Negócio Clínica Médica Jardim",
+      "contactPerson": "Clínica Médica Jardim",
+      "phone": "961 227 251",
+      "lostReason": "Já anunciam",
+      "daysSinceLost": 184,
+      "isNonMessaging": false,
+      "isPilotOutbound": true
+    },
+    "result": null,
+    "error": "Cannot read properties of undefined (reading 'filter')",
+    "created_at": "2026-10-29T00:11:14.609Z",
+    "updated_at": "2026-10-29T00:41:17.245Z"
+  },
+  {
+    "id": "4d600489-3fdd-4a3b-8989-e20959a0e546",
+    "idempotency_key": "ee0b23ff-e65d-4704-b9fa-dd0ceb786365_ANALYZE_DEAL_WHATSAPP_2026-10-29",
+    "deal_id": "ee0b23ff-e65d-4704-b9fa-dd0ceb786365",
+    "contact_id": "1aa64aa0-9545-46d0-a9d3-808dbf2305d5",
+    "task_type": "ANALYZE_DEAL",
+    "channel": "WHATSAPP",
+    "state": "FALHADA",
+    "priority": "BAIXA_PRIORIDADE",
+    "attempts": 3,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:11:13.599Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Negócio Atelier do Sorriso: Dentista Algarve, Harmonização & Rejuvenescimento Facial",
+      "contactPerson": "Atelier do Sorriso: Dentista Algarve, Harmonização & Rejuvenescimento Facial",
+      "phone": "915 550 999",
+      "lostReason": "Não teve interesse",
+      "daysSinceLost": 33,
+      "isNonMessaging": false,
+      "isPilotOutbound": true
+    },
+    "result": null,
+    "error": "Cannot read properties of undefined (reading 'filter')",
+    "created_at": "2026-10-29T00:01:14.833Z",
+    "updated_at": "2026-10-29T00:11:15.873Z"
+  },
+  {
+    "id": "c37d7e75-91a9-4bff-a47d-fa557d434684",
+    "idempotency_key": "d59b02d9-a907-48f6-a4d3-aeef984c4316_ANALYZE_DEAL_WHATSAPP_2026-10-29",
+    "deal_id": "d59b02d9-a907-48f6-a4d3-aeef984c4316",
+    "contact_id": "d1ea6fd3-8645-4f63-a458-4ce862aaafe9",
+    "task_type": "ANALYZE_DEAL",
+    "channel": "WHATSAPP",
+    "state": "FALHADA",
+    "priority": "NAO_ELEGIVEL",
+    "attempts": 3,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:11:14.097Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Negócio Policlínica Asrc Medical, Lda.",
+      "contactPerson": "Policlínica Asrc Medical, Lda.",
+      "phone": "964 998 643",
+      "lostReason": "Não respondeu - não tem interesse",
+      "daysSinceLost": 33,
+      "isNonMessaging": false,
+      "isPilotOutbound": true
+    },
+    "result": null,
+    "error": "Cannot read properties of undefined (reading 'filter')",
+    "created_at": "2026-10-29T00:01:14.814Z",
+    "updated_at": "2026-10-29T00:11:16.111Z"
+  },
+  {
+    "id": "14de163f-5328-4a72-9ad4-c2aab51bddf6",
+    "idempotency_key": "2ee3b134-a111-4624-81b8-c9eef850b5ed_CLOSER_QUALIFICATION_CALL_2026-10-29",
+    "deal_id": "2ee3b134-a111-4624-81b8-c9eef850b5ed",
+    "contact_id": "9819cf5a-6b03-424a-b03e-bf7b76e10677",
+    "task_type": "CLOSER_QUALIFICATION",
+    "channel": "CALL",
+    "state": "EXECUTADA",
+    "priority": "ALTA",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:01:12.936Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "dealId": "2ee3b134-a111-4624-81b8-c9eef850b5ed",
+      "reason": "OPORTUNIDADE_CLOSER_EXISTENTE",
+      "evidence": "Negócio possui reunião, proposta ou manifestação de interesse em aberto."
+    },
+    "result": {
+      "closerAction": "SPIN_ROUTINE_PREPARED",
+      "notes": "Dossiê SPIN preparado e operador notificado para agendamento da Reunião de Diagnóstico.",
+      "closerDossier": {
+        "spinDossier": {
+          "situacao": "Lead respondeu positivamente com prioridade em implantes e pacientes particulares.",
+          "problema": "Dependência de convenções de baixa margem e fluxo imprevisível.",
+          "implicacao": "Cadeiras ociosas em tratamentos de alta rentabilidade.",
+          "necessidadeSolucao": "Sistema Google da Vamuss para captação direta de pacientes pagantes."
+        },
+        "proximaAcaoCloser": "AGENDAR_REUNIAO_DIAGNOSTICO_20MIN",
+        "propostaValorAlinhada": "Ajudamos clínicas dentárias em Portugal a atrair pacientes particulares para tratamentos rentáveis (implantes e reabilitação) via Google sem dependência de redes sociais.",
+        "pitchSugerido": "Excelente, Dr. O nosso modelo foca-se precisamente na pesquisa ativa no Google para pacientes particulares com necessidade imediata de implantes. Faz sentido reservarmos 20 minutos esta semana para um diagnóstico do potencial da sua zona?"
+      }
+    },
+    "error": null,
+    "created_at": "2026-10-29T00:01:12.936Z",
+    "updated_at": "2026-10-29T00:01:16.229Z",
+    "completed_at": "2026-10-29T00:01:16.229Z"
+  },
+  {
+    "id": "0d827fa6-e64f-4bf8-ab41-03f21fd1dffd",
+    "idempotency_key": "fc3cbc07-b9c1-40ed-80a6-3fced93a16bb_CLOSER_QUALIFICATION_CALL_2026-10-29",
+    "deal_id": "fc3cbc07-b9c1-40ed-80a6-3fced93a16bb",
+    "contact_id": "d75d027f-2e12-4206-981b-4c286203aede",
+    "task_type": "CLOSER_QUALIFICATION",
+    "channel": "CALL",
+    "state": "EXECUTADA",
+    "priority": "ALTA",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:01:12.922Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "dealId": "fc3cbc07-b9c1-40ed-80a6-3fced93a16bb",
+      "reason": "OPORTUNIDADE_CLOSER_EXISTENTE",
+      "evidence": "Negócio possui reunião, proposta ou manifestação de interesse em aberto."
+    },
+    "result": {
+      "closerAction": "SPIN_ROUTINE_PREPARED",
+      "notes": "Dossiê SPIN preparado e operador notificado para agendamento da Reunião de Diagnóstico.",
+      "closerDossier": {
+        "spinDossier": {
+          "situacao": "Lead respondeu positivamente com prioridade em implantes e pacientes particulares.",
+          "problema": "Dependência de convenções de baixa margem e fluxo imprevisível.",
+          "implicacao": "Cadeiras ociosas em tratamentos de alta rentabilidade.",
+          "necessidadeSolucao": "Sistema Google da Vamuss para captação direta de pacientes pagantes."
+        },
+        "proximaAcaoCloser": "AGENDAR_REUNIAO_DIAGNOSTICO_20MIN",
+        "propostaValorAlinhada": "Ajudamos clínicas dentárias em Portugal a atrair pacientes particulares para tratamentos rentáveis (implantes e reabilitação) via Google sem dependência de redes sociais.",
+        "pitchSugerido": "Excelente, Dr. O nosso modelo foca-se precisamente na pesquisa ativa no Google para pacientes particulares com necessidade imediata de implantes. Faz sentido reservarmos 20 minutos esta semana para um diagnóstico do potencial da sua zona?"
+      }
+    },
+    "error": null,
+    "created_at": "2026-10-29T00:01:12.922Z",
+    "updated_at": "2026-10-29T00:01:16.458Z",
+    "completed_at": "2026-10-29T00:01:16.458Z"
+  },
+  {
+    "id": "12343b52-083f-4f25-b629-2805aaa951ce",
+    "idempotency_key": "f78838ba-250e-40a4-80b2-82976870eea2_CLOSER_QUALIFICATION_CALL_2026-10-29",
+    "deal_id": "f78838ba-250e-40a4-80b2-82976870eea2",
+    "contact_id": "8abb4af6-27f3-4fd8-82ef-228bbd0d27c0",
+    "task_type": "CLOSER_QUALIFICATION",
+    "channel": "CALL",
+    "state": "EXECUTADA",
+    "priority": "ALTA",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T00:01:12.905Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "dealId": "f78838ba-250e-40a4-80b2-82976870eea2",
+      "reason": "OPORTUNIDADE_CLOSER_EXISTENTE",
+      "evidence": "Negócio possui reunião, proposta ou manifestação de interesse em aberto."
+    },
+    "result": {
+      "closerAction": "SPIN_ROUTINE_PREPARED",
+      "notes": "Dossiê SPIN preparado e operador notificado para agendamento da Reunião de Diagnóstico.",
+      "closerDossier": {
+        "spinDossier": {
+          "situacao": "Lead respondeu positivamente com prioridade em implantes e pacientes particulares.",
+          "problema": "Dependência de convenções de baixa margem e fluxo imprevisível.",
+          "implicacao": "Cadeiras ociosas em tratamentos de alta rentabilidade.",
+          "necessidadeSolucao": "Sistema Google da Vamuss para captação direta de pacientes pagantes."
+        },
+        "proximaAcaoCloser": "AGENDAR_REUNIAO_DIAGNOSTICO_20MIN",
+        "propostaValorAlinhada": "Ajudamos clínicas dentárias em Portugal a atrair pacientes particulares para tratamentos rentáveis (implantes e reabilitação) via Google sem dependência de redes sociais.",
+        "pitchSugerido": "Excelente, Dr. O nosso modelo foca-se precisamente na pesquisa ativa no Google para pacientes particulares com necessidade imediata de implantes. Faz sentido reservarmos 20 minutos esta semana para um diagnóstico do potencial da sua zona?"
+      }
+    },
+    "error": null,
+    "created_at": "2026-10-29T00:01:12.905Z",
+    "updated_at": "2026-10-29T00:01:16.557Z",
+    "completed_at": "2026-10-29T00:01:16.557Z"
+  },
+  {
     "id": "824c183a-545c-41d6-a0ad-44f662daf7cb",
     "idempotency_key": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce_DISPATCH_MESSAGE_WHATSAPP_2026-10-28",
     "deal_id": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce",

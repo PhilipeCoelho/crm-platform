@@ -238,18 +238,5 @@
     "estado": "ativo",
     "canal_bloqueado": "TODOS",
     "created_at": "2026-10-19T22:14:19.541Z"
-  },
-  {
-    "id": "supp_tagides_optout_20261027",
-    "deal_id": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
-    "contact_id": "e272cdd2-7f56-4960-b4ad-8ba63bd5a017",
-    "telefone_normalizado": "351914376214",
-    "motivo": "OPTOUT_EXPLICITO",
-    "motivo_bloqueio": "OPTOUT_EXPLICITO",
-    "estado": "ativo",
-    "canal_bloqueado": "TODOS",
-    "optout_message": "Por favor retirem o meu número, não quero receber mais mensagens",
-    "created_at": "2026-10-27T21:11:22.000Z",
-    "notes": "Tágides: pediu remoção às 21:11 de 27/10/2026. Enviou opt-out explícito após resposta inicial de interesse."
   }
 ]
