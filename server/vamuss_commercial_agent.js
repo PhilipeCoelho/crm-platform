@@ -23,7 +23,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendWhatsAppWebMessage, getWhatsAppWebStatus } from './whatsapp_web.js';
 import { isWithinBusinessHours, validateDispatchTiming } from './sdr_business_hours.js';
 import { isPhoneSuppressedLocally, addLocalSuppression } from './suppression_store.js';
-import { generateClinicDossier } from './sdr_web_research.js';
+import { generateClinicDossier, readDossiersStore } from './sdr_web_research.js';
 import {
     getOrCreateSpinState,
     analyzeInboundSpinProgress,
@@ -724,6 +724,23 @@ export const AgentToolImplementations = {
         if (forbiddenCliches.some(c => textLower.includes(c))) {
             console.warn(`🛑 [Sanity Check] REJEITADA: Cliché vazio proibido detectado na mensagem. Bloqueada.`);
             return { success: false, blocked: true, reason: 'EMPTY_CLICHE_DETECTED' };
+        }
+
+        // 4. Proibição estrita de invenção de especialidades clínicas sem suporte factual:
+        // Se a mensagem citar tratamentos específicos (implantes, alinhadores, facetas), exige que venha de factos reais
+        const specificTreatments = ['implante', 'ortodontia', 'invisalign', 'faceta', 'alinhador', 'reabilitaç'];
+        const mentionsSpecificTreatment = specificTreatments.some(t => textLower.includes(t));
+        
+        // Bloquear frases modelo copiadas integralmente do prompt
+        if (textLower.includes('como implantes e reabilitações') || textLower.includes('como implantes e reabilitação')) {
+            // Verificar se temos website comprovado que realmente destaca este tratamento
+            const dossierStore = readDossiersStore();
+            const dealDossier = deal_id ? dossierStore[deal_id] : null;
+            const hasVerifiedTreatment = (dealDossier?.verifiedFacts || []).some(f => (f.fact || '').toLowerCase().includes('implante'));
+            if (!hasVerifiedTreatment && (!dealDossier?.siteAnalysis?.highlightedTreatments || dealDossier.siteAnalysis.highlightedTreatments.length === 0)) {
+                console.warn(`🛑 [Sanity Check] REJEITADA: A abordagem usou a fórmula padrão ("implantes e reabilitações") sem comprovação factual no website da clínica.`);
+                return { success: false, blocked: true, reason: 'UNVERIFIED_GENERIC_TREATMENT_FORMULA' };
+            }
         }
         // 3.1 Idempotência rígida: se já foi enviada PRIMEIRA_ABORDAGEM para este número ou deal, rejeita novo envio imediato
         if (intent === 'PRIMEIRA_ABORDAGEM') {
