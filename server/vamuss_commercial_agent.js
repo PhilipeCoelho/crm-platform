@@ -456,8 +456,8 @@ export const AgentToolImplementations = {
             }
 
             // 6. Verificar se já foi contactado ou está em handoff no pipeline
-            const pipeEntry = pipelineStore[deal.id];
-            if (pipeEntry?.stage === 'agendamento_pendente_humano' || pipeEntry?.stage === 'reuniao_agendada' || pipeEntry?.stage === 'pronto_reabrir') {
+            const pipeEntry = pipelineStore.deals ? pipelineStore.deals[deal.id] : pipelineStore[deal.id];
+            if (pipeEntry?.stage === 'mensagem_enviada' || pipeEntry?.stage === 'em_conversa' || pipeEntry?.stage === 'agendamento_pendente_humano' || pipeEntry?.stage === 'reuniao_agendada' || pipeEntry?.stage === 'pronto_reabrir') {
                 continue;
             }
 
@@ -692,19 +692,17 @@ export const AgentToolImplementations = {
             console.warn(`🛑 [Sanity Check] REJEITADA: Cliché vazio proibido ("espero que esteja tudo bem"). Bloqueada.`);
             return { success: false, blocked: true, reason: 'EMPTY_CLICHE_DETECTED' };
         }
-        const pastDispatches = (currentState.recentActions || []).filter(
-            a => a.actionType === 'OUTBOUND_DISPATCH' &&
-                 (a.details?.deal_id === deal_id || 
-                  (a.details?.phone && normalizePhoneNumber(a.details.phone).endsWith(cleanPhone.slice(-9))))
-        );
-        const isDuplicateContent = pastDispatches.some(a => {
-            const snippet = (a.details?.snippet || '').trim().toLowerCase();
-            const newSnippet = message_text.slice(0, 80).trim().toLowerCase();
-            return snippet && newSnippet && (snippet.startsWith(newSnippet.slice(0, 30)) || newSnippet.startsWith(snippet.slice(0, 30)));
-        });
-        if (isDuplicateContent) {
-            console.warn(`🛑 [Vamuss Agent Tool] Mensagem rejeitada por anti-repetição: conteúdo semelhante ao já enviado para +${cleanPhone}.`);
-            return { success: false, blocked: true, reason: 'DUPLICATE_MESSAGE_CONTENT' };
+        // 3.1 Idempotência rígida: se já foi enviada PRIMEIRA_ABORDAGEM para este número ou deal, rejeita novo envio imediato
+        if (intent === 'PRIMEIRA_ABORDAGEM') {
+            const alreadyApproached = (currentState.recentActions || []).some(
+                a => a.actionType === 'OUTBOUND_DISPATCH' &&
+                     (a.details?.deal_id === deal_id || 
+                      (a.details?.phone && normalizePhoneNumber(a.details.phone).endsWith(cleanPhone.slice(-9))))
+            );
+            if (alreadyApproached) {
+                console.warn(`🛑 [Vamuss Agent Tool] Mensagem rejeitada por idempotência: o número +${cleanPhone} ou Deal ${deal_id} já recebeu PRIMEIRA_ABORDAGEM.`);
+                return { success: false, blocked: true, reason: 'ALREADY_APPROACHED_OUTBOUND' };
+            }
         }
 
         // 2. Salvaguarda de horário comercial (09h00-17h00 Europe/Lisbon Seg-Sex)

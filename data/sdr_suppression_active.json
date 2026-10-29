@@ -1,5 +1,17 @@
 [
   {
+    "id": "supp_1793272753861_yov7",
+    "deal_id": null,
+    "contact_id": null,
+    "telefone_normalizado": null,
+    "email": null,
+    "motivo": "OPTOUT_EXPLICITO",
+    "motivo_bloqueio": "OPTOUT_EXPLICITO",
+    "estado": "ativo",
+    "canal_bloqueado": "TODOS",
+    "created_at": "2026-10-29T11:19:13.861Z"
+  },
+  {
     "id": "supp_1793186414245_lo8o",
     "deal_id": "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b",
     "contact_id": null,
