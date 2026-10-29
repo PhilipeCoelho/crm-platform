@@ -533,11 +533,15 @@ export const AgentToolImplementations = {
 
         (activities || []).forEach(act => {
             if (act.type === 'message' || act.type === 'whatsapp' || act.type === 'email') {
+                const actDate = act.date ? new Date(act.date) : null;
+                const hoursAgo = actDate ? Math.round((Date.now() - actDate.getTime()) / (1000 * 60 * 60)) : 9999;
                 relationshipFacts.push({
                     tipo: `CONTACTO_${act.type.toUpperCase()}`,
                     data: act.date?.slice(0, 10),
+                    horas_atras: hoursAgo,
+                    foi_recente: hoursAgo <= 72,
                     titulo: act.title,
-                    resumo: act.notes || 'Mensagem enviada anteriormente pelo Philipe'
+                    resumo: act.notes || 'Mensagem enviada anteriormente'
                 });
             } else if (act.type === 'status_change') {
                 if (act.notes && !act.notes.includes(deal.lost_reason || '___')) {
@@ -927,6 +931,15 @@ O trabalho do SDR é reabrir o diálogo a partir do histórico do CRM, com base 
 - NUNCA desmereças concorrentes: NUNCA ataques equipas ou agências existentes (proibido falar de "apenas likes e seguidores" ou diminuir ninguém).
 - NUNCA incluas avisos de opt-out no texto ("se não fizer sentido retiro o contacto"): isso soa a bot de spam e mata a conversa.
 - Abertura curta e cirúrgica: 2 a 3 linhas no máximo, citando o contexto real e terminando com UMA pergunta amigável e fácil de responder.
+
+REGRA DE CADÊNCIA E MEMÓRIA DE DIÁLOGO (PROIBIDO SOAR A AMNÉSIA):
+- Se enviaste uma mensagem ontem ou anteontem e a clínica ainda não respondeu:
+  • É TERMINANTEMENTE PROIBIDO fingir que o contacto de ontem não existiu ou recomeçar com "Há uns meses falámos..." ou "Em março falaram com o Philipe...".
+  • Isso faz parecer que a empresa tem amnésia ou que é um robô desgovernado a disparar scripts frios!
+  • Se já abordaste a clínica ontem/recentemente (vê o campo 'foi_recente' ou 'horas_atras' nas atividades), só tens duas opções:
+    1. Respeitar o tempo da clínica e NÃO enviar nada (deixar a cadência respirar 48h a 72h).
+    2. Se for um toque de acompanhamento leve no final da tarde, sê transparente e natural: "Olá! Apenas um breve toque para garantir que a minha mensagem de ontem não se perdeu na correria das consultas aí na clínica..."
+- NUNCA trates como "primeira abordagem de março" um lead a quem mandaste mensagem há 24 horas!
 
 DISTINÇÃO CRÍTICA & BLINDAGEM DE NOTAS INTERNAS DO PHILIPE:
 - O campo de motivo da perda no CRM frequentemente contém anotações pessoais e confidenciais do Philipe (ex: "já tem agência", "já anunciam", "já tem equipa", "fora de perfil", "grupo grande").
