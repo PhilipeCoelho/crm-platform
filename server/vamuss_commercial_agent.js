@@ -891,6 +891,20 @@ export const AgentToolImplementations = {
             } catch (_) {}
         }
 
+        // Mover deal no Recovery Pipeline para 'nao_reativado' (para sair de 'mensagem_enviada')
+        if (validDealId) {
+            try {
+                const pipe = readRecoveryPipelineStore();
+                if (pipe.deals && pipe.deals[validDealId]) {
+                    pipe.deals[validDealId].stage = 'nao_reativado';
+                    pipe.deals[validDealId].notes = `Opt-Out registado: ${evidence.slice(0, 100)}`;
+                    pipe.deals[validDealId].isSuppressed = true;
+                    writeRecoveryPipelineStore(pipe);
+                    console.log(`📌 [Vamuss Agent Tool] Deal ${validDealId} movido para 'nao_reativado' no Recovery Pipeline.`);
+                }
+            } catch (_) {}
+        }
+
         return { success: true, suppressed: true };
     },
 

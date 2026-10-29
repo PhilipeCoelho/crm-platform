@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-10-29T11:34:20.417Z",
+  "lastUpdated": "2026-10-29T12:03:27.020Z",
   "deals": {
     "8ce16830-e490-4f39-afc8-f263163d9feb": {
       "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
@@ -4633,7 +4633,7 @@
       "lostReason": "Não teve interesse - sem interesse",
       "lostAt": "2026-09-25T12:35:31.435+00:00",
       "daysSinceLost": 33,
-      "stage": "mensagem_enviada",
+      "stage": "nao_reativado",
       "owner": "IA",
       "assignedTo": null,
       "eligibilityStatus": "Elegível",
@@ -4655,7 +4655,8 @@
         "revisaoHumana": false,
         "cooldownAtivo": false
       },
-      "notes": ""
+      "notes": "Opt-Out registado: Sem interesse (Clínica Blag)",
+      "isSuppressed": true
     },
     "11a4b7e8-914f-48d8-820c-443acf5d3563": {
       "dealId": "11a4b7e8-914f-48d8-820c-443acf5d3563",

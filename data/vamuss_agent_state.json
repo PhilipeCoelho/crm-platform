@@ -1,6 +1,6 @@
 {
   "totalOutboundsSent": 10,
-  "totalRepliesHandled": 9,
+  "totalRepliesHandled": 10,
   "totalMeetingsBooked": 0,
   "dailyDispatches": {
     "2026-10-27": 0,
@@ -8,6 +8,16 @@
     "2026-10-29": 2
   },
   "recentActions": [
+    {
+      "timestamp": "2026-10-29T12:02:55.566Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351936028384",
+        "clinicName": "Blag",
+        "textSnippet": "Bom dia, não temos interesse. Obrigado.",
+        "agentResolution": "A clínica \"Blag\" foi removida da nossa lista de contactos conforme o pedido de opt-out. Se precisar "
+      }
+    },
     {
       "timestamp": "2026-10-29T10:15:12.557Z",
       "actionType": "OUTBOUND_DISPATCH",
