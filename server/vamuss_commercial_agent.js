@@ -591,12 +591,32 @@ export const AgentToolImplementations = {
     async research_clinic_online({ deal_id, clinic_name, city = '', website = '' }) {
         console.log(`🌐 [Vamuss Agent Tool] A investigar clinicamente "${clinic_name}" (${city})...`);
 
+        let targetWebsite = website;
+
+        // Se o website não foi passado explicitamente, extrair do e-mail institucional no CRM
+        if (!targetWebsite && supabase && deal_id) {
+            try {
+                const { data: d } = await supabase.from('deals').select('contact_id').eq('id', deal_id).single();
+                if (d?.contact_id) {
+                    const { data: c } = await supabase.from('contacts').select('email, notes').eq('id', d.contact_id).single();
+                    if (c?.email && c.email.includes('@')) {
+                        const emailDomain = c.email.split('@')[1]?.toLowerCase().trim();
+                        const isGeneric = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'sapo.pt', 'live.com'].includes(emailDomain);
+                        if (!isGeneric && emailDomain.includes('.')) {
+                            targetWebsite = `https://${emailDomain}`;
+                            console.log(`🔎 [Web Research] Domínio institucional descoberto a partir do e-mail (${c.email}): ${targetWebsite}`);
+                        }
+                    }
+                }
+            } catch (_) {}
+        }
+
         try {
             const dossier = await generateClinicDossier({
                 dealId: deal_id,
                 clinicName: clinic_name,
                 concelho: city,
-                websiteUrl: website
+                websiteUrl: targetWebsite
             });
 
             // Filtro rigoroso: nunca permitir ganchos de amador como "não aparece no Google para..."
@@ -615,6 +635,7 @@ export const AgentToolImplementations = {
             return {
                 success: true,
                 has_website: Boolean(dossier.siteAnalysis?.hasWebsite),
+                website_url: dossier.siteAnalysis?.url || targetWebsite || null,
                 treatments: dossier.siteAnalysis?.highlightedTreatments || [],
                 rating: dossier.visibilityAnalysis?.rating || null,
                 reviews_count: dossier.visibilityAnalysis?.reviewCount || null,

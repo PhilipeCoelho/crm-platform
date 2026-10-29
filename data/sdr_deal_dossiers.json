@@ -1230,39 +1230,6 @@
     },
     "savedAt": "2026-10-29T12:30:07.525Z"
   },
-  "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": {
-    "dealId": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
-    "clinicName": "Clinicosta – Médicos Dentistas",
-    "concelho": null,
-    "researchedAt": "2026-10-29T15:15:08.778Z",
-    "expiresAt": "2026-11-28T15:15:08.778Z",
-    "hasReliableData": false,
-    "siteAnalysis": {
-      "hasWebsite": false,
-      "reason": "URL inválido ou não fornecido"
-    },
-    "visibilityAnalysis": {
-      "checked": true,
-      "clinicName": "Clinicosta – Médicos Dentistas",
-      "concelho": "",
-      "searchQueries": [
-        "implantes dentários Portugal",
-        "clínica dentária Portugal"
-      ],
-      "appearsInTopOrganic": false,
-      "rating": null,
-      "reviewCount": null,
-      "source": "Pesquisa Web e Diretórios",
-      "extractedAt": "2026-10-29T15:15:08.777Z"
-    },
-    "verifiedFacts": [],
-    "antiHallucinationCheck": {
-      "strictSourceRequired": true,
-      "maxFactsPerMessage": 1,
-      "relyOnCRMOnlyIfEmpty": true
-    },
-    "savedAt": "2026-10-29T15:15:08.779Z"
-  },
   "57e3cf36-c600-4d3a-b71f-1c21bd937bfd": {
     "dealId": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
     "clinicName": "Clínica Colombo e Silva",
@@ -1394,5 +1361,65 @@
       "relyOnCRMOnlyIfEmpty": true
     },
     "savedAt": "2026-10-29T15:31:00.987Z"
+  },
+  "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": {
+    "dealId": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+    "clinicName": "Clinicosta – Médicos Dentistas",
+    "concelho": null,
+    "researchedAt": "2026-10-29T16:23:19.968Z",
+    "expiresAt": "2026-11-28T16:23:19.968Z",
+    "hasReliableData": true,
+    "siteAnalysis": {
+      "hasWebsite": true,
+      "url": "https://clinicosta.pt/",
+      "accessible": true,
+      "highlightedTreatments": [
+        "Implantes Dentários / Implantologia",
+        "Ortodontia / Alinhadores Invisíveis",
+        "Estética Dental e Facetas",
+        "Periodontologia",
+        "Odontopediatria"
+      ],
+      "hasOnlineBooking": true,
+      "teamSizeDetected": null,
+      "servicesSourceUrl": "https://clinicosta.pt/servicos",
+      "extractedAt": "2026-10-29T16:23:19.416Z"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clinicosta – Médicos Dentistas",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T16:23:19.968Z"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_SITE_TREATMENTS",
+        "category": "TREATMENTS",
+        "fact": "A clínica promove e destaca no seu website tratamentos de Implantes Dentários / Implantologia e Ortodontia / Alinhadores Invisíveis.",
+        "source": "Website da clínica (https://clinicosta.pt/servicos)",
+        "confidence": "HIGH"
+      },
+      {
+        "factId": "FACT_SITE_BOOKING",
+        "category": "BOOKING",
+        "fact": "A clínica disponibiliza canais diretos de marcação/agendamento online para primeiras consultas.",
+        "source": "Website da clínica (https://clinicosta.pt/)",
+        "confidence": "HIGH"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false
+    },
+    "savedAt": "2026-10-29T16:23:19.969Z"
   }
 }
