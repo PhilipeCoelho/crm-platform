@@ -1,4 +1,9 @@
 {
+    "functions": {
+        "api/index.js": {
+            "includeFiles": "api/**"
+        }
+    },
     "crons": [
         {
             "path": "/api/ping-db",
