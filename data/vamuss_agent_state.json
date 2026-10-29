@@ -1,13 +1,153 @@
 {
-  "totalOutboundsSent": 13,
-  "totalRepliesHandled": 11,
+  "totalOutboundsSent": 22,
+  "totalRepliesHandled": 16,
   "totalMeetingsBooked": 0,
   "dailyDispatches": {
     "2026-10-27": 0,
     "2026-10-28": 5,
-    "2026-10-29": 5
+    "2026-10-29": 14
   },
   "recentActions": [
+    {
+      "timestamp": "2026-10-29T15:45:51.356Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351969666941",
+        "clinicName": "Sara Correia Dental Clinic",
+        "textSnippet": "Boa tarde\nQuer marcar alguma consulta ou vem por parte de al",
+        "agentResolution": "Enviei uma mensagem para a clínica \"Sara Correia Dental Clinic\" a explicar que estou a contactar em "
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:45:50.152Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "0d9bd073-6863-4544-b462-cae2808ce6d8",
+        "phone": "351969666941",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Obrigado pela rápida resposta! Estou a contactar em nome da Vamuss, uma empresa "
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:45:26.370Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351914056228",
+        "clinicName": "Dra. Pamella Pessoa",
+        "textSnippet": "Olá, não tem nenhuma Pamella neste número",
+        "agentResolution": "Registei o pedido de opt-out para o número fornecido, garantindo que não haverá mais contactos futur"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:40:23.878Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351969666941",
+        "clinicName": "Sara Correia Dental Clinic",
+        "textSnippet": "Bem vindo(a) a Sara Correia Dental Clinic! \nPara conseguirmo",
+        "agentResolution": "A mensagem foi enviada com sucesso para a \"Sara Correia Dental Clinic\", pedindo o encaminhamento ao "
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:40:22.406Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "0d9bd073-6863-4544-b462-cae2808ce6d8",
+        "phone": "351969666941",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Obrigado pela rápida atenção! Tinha deixado a mensagem acima para a direção da c"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:48.928Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351937565107",
+        "clinicName": "Clínica Catarina Fontes",
+        "textSnippet": "Obrigado por nos contactar! Estamos à sua disposição. Clinic",
+        "agentResolution": "Enviei uma mensagem à Clínica Catarina Fontes, agradecendo pela rápida atenção e pedindo o encaminha"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:47.939Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911",
+        "phone": "351937565107",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Obrigado pela rápida atenção! Tinha deixado a mensagem acima para a direção da c"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:45.260Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351912947745",
+        "clinicName": "Clínica Colombo e Silva",
+        "textSnippet": "Olá! Está a contatar a Colombo & Silva Dental Clinic 🦷\nAgra",
+        "agentResolution": "A mensagem foi enviada com sucesso para a Clínica Colombo e Silva, solicitando o encaminhamento ao r"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:43.943Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
+        "phone": "351912947745",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Obrigado pela rápida atenção! Tinha deixado a mensagem acima para a direção da c"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:42.350Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911",
+        "phone": "351937565107",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Boa tarde, Clínica Catarina Fontes! Tenho observado o vosso foco em tratamentos "
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:41.039Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+        "phone": "351914056228",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Dra. Pamella, boa tarde! Tenho acompanhado o foco em tratamentos particulares na"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:40.266Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "0d9bd073-6863-4544-b462-cae2808ce6d8",
+        "phone": "351969666941",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá! A Sara Correia Dental Clinic é conhecida pelo seu acompanhamento em tratame"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:39.094Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "62d3dc79-2a11-4742-92cb-d6713aa3a6b7",
+        "phone": "351961227251",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Boa tarde! A Clínica Médica Jardim tem uma abordagem especializada em tratamento"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:31:37.717Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
+        "phone": "351912947745",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá, boa tarde! Notei que a Clínica Colombo e Silva tem um foco especial em trat"
+      }
+    },
     {
       "timestamp": "2026-10-29T15:15:21.770Z",
       "actionType": "INBOUND_REPLY",

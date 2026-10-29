@@ -758,11 +758,37 @@ export const AgentToolImplementations = {
 
             // Atualizar estado de memória do Agente
             recordAgentAction('OUTBOUND_DISPATCH', {
-                deal_id,
+                deal_id: validDealId || deal_id,
                 phone: cleanPhone,
                 intent,
                 snippet: message_text.slice(0, 80)
             });
+
+            // Sincronizar estágio no Recovery Pipeline
+            if (validDealId) {
+                try {
+                    const pipe = readRecoveryPipelineStore();
+                    pipe.deals = pipe.deals || {};
+                    if (!pipe.deals[validDealId]) {
+                        pipe.deals[validDealId] = {
+                            dealId: validDealId,
+                            title: `Negócio ${cleanPhone}`,
+                            stage: intent === 'PRIMEIRA_ABORDAGEM' ? 'mensagem_enviada' : 'em_conversa',
+                            phone: cleanPhone,
+                            lastContactedAt: new Date().toISOString(),
+                            notes: message_text.slice(0, 100)
+                        };
+                    } else {
+                        if (intent === 'PRIMEIRA_ABORDAGEM' && pipe.deals[validDealId].stage === 'perdidos_qualificados') {
+                            pipe.deals[validDealId].stage = 'mensagem_enviada';
+                        } else if (intent === 'RESPOSTA_SPIN') {
+                            pipe.deals[validDealId].stage = 'em_conversa';
+                        }
+                        pipe.deals[validDealId].lastContactedAt = new Date().toISOString();
+                    }
+                    writeRecoveryPipelineStore(pipe);
+                } catch (_) {}
+            }
 
             // Registar custo contabilístico do envio no controlador financeiro
             try {
@@ -1281,6 +1307,38 @@ const BLOCKED_PERSONAL_PHONES = [
 ];
 
 /**
+ * Deteta rigorosamente se a mensagem recebida é uma resposta automática / auto-reply / ausência
+ * de WhatsApp Business ou bot de recepção.
+ */
+export function isClinicAutoReply(rawText) {
+    if (!rawText) return false;
+    const text = rawText.toLowerCase().trim();
+
+    const autoReplyPatterns = [
+        /obrigad[oa] por nos contactar/i,
+        /obrigad[oa] por entrar em contacto/i,
+        /obrigad[oa] pelo seu contacto/i,
+        /estamos [àa] sua disposi[çc][ãa]o/i,
+        /está a contactar a /i,
+        /está a contatar a /i,
+        /está a falar com a /i,
+        /bem[- ]vindo\(?a?\)? [àa] /i,
+        /daremos resposta t[ãa]o breve quanto poss[íi]vel/i,
+        /responderemos assim que poss[íi]vel/i,
+        /fora do hor[áa]rio de atendimento/i,
+        /o nosso hor[áa]rio de funcionamento/i,
+        /mensagem autom[áa]tica/i,
+        /esta [ée] uma mensagem autom[áa]tica/i,
+        /para agendar consulta envie/i,
+        /pedimos-lhe que nos contacte para \d+/i,
+        /in order to answer you as soon as possible/i,
+        /welcome to /i
+    ];
+
+    return autoReplyPatterns.some(pattern => pattern.test(text));
+}
+
+/**
  * Validação ultrarrápida para o listener do WhatsApp:
  * Retorna true APENAS se o número for de um negócio perdido do CRM que o Agente abordou.
  * 
@@ -1392,6 +1450,16 @@ export async function processInboundLeadTurn({ phone, text, isAudio = false }) {
     if (BLOCKED_PERSONAL_PHONES.some(b => cleanPhone.endsWith(b.slice(-9)))) {
         console.log(`🛡️ [Vamuss Agent Closer] +${cleanPhone} é número pessoal bloqueado. Ignorado absolutamente.`);
         return { success: false, ignored: true, reason: 'PERSONAL_PHONE_BLOCKED' };
+    }
+
+    // 0.2 TRAVA RÍGIDA DE RESPOSTA AUTOMÁTICA / AUTO-REPLY DE CLÍNICA:
+    // Se a mensagem for um texto automático de boas-vindas / ausência do WhatsApp Business da clínica,
+    // o agente NUNCA deve responder, nem continuar a conversa, nem enviar pedidos repetitivos.
+    // O agente DEVE SILENCIAR E AGUARDAR que uma pessoa real responda à primeira abordagem!
+    if (isClinicAutoReply(text)) {
+        console.log(`🤖 [Vamuss Agent Closer] Resposta automática de WhatsApp Business detetada de +${cleanPhone}: "${text.slice(0, 60)}...".`);
+        console.log(`🤫 [Vamuss Agent Closer] SILENCIANDO: O agente não responde a bots/mensagens automáticas. Aguardando contacto de operador humano.`);
+        return { success: true, ignored: true, isAutoReply: true, reason: 'CLINIC_AUTO_REPLY_SILENCED' };
     }
 
     // Procurar o deal correspondente no CRM

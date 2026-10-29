@@ -1262,5 +1262,137 @@
       "relyOnCRMOnlyIfEmpty": true
     },
     "savedAt": "2026-10-29T15:15:08.779Z"
+  },
+  "57e3cf36-c600-4d3a-b71f-1c21bd937bfd": {
+    "dealId": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
+    "clinicName": "Clínica Colombo e Silva",
+    "concelho": null,
+    "researchedAt": "2026-10-29T15:30:57.499Z",
+    "expiresAt": "2026-11-28T15:30:57.499Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Colombo e Silva",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T15:30:57.499Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T15:30:57.500Z"
+  },
+  "0d9bd073-6863-4544-b462-cae2808ce6d8": {
+    "dealId": "0d9bd073-6863-4544-b462-cae2808ce6d8",
+    "clinicName": "Sara Correia Dental Clinic",
+    "concelho": null,
+    "researchedAt": "2026-10-29T15:30:59.251Z",
+    "expiresAt": "2026-11-28T15:30:59.251Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Sara Correia Dental Clinic",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T15:30:59.251Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T15:30:59.252Z"
+  },
+  "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6": {
+    "dealId": "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6",
+    "clinicName": "Dra. Pamella Pessoa",
+    "concelho": null,
+    "researchedAt": "2026-10-29T15:31:00.073Z",
+    "expiresAt": "2026-11-28T15:31:00.073Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Dra. Pamella Pessoa",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T15:31:00.073Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T15:31:00.074Z"
+  },
+  "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911": {
+    "dealId": "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911",
+    "clinicName": "Clínica Catarina Fontes",
+    "concelho": null,
+    "researchedAt": "2026-10-29T15:31:00.986Z",
+    "expiresAt": "2026-11-28T15:31:00.986Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Catarina Fontes",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T15:31:00.986Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T15:31:00.987Z"
   }
 }

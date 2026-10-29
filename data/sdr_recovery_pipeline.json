@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-10-29T12:44:10.344Z",
+  "lastUpdated": "2026-10-29T15:30:13.147Z",
   "deals": {
     "8ce16830-e490-4f39-afc8-f263163d9feb": {
       "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
@@ -5462,6 +5462,15 @@
         "cooldownAtivo": false
       },
       "notes": ""
+    },
+    "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": {
+      "dealId": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+      "title": "Negócio CliniCosta",
+      "contactName": "Clinicosta – Médicos Dentistas",
+      "stage": "em_conversa",
+      "phone": "351961446489",
+      "lastContactedAt": "2026-10-29T15:30:13.146Z",
+      "notes": "Abordagem e resposta automática recebida"
     }
   }
 }

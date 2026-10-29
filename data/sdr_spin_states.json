@@ -384,5 +384,55 @@
     "historyOfQuestionsAsked": [],
     "createdAt": "2026-10-29T15:16:03.906Z",
     "updatedAt": "2026-10-29T15:16:03.906Z"
+  },
+  "57e3cf36-c600-4d3a-b71f-1c21bd937bfd": {
+    "updatedAt": "2026-10-29T15:31:43.613Z"
+  },
+  "62d3dc79-2a11-4742-92cb-d6713aa3a6b7": {
+    "dealId": "62d3dc79-2a11-4742-92cb-d6713aa3a6b7",
+    "clinicName": "Clínica Médica Jardim",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-29T15:30:58.194Z",
+    "updatedAt": "2026-10-29T15:30:58.194Z"
+  },
+  "0d9bd073-6863-4544-b462-cae2808ce6d8": {
+    "updatedAt": "2026-10-29T15:40:21.632Z"
+  },
+  "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6": {
+    "updatedAt": "2026-10-29T15:45:24.787Z"
+  },
+  "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911": {
+    "updatedAt": "2026-10-29T15:31:47.679Z"
   }
 }

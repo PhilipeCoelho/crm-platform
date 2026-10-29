@@ -9,10 +9,10 @@
     "callsCountToday": 1
   },
   "whatsapp": {
-    "todayCost": 0.2425,
-    "todayDispatches": 5,
-    "monthCost": 0.582,
-    "monthDispatches": 12,
+    "todayCost": 0.6789999999999999,
+    "todayDispatches": 14,
+    "monthCost": 1.0185,
+    "monthDispatches": 21,
     "todayDelivered": 0
   },
   "contacts": {
@@ -43,6 +43,36 @@
       "attemptsWithoutResponse": 2,
       "firstContactAt": "2026-10-29T15:15:11.755Z",
       "lastContactAt": "2026-10-29T15:15:20.638Z"
+    },
+    "351912947745": {
+      "count": 2,
+      "attemptsWithoutResponse": 2,
+      "firstContactAt": "2026-10-29T15:31:37.718Z",
+      "lastContactAt": "2026-10-29T15:31:43.943Z"
+    },
+    "351961227251": {
+      "count": 1,
+      "attemptsWithoutResponse": 1,
+      "firstContactAt": "2026-10-29T15:31:39.095Z",
+      "lastContactAt": "2026-10-29T15:31:39.095Z"
+    },
+    "351969666941": {
+      "count": 3,
+      "attemptsWithoutResponse": 3,
+      "firstContactAt": "2026-10-29T15:31:40.267Z",
+      "lastContactAt": "2026-10-29T15:45:50.172Z"
+    },
+    "351914056228": {
+      "count": 1,
+      "attemptsWithoutResponse": 1,
+      "firstContactAt": "2026-10-29T15:31:41.040Z",
+      "lastContactAt": "2026-10-29T15:31:41.040Z"
+    },
+    "351937565107": {
+      "count": 2,
+      "attemptsWithoutResponse": 2,
+      "firstContactAt": "2026-10-29T15:31:42.350Z",
+      "lastContactAt": "2026-10-29T15:31:47.941Z"
     }
   },
   "reservations": {},
@@ -51,6 +81,11 @@
     "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6": 0.0485,
     "fc8af586-3017-404f-bd72-84646201a3ae": 0.0485,
     "9277e1cc-c1bd-49a9-88df-2e6a812f27f9": 0.0485,
-    "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": 0.097
+    "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": 0.097,
+    "57e3cf36-c600-4d3a-b71f-1c21bd937bfd": 0.097,
+    "62d3dc79-2a11-4742-92cb-d6713aa3a6b7": 0.0485,
+    "0d9bd073-6863-4544-b462-cae2808ce6d8": 0.1455,
+    "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6": 0.0485,
+    "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911": 0.097
   }
 }
