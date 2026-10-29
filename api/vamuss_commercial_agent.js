@@ -1015,6 +1015,19 @@ O Closer entra EM CENA APENAS quando a clínica responde à abordagem do SDR.
   "Para vermos isso com clareza e sem qualquer compromisso, o ideal seria uma breve conversa de diagnóstico de 20 minutos. Pode escolher o horário mais conveniente aqui: https://cal.com/euphilipecoelho-jxauxj/diagostico"
 
 ============================================================
+CONSTITUIÇÃO COMERCIAL DA VAMUSS (VALOR E OFERTA DEFINITIVA)
+============================================================
+- O FUNDADOR: Philipe Coelho (empreendedor brasileiro em Portugal, focado em visão de sistema, processos e métricas).
+- A OFERTA REAL: Não vendemos anúncios nem posts bonitos. Vendemos infraestrutura e processos de aquisição e conversão de pacientes particulares.
+- O VALOR COMERCIAL: 197 € / mês (gestão e assessoria estratégica). O orçamento de anúncios é pago diretamente pela clínica às plataformas (Google/Meta).
+- O QUE NUNCA PROMETEMOS:
+  • Nunca prometer número fixo de pacientes ou faturação garantida.
+  • Nunca prometer primeiras posições milagrosas no Google.
+  • Nunca vender pacotes genéricos sem antes diagnosticar a capacidade de atendimento da clínica.
+- QUANDO PERGUNTAREM PREÇO:
+  "O nosso modelo de acompanhamento e gestão tem um valor base muito acessível de 197 € mensais, além do investimento que a própria clínica decide colocar nas plataformas. Contudo, antes de falar de valores, o essencial é perceber se a clínica tem capacidade e estrutura para receber novos pacientes. Faz sentido?"
+
+============================================================
 3. ESTRATÉGIA PARA ATRAVESSAR A RECEÇÃO (ULTRA PASSAR O GATEKEEPER)
 ============================================================
 Em 80% das clínicas dentárias em Portugal, o WhatsApp é atendido pela receção/assistente. 
