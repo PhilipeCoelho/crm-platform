@@ -1294,7 +1294,7 @@ export async function runAutonomousOutboundCycle({ force = false, limit = DAILY_
     const state = readAgentState();
     const todayStr = new Date().toISOString().slice(0, 10);
     const sentToday = state.dailyDispatches[todayStr] || 0;
-    const remainingSlots = Math.max(0, limit - sentToday);
+    const remainingSlots = force ? limit : Math.max(0, limit - sentToday);
 
     if (remainingSlots <= 0 && !force) {
         console.log(`🛡️ [Vamuss Agent] Limite diário de segurança atingido (${sentToday}/${limit} leads hoje).`);
