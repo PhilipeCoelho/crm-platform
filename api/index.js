@@ -11,10 +11,10 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
 import cron from 'node-cron';
-import { LeadProcessor } from './utils/leadProcessor.js';
-import { encrypt, decrypt } from './utils/crypto.js';
-import { sendMetaCAPIEvent, testMetaConnection } from './utils/capiSender.js';
-import { contentIntelligenceRouter } from './content_intelligence.js';
+import { LeadProcessor } from '../server/utils/leadProcessor.js';
+import { encrypt, decrypt } from '../server/utils/crypto.js';
+import { sendMetaCAPIEvent, testMetaConnection } from '../server/utils/capiSender.js';
+import { contentIntelligenceRouter } from '../server/content_intelligence.js';
 
 const LOG_FILE = path.join(process.cwd(), 'crm_server.log');
 function logToFile(msg) {
@@ -8337,12 +8337,12 @@ app.get('/api/gpt/content-memory', authenticateGpt, async (req, res) => {
 app.get('/health', (req, res) => res.json({ status: 'healthy', timestamp: new Date().toISOString() }));
 app.get('/', (req, res) => res.json({ status: 'online', name: 'Vamuss CRM SDR API', timestamp: new Date().toISOString() }));
 
-import { setupMcp } from "./mcp.js";
-import { setupOAuth } from "./oauth.js";
-import { setupWhatsApp } from "./whatsapp.js";
-import { setupWhatsAppWebRoutes, initWhatsAppWeb } from "./whatsapp_web.js";
-import { setupSDREngine } from "./sdr_engine.js";
-import { setupCommercialAgentRoutes } from "./vamuss_commercial_agent.js";
+import { setupMcp } from "../server/mcp.js";
+import { setupOAuth } from "../server/oauth.js";
+import { setupWhatsApp } from "../server/whatsapp.js";
+import { setupWhatsAppWebRoutes, initWhatsAppWeb } from "../server/whatsapp_web.js";
+import { setupSDREngine } from "../server/sdr_engine.js";
+import { setupCommercialAgentRoutes } from "../server/vamuss_commercial_agent.js";
 setupMcp(app);
 setupOAuth(app);
 setupWhatsApp(app);
@@ -8357,7 +8357,7 @@ if (process.env.VERCEL !== '1') {
     app.listen(PORT, () => {
         console.log(`🚀 Hardened Server running on port ${PORT}`);
         if (process.env.SDR_AUTONOMOUS_WORKER === 'true') {
-            import('./sdr_worker.js').then(({ defaultSDRWorker }) => {
+            import('../server/sdr_worker.js').then(({ defaultSDRWorker }) => {
                 defaultSDRWorker.start({ intervalMinutes: parseInt(process.env.SDR_WORKER_INTERVAL_MINUTES, 10) || 5 });
             }).catch(err => console.error('❌ Falha ao iniciar SDR Worker:', err));
         }
