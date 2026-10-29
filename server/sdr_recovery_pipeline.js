@@ -30,6 +30,8 @@ import { readCostsState, COST_LIMITS } from './sdr_cost_controller.js';
 import { enqueueTask, TASK_TYPES, readTaskQueue, writeTaskQueue } from './sdr_task_queue.js';
 import { readLocalOutcomes, writeLocalOutcomes } from './sdr_engine.js';
 import { isPhoneSuppressedLocally } from './suppression_store.js';
+import { getWhatsAppWebStatus } from './whatsapp_web.js';
+import { validateDispatchTiming } from './sdr_business_hours.js';
 
 const PIPELINE_FILE = path.resolve(process.cwd(), 'data', 'sdr_recovery_pipeline.json');
 
@@ -419,18 +421,40 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
         legalGateStatus: process.env.SDR_LEGAL_GATE || 'FAIL_CLOSED'
     };
 
+    const waStatus = getWhatsAppWebStatus();
+    const timing = validateDispatchTiming();
+    const waConnected = waStatus?.status === 'CONNECTED';
+    const isWithinHours = timing?.permitido === true;
+
+    // Estado operacional real e preciso do agente:
+    let operationalState = 'ACTIVE_RUNNING';
+    let statusLabel = 'Operacional';
+    if (!waConnected) {
+        operationalState = 'WHATSAPP_DISCONNECTED';
+        statusLabel = 'WhatsApp Desconectado';
+    } else if (!isWithinHours) {
+        operationalState = 'WAITING_BUSINESS_HOURS';
+        statusLabel = 'Aguardando Horário';
+    }
+
     return {
         stages: RECOVERY_STAGES,
         items,
         counts,
         metrics,
         agentLive: {
-            status: 'ONLINE',
-            whatsappConnected: true,
-            connectedPhone: '+351 964 094 865',
+            status: operationalState,
+            statusLabel,
+            whatsappConnected: waConnected,
+            whatsappStatus: waStatus?.status || 'DISCONNECTED',
+            isWithinBusinessHours: isWithinHours,
+            nextBusinessWindow: timing?.proxima_janela_util || null,
+            connectedPhone: waStatus?.connectedUser?.phone ? `+${waStatus.connectedUser.phone}` : '+351 964 094 865',
             operatorName: 'Philipe Coelho',
             todayDispatches: agentDispatchesToday,
             dailyLimit: 5,
+            extraAuthorizedDispatches: agentDispatchesToday > 5 ? agentDispatchesToday - 5 : 0,
+            hasExtraAuthorizationsLogged: agentDispatchesToday > 5,
             repliesToday: agentRepliesToday,
             activeChats: items.filter(it => it.stage === 'em_conversa').length,
             meetingsBooked: items.filter(it => it.stage === 'pronto_reabrir').length,
@@ -788,12 +812,33 @@ export async function getRecoveryDealDetail(dealId) {
 
     const localOutcomes = readLocalOutcomes().filter(o => o.deal_id === dealId);
 
+    // Enriquecimento com Dossiê Factual e Estado SPIN reais
+    let verifiedDossier = null;
+    let spinState = null;
+    try {
+        const dossiersStoreFile = path.resolve(process.cwd(), 'data', 'sdr_deal_dossiers.json');
+        if (fs.existsSync(dossiersStoreFile)) {
+            const dossiers = JSON.parse(fs.readFileSync(dossiersStoreFile, 'utf8'));
+            verifiedDossier = dossiers[dealId] || null;
+        }
+    } catch (_) {}
+
+    try {
+        const spinStoreFile = path.resolve(process.cwd(), 'data', 'sdr_spin_states.json');
+        if (fs.existsSync(spinStoreFile)) {
+            const spinStore = JSON.parse(fs.readFileSync(spinStoreFile, 'utf8'));
+            spinState = spinStore[dealId] || null;
+        }
+    } catch (_) {}
+
     return {
         success: true,
         deal: item,
         activities,
         dealLogs,
         outcomes: localOutcomes,
+        verifiedDossier,
+        spinState,
         aiDiagnosis: {
             summary: item.summary,
             lostReasonFactual: item.lostReason,

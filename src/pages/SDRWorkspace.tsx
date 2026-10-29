@@ -43,7 +43,7 @@ type FilterTabKey =
     | 'nao_reativado';
 
 export default function SDRWorkspace() {
-    // Alternador de Vista: Quadro Kanban (5 Etapas) como vista padrão
+    // Modo de vista: Kanban é a vista soberana definitiva
     const [workspaceView, setWorkspaceView] = useState<'kanban' | 'posto'>('kanban');
     const [candidates, setCandidates] = useState<SDRWorkQueueItem[]>([]);
     const [counts, setCounts] = useState<SDRQueueCounts>({
@@ -436,105 +436,92 @@ export default function SDRWorkspace() {
 
     return (
         <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
-            {/* CABEÇALHO DO WORKSPACE */}
-            <header className="px-6 py-3.5 border-b border-border bg-card/60 backdrop-blur shrink-0 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-                        <Zap size={20} className="animate-pulse" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-lg font-bold tracking-tight">Reaquecimento de Leads Perdidos</h1>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                                SDR & Closer Autónomo • Piloto 5 Leads
-                            </span>
+            {/* CABEÇALHO DO WORKSPACE (Exibido no modo Posto de Triagem; no modo Kanban o cabeçalho é unificado e soberano no componente) */}
+            {workspaceView === 'posto' && (
+                <header className="px-6 py-3 border-b border-border bg-card/60 backdrop-blur shrink-0 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                            <Zap size={20} className="animate-pulse" />
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                            Prospeção consultiva via WhatsApp até à Reunião de Diagnóstico • Reabertura manual pelo Philipe
-                        </p>
-                    </div>
-                </div>
-
-                {/* Alternador de Vista: Quadro Kanban (5 Etapas) vs Posto de Triagem */}
-                <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border">
-                    <button
-                        onClick={() => setWorkspaceView('kanban')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            workspaceView === 'kanban'
-                                ? 'bg-background text-foreground shadow-xs border border-border/80'
-                                : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                        <TrendingUp size={14} className="text-indigo-500" />
-                        <span>Quadro Kanban (5 Etapas)</span>
-                    </button>
-                    <button
-                        onClick={() => setWorkspaceView('posto')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            workspaceView === 'posto'
-                                ? 'bg-background text-foreground shadow-xs border border-border/80'
-                                : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                        <Zap size={14} className="text-amber-500" />
-                        <span>Posto de Triagem (Lista)</span>
-                    </button>
-                </div>
-
-                {/* Badges e Ações Globais */}
-                <div className="flex items-center gap-2 flex-wrap text-xs">
-                    {/* Botão de Métricas de Aprendizagem */}
-                    <button
-                        onClick={() => handleOpenLearningModal()}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-600 font-semibold hover:bg-purple-500/20 transition-all"
-                        title="Ver ciclo de aprendizagem contínua e resultados acumulados"
-                    >
-                        <Brain size={13} />
-                        <span>Métricas de Aprendizagem</span>
-                    </button>
-
-                    {/* WhatsApp Status */}
-                    <button
-                        onClick={() => setShowMetaGuideModal(true)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${
-                            whatsAppStatus?.whatsappWeb?.isConnected
-                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 font-medium'
-                                : (whatsAppStatus?.configured
-                                    ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 font-medium'
-                                    : 'bg-amber-500/10 border-amber-500/20 text-amber-600 font-medium hover:bg-amber-500/20')
-                        }`}
-                        title="Conectar WhatsApp via QR Code ou Meta Cloud API"
-                    >
-                        <MessageSquare size={13} />
-                        <span>
-                            {whatsAppStatus?.whatsappWeb?.isConnected
-                                ? `WhatsApp Web: +${whatsAppStatus.whatsappWeb.connectedUser?.phone || 'Conectado'}`
-                                : (whatsAppStatus?.configured ? 'WhatsApp: Cloud API' : 'Conectar WhatsApp (QR Code)')}
-                        </span>
-                        <Info size={11} className="opacity-70" />
-                    </button>
-
-                    {/* Legal Gate */}
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border font-medium text-xs ${
-                        legalGateStatus === 'LIVE_AUTHORIZED'
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-                            : 'bg-red-500/10 border-red-500/20 text-red-500'
-                    }`}>
-                        {legalGateStatus === 'LIVE_AUTHORIZED' ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
-                        <span>Gate Legal: {legalGateStatus === 'LIVE_AUTHORIZED' ? 'LIVE AUTHORIZED (Envios Reais Ativos)' : 'FAIL-CLOSED'}</span>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-lg font-bold tracking-tight">Reaquecimento de Leads Perdidos</h1>
+                                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                    Posto de Triagem Manual
+                                </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Triagem e revisão individualizada de mensagens sugeridas antes do envio
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Botão Recarregar */}
-                    <button
-                        onClick={loadQueueData}
-                        disabled={loading}
-                        className="p-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                        title="Recarregar fila do CRM"
-                    >
-                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                    </button>
-                </div>
-            </header>
+                    {/* Alternador de Vista: Voltar ao Quadro Kanban */}
+                    <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border">
+                        <button
+                            onClick={() => setWorkspaceView('kanban')}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-background text-foreground shadow-xs border border-border/80 hover:bg-muted"
+                        >
+                            <TrendingUp size={14} className="text-indigo-500" />
+                            <span>← Voltar ao Quadro Kanban</span>
+                        </button>
+                    </div>
+
+                    {/* Badges e Ações Globais */}
+                    <div className="flex items-center gap-2 flex-wrap text-xs">
+                        {/* Botão de Métricas de Aprendizagem */}
+                        <button
+                            onClick={() => handleOpenLearningModal()}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-600 font-semibold hover:bg-purple-500/20 transition-all"
+                            title="Ver ciclo de aprendizagem contínua e resultados acumulados"
+                        >
+                            <Brain size={13} />
+                            <span>Métricas de Aprendizagem</span>
+                        </button>
+
+                        {/* WhatsApp Status */}
+                        <button
+                            onClick={() => setShowMetaGuideModal(true)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all ${
+                                whatsAppStatus?.whatsappWeb?.isConnected
+                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 font-medium'
+                                    : (whatsAppStatus?.configured
+                                        ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 font-medium'
+                                        : 'bg-amber-500/10 border-amber-500/20 text-amber-600 font-medium hover:bg-amber-500/20')
+                            }`}
+                            title="Conectar WhatsApp via QR Code ou Meta Cloud API"
+                        >
+                            <MessageSquare size={13} />
+                            <span>
+                                {whatsAppStatus?.whatsappWeb?.isConnected
+                                    ? `WhatsApp Web: +${whatsAppStatus.whatsappWeb.connectedUser?.phone || 'Conectado'}`
+                                    : (whatsAppStatus?.configured ? 'WhatsApp: Cloud API' : 'Conectar WhatsApp (QR Code)')}
+                            </span>
+                            <Info size={11} className="opacity-70" />
+                        </button>
+
+                        {/* Legal Gate */}
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border font-medium text-xs ${
+                            legalGateStatus === 'LIVE_AUTHORIZED'
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                                : 'bg-red-500/10 border-red-500/20 text-red-500'
+                        }`}>
+                            {legalGateStatus === 'LIVE_AUTHORIZED' ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
+                            <span>Gate Legal: {legalGateStatus === 'LIVE_AUTHORIZED' ? 'LIVE AUTHORIZED' : 'FAIL-CLOSED'}</span>
+                        </div>
+
+                        {/* Botão Recarregar */}
+                        <button
+                            onClick={loadQueueData}
+                            disabled={loading}
+                            className="p-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                            title="Recarregar fila do CRM"
+                        >
+                            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        </button>
+                    </div>
+                </header>
+            )}
 
             {/* AVISO DE CÓPIA MANUAL */}
             {copiedToast && (
@@ -547,7 +534,7 @@ export default function SDRWorkspace() {
                 </div>
             )}
 
-            {/* CORPO DO WORKSPACE: QUADRO KANBAN (5 ETAPAS) OU POSTO DE TRABALHO */}
+            {/* CORPO DO WORKSPACE: QUADRO KANBAN (5 ETAPAS) COMO VISTA PRINCIPAL E SOBERANA */}
             {workspaceView === 'kanban' ? (
                 <div className="flex-1 overflow-hidden">
                     <SDRRecoveryKanban
@@ -555,11 +542,26 @@ export default function SDRWorkspace() {
                             setSelectedDealId(dealId);
                             setWorkspaceView('posto');
                         }}
+                        onSwitchToPosto={() => setWorkspaceView('posto')}
+                        onOpenLearningMetrics={() => handleOpenLearningModal()}
+                        onOpenWhatsAppSettings={() => setShowMetaGuideModal(true)}
                     />
                 </div>
             ) : (
-                /* CORPO DO WORKSPACE: ÁREA A (FILA 5 ETAPAS) + ÁREA B (NEGÓCIO) */
-                <div className="flex-1 flex overflow-hidden">
+                /* VISTA SECUNDÁRIA: POSTO DE TRIAGEM CLÁSSICO */
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* Botão de retorno rápido ao Kanban */}
+                    <div className="px-4 py-2 border-b border-border bg-muted/40 flex items-center justify-between text-xs shrink-0">
+                        <span className="text-muted-foreground font-medium">Modo Detalhado: Posto de Triagem Manual</span>
+                        <button
+                            onClick={() => setWorkspaceView('kanban')}
+                            className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors"
+                        >
+                            ← Voltar ao Quadro Kanban
+                        </button>
+                    </div>
+
+                    <div className="flex-1 flex overflow-hidden">
                 {/* ========================================================================= */}
                 {/* ÁREA A — FILA DE TRABALHO (390px)                                         */}
                 {/* ========================================================================= */}
@@ -1546,6 +1548,7 @@ export default function SDRWorkspace() {
                         </div>
                     )}
                 </div>
+            </div>
             </div>
             )}
 

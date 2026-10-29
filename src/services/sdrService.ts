@@ -671,11 +671,17 @@ export interface RecoveryPipelineResponse {
     };
     agentLive?: {
         status: string;
+        statusLabel?: string;
         whatsappConnected: boolean;
+        whatsappStatus?: string;
+        isWithinBusinessHours?: boolean;
+        nextBusinessWindow?: string | null;
         connectedPhone: string;
         operatorName: string;
         todayDispatches: number;
         dailyLimit: number;
+        extraAuthorizedDispatches?: number;
+        hasExtraAuthorizationsLogged?: boolean;
         repliesToday: number;
         activeChats: number;
         meetingsBooked: number;
