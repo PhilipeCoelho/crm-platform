@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-10-28T23:14:18.599Z",
+  "lastUpdated": "2026-10-29T11:34:20.417Z",
   "deals": {
     "8ce16830-e490-4f39-afc8-f263163d9feb": {
       "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
@@ -4633,7 +4633,7 @@
       "lostReason": "Não teve interesse - sem interesse",
       "lostAt": "2026-09-25T12:35:31.435+00:00",
       "daysSinceLost": 33,
-      "stage": "perdidos_qualificados",
+      "stage": "mensagem_enviada",
       "owner": "IA",
       "assignedTo": null,
       "eligibilityStatus": "Elegível",
@@ -4641,7 +4641,7 @@
       "lastActivity": "Análise inicial",
       "lastActivityDate": "2026-09-25T12:35:31.435+00:00",
       "nextAction": "Disparar abordagem consultiva",
-      "attemptsCount": 0,
+      "attemptsCount": 1,
       "summary": "Clínica encerrada há 33 dias por motivo: \"Não teve interesse - sem interesse\".",
       "recommendedNextStep": "Reaproximação consultiva com foco em tratamentos de alto valor",
       "isHumanInterventionPending": false,

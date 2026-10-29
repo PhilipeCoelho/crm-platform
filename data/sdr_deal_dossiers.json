@@ -635,5 +635,566 @@
       "relyOnCRMOnlyIfEmpty": true
     },
     "savedAt": "2026-10-28T21:52:28.312Z"
+  },
+  "30f8f4bd-c526-4bc8-ae65-408cb1a42e59": {
+    "dealId": "30f8f4bd-c526-4bc8-ae65-408cb1a42e59",
+    "clinicName": "Clínica Médica São João",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:03:07.463Z",
+    "expiresAt": "2026-11-28T11:03:07.463Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Médica São João",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:03:07.463Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:03:07.464Z"
+  },
+  "4ed06de0-1c43-4420-a862-2173204d0f8a": {
+    "dealId": "4ed06de0-1c43-4420-a862-2173204d0f8a",
+    "clinicName": "Clínica Médica e Dentária do Chafariz",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:05:37.516Z",
+    "expiresAt": "2026-11-28T11:05:37.516Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Médica e Dentária do Chafariz",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:05:37.516Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:05:37.517Z"
+  },
+  "104ed5d7-7706-4eb5-968e-68eeb66dead0": {
+    "dealId": "104ed5d7-7706-4eb5-968e-68eeb66dead0",
+    "clinicName": "Clínica São Dente - Medicina Dentária",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:05:52.105Z",
+    "expiresAt": "2026-11-28T11:05:52.105Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica São Dente - Medicina Dentária",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:05:52.105Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:05:52.106Z"
+  },
+  "bf516108-66d1-4d72-a157-c76160c50669": {
+    "dealId": "bf516108-66d1-4d72-a157-c76160c50669",
+    "clinicName": "Clínica Dentária Dr. Cunha Coutinho",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:06:06.601Z",
+    "expiresAt": "2026-11-28T11:06:06.601Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Dentária Dr. Cunha Coutinho",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:06:06.601Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:06:06.601Z"
+  },
+  "85d2a17b-ce45-43cd-9000-07da4f630531": {
+    "dealId": "85d2a17b-ce45-43cd-9000-07da4f630531",
+    "clinicName": "Clínica da Madragoa",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:06:22.853Z",
+    "expiresAt": "2026-11-28T11:06:22.853Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica da Madragoa",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:06:22.853Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:06:22.854Z"
+  },
+  "11a4b7e8-914f-48d8-820c-443acf5d3563": {
+    "dealId": "11a4b7e8-914f-48d8-820c-443acf5d3563",
+    "clinicName": "D Dente - Clinica de Medicina Dentária",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:10:18.859Z",
+    "expiresAt": "2026-11-28T11:10:18.859Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "D Dente - Clinica de Medicina Dentária",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:10:18.859Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:10:18.859Z"
+  },
+  "3435ed16-5aa9-499c-96e0-d0362c8205c2": {
+    "dealId": "3435ed16-5aa9-499c-96e0-d0362c8205c2",
+    "clinicName": "Blag",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:10:37.969Z",
+    "expiresAt": "2026-11-28T11:10:37.969Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Blag",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": 20,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:10:37.969Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:10:37.969Z"
+  },
+  "6b57f5b1-a05e-4ec8-b0b8-00a302e5a7ff": {
+    "dealId": "6b57f5b1-a05e-4ec8-b0b8-00a302e5a7ff",
+    "clinicName": "Clinodent",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:10:52.154Z",
+    "expiresAt": "2026-11-28T11:10:52.154Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clinodent",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:10:52.154Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:10:52.154Z"
+  },
+  "b552444c-fc9c-4798-ae6a-2a17a452644d": {
+    "dealId": "b552444c-fc9c-4798-ae6a-2a17a452644d",
+    "clinicName": "Clínica Acqua",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:11:06.653Z",
+    "expiresAt": "2026-11-28T11:11:06.653Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Acqua",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:11:06.653Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:11:06.653Z"
+  },
+  "e8bccfbe-8f1a-417d-be76-6bf1f1f6e89a": {
+    "dealId": "e8bccfbe-8f1a-417d-be76-6bf1f1f6e89a",
+    "clinicName": "Clínica de Santos",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:11:28.694Z",
+    "expiresAt": "2026-11-28T11:11:28.694Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica de Santos",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:11:28.694Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:11:28.694Z"
+  },
+  "0c609059-64f8-4a78-b685-a117f16dbf18": {
+    "dealId": "0c609059-64f8-4a78-b685-a117f16dbf18",
+    "clinicName": "Clínica Médica E Dentária Acúrcio",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:20:18.921Z",
+    "expiresAt": "2026-11-28T11:20:18.921Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Médica E Dentária Acúrcio",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": 13,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:20:18.921Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:20:18.921Z"
+  },
+  "2d8131d3-9ac3-4163-b3de-39b6da84b74b": {
+    "dealId": "2d8131d3-9ac3-4163-b3de-39b6da84b74b",
+    "clinicName": "Clinica Dentária SmileMed",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:20:34.691Z",
+    "expiresAt": "2026-11-28T11:20:34.691Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clinica Dentária SmileMed",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:20:34.691Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:20:34.691Z"
+  },
+  "64f861ad-f657-480d-a2b1-b9b98ddbbe39": {
+    "dealId": "64f861ad-f657-480d-a2b1-b9b98ddbbe39",
+    "clinicName": "Dental Light Lisboa",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:20:48.486Z",
+    "expiresAt": "2026-11-28T11:20:48.486Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Dental Light Lisboa",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:20:48.486Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:20:48.486Z"
+  },
+  "07916398-a082-4c64-852f-4bc313719723": {
+    "dealId": "07916398-a082-4c64-852f-4bc313719723",
+    "clinicName": "Clinica TwoCare",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:21:02.750Z",
+    "expiresAt": "2026-11-28T11:21:02.750Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clinica TwoCare",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:21:02.750Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:21:02.750Z"
+  },
+  "66a26bbb-3a91-4b9d-b17c-711df92abc7e": {
+    "dealId": "66a26bbb-3a91-4b9d-b17c-711df92abc7e",
+    "clinicName": "Clínica Dentária Claridente",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:25:11.205Z",
+    "expiresAt": "2026-11-28T11:25:11.205Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Dentária Claridente",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:25:11.205Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:25:11.205Z"
+  },
+  "4a13ea80-fe0c-4136-ba28-5d865cf69944": {
+    "dealId": "4a13ea80-fe0c-4136-ba28-5d865cf69944",
+    "clinicName": "Center Care",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:25:26.035Z",
+    "expiresAt": "2026-11-28T11:25:26.035Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Center Care",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:25:26.035Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:25:26.035Z"
+  },
+  "7fc36c51-abbf-45f2-b861-34ecd5eb922d": {
+    "dealId": "7fc36c51-abbf-45f2-b861-34ecd5eb922d",
+    "clinicName": "Clínica Artilharia Maso Tramontini",
+    "concelho": null,
+    "researchedAt": "2026-10-29T11:25:44.048Z",
+    "expiresAt": "2026-11-28T11:25:44.048Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Artilharia Maso Tramontini",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T11:25:44.048Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T11:25:44.049Z"
   }
 }

@@ -30,6 +30,27 @@
         }
       ],
       "exchangesCount": 1
+    },
+    {
+      "id": "disp_1793272516589_th857",
+      "dealId": "3435ed16-5aa9-499c-96e0-d0362c8205c2",
+      "contactId": "046de17e-f164-4387-a1e4-9b28b1bb1f4f",
+      "phone": "351936028384",
+      "clinicName": "Blag",
+      "variant": "default",
+      "angle": "REAPROXIMACAO_TRANSPARENTE",
+      "lossReason": "Perda anterior",
+      "usedWebFact": null,
+      "messageLengthChars": 240,
+      "messageLengthWords": 38,
+      "messagePreview": "Na sequência de contactos anteriores da Vamuss, gostaria de saber se a clínica Blag tem interesse em discutir como podemos ajudar a atrair p",
+      "fullMessage": "Na sequência de contactos anteriores da Vamuss, gostaria de saber se a clínica Blag tem interesse em discutir como podemos ajudar a atrair pacientes particulares. Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.",
+      "sentDayOfWeek": 4,
+      "sentHour": 11,
+      "sentAt": "2026-10-29T11:15:16.589Z",
+      "outcome": "SEM_RESPOSTA",
+      "outcomeHistory": [],
+      "exchangesCount": 0
     }
   ],
   "version": 1

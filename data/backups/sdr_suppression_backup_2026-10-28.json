@@ -1,5 +1,17 @@
 [
   {
+    "id": "supp_1793225781962_3fto",
+    "deal_id": "test-deal-3-attempts",
+    "contact_id": null,
+    "telefone_normalizado": "919888777",
+    "email": null,
+    "motivo": "LIMITE_TENTATIVAS_SEM_RESPOSTA",
+    "motivo_bloqueio": "SATURACAO_CADENCIA_3_TENTATIVAS",
+    "estado": "ativo",
+    "canal_bloqueado": "TODOS",
+    "created_at": "2026-10-28T22:16:21.962Z"
+  },
+  {
     "id": "supp_1793186414245_lo8o",
     "deal_id": "60cf0fe2-df00-46e2-b17c-2d6a4a08c72b",
     "contact_id": null,

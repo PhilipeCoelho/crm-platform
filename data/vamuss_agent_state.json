@@ -1,12 +1,33 @@
 {
-  "totalOutboundsSent": 8,
+  "totalOutboundsSent": 10,
   "totalRepliesHandled": 9,
   "totalMeetingsBooked": 0,
   "dailyDispatches": {
     "2026-10-27": 0,
-    "2026-10-28": 5
+    "2026-10-28": 5,
+    "2026-10-29": 2
   },
   "recentActions": [
+    {
+      "timestamp": "2026-10-29T10:15:12.557Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "fc8af586-3017-404f-bd72-84646201a3ae",
+        "phone": "351933300353",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Bom dia, Mediminho! Em março, mencionaram que não era o momento certo para avanç"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T10:15:11.751Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
+        "phone": "351914376214",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Boa tarde, Clínica Tágides! Há uns meses falámos sobre a gestão de pacientes em "
+      }
+    },
     {
       "timestamp": "2026-10-28T10:38:36.000Z",
       "actionType": "OUTBOUND_DISPATCH",

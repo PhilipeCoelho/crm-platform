@@ -1272,6 +1272,7 @@ export async function isEligibleSdrInboundTarget(phone) {
     try {
         const cleanPhone = normalizePhoneNumber(phone);
         const last9 = cleanPhone.slice(-9);
+        const spaced9 = `${last9.slice(0,3)} ${last9.slice(3,6)} ${last9.slice(6)}`;
 
         // BLINDAGEM ABSOLUTA: números pessoais bloqueados nunca passam
         if (BLOCKED_PERSONAL_PHONES.some(b => cleanPhone.endsWith(b.slice(-9)) || b.endsWith(last9))) {
@@ -1281,17 +1282,32 @@ export async function isEligibleSdrInboundTarget(phone) {
 
         if (isPhoneSuppressedLocally(cleanPhone)) return false;
 
-        // Apenas considera OUTBOUND_DISPATCH que TEM deal_id válido (contatos reais do CRM)
-        // Exclui dispatches ad hoc (respostas a mensagens pessoais recebidas por erro)
+        // 1. Verificar no pipeline de recuperação (sdr_recovery_pipeline.json)
+        // Se o negócio está em 'mensagem_enviada', 'em_conversa' ou qualquer estágio ativo do SDR, É ELEGÍVEL!
+        try {
+            const pipelineStore = readRecoveryPipelineStore();
+            const pipeDeals = Object.values(pipelineStore.deals || {});
+            const matchedPipe = pipeDeals.find(d => {
+                const p = (d.phone || '').replace(/\D/g, '');
+                return p.endsWith(last9);
+            });
+            if (matchedPipe) {
+                console.log(`🎯 [SDR Guard] Número +${cleanPhone} encontrado no SDR Recovery Pipeline (Deal: ${matchedPipe.dealId}, Stage: ${matchedPipe.stage}). Elegível para Closer.`);
+                return true;
+            }
+        } catch (pipeErr) {
+            console.warn('⚠️ [SDR Guard] Erro ao consultar pipeline store:', pipeErr.message);
+        }
+
+        // 2. Apenas considera OUTBOUND_DISPATCH que TEM deal_id válido (contatos reais do CRM)
         const agentMem = readAgentState();
         const wasContactedLocally = (agentMem.recentActions || []).some(
             a => a.actionType === 'OUTBOUND_DISPATCH' &&
-                 a.details?.deal_id &&  // DEVE ter deal_id - se não tem, foi resposta ad hoc
+                 a.details?.deal_id &&
                  a.details?.phone &&
                  normalizePhoneNumber(a.details.phone).endsWith(last9)
         );
 
-        // Verificação adicional: o deal_id tem status='lost' no Supabase?
         if (wasContactedLocally && supabase) {
             const matchingAction = (agentMem.recentActions || []).find(
                 a => a.actionType === 'OUTBOUND_DISPATCH' &&
@@ -1309,11 +1325,12 @@ export async function isEligibleSdrInboundTarget(phone) {
 
         if (wasContactedLocally) return true;
 
+        // 3. Fallback Supabase (com suporte a formatos com ou sem espaços: '936028384' ou '936 028 384')
         if (supabase) {
             const { data: contacts } = await supabase
                 .from('contacts')
                 .select('id')
-                .or(`phone.ilike.%${last9}%`);
+                .or(`phone.ilike.%${last9}%,phone.ilike.%${spaced9}%`);
 
             if (contacts && contacts.length > 0) {
                 const { data: deals } = await supabase
@@ -1328,7 +1345,7 @@ export async function isEligibleSdrInboundTarget(phone) {
                         .from('activities')
                         .select('id')
                         .eq('deal_id', deals[0].id)
-                        .ilike('title', '%SDR Autónomo%')
+                        .or('title.ilike.%SDR Autónomo%,title.ilike.%WhatsApp%')
                         .limit(1);
 
                     if (acts && acts.length > 0) return true;
@@ -1358,11 +1375,29 @@ export async function processInboundLeadTurn({ phone, text, isAudio = false }) {
     // Procurar o deal correspondente no CRM
     let dealId = null;
     let clinicName = 'Dra./Dr.';
-    if (supabase) {
+    const last9 = cleanPhone.slice(-9);
+    const spaced9 = `${last9.slice(0,3)} ${last9.slice(3,6)} ${last9.slice(6)}`;
+
+    // 0.1 Verificar primeiro no Recovery Pipeline local
+    try {
+        const pipelineStore = readRecoveryPipelineStore();
+        const pipeDeals = Object.values(pipelineStore.deals || {});
+        const matchedPipe = pipeDeals.find(d => {
+            const p = (d.phone || '').replace(/\D/g, '');
+            return p.endsWith(last9);
+        });
+        if (matchedPipe) {
+            dealId = matchedPipe.dealId;
+            clinicName = matchedPipe.contactName || matchedPipe.title?.replace(/^Negócio\s+/i, '') || 'Dra./Dr.';
+            console.log(`🎯 [Vamuss Agent Closer] Identificado via Recovery Pipeline: Deal ${dealId} (${clinicName})`);
+        }
+    } catch (_) {}
+
+    if (supabase && !dealId) {
         const { data: contacts } = await supabase
             .from('contacts')
             .select('id, name')
-            .or(`phone.ilike.%${cleanPhone.slice(-9)}%`);
+            .or(`phone.ilike.%${last9}%,phone.ilike.%${spaced9}%`);
 
         if (contacts && contacts.length > 0) {
             clinicName = contacts[0].name;
@@ -1403,12 +1438,24 @@ export async function processInboundLeadTurn({ phone, text, isAudio = false }) {
         return { success: false, ignored: true, reason: 'NOT_A_LOST_DEAL' };
     }
 
-    // 4. Trava de Iniciativa do Agente: Só responder se o PRÓPRIO agente enviou mensagem prévia para este número/deal
-    const agentMem = readAgentState();
-    const wasContactedLocally = (agentMem.recentActions || []).some(
-        a => a.actionType === 'OUTBOUND_DISPATCH' &&
-             (a.details?.deal_id === dealId || (a.details?.phone && normalizePhoneNumber(a.details.phone).endsWith(cleanPhone.slice(-9))))
-    );
+    // 4. Trava de Iniciativa do Agente: Só responder se o PRÓPRIO agente/sistema enviou mensagem prévia para este número/deal
+    let wasContactedLocally = false;
+    try {
+        const pipelineStore = readRecoveryPipelineStore();
+        const pipeDeals = Object.values(pipelineStore.deals || {});
+        wasContactedLocally = pipeDeals.some(d => {
+            const p = (d.phone || '').replace(/\D/g, '');
+            return (p.endsWith(last9) || d.dealId === dealId) && (d.stage === 'mensagem_enviada' || d.stage === 'em_conversa');
+        });
+    } catch (_) {}
+
+    if (!wasContactedLocally) {
+        const agentMem = readAgentState();
+        wasContactedLocally = (agentMem.recentActions || []).some(
+            a => a.actionType === 'OUTBOUND_DISPATCH' &&
+                 (a.details?.deal_id === dealId || (a.details?.phone && normalizePhoneNumber(a.details.phone).endsWith(last9)))
+        );
+    }
 
     let wasContactedInDb = false;
     if (supabase && dealId) {
@@ -1416,7 +1463,7 @@ export async function processInboundLeadTurn({ phone, text, isAudio = false }) {
             .from('activities')
             .select('id')
             .eq('deal_id', dealId)
-            .ilike('title', '%SDR Autónomo%')
+            .or('title.ilike.%SDR Autónomo%,title.ilike.%WhatsApp%')
             .limit(1);
 
         if (sdrActs && sdrActs.length > 0) {
