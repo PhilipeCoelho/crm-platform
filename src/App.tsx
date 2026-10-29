@@ -220,11 +220,8 @@ function Layout({ children, currency, setCurrency }: { children: React.ReactNode
                                         `}
                                             onClick={() => isMobile && setIsMobileMenuOpen(false)}
                                         >
-                                            {({ isActive }) => (
+                                            {() => (
                                                 <>
-                                                    {/* Active Vertical Indicator */}
-                                                    <div className={`absolute left-0 w-1 bg-primary rounded-r-full transition-all duration-300 ${isActive ? 'h-5 opacity-100' : 'h-0 opacity-0 group-hover/nav:h-3 group-hover/nav:opacity-50'}`} />
-
                                                     <Icon size={20} className="shrink-0" strokeWidth={2.2} />
                                                     {(isExpanded || isMobile) && (
                                                         <span className="text-sm font-medium whitespace-nowrap overflow-hidden animate-in fade-in slide-in-from-left-2 duration-300">
