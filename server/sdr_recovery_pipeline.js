@@ -25,7 +25,7 @@ import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import { SDREligibilityGate } from '../scripts/sdr_eligibility_gate.mjs';
+import { SDREligibilityGate } from './sdr_eligibility_gate.mjs';
 import { readCostsState, COST_LIMITS } from './sdr_cost_controller.js';
 import { enqueueTask, TASK_TYPES, readTaskQueue, writeTaskQueue } from './sdr_task_queue.js';
 import { readLocalOutcomes, writeLocalOutcomes } from './sdr_engine.js';

@@ -22,7 +22,7 @@ import path from 'node:path';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { isPhoneSuppressedLocally } from './suppression_store.js';
-import { SDREligibilityGate } from '../scripts/sdr_eligibility_gate.mjs';
+import { SDREligibilityGate } from './sdr_eligibility_gate.mjs';
 
 dotenv.config();
 
