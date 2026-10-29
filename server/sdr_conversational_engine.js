@@ -301,11 +301,6 @@ export async function runConversationalDecisionGPT({
     }
 
     // 5. Montagem do Prompt Conversacional Grounded e Qualificação SPIN
-    const cleanClinicName = (deal?.title || contact?.company || contact?.name || 'Clínica Dentária')
-        .replace(/^Negócio\s+/i, '')
-        .replace(/\s*\|\s*.*$/, '')
-        .trim();
-
     // B.15.2: Gestão do Mapa de Qualificação SPIN e Sinais de Maturidade
     const currentSpin = getOrCreateSpinState(deal?.id || 'deal_inbound', cleanClinicName);
     const updatedSpin = analyzeInboundSpinProgress({ inboundText, currentState: currentSpin });
