@@ -1,13 +1,43 @@
 {
-  "totalOutboundsSent": 22,
+  "totalOutboundsSent": 25,
   "totalRepliesHandled": 16,
   "totalMeetingsBooked": 0,
   "dailyDispatches": {
     "2026-10-27": 0,
     "2026-10-28": 5,
-    "2026-10-29": 14
+    "2026-10-29": 17
   },
   "recentActions": [
+    {
+      "timestamp": "2026-10-29T17:46:29.645Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "606180ab-e1ef-4ada-a066-c14b31f12e94",
+        "phone": "351961880508",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá, boa tarde! Daqui fala o Philipe Coelho. Notei que a The Practice Dental Cli"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T16:52:22.597Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "361d9308-343c-425d-9bea-9283c9145d07",
+        "phone": "351926474968",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá à equipa da Clínica Central Braga! Notei que têm um acompanhamento clínico e"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T16:41:38.639Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
+        "phone": "351966534735",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá à equipa da CMD Viseu! Da última vez que falámos, estavam a passar por uma f"
+      }
+    },
     {
       "timestamp": "2026-10-29T15:45:51.356Z",
       "actionType": "INBOUND_REPLY",

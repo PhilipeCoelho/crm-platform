@@ -9,10 +9,10 @@
     "callsCountToday": 1
   },
   "whatsapp": {
-    "todayCost": 0.6789999999999999,
-    "todayDispatches": 14,
-    "monthCost": 1.0185,
-    "monthDispatches": 21,
+    "todayCost": 0.8244999999999999,
+    "todayDispatches": 17,
+    "monthCost": 1.164,
+    "monthDispatches": 24,
     "todayDelivered": 0
   },
   "contacts": {
@@ -73,242 +73,134 @@
       "attemptsWithoutResponse": 2,
       "firstContactAt": "2026-10-29T15:31:42.350Z",
       "lastContactAt": "2026-10-29T15:31:47.941Z"
+    },
+    "351966534735": {
+      "count": 1,
+      "attemptsWithoutResponse": 1,
+      "firstContactAt": "2026-10-29T16:41:38.643Z",
+      "lastContactAt": "2026-10-29T16:41:38.643Z"
+    },
+    "351926474968": {
+      "count": 1,
+      "attemptsWithoutResponse": 1,
+      "firstContactAt": "2026-10-29T16:52:22.601Z",
+      "lastContactAt": "2026-10-29T16:52:22.601Z"
+    },
+    "351961880508": {
+      "count": 1,
+      "attemptsWithoutResponse": 1,
+      "firstContactAt": "2026-10-29T17:46:29.647Z",
+      "lastContactAt": "2026-10-29T17:46:29.647Z"
     }
   },
   "reservations": {
-    "res_wa_1793292013403_bsnh": {
+    "res_wa_1793295979930_cxnx": {
       "type": "WHATSAPP",
       "phone": "351914376214",
       "dealId": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:13.403Z",
-      "expiresAt": "2026-10-29T16:41:13.403Z"
+      "createdAt": "2026-10-29T17:46:19.930Z",
+      "expiresAt": "2026-10-29T17:47:19.930Z"
     },
-    "res_wa_1793292013559_mtqj": {
+    "res_wa_1793295980205_ey90": {
       "type": "WHATSAPP",
       "phone": "351933300353",
       "dealId": "fc8af586-3017-404f-bd72-84646201a3ae",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:13.559Z",
-      "expiresAt": "2026-10-29T16:41:13.559Z"
+      "createdAt": "2026-10-29T17:46:20.205Z",
+      "expiresAt": "2026-10-29T17:47:20.205Z"
     },
-    "res_wa_1793292013723_yzpl": {
+    "res_wa_1793295980405_072t": {
       "type": "WHATSAPP",
       "phone": "351964856452",
       "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:13.723Z",
-      "expiresAt": "2026-10-29T16:41:13.723Z"
+      "createdAt": "2026-10-29T17:46:20.405Z",
+      "expiresAt": "2026-10-29T17:47:20.405Z"
     },
-    "res_wa_1793292014143_sj4p": {
+    "res_wa_1793295981177_2t0w": {
       "type": "WHATSAPP",
       "phone": "351969290488",
       "dealId": "927dc4a1-07c7-4227-bda1-60d16a9863b6",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:14.143Z",
-      "expiresAt": "2026-10-29T16:41:14.143Z"
+      "createdAt": "2026-10-29T17:46:21.177Z",
+      "expiresAt": "2026-10-29T17:47:21.177Z"
     },
-    "res_wa_1793292014524_ovje": {
+    "res_wa_1793295981589_l9ob": {
       "type": "WHATSAPP",
       "phone": "351963780608",
       "dealId": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:14.524Z",
-      "expiresAt": "2026-10-29T16:41:14.524Z"
+      "createdAt": "2026-10-29T17:46:21.589Z",
+      "expiresAt": "2026-10-29T17:47:21.589Z"
     },
-    "res_wa_1793292014974_y47v": {
+    "res_wa_1793295982117_dujr": {
       "type": "WHATSAPP",
       "phone": "351961446489",
       "dealId": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:14.974Z",
-      "expiresAt": "2026-10-29T16:41:14.974Z"
+      "createdAt": "2026-10-29T17:46:22.117Z",
+      "expiresAt": "2026-10-29T17:47:22.117Z"
     },
-    "res_wa_1793292015170_4q11": {
+    "res_wa_1793295982419_2x8u": {
       "type": "WHATSAPP",
       "phone": "351912947745",
       "dealId": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:15.170Z",
-      "expiresAt": "2026-10-29T16:41:15.170Z"
+      "createdAt": "2026-10-29T17:46:22.419Z",
+      "expiresAt": "2026-10-29T17:47:22.419Z"
     },
-    "res_wa_1793292015297_pzei": {
+    "res_wa_1793295982575_w4y9": {
       "type": "WHATSAPP",
       "phone": "351961227251",
       "dealId": "62d3dc79-2a11-4742-92cb-d6713aa3a6b7",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:15.297Z",
-      "expiresAt": "2026-10-29T16:41:15.297Z"
+      "createdAt": "2026-10-29T17:46:22.575Z",
+      "expiresAt": "2026-10-29T17:47:22.575Z"
     },
-    "res_wa_1793292015669_y7fr": {
+    "res_wa_1793295983216_qlwr": {
       "type": "WHATSAPP",
       "phone": "351937565107",
       "dealId": "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:15.669Z",
-      "expiresAt": "2026-10-29T16:41:15.669Z"
+      "createdAt": "2026-10-29T17:46:23.216Z",
+      "expiresAt": "2026-10-29T17:47:23.216Z"
     },
-    "res_wa_1793292015892_ym0d": {
+    "res_wa_1793295983516_7djr": {
       "type": "WHATSAPP",
       "phone": "351966534735",
       "dealId": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:15.892Z",
-      "expiresAt": "2026-10-29T16:41:15.892Z"
+      "createdAt": "2026-10-29T17:46:23.516Z",
+      "expiresAt": "2026-10-29T17:47:23.516Z"
     },
-    "res_wa_1793292016208_k47a": {
+    "res_wa_1793295984006_clv2": {
       "type": "WHATSAPP",
       "phone": "351926474968",
       "dealId": "361d9308-343c-425d-9bea-9283c9145d07",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:16.208Z",
-      "expiresAt": "2026-10-29T16:41:16.208Z"
+      "createdAt": "2026-10-29T17:46:24.006Z",
+      "expiresAt": "2026-10-29T17:47:24.006Z"
     },
-    "res_wa_1793292016345_dy6i": {
+    "res_wa_1793295984153_2ik1": {
       "type": "WHATSAPP",
       "phone": "351961880508",
       "dealId": "606180ab-e1ef-4ada-a066-c14b31f12e94",
       "amount": 0.0485,
       "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:16.345Z",
-      "expiresAt": "2026-10-29T16:41:16.345Z"
-    },
-    "res_wa_1793292017488_ej9n": {
-      "type": "WHATSAPP",
-      "phone": "351931886749",
-      "dealId": "a441070c-108c-4bed-9260-18109d9047fb",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:17.488Z",
-      "expiresAt": "2026-10-29T16:41:17.488Z"
-    },
-    "res_wa_1793292017739_2rca": {
-      "type": "WHATSAPP",
-      "phone": "351918686444",
-      "dealId": "bc7f2394-a628-41aa-9902-be0d95331395",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:17.739Z",
-      "expiresAt": "2026-10-29T16:41:17.739Z"
-    },
-    "res_wa_1793292032178_p5kp": {
-      "type": "WHATSAPP",
-      "phone": "351914376214",
-      "dealId": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:32.178Z",
-      "expiresAt": "2026-10-29T16:41:32.178Z"
-    },
-    "res_wa_1793292032276_q4qj": {
-      "type": "WHATSAPP",
-      "phone": "351933300353",
-      "dealId": "fc8af586-3017-404f-bd72-84646201a3ae",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:32.276Z",
-      "expiresAt": "2026-10-29T16:41:32.276Z"
-    },
-    "res_wa_1793292032373_yd1g": {
-      "type": "WHATSAPP",
-      "phone": "351964856452",
-      "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:32.373Z",
-      "expiresAt": "2026-10-29T16:41:32.373Z"
-    },
-    "res_wa_1793292032727_5b9y": {
-      "type": "WHATSAPP",
-      "phone": "351969290488",
-      "dealId": "927dc4a1-07c7-4227-bda1-60d16a9863b6",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:32.727Z",
-      "expiresAt": "2026-10-29T16:41:32.727Z"
-    },
-    "res_wa_1793292033073_wxxa": {
-      "type": "WHATSAPP",
-      "phone": "351963780608",
-      "dealId": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:33.073Z",
-      "expiresAt": "2026-10-29T16:41:33.073Z"
-    },
-    "res_wa_1793292033515_um9t": {
-      "type": "WHATSAPP",
-      "phone": "351961446489",
-      "dealId": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:33.515Z",
-      "expiresAt": "2026-10-29T16:41:33.515Z"
-    },
-    "res_wa_1793292033724_q9hz": {
-      "type": "WHATSAPP",
-      "phone": "351912947745",
-      "dealId": "57e3cf36-c600-4d3a-b71f-1c21bd937bfd",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:33.724Z",
-      "expiresAt": "2026-10-29T16:41:33.724Z"
-    },
-    "res_wa_1793292033826_aut8": {
-      "type": "WHATSAPP",
-      "phone": "351961227251",
-      "dealId": "62d3dc79-2a11-4742-92cb-d6713aa3a6b7",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:33.826Z",
-      "expiresAt": "2026-10-29T16:41:33.826Z"
-    },
-    "res_wa_1793292034294_qjg8": {
-      "type": "WHATSAPP",
-      "phone": "351937565107",
-      "dealId": "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:34.294Z",
-      "expiresAt": "2026-10-29T16:41:34.294Z"
-    },
-    "res_wa_1793292034471_xycz": {
-      "type": "WHATSAPP",
-      "phone": "351966534735",
-      "dealId": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:34.471Z",
-      "expiresAt": "2026-10-29T16:41:34.471Z"
-    },
-    "res_wa_1793292034929_psnl": {
-      "type": "WHATSAPP",
-      "phone": "351926474968",
-      "dealId": "361d9308-343c-425d-9bea-9283c9145d07",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:34.929Z",
-      "expiresAt": "2026-10-29T16:41:34.929Z"
-    },
-    "res_wa_1793292035089_t9go": {
-      "type": "WHATSAPP",
-      "phone": "351961880508",
-      "dealId": "606180ab-e1ef-4ada-a066-c14b31f12e94",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T16:40:35.089Z",
-      "expiresAt": "2026-10-29T16:41:35.089Z"
+      "createdAt": "2026-10-29T17:46:24.153Z",
+      "expiresAt": "2026-10-29T17:47:24.153Z"
     }
   },
   "blockedReasons": [],
@@ -321,6 +213,9 @@
     "62d3dc79-2a11-4742-92cb-d6713aa3a6b7": 0.0485,
     "0d9bd073-6863-4544-b462-cae2808ce6d8": 0.1455,
     "66eb7c1c-7ff8-4043-8ac1-3f5d64d5a3b6": 0.0485,
-    "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911": 0.097
+    "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911": 0.097,
+    "8939c3a3-27bc-48c3-8885-85fb377ebbe5": 0.0485,
+    "361d9308-343c-425d-9bea-9283c9145d07": 0.0485,
+    "606180ab-e1ef-4ada-a066-c14b31f12e94": 0.0485
   }
 }

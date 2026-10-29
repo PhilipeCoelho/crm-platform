@@ -19,18 +19,18 @@
 
 export const LISBON_TIMEZONE = 'Europe/Lisbon';
 
-export const BUSINESS_HOURS_CONFIG = Object.freeze({
+export const BUSINESS_HOURS_CONFIG = {
     TIMEZONE: LISBON_TIMEZONE,
     START_HOUR: 9,
     START_MINUTE: 0,
     START_SECOND: 0,
-    END_HOUR: 17,
+    END_HOUR: 18,
     END_MINUTE: 0,
     END_SECOND: 0,
     // Em segundos a partir da meia-noite (00:00:00.000):
     START_SECONDS_INCLUSIVE: 9 * 3600, // 32400s
-    END_SECONDS_EXCLUSIVE: 17 * 3600    // 61200s (16:59:59.999 é < 61200s)
-});
+    END_SECONDS_EXCLUSIVE: 18 * 3600    // 64800s (17:59:59.999 é < 64800s)
+};
 
 export class BusinessHoursException extends Error {
     constructor(message, details = {}) {

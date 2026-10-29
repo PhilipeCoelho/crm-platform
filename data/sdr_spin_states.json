@@ -434,5 +434,119 @@
   },
   "9fe9e27b-5b8f-4a1a-ba86-e6e7d503d911": {
     "updatedAt": "2026-10-29T15:31:47.679Z"
+  },
+  "8939c3a3-27bc-48c3-8885-85fb377ebbe5": {
+    "dealId": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
+    "clinicName": "CMD Viseu",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-29T16:41:33.682Z",
+    "updatedAt": "2026-10-29T16:41:33.682Z"
+  },
+  "361d9308-343c-425d-9bea-9283c9145d07": {
+    "dealId": "361d9308-343c-425d-9bea-9283c9145d07",
+    "clinicName": "Clínica Central Braga",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-29T16:52:19.278Z",
+    "updatedAt": "2026-10-29T16:52:19.278Z"
+  },
+  "606180ab-e1ef-4ada-a066-c14b31f12e94": {
+    "dealId": "606180ab-e1ef-4ada-a066-c14b31f12e94",
+    "clinicName": "The Practice Dental Clinic",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-29T16:55:35.229Z",
+    "updatedAt": "2026-10-29T16:55:35.229Z"
   }
 }

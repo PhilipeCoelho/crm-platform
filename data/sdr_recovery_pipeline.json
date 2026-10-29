@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-10-29T16:29:50.101Z",
+  "lastUpdated": "2026-10-29T17:46:29.646Z",
   "deals": {
     "8ce16830-e490-4f39-afc8-f263163d9feb": {
       "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
@@ -5652,6 +5652,30 @@
       },
       "notes": "",
       "manualStageSet": true
+    },
+    "8939c3a3-27bc-48c3-8885-85fb377ebbe5": {
+      "dealId": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
+      "title": "Negócio 351966534735",
+      "stage": "mensagem_enviada",
+      "phone": "351966534735",
+      "lastContactedAt": "2026-10-29T16:41:38.641Z",
+      "notes": "Olá à equipa da CMD Viseu! Da última vez que falámos, estavam a passar por uma fase de migração e nã"
+    },
+    "361d9308-343c-425d-9bea-9283c9145d07": {
+      "dealId": "361d9308-343c-425d-9bea-9283c9145d07",
+      "title": "Negócio 351926474968",
+      "stage": "mensagem_enviada",
+      "phone": "351926474968",
+      "lastContactedAt": "2026-10-29T16:52:22.599Z",
+      "notes": "Olá à equipa da Clínica Central Braga! Notei que têm um acompanhamento clínico especializado em trat"
+    },
+    "606180ab-e1ef-4ada-a066-c14b31f12e94": {
+      "dealId": "606180ab-e1ef-4ada-a066-c14b31f12e94",
+      "title": "Negócio 351961880508",
+      "stage": "mensagem_enviada",
+      "phone": "351961880508",
+      "lastContactedAt": "2026-10-29T17:46:29.646Z",
+      "notes": "Olá, boa tarde! Daqui fala o Philipe Coelho. Notei que a The Practice Dental Clinic tem um foco fort"
     }
   }
 }

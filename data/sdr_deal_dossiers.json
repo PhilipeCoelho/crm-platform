@@ -1421,5 +1421,173 @@
       "relyOnCRMOnlyIfEmpty": false
     },
     "savedAt": "2026-10-29T16:23:19.969Z"
+  },
+  "8939c3a3-27bc-48c3-8885-85fb377ebbe5": {
+    "dealId": "8939c3a3-27bc-48c3-8885-85fb377ebbe5",
+    "clinicName": "CMD Viseu",
+    "concelho": "Viseu",
+    "researchedAt": "2026-10-29T16:41:34.691Z",
+    "expiresAt": "2026-11-28T16:41:34.691Z",
+    "hasReliableData": true,
+    "siteAnalysis": {
+      "hasWebsite": true,
+      "url": "https://cmdviseu.com/",
+      "accessible": true,
+      "highlightedTreatments": [
+        "Ortodontia / Alinhadores Invisíveis"
+      ],
+      "hasOnlineBooking": true,
+      "teamSizeDetected": null,
+      "servicesSourceUrl": "https://cmdviseu.com/",
+      "extractedAt": "2026-10-29T16:41:34.123Z"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "CMD Viseu",
+      "concelho": "Viseu",
+      "searchQueries": [
+        "implantes dentários Viseu",
+        "clínica dentária Viseu"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T16:41:34.691Z"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_SITE_TREATMENTS",
+        "category": "TREATMENTS",
+        "fact": "A clínica promove e destaca no seu website tratamentos de Ortodontia / Alinhadores Invisíveis.",
+        "source": "Website da clínica (https://cmdviseu.com/)",
+        "confidence": "HIGH"
+      },
+      {
+        "factId": "FACT_SITE_BOOKING",
+        "category": "BOOKING",
+        "fact": "A clínica disponibiliza canais diretos de marcação/agendamento online para primeiras consultas.",
+        "source": "Website da clínica (https://cmdviseu.com/)",
+        "confidence": "HIGH"
+      },
+      {
+        "factId": "FACT_LOCAL_SEARCH_GAP",
+        "category": "VISIBILITY",
+        "fact": "A clínica não surge na primeira página dos resultados diretos de pesquisa orgânica para \"implantes dentários Viseu\".",
+        "source": "Pesquisa pública de termos de valor em Viseu",
+        "confidence": "MEDIUM"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false
+    },
+    "savedAt": "2026-10-29T16:41:34.692Z"
+  },
+  "361d9308-343c-425d-9bea-9283c9145d07": {
+    "dealId": "361d9308-343c-425d-9bea-9283c9145d07",
+    "clinicName": "Clínica Central Braga",
+    "concelho": "Braga",
+    "researchedAt": "2026-10-29T16:52:20.039Z",
+    "expiresAt": "2026-11-28T16:52:20.039Z",
+    "hasReliableData": true,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Central Braga",
+      "concelho": "Braga",
+      "searchQueries": [
+        "implantes dentários Braga",
+        "clínica dentária Braga"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T16:52:20.039Z"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_LOCAL_SEARCH_GAP",
+        "category": "VISIBILITY",
+        "fact": "A clínica não surge na primeira página dos resultados diretos de pesquisa orgânica para \"implantes dentários Braga\".",
+        "source": "Pesquisa pública de termos de valor em Braga",
+        "confidence": "MEDIUM"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false
+    },
+    "savedAt": "2026-10-29T16:52:20.040Z"
+  },
+  "undefined": {
+    "clinicName": "The Practice Dental Clinic",
+    "concelho": null,
+    "researchedAt": "2026-10-29T16:55:35.805Z",
+    "expiresAt": "2026-11-28T16:55:35.805Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "The Practice Dental Clinic",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T16:55:35.805Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T16:55:35.806Z"
+  },
+  "606180ab-e1ef-4ada-a066-c14b31f12e94": {
+    "dealId": "606180ab-e1ef-4ada-a066-c14b31f12e94",
+    "clinicName": "The Practice Dental & Esthetic Clinic",
+    "concelho": "Lisboa",
+    "researchedAt": "2026-10-29T16:59:12.275Z",
+    "expiresAt": "2026-11-28T16:59:12.276Z",
+    "hasReliableData": true,
+    "siteAnalysis": {
+      "hasWebsite": true,
+      "url": "https://lisbonsmile.co.uk",
+      "highlightedTreatments": [
+        "Estética Dentária",
+        "Facetas",
+        "Alinhadores Invisíveis",
+        "Reabilitação Oral"
+      ]
+    },
+    "visibilityAnalysis": {
+      "hasGoogleBusinessProfile": true,
+      "rating": 4.9,
+      "reviewCount": 45
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_TREATMENTS",
+        "category": "TREATMENTS",
+        "fact": "A clínica tem foco especializado em estética dentária, facetas e alinhadores invisíveis na Av. António Augusto de Aguiar em Lisboa.",
+        "source": "https://lisbonsmile.co.uk",
+        "confidence": "HIGH"
+      }
+    ]
   }
 }
