@@ -2,17 +2,17 @@
   "today": "2026-10-29",
   "month": "2026-10",
   "openai": {
-    "todayCost": 0,
-    "todayTokens": 0,
-    "monthCost": 0.0031988999999999993,
-    "monthTokens": 14312,
-    "callsCountToday": 0
+    "todayCost": 0.00038835,
+    "todayTokens": 1971,
+    "monthCost": 0.0035872499999999993,
+    "monthTokens": 16283,
+    "callsCountToday": 1
   },
   "whatsapp": {
-    "todayCost": 0.097,
-    "todayDispatches": 2,
-    "monthCost": 0.43649999999999994,
-    "monthDispatches": 9,
+    "todayCost": 0.2425,
+    "todayDispatches": 5,
+    "monthCost": 0.582,
+    "monthDispatches": 12,
     "todayDelivered": 0
   },
   "contacts": {
@@ -31,58 +31,26 @@
       "attemptsWithoutResponse": 1,
       "firstContactAt": "2026-10-29T10:15:12.558Z",
       "lastContactAt": "2026-10-29T10:15:12.558Z"
+    },
+    "351963780608": {
+      "count": 1,
+      "attemptsWithoutResponse": 1,
+      "firstContactAt": "2026-10-29T12:30:10.097Z",
+      "lastContactAt": "2026-10-29T12:30:10.097Z"
+    },
+    "351961446489": {
+      "count": 2,
+      "attemptsWithoutResponse": 2,
+      "firstContactAt": "2026-10-29T15:15:11.755Z",
+      "lastContactAt": "2026-10-29T15:15:20.638Z"
     }
   },
-  "reservations": {
-    "res_wa_1793275771329_ae5c": {
-      "type": "WHATSAPP",
-      "phone": "351914376214",
-      "dealId": "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T12:09:31.329Z",
-      "expiresAt": "2026-10-29T12:10:31.329Z"
-    },
-    "res_wa_1793275771438_5wkc": {
-      "type": "WHATSAPP",
-      "phone": "351933300353",
-      "dealId": "fc8af586-3017-404f-bd72-84646201a3ae",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T12:09:31.438Z",
-      "expiresAt": "2026-10-29T12:10:31.438Z"
-    },
-    "res_wa_1793275771548_y8kp": {
-      "type": "WHATSAPP",
-      "phone": "351964856452",
-      "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T12:09:31.548Z",
-      "expiresAt": "2026-10-29T12:10:31.548Z"
-    },
-    "res_wa_1793275771883_c3pc": {
-      "type": "WHATSAPP",
-      "phone": "351969290488",
-      "dealId": "927dc4a1-07c7-4227-bda1-60d16a9863b6",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T12:09:31.883Z",
-      "expiresAt": "2026-10-29T12:10:31.883Z"
-    },
-    "res_wa_1793275772223_nenn": {
-      "type": "WHATSAPP",
-      "phone": "351963780608",
-      "dealId": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
-      "amount": 0.0485,
-      "category": "MARKETING",
-      "createdAt": "2026-10-29T12:09:32.223Z",
-      "expiresAt": "2026-10-29T12:10:32.223Z"
-    }
-  },
+  "reservations": {},
   "blockedReasons": [],
   "dealsCost": {
     "eabbd15c-1795-4cdd-8fbe-2eff2cbf85c6": 0.0485,
-    "fc8af586-3017-404f-bd72-84646201a3ae": 0.0485
+    "fc8af586-3017-404f-bd72-84646201a3ae": 0.0485,
+    "9277e1cc-c1bd-49a9-88df-2e6a812f27f9": 0.0485,
+    "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": 0.097
   }
 }

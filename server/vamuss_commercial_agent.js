@@ -691,9 +691,17 @@ export const AgentToolImplementations = {
             }
         }
 
-        // 3. Proibição de clichês vazios de abertura na 1ª mensagem
-        if (intent === 'PRIMEIRA_ABORDAGEM' && (textLower.includes('espero que esteja tudo bem') || textLower.includes('espero que esteja bem'))) {
-            console.warn(`🛑 [Sanity Check] REJEITADA: Cliché vazio proibido ("espero que esteja tudo bem"). Bloqueada.`);
+        // 3. Proibição de clichês vazios de abertura em qualquer mensagem
+        const forbiddenCliches = [
+            'espero que esteja tudo bem',
+            'espero que esteja bem',
+            'espero que estejam bem',
+            'espero que estejas bem',
+            'tudo bem convosco',
+            'tudo bem consigo'
+        ];
+        if (forbiddenCliches.some(c => textLower.includes(c))) {
+            console.warn(`🛑 [Sanity Check] REJEITADA: Cliché vazio proibido detectado na mensagem. Bloqueada.`);
             return { success: false, blocked: true, reason: 'EMPTY_CLICHE_DETECTED' };
         }
         // 3.1 Idempotência rígida: se já foi enviada PRIMEIRA_ABORDAGEM para este número ou deal, rejeita novo envio imediato
@@ -1496,12 +1504,18 @@ A clínica "${clinicName}" (+${cleanPhone}) acabou de responder no WhatsApp:
 (Aviso: esta mensagem veio de ${isAudio ? 'um áudio transcrito' : 'texto'}).
 ${dealId ? `Deal ID no CRM: ${dealId}` : 'Nota: não encontramos dealID no CRM diretamente pelo número.'}
 
-Por favor age como o Closer Autónomo da Vamuss:
-1. Se a mensagem for recusa/opt-out, usa imediatamente 'register_opt_out'.
-2. Se tiver deal_id, usa 'update_spin_state' para registar a qualificação e verificar a maturidade SPIN.
-3. Se o lead pedir para falar mais tarde ou numa data específica, usa 'schedule_followup_return'.
-4. Se o lead já estiver pronto ou expressar interesse em ver como funciona, usa 'send_calcom_booking_link'.
-5. Caso contrário, formula uma resposta consultiva em pt-PT (curta, empática, tratando a objeção com foco em consultas particulares de alto valor) e usa 'send_whatsapp_message' com intent 'RESPOSTA_SPIN'.
+ATENÇÃO CRÍTICA AO CONTEXTO DA RESPOSTA:
+1. SE A RESPOSTA FOR UM TEXTO AUTOMÁTICO DE BOAS-VINDAS DA CLÍNICA OU SAUDAÇÃO DA RECEÇÃO:
+   Exemplos: "Obrigado por nos contactar! Estamos à sua disposição", "Olá! Em que podemos ajudar?", "Mensagem automática da Clínica".
+   - NUNCA respondas fingindo que a receção respondeu à tua pergunta sobre tratamentos!
+   - NUNCA digas: "Estava a lembrar-me da nossa última conversa sobre a previsibilidade..." nem repitas a mesma pergunta que acabaste de fazer! Isso parece um robô desajustado em loop!
+   - COMO AGIR: Agradece a atenção e pede gentilmente o encaminhamento da mensagem ao responsável ou diretor clínico:
+     "Obrigado pela rápida atenção! Tinha deixado a mensagem acima para a direção da clínica sobre a organização de consultas particulares. Conseguem por favor encaminhar ao responsável ou indicar-me o contacto direto?"
+2. Se a mensagem for recusa/opt-out, usa imediatamente 'register_opt_out'.
+3. Se tiver deal_id, usa 'update_spin_state' para registar a qualificação e verificar a maturidade SPIN.
+4. Se o lead pedir para falar mais tarde ou numa data específica, usa 'schedule_followup_return'.
+5. Se o lead já estiver pronto ou expressar interesse em ver como funciona, usa 'send_calcom_booking_link'.
+6. Se o lead for uma pessoa real a responder à pergunta ou com uma objeção, formula uma resposta consultiva em pt-PT (curta, empática, tratando a objeção com foco em consultas particulares de alto valor) e usa 'send_whatsapp_message' com intent 'RESPOSTA_SPIN'.
 `;
 
     try {

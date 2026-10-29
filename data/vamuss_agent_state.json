@@ -1,13 +1,53 @@
 {
-  "totalOutboundsSent": 10,
-  "totalRepliesHandled": 10,
+  "totalOutboundsSent": 13,
+  "totalRepliesHandled": 11,
   "totalMeetingsBooked": 0,
   "dailyDispatches": {
     "2026-10-27": 0,
     "2026-10-28": 5,
-    "2026-10-29": 2
+    "2026-10-29": 5
   },
   "recentActions": [
+    {
+      "timestamp": "2026-10-29T15:15:21.770Z",
+      "actionType": "INBOUND_REPLY",
+      "details": {
+        "phone": "351961446489",
+        "clinicName": " Clinicosta – Médicos Dentistas",
+        "textSnippet": "Obrigado por nos contactar! Estamos à sua disposição. CliniC",
+        "agentResolution": "Enviei uma mensagem à CliniCosta abordando a previsibilidade de consultas de tratamentos de maior va"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:15:20.637Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+        "phone": "351961446489",
+        "intent": "RESPOSTA_SPIN",
+        "snippet": "Olá à equipa da CliniCosta! Agradeço a resposta rápida. Estava a lembrar-me da n"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T15:15:11.752Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+        "phone": "351961446489",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Boa tarde à equipa da Clinicosta! Há uns meses trocámos uma mensagem sobre a vos"
+      }
+    },
+    {
+      "timestamp": "2026-10-29T12:30:10.095Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+        "phone": "351963780608",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá, equipa da LT Smile! Espero que estejam bem. Recordo que há algum tempo falá"
+      }
+    },
     {
       "timestamp": "2026-10-29T12:02:55.566Z",
       "actionType": "INBOUND_REPLY",

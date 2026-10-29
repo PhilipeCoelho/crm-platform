@@ -1196,5 +1196,71 @@
       "relyOnCRMOnlyIfEmpty": true
     },
     "savedAt": "2026-10-29T11:25:44.049Z"
+  },
+  "9277e1cc-c1bd-49a9-88df-2e6a812f27f9": {
+    "dealId": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+    "clinicName": "LT Smile",
+    "concelho": null,
+    "researchedAt": "2026-10-29T12:30:07.525Z",
+    "expiresAt": "2026-11-28T12:30:07.525Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "LT Smile",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T12:30:07.525Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T12:30:07.525Z"
+  },
+  "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": {
+    "dealId": "b6d07a16-5400-4adf-9e0c-c6f3a149ad93",
+    "clinicName": "Clinicosta – Médicos Dentistas",
+    "concelho": null,
+    "researchedAt": "2026-10-29T15:15:08.778Z",
+    "expiresAt": "2026-11-28T15:15:08.778Z",
+    "hasReliableData": false,
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clinicosta – Médicos Dentistas",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-29T15:15:08.777Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-29T15:15:08.779Z"
   }
 }

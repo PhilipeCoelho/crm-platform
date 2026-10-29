@@ -1,5 +1,29 @@
 [
   {
+    "id": "bed9723e-f7ce-4ec2-b3db-91f4ffc7964b",
+    "idempotency_key": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce_EVALUATE_INBOUND_WHATSAPP_2026-10-29",
+    "deal_id": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce",
+    "contact_id": "e083fc63-9190-4467-9652-18ecbab7c49a",
+    "task_type": "EVALUATE_INBOUND",
+    "channel": "WHATSAPP",
+    "state": "AGUARDANDO_REVISAO_HUMANA",
+    "priority": "ALTA",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-29T15:15:16.468Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "fromPhone": "",
+      "textContent": "[Mensagem recebida do tipo undefined]",
+      "receivedAt": "2026-10-29T15:15:16.440Z"
+    },
+    "result": null,
+    "error": "Mensagem recebida é ambígua e não fornece informações suficientes para prosseguir.",
+    "created_at": "2026-10-29T15:15:16.468Z",
+    "updated_at": "2026-10-29T15:16:08.961Z"
+  },
+  {
     "id": "5470c344-f5e8-47a8-858a-aa85bdb7adbf",
     "idempotency_key": "7fc36c51-abbf-45f2-b861-34ecd5eb922d_DISPATCH_MESSAGE_EMAIL_2026-10-29",
     "deal_id": "7fc36c51-abbf-45f2-b861-34ecd5eb922d",

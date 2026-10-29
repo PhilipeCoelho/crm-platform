@@ -305,5 +305,84 @@
   },
   "3435ed16-5aa9-499c-96e0-d0362c8205c2": {
     "updatedAt": "2026-10-29T12:02:54.044Z"
+  },
+  "9277e1cc-c1bd-49a9-88df-2e6a812f27f9": {
+    "dealId": "9277e1cc-c1bd-49a9-88df-2e6a812f27f9",
+    "clinicName": "LT Smile",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-29T12:30:05.797Z",
+    "updatedAt": "2026-10-29T12:30:05.797Z"
+  },
+  "b6d07a16-5400-4adf-9e0c-c6f3a149ad93": {
+    "updatedAt": "2026-10-29T15:15:18.549Z"
+  },
+  "e4f2c8ee-e2b6-496d-affc-7b77b91194ce": {
+    "dealId": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce",
+    "clinicName": "CLÍNICA MÉDICA DENTÁRIA - LACERDA",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-29T15:16:03.906Z",
+    "updatedAt": "2026-10-29T15:16:03.906Z"
   }
 }
