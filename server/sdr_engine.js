@@ -34,6 +34,9 @@ import { getCostControllerStatus } from './sdr_cost_controller.js';
 import { runConversationalDecisionGPT } from './sdr_conversational_engine.js';
 import { generateClinicDossier, getValidDossier } from './sdr_web_research.js';
 import { getNextABVariant, recordFirstMessageDispatch, generateWeeklyLearningReport, readObjectionsRepository } from './sdr_learning_analytics.js';
+import { routeCommercialAngle } from './sdr_angle_router.js';
+import { lintSDRMessage } from './sdr_lint.js';
+import { getOrCreateLeadMemory, updateLeadMemory } from './sdr_memory.js';
 
 // Inicializar cliente Supabase para consultas seguras
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
@@ -1085,6 +1088,22 @@ export async function runGPTDiagnosisAndStrategy({
     // B.15.3: Seleção equilibrada de variante A/B
     const abVariant = forcedVariant || getNextABVariant(deal.id);
 
+    // Grok Upgrade: Router de Ângulo e Memória Estruturada
+    const routedAngle = routeCommercialAngle({
+        lossReason: deal.lost_reason,
+        dossier: researchDossier
+    });
+
+    const leadMemory = getOrCreateLeadMemory(deal.id, {
+        clinicName: cleanClinicName,
+        tratamentos_confirmados: researchDossier?.siteAnalysis?.highlightedTreatments || [],
+        tem_site: researchDossier?.hasWebsite ?? false,
+        websiteUrl: researchDossier?.siteAnalysis?.url || null,
+        decisor: researchDossier?.decisionMaker || null,
+        angulo: routedAngle.angle,
+        motivo_perda_original: deal.lost_reason
+    });
+
     // B.13.1: Formato melhorado das atividades com conteúdo real
     const chronologicalActivities = (factualHistory?.chronologicalSummary || []).join('\n');
 
@@ -1279,12 +1298,44 @@ Gera a resposta em formato JSON estrito:
             completion: data.usage.completion_tokens || 0,
             total: data.usage.total_tokens || 0
         } : null;
+        // Grok Upgrade: Linter Pré-Envio (sdr_lint.js) e Atualização de Memória
+        if (parsed.mensagem_sdr_pt_pt?.texto_recomendado) {
+            const lintCheck = lintSDRMessage({
+                messageText: parsed.mensagem_sdr_pt_pt.texto_recomendado,
+                dossier: researchDossier,
+                outboundCountWithoutHuman: previousAttempts?.length || 0,
+                intent: 'COLD_OUTBOUND',
+                intentConfidence: 1.0,
+                leadAskedPrice: false,
+                leadWantsBooking: false
+            });
+
+            if (!lintCheck.ok) {
+                console.warn(`⚠️ [Linter SDR Engine] Mensagem reprovada: ${lintCheck.problemas.join('; ')}. Sanitizando.`);
+                let cleanText = parsed.mensagem_sdr_pt_pt.texto_recomendado
+                    .replace(/espero\s+que\s+esteja\s+tudo\s+bem,?\s*/gi, '')
+                    .replace(/ol[aá],?\s+tudo\s+bem\??\s*/gi, '')
+                    .replace(/dr\(a\)/gi, 'Dr.')
+                    .replace(/\bcontato\b/gi, 'contacto')
+                    .replace(/\bequipe\b/gi, 'equipa')
+                    .trim();
+                parsed.mensagem_sdr_pt_pt.texto_recomendado = cleanText;
+                parsed.mensagem_sdr_pt_pt.texto = cleanText;
+            }
+
+            updateLeadMemory(deal.id, {
+                angulo_usado: routedAngle?.angle,
+                pergunta_adicional: parsed.mensagem_sdr_pt_pt?.texto_recomendado || null
+            });
+        }
+
         return {
             source: 'openai_gpt4o_mini',
             strategyVersion: `v${Date.now()}`,
             openai_token_usage: tokenUsage,
             ab_variant: abVariant,
             research_dossier: researchDossier,
+            routed_angle: routedAngle,
             ...parsed
         };
     } catch (err) {

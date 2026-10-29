@@ -86,6 +86,12 @@ import {
     getNextBusinessWindow
 } from './sdr_business_hours.js';
 
+import { lintSDRMessage } from './sdr_lint.js';
+import { evaluateDispatchPolicy, POLICY_VERDICTS } from './sdr_policy.js';
+import { getOrCreateLeadMemory, updateLeadMemory } from './sdr_memory.js';
+import { detectAutoReply } from './sdr_bot_detector.js';
+import { evaluateCadenceReadiness } from './sdr_cadence.js';
+
 import {
     recordFirstMessageDispatch,
     updateDealOutcome,
@@ -911,6 +917,30 @@ export class SDROperationalWorker {
 
                     const cleanDigits = (phone || '').replace(/\D/g, '');
                     const recipientPhone = cleanDigits.startsWith('351') ? cleanDigits : `351${cleanDigits}`;
+
+                    // B.16: Inspeção Obrigatória pelo Linter (sdr_lint.js) e Política (sdr_policy.js)
+                    const lintResult = lintSDRMessage({
+                        messageText: messageText || '',
+                        outboundCountWithoutHuman: task.payload?.touchCount || 0
+                    });
+
+                    const policyResult = evaluateDispatchPolicy({
+                        lintResult,
+                        isSuppressed: isPhoneSuppressedLocally(recipientPhone),
+                        isCrmContact: true,
+                        inboundText: ''
+                    });
+
+                    if (policyResult.verdict !== POLICY_VERDICTS.ALLOW) {
+                        console.warn(`🛑 [SDR Worker Policy] Envio barrado pela política determinística: [${policyResult.verdict}] ${policyResult.reason}`);
+                        if (policyResult.verdict === POLICY_VERDICTS.QUEUE) {
+                            pauseTask(task.id, `Enfileirado pela política: ${policyResult.reason}`);
+                            return { success: false, queued: true, reason: policyResult.reason };
+                        } else {
+                            failTask(task.id, `Bloqueado pela política determinística: ${policyResult.reason}`, { allowRetry: false });
+                            return { success: false, blocked: true, reason: policyResult.reason };
+                        }
+                    }
 
                     const waWebStatus = getWhatsAppWebStatus();
                     let messageId = null;

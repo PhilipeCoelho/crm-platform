@@ -35,12 +35,19 @@ import {
     saveSpinStateToStore,
     MAX_CLOSER_EXCHANGES
 } from './sdr_spin_qualifier.js';
+import { detectAutoReply, AUTO_REPLY_INTENT, BOT_REROUTE_MESSAGE } from './sdr_bot_detector.js';
+import { classifySpeaker, SPEAKER_LABELS, SECRETARY_FORWARD_REQUEST } from './sdr_speaker.js';
+import { getOrCreateLeadMemory, updateLeadMemory } from './sdr_memory.js';
+import { lintSDRMessage } from './sdr_lint.js';
+import { evaluateDispatchPolicy, POLICY_VERDICTS } from './sdr_policy.js';
+import { generateRecommendedSlots, evaluateSlotChoice } from './sdr_calendar_slots.js';
+import { triggerHandoffNotification } from './sdr_handoff.js';
 
 // ============================================================================
 // CLASSIFICAÇÃO DE INTENÇÕES CONVERSACIONAIS CANÓNICAS
 // ============================================================================
 
-export const CALCOM_BOOKING_LINK = 'https://cal.com/philipecoelho/diagnostico-vamuss';
+export const CALCOM_BOOKING_LINK = 'https://cal.com/euphilipecoelho-jxauxj/diagostico';
 
 /**
  * Extrai prazo de adiamento ("agora não", "daqui a 3 meses") ou aplica 60 dias por defeito
@@ -81,6 +88,7 @@ export function extractPostponementDate(text = '') {
 }
 
 export const CONVERSATIONAL_INTENTS = {
+    AUTO_REPLY_RECEPCAO: 'Resposta automática de chatbot ou receção sem intervenção humana',
     INTENCAO_AGENDAMENTO: 'Intenção explícita ou manifestação clara de interesse em agendar reunião / falar com a equipa',
     INTERESSE_GENUINO: 'Interesse genérico no serviço / curiosidade positiva sem pedido explícito de marcação imediata',
     PEDIDO_INFORMACAO: 'Pedido de esclarecimento sobre metodologia, agência ou valores',
@@ -173,6 +181,93 @@ export async function runConversationalDecisionGPT({
         };
     }
 
+    // 1.1 Verificação de Janela WhatsApp 24h
+    const window24h = checkWhatsApp24hWindow(lastInboundDate || new Date());
+
+    const cleanClinicName = (deal?.title || contact?.company || contact?.name || 'Clínica Dentária')
+        .replace(/^Negócio\s+/i, '')
+        .replace(/\s*\|\s*.*$/, '')
+        .trim();
+
+    // 1.2 Memória Estruturada do Lead
+    const leadMemory = getOrCreateLeadMemory(deal?.id, {
+        clinicName: cleanClinicName,
+        motivo_perda_original: deal?.lost_reason
+    });
+
+    // 1.3 Detetor de Auto-Reply / Robô de Receção (sdr_bot_detector.js)
+    const lastOutbound = (recentActivities || []).find(a => a.type === 'outbound' || a.type === 'whatsapp');
+    const lastOutboundTime = lastOutbound?.date || lastOutbound?.created_at || null;
+
+    const botDiagnosis = detectAutoReply({
+        inboundText,
+        inboundTimestamp: lastInboundDate || new Date(),
+        lastOutboundTimestamp: lastOutboundTime,
+        consecutiveBotCount: leadMemory.consecutive_bot_replies || 0,
+        outboundText: lastOutbound?.notes || ''
+    });
+
+    if (botDiagnosis.isBot) {
+        console.log(`🤖 [Bot Detector] Auto-reply detetado para Deal ${deal?.id}: ${botDiagnosis.reasons.join('; ')}`);
+        updateLeadMemory(deal?.id, {
+            interlocutor_atual: SPEAKER_LABELS.ROBO,
+            consecutive_bot_replies: botDiagnosis.consecutiveBotCount,
+            estado: botDiagnosis.isDeadBot ? 'DEAD_BOT' : leadMemory.estado,
+            ultima_intencao: AUTO_REPLY_INTENT,
+            confianca_intencao: botDiagnosis.confidence
+        });
+
+        return {
+            source: 'bot_detector_guard',
+            intencao_identificada: AUTO_REPLY_INTENT,
+            interlocutor: SPEAKER_LABELS.ROBO,
+            evidencias: botDiagnosis.reasons.join('; '),
+            grau_confianca: 'ALTA',
+            proxima_acao: botDiagnosis.isDeadBot ? 'SILENCIO_DEFINITIVO_DEAD_BOT' : 'REENCAMINHAMENTO_RECEPCAO',
+            mensagem_sugerida: botDiagnosis.suggestedRerouteMessage,
+            justificacao_comercial: botDiagnosis.isDeadBot
+                ? 'Robô consecutivo detetado. Silêncio definitivo (DEAD_BOT).'
+                : 'Resposta automática de receção. Enfileirar reencaminhamento cortês no próximo dia útil.',
+            informacao_em_falta: 'Contacto do Diretor Clínico',
+            intervencao_humana_necessaria: false,
+            motivo_intervencao: null,
+            funnel_event: 'NONE',
+            window24h
+        };
+    }
+
+    // 1.4 Classificador de Interlocutor (sdr_speaker.js)
+    const speakerDiagnosis = classifySpeaker({
+        inboundText,
+        isBot: false,
+        previousSpeaker: leadMemory.interlocutor_atual
+    });
+
+    updateLeadMemory(deal?.id, {
+        interlocutor_atual: speakerDiagnosis.speaker,
+        consecutive_bot_replies: 0
+    });
+
+    // Se o interlocutor for SECRETÁRIA: ZERO SPIN, ZERO PREÇO, ZERO CAL.COM!
+    if (speakerDiagnosis.speaker === SPEAKER_LABELS.SECRETARIA) {
+        console.log(`👩‍💼 [Speaker Classifier] Secretária/Receção detetada para Deal ${deal?.id}. Aplicando playbook estrito de reencaminhamento.`);
+        return {
+            source: 'secretary_playbook_guard',
+            intencao_identificada: 'PEDIDO_INFORMACAO',
+            interlocutor: SPEAKER_LABELS.SECRETARIA,
+            evidencias: speakerDiagnosis.reason,
+            grau_confianca: 'ALTA',
+            proxima_acao: 'PEDIR_REENCAMINHAMENTO_AO_DIRETOR',
+            mensagem_sugerida: SECRETARY_FORWARD_REQUEST,
+            justificacao_comercial: 'Interlocutor é a receção. Proibido SPIN, preço ou agendamento direto. Apenas pedido educado de encaminhamento.',
+            informacao_em_falta: 'Contacto direto do Diretor Clínico',
+            intervencao_humana_necessaria: false,
+            motivo_intervencao: null,
+            funnel_event: 'NONE',
+            window24h
+        };
+    }
+
     // 2. Consulta de aprendizagens prévias B.14.1.5 para o segmento
     const segment = deal?.lost_reason || 'SILENCIO';
     const learningContext = getLearningContextForDeal({
@@ -181,10 +276,7 @@ export async function runConversationalDecisionGPT({
         strategy: 'CONVERSACIONAL_INBOUND'
     });
 
-    // 3. Verificação da Janela de 24h WhatsApp
-    const window24h = checkWhatsApp24hWindow(lastInboundDate || new Date());
-
-    // 4. Verificação de Orçamento OpenAI antes da chamada
+    // 3. Verificação de Orçamento OpenAI antes da chamada
     const budgetCheck = checkAndReserveOpenAIBudget({ estimatedTokens: 1600 });
     if (!budgetCheck.allowed) {
         console.warn(`🛑 [Conversational Engine] Chamada GPT bloqueada por controlo de custos: ${budgetCheck.reason}`);
@@ -223,9 +315,12 @@ export async function runConversationalDecisionGPT({
         updatedSpin.maturitySignals.askedHowItWorksOrCost || 
         updatedSpin.maturitySignals.confirmedProblemAndWantsSolution) {
         
-        console.log(`⭐ [SPIN Qualifier] Gatilho de maturidade ativado para Deal ${deal?.id}! Enviando link do Cal.com...`);
+        console.log(`⭐ [SPIN Qualifier] Gatilho de maturidade ativado para Deal ${deal?.id}! Enviando slots e link do Cal.com...`);
         updatedSpin.calcomLinkSent = true;
         saveSpinStateToStore(deal?.id || 'deal_inbound', updatedSpin);
+
+        const slots = generateRecommendedSlots();
+        const suggestedBookingMessage = `Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos, fica-lhe melhor ${slots.slotA} ou ${slots.slotB}? Se preferir ver todos os horários da minha agenda: ${CALCOM_BOOKING_LINK}`;
 
         return {
             source: 'spin_maturity_gate',
@@ -233,8 +328,8 @@ export async function runConversationalDecisionGPT({
             evidencias: `Gatilho de maturidade ativado (${JSON.stringify(updatedSpin.maturitySignals)}): "${inboundText}"`,
             grau_confianca: 'ALTA',
             proxima_acao: 'ENVIAR_LINK_CALCOM_E_TRANSFERIR',
-            mensagem_sugerida: `Excelente, Dr(a)! Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos com a máxima conveniência para a sua agenda, pode escolher diretamente o melhor dia e horário aqui: ${CALCOM_BOOKING_LINK}\n\nFico a aguardar a sua confirmação!`,
-            justificacao_comercial: 'O lead expressou interesse concreto ou dor com vontade de resolver. Link do Cal.com enviado de imediato sem fricção.',
+            mensagem_sugerida: suggestedBookingMessage,
+            justificacao_comercial: 'O lead expressou interesse concreto ou dor com vontade de resolver. Sugestão ativa de 2 slots + Cal.com enviada.',
             informacao_em_falta: 'Confirmação do agendamento no Cal.com',
             intervencao_humana_necessaria: false,
             motivo_intervencao: null,
@@ -408,11 +503,55 @@ Decide e responde em JSON estrito com esta estrutura:
             });
         }
 
+        // Linter Pré-Envio Obrigatório (sdr_lint.js)
+        if (parsed.mensagem_sugerida) {
+            const lintCheck = lintSDRMessage({
+                messageText: parsed.mensagem_sugerida,
+                intent: parsed.intencao_identificada,
+                intentConfidence: parsed.grau_confianca === 'ALTA' ? 0.9 : 0.6,
+                leadAskedPrice: /(pre[cç]o|quanto custa|valor|mensalidade)/i.test(inboundText),
+                leadWantsBooking: parsed.intencao_identificada === 'INTENCAO_AGENDAMENTO'
+            });
+
+            if (!lintCheck.ok) {
+                console.warn(`⚠️ [Linter] Mensagem do GPT reprovada: ${lintCheck.problemas.join('; ')}. Aplicando correção segura.`);
+                if (parsed.intencao_identificada === 'INTENCAO_AGENDAMENTO') {
+                    const slots = generateRecommendedSlots();
+                    parsed.mensagem_sugerida = `Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos, fica-lhe melhor ${slots.slotA} ou ${slots.slotB}? Se preferir ver todos os horários da minha agenda: ${CALCOM_BOOKING_LINK}`;
+                } else {
+                    parsed.mensagem_sugerida = nextSpinQuestion;
+                }
+            }
+        }
+
         // B.15.2: Registar a pergunta formulada pelo Closer para evitar repetições
         if (parsed.mensagem_sugerida) {
             updatedSpin.historyOfQuestionsAsked = updatedSpin.historyOfQuestionsAsked || [];
             updatedSpin.historyOfQuestionsAsked.push(parsed.mensagem_sugerida);
             saveSpinStateToStore(deal?.id || 'deal_inbound', updatedSpin);
+        }
+
+        // Atualizar memória estruturada do lead
+        updateLeadMemory(deal?.id, {
+            ultima_intencao: parsed.intencao_identificada,
+            confianca_intencao: parsed.grau_confianca === 'ALTA' ? 0.9 : 0.6,
+            pergunta_adicional: parsed.mensagem_sugerida || null
+        });
+
+        // Se houver necessidade de intervenção humana, acionar handoff estruturado
+        if (parsed.intervencao_humana_necessaria) {
+            triggerHandoffNotification({
+                dealId: deal?.id,
+                clinicName: cleanClinicName,
+                phone: contact?.phone,
+                speaker: speakerDiagnosis?.speaker || 'desconhecido',
+                intent: parsed.intencao_identificada,
+                reason: parsed.motivo_intervencao || 'Intervenção humana necessária',
+                riskLevel: 'medio',
+                riskType: 'revisao',
+                conversationSummary: chronologicalHistory.slice(0, 300),
+                suggestedReply: parsed.mensagem_sugerida || ''
+            });
         }
 
         return {

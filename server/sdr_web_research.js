@@ -16,6 +16,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { extractClinicalDecisionMaker } from './sdr_decisor.js';
 
 const DOSSIERS_FILE = path.resolve(process.cwd(), 'data', 'sdr_deal_dossiers.json');
 const DOSSIER_EXPIRATION_DAYS = 30;
@@ -214,6 +215,7 @@ export async function analyzeClinicWebsite(websiteUrl) {
         highlightedTreatments,
         hasOnlineBooking,
         teamSizeDetected,
+        rawContent: combinedText + ' ' + homeHtml,
         servicesSourceUrl: servicesUrlUsed || normUrl,
         extractedAt: new Date().toISOString()
     };
@@ -310,8 +312,25 @@ export async function generateClinicDossier({ dealId, clinicName, concelho, webs
     // 3. Teste de visibilidade e avaliações web
     const visibilityData = await testLocalSearchVisibility(clinicName, concelho);
 
+    // 3.5. Extração do Decisor Clínico (sdr_decisor.js)
+    let decisionMaker = { found: false, confianca: 0.0, salutacao_recomendada: `Bom dia, equipa da ${clinicName},` };
+    if (siteData.hasWebsite && siteData.rawContent) {
+        decisionMaker = extractClinicalDecisionMaker(siteData.rawContent, siteData.url, clinicName);
+    }
+
     // 4. Compilação estrita de Factos Verificados (anti-alucinação)
     const verifiedFacts = [];
+
+    // Facto 0: Diretor Clínico Verificado (Confiança >= 0.7)
+    if (decisionMaker.found && decisionMaker.confianca >= 0.7) {
+        verifiedFacts.push({
+            factId: 'FACT_CLINICAL_DIRECTOR',
+            category: 'DECISOR',
+            fact: `A direção clínica da clínica é assumida por ${decisionMaker.nome_completo_com_titulo}.`,
+            source: `Website da clínica (${decisionMaker.fonte_url || siteData.url})`,
+            confidence: 'HIGH'
+        });
+    }
 
     // Facto 1: Tratamentos destacados no website
     if (siteData.hasWebsite && siteData.accessible && siteData.highlightedTreatments?.length > 0) {
@@ -385,6 +404,7 @@ export async function generateClinicDossier({ dealId, clinicName, concelho, webs
         researchedAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + DOSSIER_EXPIRATION_DAYS * 24 * 60 * 60 * 1000).toISOString(),
         hasReliableData: verifiedFacts.length > 0,
+        decisionMaker,
         siteAnalysis: siteData,
         visibilityAnalysis: visibilityData,
         verifiedFacts,
