@@ -479,7 +479,7 @@ export class SDROperationalWorker {
             const todayStr = new Date().toISOString().slice(0, 10);
             const startedPilotDeals = new Set(
                 allTasks
-                    .filter(t => (t.payload?.isPilotOutbound || (t.task_type === TASK_TYPES.DISPATCH_MESSAGE && t.result?.dispatched)) && t.created_at?.slice(0, 10) === todayStr)
+                    .filter(t => (t.task_type === TASK_TYPES.DISPATCH_MESSAGE && t.result?.dispatched) && t.created_at?.slice(0, 10) === todayStr)
                     .map(t => t.deal_id)
             );
 

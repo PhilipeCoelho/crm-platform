@@ -6,11 +6,11 @@
     "contact_id": "e640707a-024c-4e16-965d-99f23151e5c0",
     "task_type": "ANALYZE_DEAL",
     "channel": "WHATSAPP",
-    "state": "FALHADA",
+    "state": "PENDENTE",
     "priority": "PRIORIDADE_MEDIA",
-    "attempts": 3,
+    "attempts": 0,
     "max_attempts": 3,
-    "next_run_at": "2026-10-29T00:36:16.135Z",
+    "next_run_at": "2026-10-29T11:04:49.986Z",
     "locked_at": null,
     "locked_by": null,
     "payload": {
@@ -23,9 +23,9 @@
       "isPilotOutbound": true
     },
     "result": null,
-    "error": "Cannot read properties of undefined (reading 'filter')",
+    "error": null,
     "created_at": "2026-10-29T00:11:14.665Z",
-    "updated_at": "2026-10-29T00:41:16.386Z"
+    "updated_at": "2026-10-29T11:02:52.263Z"
   },
   {
     "id": "d15dc068-f2a8-46a8-af78-479fa8b1bc26",
@@ -34,11 +34,11 @@
     "contact_id": "c6874ee6-64bb-46da-a8ed-c936bd75d0e3",
     "task_type": "ANALYZE_DEAL",
     "channel": "WHATSAPP",
-    "state": "FALHADA",
+    "state": "PENDENTE",
     "priority": "BAIXA_PRIORIDADE",
-    "attempts": 3,
+    "attempts": 0,
     "max_attempts": 3,
-    "next_run_at": "2026-10-29T00:36:16.458Z",
+    "next_run_at": "2026-10-29T11:04:49.987Z",
     "locked_at": null,
     "locked_by": null,
     "payload": {
@@ -51,7 +51,7 @@
       "isPilotOutbound": true
     },
     "result": null,
-    "error": "Cannot read properties of undefined (reading 'filter')",
+    "error": null,
     "created_at": "2026-10-29T00:11:14.644Z",
     "updated_at": "2026-10-29T00:41:16.838Z"
   },
@@ -62,11 +62,11 @@
     "contact_id": "9f6a6f78-3fd8-4bea-aea3-03e1f671e8ce",
     "task_type": "ANALYZE_DEAL",
     "channel": "WHATSAPP",
-    "state": "FALHADA",
+    "state": "PENDENTE",
     "priority": "BAIXA_PRIORIDADE",
-    "attempts": 3,
+    "attempts": 0,
     "max_attempts": 3,
-    "next_run_at": "2026-10-29T00:36:16.685Z",
+    "next_run_at": "2026-10-29T11:04:49.987Z",
     "locked_at": null,
     "locked_by": null,
     "payload": {
@@ -79,7 +79,7 @@
       "isPilotOutbound": true
     },
     "result": null,
-    "error": "Cannot read properties of undefined (reading 'filter')",
+    "error": null,
     "created_at": "2026-10-29T00:11:14.609Z",
     "updated_at": "2026-10-29T00:41:17.245Z"
   },
@@ -90,11 +90,11 @@
     "contact_id": "1aa64aa0-9545-46d0-a9d3-808dbf2305d5",
     "task_type": "ANALYZE_DEAL",
     "channel": "WHATSAPP",
-    "state": "FALHADA",
+    "state": "PENDENTE",
     "priority": "BAIXA_PRIORIDADE",
-    "attempts": 3,
+    "attempts": 0,
     "max_attempts": 3,
-    "next_run_at": "2026-10-29T00:11:13.599Z",
+    "next_run_at": "2026-10-29T11:04:49.987Z",
     "locked_at": null,
     "locked_by": null,
     "payload": {
@@ -107,7 +107,7 @@
       "isPilotOutbound": true
     },
     "result": null,
-    "error": "Cannot read properties of undefined (reading 'filter')",
+    "error": null,
     "created_at": "2026-10-29T00:01:14.833Z",
     "updated_at": "2026-10-29T00:11:15.873Z"
   },
@@ -118,11 +118,11 @@
     "contact_id": "d1ea6fd3-8645-4f63-a458-4ce862aaafe9",
     "task_type": "ANALYZE_DEAL",
     "channel": "WHATSAPP",
-    "state": "FALHADA",
+    "state": "PENDENTE",
     "priority": "NAO_ELEGIVEL",
-    "attempts": 3,
+    "attempts": 0,
     "max_attempts": 3,
-    "next_run_at": "2026-10-29T00:11:14.097Z",
+    "next_run_at": "2026-10-29T11:04:49.987Z",
     "locked_at": null,
     "locked_by": null,
     "payload": {
@@ -135,7 +135,7 @@
       "isPilotOutbound": true
     },
     "result": null,
-    "error": "Cannot read properties of undefined (reading 'filter')",
+    "error": null,
     "created_at": "2026-10-29T00:01:14.814Z",
     "updated_at": "2026-10-29T00:11:16.111Z"
   },

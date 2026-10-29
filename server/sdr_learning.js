@@ -96,7 +96,13 @@ export function readLearningMemory() {
                 updated_at: new Date().toISOString()
             };
         }
-        return JSON.parse(fs.readFileSync(LEARNING_MEMORY_FILE, 'utf8'));
+        const data = JSON.parse(fs.readFileSync(LEARNING_MEMORY_FILE, 'utf8'));
+        if (!Array.isArray(data.rules)) data.rules = [];
+        if (!Array.isArray(data.hypotheses)) data.hypotheses = [];
+        if (!Array.isArray(data.recommendations)) data.recommendations = [];
+        if (!Array.isArray(data.rejected)) data.rejected = [];
+        if (!Array.isArray(data.disabled)) data.disabled = [];
+        return data;
     } catch {
         return {
             rules: [], hypotheses: [], recommendations: [],
