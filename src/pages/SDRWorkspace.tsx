@@ -186,13 +186,39 @@ export default function SDRWorkspace() {
 
     // Filtros de Pesquisa e Abas da Fila de Trabalho (Área A)
     const filteredCandidates = useMemo(() => {
+        const cleanQuery = searchQuery.toLowerCase().trim();
+        const searchNoSpaces = cleanQuery.replace(/\s+/g, '');
+        const searchDigits = cleanQuery.replace(/\D/g, '');
+
         return candidates.filter(c => {
-            const matchesSearch =
-                c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                c.clinicName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                c.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (c.phone && c.phone.includes(searchQuery)) ||
-                (c.email && c.email.toLowerCase().includes(searchQuery.toLowerCase()));
+            const candidatePhone = c.phone || '';
+            const phoneNoSpaces = candidatePhone.replace(/\s+/g, '');
+            const phoneDigits = candidatePhone.replace(/\D/g, '');
+
+            const directMatch = !cleanQuery ||
+                c.title.toLowerCase().includes(cleanQuery) ||
+                c.clinicName.toLowerCase().includes(cleanQuery) ||
+                c.contactPerson.toLowerCase().includes(cleanQuery) ||
+                (candidatePhone && candidatePhone.toLowerCase().includes(cleanQuery)) ||
+                (c.email && c.email.toLowerCase().includes(cleanQuery));
+
+            const noSpacesMatch = searchNoSpaces.length > 0 && (
+                c.title.toLowerCase().replace(/\s+/g, '').includes(searchNoSpaces) ||
+                c.clinicName.toLowerCase().replace(/\s+/g, '').includes(searchNoSpaces) ||
+                c.contactPerson.toLowerCase().replace(/\s+/g, '').includes(searchNoSpaces) ||
+                (phoneNoSpaces && phoneNoSpaces.includes(searchNoSpaces))
+            );
+
+            const digitsMatch = searchDigits.length >= 2 && phoneDigits.length >= 2 && (
+                phoneDigits.includes(searchDigits) ||
+                (searchDigits.length >= 7 && searchDigits.includes(phoneDigits)) ||
+                (phoneDigits.replace(/^(351|55)/, '').length >= 3 && searchDigits.replace(/^(351|55)/, '').length >= 3 &&
+                 phoneDigits.replace(/^(351|55)/, '').includes(searchDigits.replace(/^(351|55)/, ''))) ||
+                (searchDigits.replace(/^(351|55)/, '').length >= 3 && phoneDigits.replace(/^(351|55)/, '').length >= 3 &&
+                 searchDigits.replace(/^(351|55)/, '').includes(phoneDigits.replace(/^(351|55)/, '')))
+            );
+
+            const matchesSearch = directMatch || noSpacesMatch || digitsMatch;
 
             if (!matchesSearch) return false;
 

@@ -138,12 +138,37 @@ export default function SDRRecoveryKanban({ onSelectDealForTriage }: SDRRecovery
     // Filtros de negócios
     const filteredItems = useMemo(() => {
         if (!pipelineData?.items) return [];
+        const cleanQuery = searchQuery.toLowerCase().trim();
+        const searchNoSpaces = cleanQuery.replace(/\s+/g, '');
+        const searchDigits = cleanQuery.replace(/\D/g, '');
+
         return pipelineData.items.filter(item => {
-            const matchesSearch =
-                item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (item.phone && item.phone.includes(searchQuery)) ||
-                (item.lostReason && item.lostReason.toLowerCase().includes(searchQuery.toLowerCase()));
+            const itemPhone = item.phone || '';
+            const phoneNoSpaces = itemPhone.replace(/\s+/g, '');
+            const phoneDigits = itemPhone.replace(/\D/g, '');
+
+            const directMatch = !cleanQuery ||
+                item.title.toLowerCase().includes(cleanQuery) ||
+                item.contactName.toLowerCase().includes(cleanQuery) ||
+                (itemPhone && itemPhone.toLowerCase().includes(cleanQuery)) ||
+                (item.lostReason && item.lostReason.toLowerCase().includes(cleanQuery));
+
+            const noSpacesMatch = searchNoSpaces.length > 0 && (
+                item.title.toLowerCase().replace(/\s+/g, '').includes(searchNoSpaces) ||
+                item.contactName.toLowerCase().replace(/\s+/g, '').includes(searchNoSpaces) ||
+                (phoneNoSpaces && phoneNoSpaces.includes(searchNoSpaces))
+            );
+
+            const digitsMatch = searchDigits.length >= 2 && phoneDigits.length >= 2 && (
+                phoneDigits.includes(searchDigits) ||
+                (searchDigits.length >= 7 && searchDigits.includes(phoneDigits)) ||
+                (phoneDigits.replace(/^(351|55)/, '').length >= 3 && searchDigits.replace(/^(351|55)/, '').length >= 3 &&
+                 phoneDigits.replace(/^(351|55)/, '').includes(searchDigits.replace(/^(351|55)/, ''))) ||
+                (searchDigits.replace(/^(351|55)/, '').length >= 3 && phoneDigits.replace(/^(351|55)/, '').length >= 3 &&
+                 searchDigits.replace(/^(351|55)/, '').includes(phoneDigits.replace(/^(351|55)/, '')))
+            );
+
+            const matchesSearch = directMatch || noSpacesMatch || digitsMatch;
 
             if (!matchesSearch) return false;
 

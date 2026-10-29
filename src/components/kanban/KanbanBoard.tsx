@@ -178,7 +178,7 @@ function KanbanBoard({ currency }: KanbanBoardProps) {
         const queryWithoutCountry = queryDigits.replace(/^(351|55)/, '');
         if (queryWithoutCountry.length >= 3 && sourceDigits.includes(queryWithoutCountry)) return true;
         const sourceWithoutCountry = sourceDigits.replace(/^(351|55)/, '');
-        if (sourceWithoutCountry.length >= 3 && sourceWithoutCountry.includes(queryDigits)) return true;
+        if (sourceWithoutCountry.length >= 3 && queryWithoutCountry.length >= 3 && sourceWithoutCountry.includes(queryWithoutCountry)) return true;
         return false;
     }, []);
 
