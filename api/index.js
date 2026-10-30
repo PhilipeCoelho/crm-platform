@@ -8350,10 +8350,10 @@ setupWhatsAppWebRoutes(app);
 setupSDREngine(app);
 setupCommercialAgentRoutes(app);
 
-// Inicializar motor do WhatsApp Web
-initWhatsAppWeb().catch(err => console.warn('⚠️ [WhatsApp Web] Aviso na inicialização:', err.message));
-
 if (process.env.VERCEL !== '1') {
+    // Inicializar motor do WhatsApp Web apenas em servidores persistentes (não em Serverless Vercel)
+    initWhatsAppWeb().catch(err => console.warn('⚠️ [WhatsApp Web] Aviso na inicialização:', err.message));
+
     app.listen(PORT, () => {
         console.log(`🚀 Hardened Server running on port ${PORT}`);
         if (process.env.SDR_AUTONOMOUS_WORKER === 'true') {
