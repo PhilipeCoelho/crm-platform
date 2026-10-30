@@ -250,7 +250,7 @@ export function getNextSpinQuestion(spinState) {
  * Constrói a mensagem leve de encerramento amigável caso atinja o limite de 6 trocas sem avanço
  */
 export function getGentleDirectPitchMessage(clinicName = '') {
-    return `Dr(a)., para não lhe tomar mais tempo com mensagens entre consultas, o mais prático e transparente seria vermos o potencial da clínica numa chamada objetiva de 20 minutos: ${CALCOM_BOOKING_LINK}\n\nSe fizer sentido avaliar, pode escolher o melhor horário. Se neste momento a prioridade for outra, compreendemos perfeitamente e agradecemos a simpatia!`;
+    return `Para não lhe tomar mais tempo com mensagens entre consultas, o mais prático e transparente seria vermos o potencial da clínica numa chamada objetiva de 20 minutos: ${CALCOM_BOOKING_LINK}\n\nSe fizer sentido avaliar, pode escolher o melhor horário. Se neste momento a prioridade for outra, compreendemos perfeitamente e agradecemos a simpatia!`;
 }
 
 /**

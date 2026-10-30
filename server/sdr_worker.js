@@ -1242,7 +1242,7 @@ export class SDROperationalWorker {
                         });
 
                         // 2. Disparar link do Cal.com diretamente para o lead via WhatsApp Web
-                        const calcomMsg = decision.mensagem_sugerida || `Excelente, Dr(a)! Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos com a máxima conveniência para a sua agenda, pode escolher diretamente o melhor dia e horário aqui: https://cal.com/philipecoelho/diagnostico-vamuss\n\nFico a aguardar a sua confirmação!`;
+                        const calcomMsg = decision.mensagem_sugerida || `Excelente! Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos com a máxima conveniência para a sua agenda, pode escolher diretamente o melhor dia e horário aqui: https://cal.com/euphilipecoelho-jxauxj/diagostico\n\nFico a aguardar a sua confirmação!`;
                         try {
                             const waStatus = getWhatsAppWebStatus();
                             if (waStatus.isConnected) {

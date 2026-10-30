@@ -382,7 +382,7 @@ DISTINÇÃO CRÍTICA ENTRE INTERESSE GENÉRICO E INTENÇÃO DE AGENDAMENTO:
       - proxima_acao: "ENVIAR_LINK_CALCOM_E_TRANSFERIR"
       - intervencao_humana_necessaria: false
       - motivo_intervencao: "O lead demonstrou interesse claro em agendar. Link do Cal.com enviado diretamente ao lead."
-      - mensagem_sugerida: "Excelente, Dr(a)! Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos com a máxima conveniência para a sua agenda, pode escolher diretamente o melhor dia e horário aqui: ${CALCOM_BOOKING_LINK}\n\nFico a aguardar a sua confirmação!"
+      - mensagem_sugerida: "Excelente! Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos com a máxima conveniência para a sua agenda, pode escolher diretamente o melhor dia e horário aqui: ${CALCOM_BOOKING_LINK}\n\nFico a aguardar a sua confirmação!"
       - funnel_event: "MEETING_REQUESTED_HANDOFF"
 
 2. INTERESSE_GENUINO: O lead demonstra interesse ou curiosidade genérica sobre os serviços ("Gostava de saber mais", "Como funciona?", "Trabalham com implantes?", "De que se trata?"). NÃO é intenção de agendamento imediato!
@@ -635,17 +635,17 @@ export function fallbackDeterministicConversationalDecision({
         proximaAcao = 'ENVIAR_LINK_CALCOM_E_TRANSFERIR';
         funnelEvent = 'MEETING_REQUESTED_HANDOFF';
         precisaHumano = false; // Closer responde com link de agenda imediatamente!
-        mensagemSugerida = `Excelente, Dr(a)! Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos com a máxima conveniência para a sua agenda, pode escolher diretamente o melhor dia e horário aqui: ${CALCOM_BOOKING_LINK}\n\nFico a aguardar a sua confirmação!`;
+        mensagemSugerida = `Excelente! Para agendarmos a nossa Reunião de Diagnóstico de 20 minutos com a máxima conveniência para a sua agenda, pode escolher diretamente o melhor dia e horário aqui: ${CALCOM_BOOKING_LINK}\n\nFico a aguardar a sua confirmação!`;
         motivoIntervencao = `Intenção de agendamento detetada: "${inboundText}". Link do Cal.com enviado de imediato ao cliente.`;
     } else if (isPoliteRefusal) {
         intencao = 'RECUSA_EDUCADA';
         proximaAcao = 'ENCERRAR_POLIDAMENTE';
         funnelEvent = 'OPTOUT_OR_REFUSAL';
-        mensagemSugerida = `Compreendido perfeitamente, Dr(a). Agradecemos a atenção e desejamos o melhor sucesso à equipa da clínica.`;
+        mensagemSugerida = `Compreendido perfeitamente. Agradecemos a atenção e desejamos o melhor sucesso à equipa da clínica.`;
     } else if (isInterest) {
         intencao = 'INTERESSE_GENUINO';
         proximaAcao = 'QUALIFICACAO_SPIN';
-        mensagemSugerida = `Compreendido, Dr(a). O nosso sistema foca-se especificamente na atração de pacientes particulares para tratamentos rentáveis (como implantes e reabilitação) via pesquisa direta no Google. Para vermos a viabilidade para a vossa clínica, realizam tratamentos de implantes atualmente?`;
+        mensagemSugerida = `Compreendido! O nosso trabalho foca-se na estruturação da pesquisa no Google para pacientes que procuram tratamentos particulares (como implantes e reabilitação). Para perceber a pertinência para a vossa clínica, realizam tratamentos de implantes atualmente?`;
         funnelEvent = 'REPLY_WITH_INTEREST';
     } else if (isObjection) {
         intencao = 'OBJECAO_PRECO_OU_AGENCIA';

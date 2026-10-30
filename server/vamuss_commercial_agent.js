@@ -756,11 +756,17 @@ export const AgentToolImplementations = {
             }
         }
 
-        // 2. Salvaguarda de horário comercial (09h00-17h00 Europe/Lisbon Seg-Sex)
-        const timing = validateDispatchTiming();
-        if (!timing.permitido) {
-            console.warn(`⏰ [Vamuss Agent Tool] Fora de horário comercial (${timing.motivo}). Envio bloqueado para proteção do número.`);
-            return { success: false, blocked: true, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.proxima_janela_util };
+        // 2. Salvaguarda de horário:
+        // - Novos contactos frios (PRIMEIRA_ABORDAGEM): Apenas em dias úteis (09h00-18h00 Lisboa) a partir de segunda-feira às 09h00.
+        // - Respostas a quem nos contactou (RESPOSTA_SPIN, envio de Cal.com, esclarecimento):
+        //   Permitidas de imediato para manter o fio da conversa e não deixar o lead sem resposta.
+        const isColdOutbound = (intent === 'PRIMEIRA_ABORDAGEM');
+        if (isColdOutbound) {
+            const timing = validateDispatchTiming();
+            if (!timing.permitido) {
+                console.warn(`⏰ [Vamuss Agent Tool] Novo contacto frio bloqueado fora de horário comercial (${timing.motivo}). Próxima janela: segunda-feira às 09h00.`);
+                return { success: false, blocked: true, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.proxima_janela_util };
+            }
         }
 
         // 2.5 LINTER OBRIGATÓRIO: Zero tolerância para placeholders [Nome], clichés ou jargão
