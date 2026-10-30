@@ -548,5 +548,81 @@
     "historyOfQuestionsAsked": [],
     "createdAt": "2026-10-29T16:55:35.229Z",
     "updatedAt": "2026-10-29T16:55:35.229Z"
+  },
+  "a441070c-108c-4bed-9260-18109d9047fb": {
+    "dealId": "a441070c-108c-4bed-9260-18109d9047fb",
+    "clinicName": "Master Dental Faro",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-30T10:15:08.033Z",
+    "updatedAt": "2026-10-30T10:15:08.034Z"
+  },
+  "bc7f2394-a628-41aa-9902-be0d95331395": {
+    "dealId": "bc7f2394-a628-41aa-9902-be0d95331395",
+    "clinicName": "Clínica O Sizo",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-30T10:15:08.443Z",
+    "updatedAt": "2026-10-30T10:15:08.443Z"
   }
 }

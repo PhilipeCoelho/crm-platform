@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-10-29T17:46:29.646Z",
+  "lastUpdated": "2026-10-30T10:15:21.031Z",
   "deals": {
     "8ce16830-e490-4f39-afc8-f263163d9feb": {
       "dealId": "8ce16830-e490-4f39-afc8-f263163d9feb",
@@ -5676,6 +5676,22 @@
       "phone": "351961880508",
       "lastContactedAt": "2026-10-29T17:46:29.646Z",
       "notes": "Olá, boa tarde! Daqui fala o Philipe Coelho. Notei que a The Practice Dental Clinic tem um foco fort"
+    },
+    "a441070c-108c-4bed-9260-18109d9047fb": {
+      "dealId": "a441070c-108c-4bed-9260-18109d9047fb",
+      "title": "Negócio 351931886749",
+      "stage": "mensagem_enviada",
+      "phone": "351931886749",
+      "lastContactedAt": "2026-10-30T10:15:19.688Z",
+      "notes": "Olá Dr. Miguel Ferreira, boa tarde! Recordo que há algum tempo atrás tivemos uma breve troca sobre a"
+    },
+    "bc7f2394-a628-41aa-9902-be0d95331395": {
+      "dealId": "bc7f2394-a628-41aa-9902-be0d95331395",
+      "title": "Negócio 351918686444",
+      "stage": "mensagem_enviada",
+      "phone": "351918686444",
+      "lastContactedAt": "2026-10-30T10:15:21.031Z",
+      "notes": "Boa tarde à equipa da Clínica O Sizo! Há uns meses, estivemos em contacto e fiquei curioso sobre com"
     }
   }
 }

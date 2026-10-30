@@ -1,13 +1,34 @@
 {
-  "totalOutboundsSent": 25,
+  "totalOutboundsSent": 27,
   "totalRepliesHandled": 16,
   "totalMeetingsBooked": 0,
   "dailyDispatches": {
     "2026-10-27": 0,
     "2026-10-28": 5,
-    "2026-10-29": 17
+    "2026-10-29": 17,
+    "2026-10-30": 2
   },
   "recentActions": [
+    {
+      "timestamp": "2026-10-30T10:15:21.030Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "bc7f2394-a628-41aa-9902-be0d95331395",
+        "phone": "351918686444",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Boa tarde à equipa da Clínica O Sizo! Há uns meses, estivemos em contacto e fiqu"
+      }
+    },
+    {
+      "timestamp": "2026-10-30T10:15:19.685Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "a441070c-108c-4bed-9260-18109d9047fb",
+        "phone": "351931886749",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá Dr. Miguel Ferreira, boa tarde! Recordo que há algum tempo atrás tivemos uma"
+      }
+    },
     {
       "timestamp": "2026-10-29T17:46:29.645Z",
       "actionType": "OUTBOUND_DISPATCH",
