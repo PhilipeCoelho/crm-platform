@@ -421,7 +421,30 @@ export async function getRecoveryPipelineData({ limit = 500, dealIds = null } = 
         legalGateStatus: process.env.SDR_LEGAL_GATE || 'FAIL_CLOSED'
     };
 
-    const waStatus = getWhatsAppWebStatus();
+    let waStatus = getWhatsAppWebStatus();
+    // Se a instância local não tiver Baileys conectado (ex: ambiente serverless Vercel),
+    // consulta o heartbeat remoto no Supabase publicado pelo daemon do Mac ou Oracle VM:
+    if (waStatus?.status !== 'CONNECTED') {
+        try {
+            const { getRemoteWhatsAppHeartbeat } = await import('./whatsapp_session_sync.js');
+            const remoteHb = await getRemoteWhatsAppHeartbeat();
+            if (remoteHb && remoteHb.isConnected) {
+                waStatus = {
+                    provider: 'WhatsApp Web (Baileys Multi-Device - Worker Ativo)',
+                    status: 'CONNECTED',
+                    isConnected: true,
+                    hasQr: false,
+                    qrCodeDataUrl: null,
+                    connectedUser: {
+                        phone: remoteHb.phone,
+                        name: 'Philipe Coelho (Vamuss)'
+                    },
+                    remoteAgeSeconds: remoteHb.ageSeconds
+                };
+            }
+        } catch (_) {}
+    }
+
     const timing = validateDispatchTiming();
     const waConnected = waStatus?.status === 'CONNECTED';
     const isWithinHours = timing?.permitido === true;

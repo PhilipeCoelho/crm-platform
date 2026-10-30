@@ -1179,9 +1179,11 @@ REGRAS INVIOLÁVEIS (B.13.2 / B.15):
 7. Se uma secretária deu indicação de contactar o médico por e-mail, respeita essa orientação.
 8. Mensagem curta (máximo 4-5 linhas), tom profissional e natural em pt-PT.
 9. DUAL COPY: Apresenta "texto_recomendado" E "alternativa_comercial_relevante", explicando a diferença estratégica entre as duas.
-10. ORIGEM E OPT-OUT OBRIGATÓRIOS (RGPD / B.14.3.4):
-   - Menciona de forma breve que já houve contacto anterior entre a Vamuss e a clínica (ex.: "Na sequência de contactos anteriores da Vamuss...").
-   - Inclui obrigatoriamente no fecho da mensagem a seguinte frase de saída natural: "Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número."
+10. TOM CONSULTIVO E RESPEITO TOTAL (Peer-to-Peer em pt-PT):
+   - NUNCA uses jargão corporativo ou de agência (banido: "atrair mais pacientes", "na sequência de contactos anteriores", "tratamentos de valor acrescentado", "retiro o seu número").
+   - Fala como colega/parceiro profissional de gestão clínica, de forma direta, respeitosa e natural.
+   - Máximo 1 pergunta focada no final para abrir conversa sobre especialidades ou consultas particulares.
+   - NUNCA uses placeholders ([Nome], [Clínica], etc.). Se o nome do médico não for certo e comprovado, dirige-te com naturalidade à equipa da clínica.
 11. TESTE A/B E FACTOS DE PESQUISA WEB (VARIANTE ${abVariant}):
 ${abVariant === 'A' && (researchDossier?.verifiedFacts || []).length > 0
     ? `   - VARIANTE A (Pesquisa Web Específica): Podes utilizar no MÁXIMO UM facto verificado da lista de "DOSSIÊ FACTUAL DE PESQUISA WEB". Liga esse facto de forma natural ao histórico do CRM e motivo da perda.
@@ -1375,35 +1377,35 @@ export function generateDeterministicStrategy({
     // B.13.2: Geração de abordagem recomendada e alternativa comercial por estratégia
     switch (strategy) {
         case 'SEGUIMENTO_ORIENTACAO_RECECAO': {
-            const targetDoc = selectedStrategy?.targetPerson || 'Dr. Filipe Salgueiro';
+            const targetDoc = selectedStrategy?.targetPerson || 'direção clínica';
             textoRecomendado = channel === 'EMAIL'
-                ? `Assunto: Seguimento — recomendação da receção / ${cleanClinicName}\n\nBoa tarde, ${targetDoc}.\n\nFalei anteriormente com a receção da clínica, que me indicou que o melhor meio para lhe fazer chegar esta mensagem seria por e-mail, dado o seu tempo em gabinete.\n\nApoiamos clínicas dentárias a atrair pacientes particulares para reabilitação e implantes através de pesquisa direta no Google, sem dependência de seguradoras.\n\nFaria sentido enviar-lhe um breve exemplo de como estruturamos esta captação?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`
-                : `Boa tarde, ${targetDoc}. Na sequência do contacto anterior com a receção da ${cleanClinicName}, contactamos por este meio. Apoiamos clínicas a atrair pacientes particulares para reabilitação via Google. Seria oportuno enviar-lhe um breve exemplo prático? Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
+                ? `Assunto: Seguimento — recomendação da receção / ${cleanClinicName}\n\nBoa tarde, ${targetDoc}.\n\nFalei com a receção da ${cleanClinicName}, que me sugeriu o contacto direto consigo por este canal.\n\nTrabalhamos com clínicas dentárias em Portugal na estruturação de consultas particulares para reabilitação e implantes.\n\nFaria sentido partilhar um exemplo prático de como organizamos este fluxo?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss`
+                : `Boa tarde, ${targetDoc}. Na sequência da indicação da receção da ${cleanClinicName}, faço chegar esta breve mensagem. Trabalhamos com clínicas dentárias no fluxo de consultas particulares de reabilitação. Faria sentido partilhar um exemplo prático de como o fazemos?`;
             
-            alternativaComercial = `Boa tarde à receção da ${cleanClinicName}. Na sequência da nossa conversa anterior em que nos sugeriram o envio de e-mail ao ${targetDoc}, gostaríamos apenas de confirmar se este continua a ser o canal preferencial da clínica antes de enviarmos novo contacto sobre captação de pacientes particulares. Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
-            explicacaoDiferenca = 'A abordagem recomendada fala diretamente com o decisor clínico legitimada pela indicação da secretária, respeitando o seu tempo em consulta. A alternativa valida previamente com a receção se o momento é oportuno antes de enviar nova mensagem ao médico.';
+            alternativaComercial = `Boa tarde à receção da ${cleanClinicName}. Falámos anteriormente e sugeriram o contacto com o ${targetDoc}. Gostaria apenas de confirmar se este contacto continua a ser o meio mais oportuno para apresentar o tema à direção.`;
+            explicacaoDiferenca = 'A abordagem recomendada fala diretamente com o decisor clínico legitimada pela indicação da receção. A alternativa valida previamente com a receção se o momento é oportuno.';
             break;
         }
 
         case 'CORRIGIR_PITCH_ANTERIOR_E_DIFERENCIAR': {
-            const interlocutor = cv.identifiedInLogs || 'Dra. Catarina';
+            const interlocutor = cv.identifiedInLogs || `equipa da ${cleanClinicName}`;
             textoRecomendado = channel === 'EMAIL'
-                ? `Assunto: Esclarecimento sobre abordagem anterior — ${cleanClinicName}\n\nBoa tarde, ${interlocutor}.\n\nEm contactos anteriores da Vamuss falámos sobre presença em redes sociais para a ${cleanClinicName}. Olhando para trás, reconheço que essa abordagem não reflete o trabalho real que fazemos hoje.\n\nNão trabalhamos publicações de redes sociais nem anúncios de vaidade. Focamo-nos exclusivamente em posicionar clínicas dentárias na pesquisa do Google quando pacientes procuram ativamente tratamentos particulares de implantes ou reabilitação.\n\nEste foco em pacientes particulares de maior valor clínico seria mais pertinente para a vossa fase atual?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`
-                : `Boa tarde, ${interlocutor}. Em contactos anteriores da Vamuss mencionámos redes sociais para a ${cleanClinicName}. Reconheço o erro de enquadramento: não fazemos redes sociais, focamo-nos em posicionar a clínica na pesquisa do Google para tratamentos de reabilitação. Faria sentido avaliar esta diferença? Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
+                ? `Assunto: Esclarecimento sobre contacto anterior — ${cleanClinicName}\n\nBoa tarde, ${interlocutor}.\n\nEm contactos anteriores da Vamuss falámos sobre redes sociais. Olhando para trás, essa abordagem não reflete o nosso foco real hoje.\n\nNão fazemos gestão de redes sociais. Focamo-nos em posicionar clínicas dentárias quando os pacientes pesquisam ativamente por tratamentos particulares de reabilitação oral e implantes.\n\nEste foco em pacientes particulares seria mais oportuno para a vossa fase atual?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss`
+                : `Boa tarde à equipa da ${cleanClinicName}! Falámos há algum tempo e queria deixar uma nota rápida: não fazemos redes sociais. Focamo-nos em posicionar a clínica na pesquisa direta de pacientes para reabilitação e implantes. Como tem estado a procura para essas áreas este semestre?`;
 
-            alternativaComercial = `Assunto: ${cleanClinicName} — captação de pacientes particulares via pesquisa Google\n\nBoa tarde à equipa da ${cleanClinicName}.\n\nNo seguimento do nosso contacto anterior: a captação de primeiras consultas particulares de medicina dentária sem depender de convenções continua a ser uma prioridade na vossa gestão este trimestre?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`;
-            explicacaoDiferenca = 'A recomendada desconstrói o erro do pitch anterior de redes sociais, retirando a Vamuss do saco das agências generalistas e elevando o debate para a pesquisa de alto valor no Google. A alternativa ignora o histórico de redes sociais e foca-se estritamente numa pergunta neutra sobre prioridade em tratamentos particulares.';
+            alternativaComercial = `Boa tarde à equipa da ${cleanClinicName}. Falámos há uns meses sobre a organização de novas consultas. A procura de primeiras consultas particulares de reabilitação continua a ser uma prioridade na clínica neste momento?`;
+            explicacaoDiferenca = 'A recomendada desconstrói o erro do pitch anterior de redes sociais e foca em pesquisa direta. A alternativa foca-se numa pergunta neutra sobre prioridade em consultas particulares.';
             break;
         }
 
         case 'RETOMA_POSICIONAMENTO_ESPECIFICO_BOUTIQUE': {
-            const targetName = cv.identifiedInLogs || 'Dra. Clara Panão';
+            const targetName = cv.identifiedInLogs || `equipa da ${cleanClinicName}`;
             textoRecomendado = channel === 'EMAIL'
-                ? `Assunto: ${cleanClinicName} — pacientes particulares em estética e reabilitação\n\nBoa tarde, ${targetName}.\n\nEm maio partilhei uma breve nota sobre o posicionamento da ${cleanClinicName} enquanto clínica de referência e foco em tratamentos diferenciados em Lisboa.\n\nCompreendo a exigência do dia a dia clínico e não pretendo sobrecarregar a sua agenda com apresentações longas.\n\nApenas gostaria de saber: a atração previsível de pacientes particulares para procedimentos de estética e reabilitação continua a ser uma prioridade estratégica na clínica este semestre?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`
-                : `Boa tarde, ${targetName}. No seguimento da nossa conversa anterior sobre tratamentos estéticos e de reabilitação para a ${cleanClinicName}, a captação previsível de pacientes particulares continua a ser uma prioridade na clínica neste momento? Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
+                ? `Assunto: ${cleanClinicName} — posicionamento em tratamentos particulares\n\nBoa tarde, ${targetName}.\n\nRecordo o posicionamento de referência da ${cleanClinicName} e o foco em tratamentos diferenciados.\n\nCompreendo a exigência do dia a dia clínico. Gostaria apenas de saber: a organização de consultas particulares para procedimentos de reabilitação e estética continua a ser uma prioridade na clínica este semestre?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss`
+                : `Boa tarde, ${targetName}! Recordo o trabalho de referência da ${cleanClinicName} em reabilitação e estética. Como tem estado o movimento de consultas particulares para esses tratamentos este semestre?`;
 
-            alternativaComercial = `Boa tarde, ${targetName}. Na sequência de contactos anteriores, apoiamos clínicas dentárias a captar pacientes particulares para tratamentos de diferenciação estética via Google. Se fizer sentido avaliar este tema, fico à disposição. Se não pretender futuros contactos, basta dizer-me e retiro o número.`;
-            explicacaoDiferenca = 'A recomendada faz a ligação consultiva com o contacto inicial de maio e o conceito de spa/boutique dentária sem exercer pressão de reunião. A alternativa é ultracurta e direta, adequada para WhatsApp ou para minimizar atrito.';
+            alternativaComercial = `Boa tarde à equipa da ${cleanClinicName}! Estivemos em contacto há algum tempo e acompanho o vosso trabalho clínico. Têm sentido estabilidade na procura de primeiras consultas particulares ou tem oscilado?`;
+            explicacaoDiferenca = 'A recomendada faz a ligação consultiva com o posicionamento diferenciado da clínica. A alternativa é curta e focada na estabilidade da procura.';
             break;
         }
 
@@ -1416,41 +1418,41 @@ export function generateDeterministicStrategy({
 
         case 'PEDIR_ORIENTACAO_DECISOR': {
             textoRecomendado = channel === 'EMAIL'
-                ? `Assunto: Serviços de saúde — ${cleanClinicName}\n\nBoa tarde.\n\nContacto a ${cleanClinicName} a respeito de um serviço especializado na área de medicina dentária.\n\nPoderia indicar-me por favor a quem na direção clínica devo dirigir esta comunicação?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`
-                : `Boa tarde. No seguimento de contacto anterior com a ${cleanClinicName}, gostaria de confirmar a quem na direção clínica devo dirigir esta questão sobre captação de pacientes particulares. Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
+                ? `Assunto: Organização de consultas particulares — ${cleanClinicName}\n\nBoa tarde.\n\nContacto a ${cleanClinicName} relativamente ao fluxo de consultas particulares de medicina dentária.\n\nPoderia indicar-me por favor qual é o canal mais indicado para falar com a direção clínica sobre este tema?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss`
+                : `Boa tarde à equipa da ${cleanClinicName}. Falámos há algum tempo sobre o fluxo de pacientes particulares. Poderiam indicar-me qual é o melhor canal para colocar uma breve questão à direção clínica?`;
 
-            alternativaComercial = `Boa tarde à receção da ${cleanClinicName}. Gostaria de saber qual o endereço de e-mail institucional mais indicado para apresentar uma breve proposta de gestão de pacientes particulares à administração da clínica. Se não pretender receber contactos, basta avisar.`;
-            explicacaoDiferenca = 'A recomendada é neutra e pede a pessoa certa. A alternativa solicita diretamente o canal formal da administração.';
+            alternativaComercial = `Boa tarde à receção da ${cleanClinicName}. Gostaria de saber qual o contacto de e-mail mais indicado para fazer chegar uma breve proposta sobre fluxo de consultas particulares à direção clínica.`;
+            explicacaoDiferenca = 'A recomendada pede a orientação correta com naturalidade. A alternativa solicita diretamente o canal formal da direção.';
             break;
         }
 
         case 'REABRIR_APOS_OBJECAO': {
             textoRecomendado = channel === 'EMAIL'
-                ? `Assunto: ${cleanClinicName} — um ângulo diferente\n\nBoa tarde.\n\nSei que anteriormente mencionaram que já investem nesta área. A razão pela qual volto a contactar é que o que fazemos é diferente da gestão de redes sociais — focamo-nos exclusivamente em consultas particulares pagas que chegam via pesquisa no Google.\n\nSeria relevante para a vossa situação atual?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`
-                : `Boa tarde à equipa da ${cleanClinicName}. Sei que em contacto anterior mencionaram que já investem em marketing. O que fazemos é diferente — focamo-nos em consultas particulares pagas via pesquisa no Google, não em redes sociais. Faria sentido para a vossa situação atual? Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
+                ? `Assunto: ${cleanClinicName} — um ângulo diferente\n\nBoa tarde à equipa da ${cleanClinicName}.\n\nSei que anteriormente mencionaram que já tinham parceiros nesta área. A razão pela qual retomo o contacto é que o nosso trabalho não envolve redes sociais — estruturamos exclusivamente o canal de pesquisa de pacientes que procuram tratamentos de reabilitação e implantes.\n\nFaria sentido avaliar este formato para a fase atual da clínica?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss`
+                : `Boa tarde à equipa da ${cleanClinicName}! Recordo que anteriormente mencionaram já ter divulgação ativa. O nosso modelo é focado na pesquisa direta de pacientes para reabilitação, sem redes sociais. Faria sentido avaliar esta diferença para a vossa fase atual?`;
 
-            alternativaComercial = `Assunto: Seguimento — ${cleanClinicName}\n\nBoa tarde. Respeitando o contacto anterior, pergunto apenas se as prioridades em relação a novas consultas particulares se mantêm idênticas às de há alguns meses. Com os melhores cumprimentos, Philipe Coelho | Vamuss`;
-            explicacaoDiferenca = 'A recomendada contorna a objeção mostrando diferenciação de canal (Google vs Redes). A alternativa reavalia simplesmente se o tempo alterou a objeção.';
+            alternativaComercial = `Boa tarde à equipa da ${cleanClinicName}! Respeitando a nossa conversa anterior, pergunto apenas se a procura de consultas particulares para as especialidades principais da clínica se tem mantido estável este semestre.`;
+            explicacaoDiferenca = 'A recomendada contorna a objeção mostrando diferenciação de canal. A alternativa reavalia simplesmente se a estabilidade da procura mudou.';
             break;
         }
 
         case 'RETOMAR_PERGUNTA_PENDENTE': {
             textoRecomendado = channel === 'EMAIL'
-                ? `Assunto: Seguimento — ${cleanClinicName}\n\nBoa tarde.\n\nEnviei-vos uma mensagem há algum tempo com uma questão sobre a gestão da clínica que ficou sem resposta. Compreendo que as prioridades mudam.\n\nA questão continua pertinente para vós, ou as circunstâncias mudaram entretanto?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`
-                : `Boa tarde. Enviei uma mensagem à ${cleanClinicName} no âmbito do nosso contacto anterior com uma questão que ficou pendente. Compreendo que as prioridades mudam — continua pertinente ou as circunstâncias são outras agora? Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
+                ? `Assunto: Seguimento — ${cleanClinicName}\n\nBoa tarde.\n\nTinha partilhado convosco uma questão sobre a procura de consultas particulares que ficou pendente. Compreendo a rotina intensa de consultas na clínica.\n\nEsta questão continua oportuna ou as prioridades mudaram entretanto?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss`
+                : `Boa tarde à equipa da ${cleanClinicName}! Tinha deixado uma breve questão há algum tempo que ficou pendente. Compreendo perfeitamente o ritmo das consultas — o tema continua oportuno ou as prioridades mudaram?`;
 
-            alternativaComercial = `Boa tarde à equipa da ${cleanClinicName}. Deixei uma pergunta pendente sobre a atração de pacientes particulares há algum tempo. Caso faça sentido retomar o tema sem compromisso, fico à disposição. Se não pretender novos contactos, basta avisar e retiro o número.`;
-            explicacaoDiferenca = 'A recomendada assume com naturalidade a falta de resposta e pergunta se a questão é pertinente. A alternativa coloca o ónus no destinatário com convite brando de retoma.';
+            alternativaComercial = `Boa tarde à equipa da ${cleanClinicName}! Tivemos uma breve troca de mensagens há algum tempo. Como tem corrido o movimento de consultas particulares na clínica este semestre?`;
+            explicacaoDiferenca = 'A recomendada assume com naturalidade a falta de resposta e pergunta se o tema continua oportuno. A alternativa abre com uma questão direta e simpática sobre o movimento.';
             break;
         }
 
         default: {
             textoRecomendado = channel === 'EMAIL'
-                ? `Assunto: Contacto — ${cleanClinicName}\n\nBoa tarde.\n\nContacto a ${cleanClinicName} porque apoiamos clínicas dentárias em Portugal na captação de primeiras consultas particulares via pesquisa no Google.\n\nA atração de novos pacientes particulares é uma prioridade na vossa gestão neste momento?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss\n[Caso não pretenda receber futuros contactos, basta responder "Parar".]`
-                : `Boa tarde à equipa da ${cleanClinicName}. No seguimento de contactos anteriores entre a Vamuss e a clínica, apoiamos clínicas dentárias na captação de consultas particulares via pesquisa no Google. A atração de novos pacientes particulares é uma prioridade na vossa gestão neste momento? Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.`;
+                ? `Assunto: Consultas particulares — ${cleanClinicName}\n\nBoa tarde.\n\nTrabalhamos com clínicas dentárias independentes em Portugal na organização de primeiras consultas particulares de reabilitação e implantes.\n\nA previsibilidade de consultas para estas especialidades é um tema relevante na vossa gestão neste momento?\n\nCom os melhores cumprimentos,\nPhilipe Coelho | Vamuss`
+                : `Boa tarde à equipa da ${cleanClinicName}! Falámos há algum tempo sobre o fluxo de consultas particulares. A previsibilidade de pacientes para implantes e reabilitação continua a ser uma prioridade na clínica neste momento?`;
 
-            alternativaComercial = `Boa tarde. Na sequência do nosso contacto anterior, apoiamos clínicas a reduzir a dependência de seguradoras de saúde através de tratamentos particulares planeados. Se este desafio fizer parte das metas da ${cleanClinicName}, terei todo o gosto em partilhar como o fazemos. Se não pretender novos contactos, basta avisar.`;
-            explicacaoDiferenca = 'A recomendada pergunta diretamente sobre a prioridade de atração de novos pacientes. A alternativa toca no ângulo da dependência de seguradoras e convenções.';
+            alternativaComercial = `Boa tarde à equipa da ${cleanClinicName}! Acompanhamos o vosso trabalho clínico na área dentária. Como tem sido a procura por consultas particulares para as vossas principais especialidades este semestre?`;
+            explicacaoDiferenca = 'A recomendada pergunta diretamente sobre a previsibilidade de consultas. A alternativa abre espaço consultivo sobre o movimento das especialidades.';
             break;
         }
     }

@@ -6,7 +6,7 @@ import fs from 'fs';
 import nodemailer from 'nodemailer';
 import { processWhatsAppInboundMessage } from './whatsapp.js';
 import { isPortugalBusinessHours } from './sdr_business_hours.js';
-import { restoreSessionFromSupabase, backupSessionToSupabase } from './whatsapp_session_sync.js';
+import { restoreSessionFromSupabase, backupSessionToSupabase, publishWhatsAppHeartbeat } from './whatsapp_session_sync.js';
 
 const AUTH_DIR = path.join(process.cwd(), 'data', 'whatsapp_web_auth');
 
@@ -21,6 +21,28 @@ let isInitializing = false;
 let reconnectAttempts = 0;
 let lastEmailAlertSentAt = 0;
 let heartbeatInterval = null;
+let cloudHeartbeatTimer = null;
+
+function startCloudHeartbeat() {
+    if (cloudHeartbeatTimer) clearInterval(cloudHeartbeatTimer);
+    const phone = connectedUser?.phone || '351964094865';
+    publishWhatsAppHeartbeat({ status: 'CONNECTED', phone, isConnected: true }).catch(() => {});
+    cloudHeartbeatTimer = setInterval(() => {
+        if (connectionStatus === 'CONNECTED') {
+            const p = connectedUser?.phone || '351964094865';
+            publishWhatsAppHeartbeat({ status: 'CONNECTED', phone: p, isConnected: true }).catch(() => {});
+        }
+    }, 30 * 1000);
+}
+
+function stopCloudHeartbeat() {
+    if (cloudHeartbeatTimer) {
+        clearInterval(cloudHeartbeatTimer);
+        cloudHeartbeatTimer = null;
+    }
+    const phone = connectedUser?.phone || '351964094865';
+    publishWhatsAppHeartbeat({ status: 'DISCONNECTED', phone, isConnected: false }).catch(() => {});
+}
 
 /**
  * Transcreve um buffer de áudio (OGG/MP3/M4A) usando o modelo Whisper-1 da OpenAI em pt
@@ -247,10 +269,13 @@ export async function initWhatsAppWeb(options = {}) {
 
                 // Sincroniza sessão conectada para a nuvem (Supabase) para persistência entre deploys
                 backupSessionToSupabase().catch((err) => console.warn('⚠️ [WhatsApp Web] Backup sync aviso:', err.message));
+                // Publica heartbeat do worker para o Supabase (permite ao Vercel saber que o WhatsApp está conectado)
+                startCloudHeartbeat();
             }
 
             if (connection === 'close') {
                 isInitializing = false;
+                stopCloudHeartbeat();
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
@@ -505,6 +530,7 @@ export function getWhatsAppWebStatus() {
  */
 export async function disconnectWhatsAppWeb() {
     try {
+        stopCloudHeartbeat();
         if (sock) {
             await sock.logout();
         }

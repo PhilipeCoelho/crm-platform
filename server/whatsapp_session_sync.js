@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import { execSync } from 'child_process';
 import fs from 'fs';
@@ -9,13 +10,14 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const AUTH_DIR = path.resolve(ROOT_DIR, 'data', 'whatsapp_web_auth');
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-let supabase = null;
-if (SUPABASE_URL && SUPABASE_KEY) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+function getSupabase() {
+  const url = process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
 }
+
+let supabase = getSupabase();
 
 let lastBackupTime = 0;
 const BACKUP_DEBOUNCE_MS = 60 * 1000; // at most once every 60s
@@ -152,5 +154,86 @@ export async function backupSessionToSupabase(force = false) {
   } catch (err) {
     console.error('❌ [WhatsApp Session Sync] Error backing up session:', err.message);
     return false;
+  }
+}
+
+/**
+ * Publica periodicamente o heartbeat do socket WhatsApp Web para o Supabase
+ */
+export async function publishWhatsAppHeartbeat({ status, phone, isConnected }) {
+  supabase = supabase || getSupabase();
+  if (!supabase) return false;
+  try {
+    const payload = {
+      status: status || 'DISCONNECTED',
+      phone: phone || '351964094865',
+      isConnected: !!isConnected,
+      timestamp: Date.now(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: existing } = await supabase
+      .from('sdr_learning')
+      .select('id')
+      .eq('title', 'WHATSAPP_WORKER_HEARTBEAT')
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      await supabase
+        .from('sdr_learning')
+        .update({
+          content: payload,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing[0].id);
+    } else {
+      await supabase
+        .from('sdr_learning')
+        .insert({
+          entry_type: 'RULE',
+          title: 'WHATSAPP_WORKER_HEARTBEAT',
+          content: payload,
+          status: 'active',
+          created_by: 'WhatsApp Worker Heartbeat'
+        });
+    }
+    return true;
+  } catch (err) {
+    console.warn('[WhatsApp Heartbeat] Error publishing heartbeat:', err.message);
+    return false;
+  }
+}
+
+/**
+ * Obtém o heartbeat do WhatsApp Web no Supabase (usado pelo Vercel/frontend para refletir status real)
+ */
+export async function getRemoteWhatsAppHeartbeat() {
+  supabase = supabase || getSupabase();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('sdr_learning')
+      .select('content, updated_at')
+      .eq('title', 'WHATSAPP_WORKER_HEARTBEAT')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data || !data.content) return null;
+
+    const content = data.content;
+    const ageMs = Date.now() - (content.timestamp || new Date(data.updated_at).getTime());
+    const isAlive = ageMs < 180_000 && content.isConnected === true;
+
+    return {
+      isAlive,
+      status: isAlive ? 'CONNECTED' : (content.status || 'DISCONNECTED'),
+      isConnected: isAlive,
+      phone: content.phone || '351964094865',
+      ageSeconds: Math.round(ageMs / 1000)
+    };
+  } catch (err) {
+    console.warn('[WhatsApp Heartbeat] Error reading remote heartbeat:', err.message);
+    return null;
   }
 }

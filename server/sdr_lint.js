@@ -29,7 +29,28 @@ export const BANNED_CLICHES = [
     /prezado/i,
     /atenciosamente/i,
     /gostaria\s+de\s+apresentar\s+a\s+nossa\s+empresa/i,
-    /somos\s+uma\s+ag[eê]ncia/i
+    /somos\s+uma\s+ag[eê]ncia/i,
+    /na\s+sequ[eê]ncia\s+de\s+contactos?\s+anteriores/i,
+    /no\s+seguimento\s+de\s+contactos?\s+anteriores/i,
+    /atrair\s+(?:mais\s+)?pacientes/i,
+    /tratamentos\s+de\s+valor\s+acrescentado/i,
+    /retiro\s+o\s+seu\s+(?:n[uú]mero|contacto)/i,
+    /se\s+n[aã]o\s+fizer\s+sentido\s+receber\s+contactos/i,
+    /como\s+tem\s+sido\s+o\s+movimento\s+de\s+pacientes\s+particulares\s+por\s+a[ií]/i,
+    /alguma\s+novidade\s+interessante/i,
+    /fiquei\s+curioso\s+sobre/i,
+    /estou\s+a\s+contactar\s+em\s+nome\s+da\s+vamuss/i,
+    /empresa\s+especializada\s+em/i,
+    /apoiamos\s+cl[ií]nicas\s+dent[aá]rias\s+a\s+atrair/i
+];
+
+// Padrões estritos de placeholders não interpolados ou genéricos artificiais
+export const PLACEHOLDER_PATTERNS = [
+    /\[\s*[\w\s\.-]+\s*\]/,      // [Nome], [Clínica], [Cidade], [Doutor]
+    /\{\s*[\w\s\.-]+\s*\}/,      // {Nome}, {clinica}
+    /<\s*[\w\s\.-]+\s*>/,        // <Nome>
+    /(?:dr\.|dra\.|doutor|doutora)\s*\[.*?\]/i,
+    /(?:dr\.|dra\.|doutor|doutora)\s*(?:nome|contacto|respons[aá]vel)\b/i
 ];
 
 export const BRAZILIAN_WORDS = [
@@ -56,20 +77,42 @@ export const BRAZILIAN_WORDS = [
  * @param {boolean} [params.leadWantsBooking=false] - Se o lead expressou intenção de agendamento
  * @returns {Object} { ok: boolean, problemas: string[] }
  */
-export function lintSDRMessage({
-    messageText = '',
-    dossier = null,
-    outboundCountWithoutHuman = 0,
-    intent = '',
-    intentConfidence = 1.0,
-    leadAskedPrice = false,
-    leadWantsBooking = false
-}) {
+export function lintSDRMessage(arg) {
+    // Suporte polimórfico: aceita string direta ou objeto de opções
+    let messageText = '';
+    let dossier = null;
+    let outboundCountWithoutHuman = 0;
+    let intent = '';
+    let intentConfidence = 1.0;
+    let leadAskedPrice = false;
+    let leadWantsBooking = false;
+
+    if (typeof arg === 'string') {
+        messageText = arg;
+    } else if (arg && typeof arg === 'object') {
+        messageText = arg.messageText || '';
+        dossier = arg.dossier || null;
+        outboundCountWithoutHuman = arg.outboundCountWithoutHuman || 0;
+        intent = arg.intent || '';
+        intentConfidence = typeof arg.intentConfidence === 'number' ? arg.intentConfidence : 1.0;
+        leadAskedPrice = !!arg.leadAskedPrice;
+        leadWantsBooking = !!arg.leadWantsBooking;
+    }
+
     const text = (messageText || '').trim();
     const problemas = [];
 
     if (!text) {
         return { ok: false, problemas: ['Mensagem vazia'] };
+    }
+
+    // 0. BLOQUEIO INTRANSIGENTE DE PLACEHOLDERS ([Nome], {Clínica}, <...>, etc.)
+    for (const ph of PLACEHOLDER_PATTERNS) {
+        const match = text.match(ph);
+        if (match) {
+            problemas.push(`CRÍTICO: Contém placeholder não interpolado ou token genérico: "${match[0]}"`);
+            break;
+        }
     }
 
     // 1. Limite de Linhas e Caracteres (> 4 linhas OU > 320 caracteres)

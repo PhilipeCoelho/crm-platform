@@ -24,6 +24,7 @@ import { sendWhatsAppWebMessage, getWhatsAppWebStatus } from './whatsapp_web.js'
 import { isWithinBusinessHours, validateDispatchTiming } from './sdr_business_hours.js';
 import { isPhoneSuppressedLocally, addLocalSuppression } from './suppression_store.js';
 import { generateClinicDossier, readDossiersStore } from './sdr_web_research.js';
+import { lintSDRMessage } from './sdr_lint.js';
 import {
     getOrCreateSpinState,
     analyzeInboundSpinProgress,
@@ -646,7 +647,7 @@ export const AgentToolImplementations = {
             console.warn(`⚠️ [Vamuss Agent Tool] Falha na pesquisa online: ${err.message}`);
             return {
                 success: false,
-                best_hook_fact: 'Acompanhamento clínico especializado em tratamentos particulares de valor acrescentado em Portugal.'
+                best_hook_fact: null
             };
         }
     },
@@ -760,6 +761,22 @@ export const AgentToolImplementations = {
         if (!timing.permitido) {
             console.warn(`⏰ [Vamuss Agent Tool] Fora de horário comercial (${timing.motivo}). Envio bloqueado para proteção do número.`);
             return { success: false, blocked: true, reason: 'OUTSIDE_BUSINESS_HOURS', nextWindow: timing.proxima_janela_util };
+        }
+
+        // 2.5 LINTER OBRIGATÓRIO: Zero tolerância para placeholders [Nome], clichés ou jargão
+        const lint = lintSDRMessage({
+            messageText: message_text,
+            intent: intent,
+            outboundCountWithoutHuman: intent === 'PRIMEIRA_ABORDAGEM' ? 0 : 1
+        });
+        if (!lint.ok) {
+            console.error(`🚨 [Vamuss Agent Tool] DISPARO BLOQUEADO POR LINTER DE SEGURANÇA:\n${lint.problemas.join('\n')}`);
+            return {
+                success: false,
+                blocked: true,
+                reason: 'LINT_REJECTED',
+                errors: lint.problemas
+            };
         }
 
         // 3. Verificar estado do WhatsApp Web
@@ -1136,10 +1153,10 @@ COMO O SDR / CLOSER DEVE LIDAR COM A RECEÇÃO:
    • Se a resposta for padrão de clínica ("Olá, boa tarde, Clínica [X], em que posso ajudar?"): estás a falar com a receção.
 3. As 3 Técnicas para Encaminhamento Direto ao Decisor:
    • Técnica do Encaminhamento Respeitoso:
-     "Boa tarde! Daqui fala o Philipe Coelho. Tinha deixado uma nota à atenção da direção clínica / do Dr. [Nome] sobre um tema de gestão de pacientes. Poderia por favor indicar-me qual é o melhor canal ou número direto para lhe fazer chegar uma mensagem breve, ou consegue encaminhar por aí?"
+     "Boa tarde! Daqui fala o Philipe Coelho. Tinha deixado uma nota à atenção da direção clínica sobre a organização de consultas particulares. Poderia por favor indicar-me qual é o melhor canal ou número direto para lhe fazer chegar uma mensagem breve, ou consegue encaminhar por aí?"
    • Técnica de Não-Venda para a Receção:
      Se a receção perguntar "do que se trata?", NUNCA expliques marketing ou vendas!
-     Resposta: "É sobre a previsão de primeiras consultas particulares e organização do semestre que tínhamos alinhado com a direção. Poderia pedir ao Dr. [Nome] ou ao responsável de gestão para dar uma vista de olhos quando tiver 1 minuto?"
+     Resposta: "É sobre a previsão de primeiras consultas particulares e organização do semestre que tínhamos alinhado com a direção. Poderia pedir ao responsável de gestão ou direção clínica para dar uma vista de olhos quando tiver 1 minuto?"
    • Técnica de Transparência Sem Pressão:
      "Compreendo perfeitamente que o dia esteja preenchido. Deixo aqui a nota breve para a direção quando for oportuno. Muito obrigado pela atenção e simpatia!"
 
