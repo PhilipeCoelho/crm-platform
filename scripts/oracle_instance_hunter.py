@@ -87,34 +87,25 @@ def main():
     tenancy_id = config["tenancy"]
 
     attempt = 0
-    # Intervalo entre rondas (em segundos) - 90 segundos é o equilíbrio ideal
-    interval_seconds = 90
+    # Intervalo entre rondas (120s respeita a quota de rate-limit da Oracle)
+    interval_seconds = 120
 
     while True:
         attempt += 1
         log(f"🎯 Ronda #{attempt}: Sondando capacidade de servidores Always Free...")
 
-        # 1. Tenta Ampere ARM (preferencial: 1 OCPU, 4GB RAM)
+        # Tenta Ampere ARM (4GB RAM, 1 OCPU - Shape superior Always Free)
         try:
             instance = attempt_launch(compute_client, tenancy_id, shape_type="ARM")
             handle_success(instance, virtual_net, tenancy_id, shape="Ampere ARM (4GB)")
             break
         except oci.exceptions.ServiceError as e:
             if "Out of host capacity" in str(e.message) or e.status == 500:
-                log(f"   ⏳ Ampere ARM: Sem vagas no momento ({e.message})")
+                log(f"   ⏳ Ampere ARM: Sem vagas no momento (Out of host capacity).")
+            elif e.status == 429:
+                log(f"   ⏳ Rate limit temporário da Oracle (429). Aguardando...")
             else:
                 log(f"   ⚠️ Ampere ARM erro: [{e.status}] {e.code} - {e.message}")
-
-        # 2. Tenta AMD Micro (backup: 1 core, 1GB RAM)
-        try:
-            instance = attempt_launch(compute_client, tenancy_id, shape_type="AMD")
-            handle_success(instance, virtual_net, tenancy_id, shape="AMD Micro (1GB)")
-            break
-        except oci.exceptions.ServiceError as e:
-            if "Out of host capacity" in str(e.message) or e.status == 500:
-                log(f"   ⏳ AMD Micro: Sem vagas no momento ({e.message})")
-            else:
-                log(f"   ⚠️ AMD Micro erro: [{e.status}] {e.code} - {e.message}")
 
         log(f"💤 Aguardando {interval_seconds}s para a próxima tentativa...\n")
         time.sleep(interval_seconds)
