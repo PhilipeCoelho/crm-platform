@@ -2483,5 +2483,43 @@
       "relyOnCRMOnlyIfEmpty": true
     },
     "savedAt": "2026-10-31T11:22:04.215Z"
+  },
+  "d4084884-a37f-47bb-8acf-1ebb7e1ea377": {
+    "dealId": "d4084884-a37f-47bb-8acf-1ebb7e1ea377",
+    "clinicName": "JB Implantologia e Estética",
+    "concelho": null,
+    "researchedAt": "2026-10-31T11:35:35.109Z",
+    "expiresAt": "2026-11-30T11:35:35.109Z",
+    "hasReliableData": false,
+    "decisionMaker": {
+      "found": false,
+      "confianca": 0,
+      "salutacao_recomendada": "Bom dia, equipa da JB Implantologia e Estética,"
+    },
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "JB Implantologia e Estética",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-31T11:35:35.108Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-31T11:35:35.124Z"
   }
 }

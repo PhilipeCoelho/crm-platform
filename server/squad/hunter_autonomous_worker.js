@@ -155,16 +155,27 @@ export class HunterAutonomousWorker {
 
             console.log(`🔍 [Hunter 24/7] ${candidates.length} clínicas potenciais descobertas em ${currentCity}.`);
 
+            // O Hunter opera com foco em qualidade cirúrgica:
+            // "Encontra 1, preenche a Tríade + Instagram, insere 100% completo e sem retrabalho, e só depois vai atrás de outro"
+            let insertedInThisRound = false;
+
             for (const cand of candidates) {
-                // 2. Trava de Dados Mínimos Obrigatórios (Anti-Lixo)
-                if (!cand.name || (!cand.phone && !cand.website)) {
-                    console.log(`🗑️ [Hunter Descarte] "${cand.name || 'Sem nome'}" descartada por falta de telefone e website.`);
+                if (insertedInThisRound) break; // 1 Prospect perfeito inserido nesta ronda -> missão cumprida, sem desespero!
+
+                // Se o Instagram não veio no site, busca na web ativamente
+                if (!cand.instagram && cand.name) {
+                    cand.instagram = await this.searchInstagramForClinic(cand.name, currentCity);
+                }
+
+                // Trava Rígida de Ouro: Exige Tríade (Nome + Telefone + Site) + Instagram Obrigatório
+                if (!cand.name || !cand.phone || !cand.website || !cand.instagram) {
+                    console.log(`🗑️ [Hunter Descarte Qualitativo] "${cand.name || 'Sem nome'}" descartada: faltam dados para a Ficha Completa (Tel: ${Boolean(cand.phone)}, Site: ${Boolean(cand.website)}, Insta: ${Boolean(cand.instagram)}).`);
                     cycleResults.incompleteDiscarded++;
                     this.totalIncompleteDiscarded++;
                     continue;
                 }
 
-                // 3. Soberania Anti-Duplicidade no CRM (5 Camadas)
+                // Soberania Anti-Duplicidade no CRM (5 Camadas)
                 const dupeCheck = await checkDuplicateInCRM({
                     phone: cand.phone,
                     email: cand.email,
@@ -180,22 +191,23 @@ export class HunterAutonomousWorker {
                     continue;
                 }
 
-                // 4. Inserção Segura e Estruturada no CRM
+                // Inserção Segura, Estruturada e 100% Completa no CRM
                 const insertRes = await insertNewProspect({
-                    name: cand.name,
+                    clinicName: cand.name,
                     phone: cand.phone,
                     email: cand.email || null,
-                    website: cand.website || null,
-                    instagram: cand.instagram || null,
-                    concelho: currentCity,
+                    website: cand.website,
+                    instagramUrl: cand.instagram,
+                    city: currentCity,
                     niche: 'Clínica Dentária',
-                    sourceNotes: `Caçado autonomamente pelo Hunter 24/7 em ${currentCity} (${currentNiche}).`
+                    sourceNotes: `Caçado com Ficha Completa (Tríade + Instagram) pelo Hunter 24/7 em ${currentCity}.`
                 });
 
                 if (insertRes.success && insertRes.inserted) {
-                    console.log(`✅ [Hunter ➔ Jonh] Nova clínica inserida como Prospect: "${cand.name}" (${cand.phone || cand.website})`);
+                    console.log(`🎯 [Hunter ➔ Jonh] SUCESSO! 1 Clínica 100% completa inserida como Prospect: "${cand.name}" | WhatsApp: ${cand.phone} | Site: ${cand.website} | Insta: ${cand.instagram}`);
                     cycleResults.inserted++;
                     this.totalInserted++;
+                    insertedInThisRound = true; // Para imediatamente após 1 inserção perfeita
                 } else if (insertRes.blockedByDuplicate) {
                     cycleResults.duplicatesBarred++;
                     this.totalDuplicatesBarred++;
@@ -340,6 +352,25 @@ export class HunterAutonomousWorker {
         }
 
         return candidates;
+    }
+
+    /**
+     * Busca direcionada pelo Instagram oficial da clínica na web
+     */
+    async searchInstagramForClinic(clinicName, city) {
+        try {
+            const query = `site:instagram.com "${clinicName}" ${city || 'Portugal'}`;
+            const curlCmd = `curl -s -L -m 6 -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" "https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}"`;
+            const html = execSync(curlCmd, { encoding: 'utf-8', maxBuffer: 2 * 1024 * 1024 });
+            const match = html.match(/instagram\.com\/([a-zA-Z0-9._]+)/i);
+            if (match && match[1]) {
+                const handle = match[1].replace(/\/.*$/, '').toLowerCase();
+                if (!['p', 'reel', 'stories', 'explore', 'direct', 'accounts', 'developer'].includes(handle)) {
+                    return `https://www.instagram.com/${handle}/`;
+                }
+            }
+        } catch (_) {}
+        return null;
     }
 
     /**

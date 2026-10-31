@@ -1,5 +1,231 @@
 [
   {
+    "id": "a9936fe7-033a-495f-9cf3-310480b32dac",
+    "idempotency_key": "d4084884-a37f-47bb-8acf-1ebb7e1ea377_DISPATCH_MESSAGE_WHATSAPP_2026-10-31",
+    "deal_id": "d4084884-a37f-47bb-8acf-1ebb7e1ea377",
+    "contact_id": "7669c0c9-af74-448e-8925-ed487c10b105",
+    "task_type": "DISPATCH_MESSAGE",
+    "channel": "WHATSAPP",
+    "state": "AGUARDANDO_REVISAO_HUMANA",
+    "priority": "MEDIA",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-31T11:35:46.304Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "JB Implantologia e Estética",
+      "phone": "939951060",
+      "messageText": "Olá, sou da Vamuss. Gostaria de saber se a JB Implantologia e Estética continua a explorar novas formas de atrair pacientes particulares. Estou à disposição para conversar.",
+      "strategy": "REAPROXIMACAO_TRANSPARENTE",
+      "gptDiagnosis": {
+        "source": "openai_gpt4o_mini",
+        "strategyVersion": "v1793446545891",
+        "openai_token_usage": {
+          "prompt": 2477,
+          "completion": 1405,
+          "total": 3882
+        },
+        "ab_variant": "B",
+        "research_dossier": {
+          "dealId": "d4084884-a37f-47bb-8acf-1ebb7e1ea377",
+          "clinicName": "JB Implantologia e Estética",
+          "concelho": null,
+          "researchedAt": "2026-10-31T11:35:35.109Z",
+          "expiresAt": "2026-11-30T11:35:35.109Z",
+          "hasReliableData": false,
+          "decisionMaker": {
+            "found": false,
+            "confianca": 0,
+            "salutacao_recomendada": "Bom dia, equipa da JB Implantologia e Estética,"
+          },
+          "siteAnalysis": {
+            "hasWebsite": false,
+            "reason": "URL inválido ou não fornecido"
+          },
+          "visibilityAnalysis": {
+            "checked": true,
+            "clinicName": "JB Implantologia e Estética",
+            "concelho": "",
+            "searchQueries": [
+              "implantes dentários Portugal",
+              "clínica dentária Portugal"
+            ],
+            "appearsInTopOrganic": false,
+            "rating": null,
+            "reviewCount": null,
+            "source": "Pesquisa Web e Diretórios",
+            "extractedAt": "2026-10-31T11:35:35.108Z"
+          },
+          "verifiedFacts": [],
+          "antiHallucinationCheck": {
+            "strictSourceRequired": true,
+            "maxFactsPerMessage": 1,
+            "relyOnCRMOnlyIfEmpty": true
+          }
+        },
+        "routed_angle": {
+          "angle": "historico_crm_puro",
+          "angleDescription": "Baseado estritamente no CRM. Nenhum tratamento inventado.",
+          "openingHook": "Revisão do histórico anterior da clínica sem presunções externas.",
+          "recommendedSpinQuestion": "De onde chegam hoje a maioria das vossas primeiras consultas particulares — é sobretudo por recomendação de pacientes?",
+          "allowsImplants": false
+        },
+        "analise_decisao_previa": {
+          "1_o_que_aconteceu_historico": "A clínica JB Implantologia e Estética foi contactada uma vez, mas a abordagem não obteve resposta e o negócio foi classificado como perdido devido à alegação de pertencer a um grande grupo.",
+          "2_o_que_vamuss_comunicou": "A Vamuss explicou a sua proposta de valor, focando na atração de pacientes particulares através de sistemas de comunicação e pesquisa no Google.",
+          "3_tentativas_e_canais": "1 tentativa via WhatsApp.",
+          "4_houve_resposta_real": "NÃO, não houve qualquer interação inbound.",
+          "5_motivo_registado_perda": "O motivo de perda foi 'grande grupo', que parece ser uma hipótese não confirmada.",
+          "6_interlocutor_e_decisor_conhecido": "O contacto registado é um e-mail genérico e não temos informação sobre o decisor.",
+          "7_o_que_ainda_nao_sabemos": "Não sabemos quem é o decisor na clínica nem a estrutura organizacional.",
+          "8_obstaculo_comercial_provavel_factos_vs_hipoteses": "O facto é que não houve resposta. A hipótese é que a clínica não esteja interessada devido à sua associação a um grande grupo.",
+          "9_proxima_acao_minima_recomendada": "Enviar uma mensagem simples e transparente via WhatsApp para reatar o diálogo.",
+          "10_porque_acao_superior_alternativas": "Esta abordagem é menos intrusiva e permite uma retoma da comunicação sem pressão, dado que a tentativa anterior não obteve resposta."
+        },
+        "raciocinio_interno": {
+          "o_que_sabemos": "A clínica não respondeu à única tentativa de contacto e foi classificada como perdida por motivos relacionados com a sua estrutura.",
+          "o_que_aconteceu": "Tentativa de contacto em 30 de setembro de 2026, seguida de status alterado para perdido em 1 de outubro de 2026.",
+          "hipotese_bloqueio": "A clínica pode estar a priorizar grandes grupos em detrimento de serviços independentes.",
+          "informacao_necessaria": "Identificar o decisor e entender melhor a estrutura da clínica.",
+          "menor_intervencao": "Enviar uma mensagem de reaproximação via WhatsApp.",
+          "porque_esta_abordagem": "Esta abordagem evita pressões e abre espaço para um diálogo mais natural."
+        },
+        "reconstrucao_factual": {
+          "primeira_abordagem": "Mensagem enviada via WhatsApp em 30 de setembro de 2026.",
+          "mensagens_enviadas": "Mensagem inicial sobre a proposta de valor da Vamuss.",
+          "respostas_recebidas": "Nenhuma resposta registada.",
+          "perguntas_pendentes": "Nenhuma.",
+          "proposta_comercial": "Não identificada.",
+          "objecoes_expressas": "Nenhuma.",
+          "ultima_interacao_efetiva": "30 de setembro de 2026 - Mensagem enviada.",
+          "motivo_perda_confirmado": "PROVAVEL",
+          "nivel_confianca": "ALTA",
+          "decisor_confirmado": "DESCONHECIDO",
+          "dados_em_falta": [
+            "Nome do decisor",
+            "Função do contacto",
+            "Estrutura organizacional da clínica"
+          ]
+        },
+        "estrategia_comercial": {
+          "estrategia_selecionada": "REAPROXIMACAO_TRANSPARENTE",
+          "justificacao_detalhada": "Esta estratégia é adequada porque a clínica não respondeu à primeira abordagem, necessitando de uma nova tentativa de contacto que seja direta e sem pressão.",
+          "estrategias_descartadas": [
+            "REAPROXIMACAO_COMERCIAL",
+            "PITCH_DE_VENDA"
+          ],
+          "razao_descarte": "Essas estratégias poderiam ser vistas como intrusivas dado que a clínica não respondeu anteriormente.",
+          "resposta_pretendida": "Que a clínica responda à mensagem e inicie um diálogo sobre as suas necessidades."
+        },
+        "mensagem_sdr_pt_pt": {
+          "canal_sugerido": "WHATSAPP",
+          "texto_recomendado": "Olá, sou da Vamuss. Gostaria de saber se a JB Implantologia e Estética continua a explorar novas formas de atrair pacientes particulares. Estou à disposição para conversar.",
+          "texto": "Olá, sou da Vamuss. Gostaria de saber se a JB Implantologia e Estética continua a explorar novas formas de atrair pacientes particulares. Estou à disposição para conversar.",
+          "alternativa_comercial_relevante": "Olá, sou da Vamuss. Acreditamos que a JB Implantologia e Estética pode beneficiar de uma abordagem focada na atração de pacientes particulares. Como estão a lidar com isso atualmente?",
+          "explicacao_diferenca_estrategica": "A mensagem recomendada é mais direta e aberta, enquanto a alternativa foca mais na situação atual da clínica, podendo gerar mais diálogo.",
+          "pede_reuniao": false,
+          "assume_problema_agenda": false,
+          "demonstra_compreensao_historico": true
+        },
+        "facto_pesquisa_usado": null,
+        "variante_ab": "B",
+        "objecoes_antecipadas": [
+          {
+            "objecao": "Não estamos interessados.",
+            "interpretacao": "A clínica pode estar satisfeita com a sua abordagem atual.",
+            "como_contornar": "Perguntar sobre as suas atuais estratégias e se há espaço para melhorias."
+          }
+        ],
+        "qualificacao_closer": {
+          "criterio_transferencia": "Se a clínica demonstrar interesse em discutir sobre atração de pacientes.",
+          "contexto_para_closer": "A clínica não respondeu à primeira tentativa de contacto e foi classificada como perdida devido a uma alegação de pertencer a um grande grupo.",
+          "roteiro_spin": {
+            "situacao": "Como estão a atrair pacientes particulares atualmente?",
+            "problema": "Têm enfrentado dificuldades em atrair pacientes sem depender de seguradoras?",
+            "implicacao": "Como isso tem afetado a rentabilidade da clínica?",
+            "necessidade": "Estariam abertos a explorar novas estratégias para aumentar a sua base de pacientes?"
+          },
+          "condicao_propor_reuniao_20min": "Se a clínica mostrar interesse em discutir soluções específicas."
+        }
+      },
+      "learningMetadata": {
+        "segment": "AUSENCIA_ADEQUACAO_OFERTA",
+        "approach_type": "REAPROXIMACAO_TRANSPARENTE",
+        "message_variant": "default",
+        "gpt_decision": "REAPROXIMACAO_TRANSPARENTE",
+        "gpt_justification": "Esta abordagem evita pressões e abre espaço para um diálogo mais natural.",
+        "openai_token_usage": {
+          "prompt": 2477,
+          "completion": 1405,
+          "total": 3882
+        },
+        "whatsapp_cost_est": 0.0485,
+        "time_spent_seconds": 15.7,
+        "ab_test_id": null,
+        "hypothesis_id": null,
+        "learning_context_used": false
+      },
+      "isPilotOutbound": true,
+      "humanReviewReason": "Cargo/função do contacto não registado no CRM.; Email \"jbimplantologia@gmail.com\" é um endereço pessoal genérico, não institucional."
+    },
+    "result": null,
+    "error": null,
+    "created_at": "2026-10-31T11:35:46.304Z",
+    "updated_at": "2026-10-31T11:35:46.304Z"
+  },
+  {
+    "id": "45bc7c5c-cfb0-419e-a548-f726ecf40804",
+    "idempotency_key": "d4084884-a37f-47bb-8acf-1ebb7e1ea377_ANALYZE_DEAL_WHATSAPP_2026-10-31",
+    "deal_id": "d4084884-a37f-47bb-8acf-1ebb7e1ea377",
+    "contact_id": "7669c0c9-af74-448e-8925-ed487c10b105",
+    "task_type": "ANALYZE_DEAL",
+    "channel": "WHATSAPP",
+    "state": "EXECUTADA",
+    "priority": "NAO_ELEGIVEL",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-31T11:35:29.984Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Negócio JB Implantologia e Estética",
+      "contactPerson": "JB Implantologia e Estética",
+      "phone": "939951060",
+      "lostReason": "grande grupo",
+      "daysSinceLost": 30,
+      "isNonMessaging": false,
+      "isPilotOutbound": true
+    },
+    "result": {
+      "strategy": "REAPROXIMACAO_TRANSPARENTE",
+      "channel": "WHATSAPP",
+      "score": 5,
+      "nextTask": "DISPATCH_MESSAGE",
+      "learningMetadata": {
+        "segment": "AUSENCIA_ADEQUACAO_OFERTA",
+        "approach_type": "REAPROXIMACAO_TRANSPARENTE",
+        "message_variant": "default",
+        "gpt_decision": "REAPROXIMACAO_TRANSPARENTE",
+        "gpt_justification": "Esta abordagem evita pressões e abre espaço para um diálogo mais natural.",
+        "openai_token_usage": {
+          "prompt": 2477,
+          "completion": 1405,
+          "total": 3882
+        },
+        "whatsapp_cost_est": 0.0485,
+        "time_spent_seconds": 15.7,
+        "ab_test_id": null,
+        "hypothesis_id": null,
+        "learning_context_used": false
+      }
+    },
+    "error": null,
+    "created_at": "2026-10-31T11:35:29.984Z",
+    "updated_at": "2026-10-31T11:35:46.327Z",
+    "completed_at": "2026-10-31T11:35:46.327Z"
+  },
+  {
     "id": "fa1003a1-07b0-4368-9864-80a546b4d2ce",
     "idempotency_key": "38417211-03ab-4a21-a324-b3f1e81753bf_DISPATCH_MESSAGE_EMAIL_2026-10-31",
     "deal_id": "38417211-03ab-4a21-a324-b3f1e81753bf",

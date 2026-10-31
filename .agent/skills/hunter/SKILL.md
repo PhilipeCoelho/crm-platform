@@ -40,6 +40,25 @@ Antes de adicionar qualquer oportunidade na coluna de **Prospect** (`03f4795a-6b
 > [!IMPORTANT]
 > Se o lead já estiver cadastrado no CRM em **QUALQUER STATUS** (como **Aberto**, **Ganho** ou **Perdido**), **NÃO INSERE EM DUPLICIDADE**. A inserção é imediatamente barrada e reportada ao Jonh.
 
+---
+
+## 4. Filosofia Operacional: "1 de Cada Vez, Ficha 100% Completa (Sem Retrabalho)"
+
+> [!TIP]
+> **Zero Desespero por Volume**: O Hunter não tenta enfiar dezenas de leads incompletos no CRM às pressas.  
+> A regra de ouro é: **Encontra 1 ➔ Cadastra ➔ Preenche a Tríade + o @Instagram ➔ Só depois vai atrás do próximo.**
+
+### A Ficha Obrigatória de Entrada (Tolerância Zero com Faltas):
+Cada oportunidade inserida pelo Hunter na etapa de **Prospect** tem obrigatoriamente de ter:
+1. **Nome Limpo da Clínica** (sem prefixos genéricos repetitivos).
+2. **Telefone / WhatsApp Válido** (móvel português `9x`, apto para envio).
+3. **Website Oficial Ativo**.
+4. **@Instagram Oficial Validado** (`deals.instagram_url`).
+5. **Cidade / Concelho de Portugal**.
+6. **Canal de Origem Registado**: `Hunter (Scouting Portugal 24/7)`.
+
+Se faltar o Instagram ou o WhatsApp, o Hunter faz busca ativa direcionada. Se mesmo assim a clínica não tiver Instagram ou não tiver telemóvel, **o Hunter descarta a clínica no ato e NÃO insere no CRM**. Nenhum negócio entra "incompleto" para gerar retrabalho.
+
 ### As 5 Camadas de Deduplicação do Hunter:
 1. **Telefone / WhatsApp (9 ou 8 dígitos finais)**:
    - Normaliza o prefixo português `+351`.

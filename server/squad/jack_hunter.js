@@ -440,9 +440,13 @@ export function validateHuntedOpportunity({
         missing.push('Telefone / WhatsApp Válido');
     }
 
-    const hasDigital = Boolean(website || instagramUrl || adLibraryUrl || email);
-    if (!hasDigital) {
-        missing.push('Presença Digital (Site, Instagram, Meta Ads ou E-mail)');
+    if (!website || website.trim().length < 5) {
+        missing.push('Website Oficial da Clínica');
+    }
+
+    const instaHandle = extractInstagramHandle(instagramUrl);
+    if (!instaHandle) {
+        missing.push('Perfil de Instagram Oficial (@instagram)');
     }
 
     return {
@@ -450,7 +454,9 @@ export function validateHuntedOpportunity({
         missingFields: missing,
         cleanName,
         phoneNorm,
-        hasDigital,
+        hasWebsite: Boolean(website),
+        hasInstagram: Boolean(instaHandle),
+        instagramHandle: instaHandle,
         city: city || 'Portugal'
     };
 }
