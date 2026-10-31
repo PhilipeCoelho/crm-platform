@@ -1771,7 +1771,7 @@ export function setupCommercialAgentRoutes(app) {
         }
     });
 
-    // 7. Jack Hunter (Head de Prospeção & Scouting Portugal)
+    // 7. Hunter (Head de Prospeção & Scouting Portugal)
     app.get('/api/sdr/squad/hunter/status', async (req, res) => {
         try {
             const { JACK_HUNTER_IDENTITY } = await import('./squad/jack_hunter.js');

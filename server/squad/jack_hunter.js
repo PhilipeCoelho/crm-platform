@@ -1,7 +1,7 @@
 /**
- * server/squad/jack_hunter.js
+ * server/squad/jack_hunter.js (ou hunter.js)
  * ============================================================================
- * JACK HUNTER — HEAD DE PROSPEÇÃO & LEAD SCOUTING (PORTUGAL)
+ * HUNTER — HEAD DE PROSPEÇÃO & LEAD SCOUTING (PORTUGAL)
  * ============================================================================
  * - Caça novas oportunidades de negócio para a Vamuss em Portugal de Norte a Sul:
  *   • Clínicas Dentárias e Médicos Dentistas (implantes, invisalign, reabilitação).
@@ -28,12 +28,12 @@ function getSupabaseClient() {
     return createClient(supabaseUrl, supabaseKey);
 }
 
-export const JACK_HUNTER_IDENTITY = {
-    name: 'Jack Hunter',
+export const HUNTER_IDENTITY = {
+    name: 'Hunter',
     role: 'Head de Prospeção & Caçador de Oportunidades (Norte a Sul de Portugal)',
     supervisor: 'Jonh (Gerente Geral de Operações)',
     reportsTo: 'Jonh',
-    commandChain: 'Jack Hunter ➔ Jonh (Operações) ➔ Jarvis (Chefão) ➔ Philipe Coelho (CEO)',
+    commandChain: 'Hunter ➔ Jonh (Operações) ➔ Jarvis (Chefão) ➔ Philipe Coelho (CEO)',
     ultimateBoss: 'Jarvis (O Chefão)',
     schedule: '24/7 Ininterrupto (Trabalha todos os dias, inclusive sábados, domingos e feriados)',
     mission: 'Descobrir e qualificar clínicas dentárias em Portugal com alto potencial de receita (Implantes, Invisalign e Reabilitação Oral), validando a Tríade do ICP (Site + Instagram + WhatsApp 9x com Firecrawl) e bloqueando 100% de duplicidades no CRM antes de adicionar na coluna de Prospect e reportar ao Jonh.',
@@ -44,7 +44,7 @@ export const JACK_HUNTER_IDENTITY = {
         'Sul & Ilhas: Faro, Portimão, Albufeira, Loulé, Vilamoura, Évora, Funchal'
     ],
     nicheTargets: [
-        'Clínicas Dentárias e Médicos Dentistas (Implantes, Invisalign, Alinhadores, Reabilitação Oral)',
+        'Clínicas Dentárias e Dentistas (Implantes, Invisalign, Alinhadores, Reabilitação Oral)',
         'Clínicas de Estética e Médicos Estéticos (Harmonização Facial, Botox, Bioestimuladores)'
     ],
     rules: {
@@ -57,11 +57,15 @@ export const JACK_HUNTER_IDENTITY = {
     }
 };
 
-export const JACK_HUNTER_SCHEDULE = {
+export const JACK_HUNTER_IDENTITY = HUNTER_IDENTITY;
+
+export const HUNTER_SCHEDULE = {
     mode: '24/7_CONTINUOUS_SCOUTING',
     activeDays: 'Segunda a Domingo (Sem interrupções)',
-    reason: 'Como o Jack Hunter realiza apenas pesquisa interna de dados, validação de websites com Firecrawl e deduplicação no CRM (sem disparar mensagens ativas aos clientes), ele opera continuamente nos bastidores para construir estoque de leads para o Jonh e o SDR.'
+    reason: 'Como o Hunter realiza apenas pesquisa interna de dados, validação de websites com Firecrawl e deduplicação no CRM (sem disparar mensagens ativas aos clientes), ele opera continuamente nos bastidores para construir estoque de leads para o Jonh e o SDR.'
 };
+
+export const JACK_HUNTER_SCHEDULE = HUNTER_SCHEDULE;
 
 export const PROSPECT_PIPELINE_CONFIG = {
     DEFAULT_PIPELINE_ID: 'sales',
@@ -157,7 +161,7 @@ export function extractDomain(url) {
 }
 
 /**
- * JACK HUNTER MOTOR ANTI-DUPLICIDADE MULTI-CAMADA:
+ * HUNTER MOTOR ANTI-DUPLICIDADE MULTI-CAMADA:
  * Analisa se a oportunidade já existe no CRM em QUALQUER status (aberto, ganho ou perdido).
  * Procura por Telefone, Email, Nome da Clínica e Website.
  */
@@ -407,13 +411,13 @@ export async function checkDuplicateInCRM({
         // Nenhuma duplicidade encontrada em aberto, ganho ou perdido
         return { duplicate: false, cleanName, phoneNorm };
     } catch (err) {
-        console.error('❌ [Jack Hunter Anti-Duplicidade] Erro ao checar duplicidades:', err.message);
+        console.error('❌ [Hunter Anti-Duplicidade] Erro ao checar duplicidades:', err.message);
         return { duplicate: false, error: err.message };
     }
 }
 
 /**
- * Validação rigorosa dos dados captados pelo Jack Hunter antes da inserção.
+ * Validação rigorosa dos dados captados pelo Hunter antes da inserção.
  */
 export function validateHuntedOpportunity({
     clinicName,
@@ -452,7 +456,7 @@ export function validateHuntedOpportunity({
 }
 
 /**
- * JACK HUNTER INSERÇÃO COMPLETA DE PROSPECT NO CRM:
+ * HUNTER INSERÇÃO COMPLETA DE PROSPECT NO CRM:
  * 1. Verifica duplicidade contra negócios abertos, ganhos e perdidos.
  * 2. Se for duplicado, recusa e reporta.
  * 3. Se for novo e limpo, cria Company, Contact e Deal na etapa 'Prospect'.
@@ -469,7 +473,7 @@ export async function insertNewProspect({
     city = 'Portugal',
     region = 'Norte',
     niche = 'Clínica Dentária',
-    source = 'Jack Hunter (Scouting Portugal)',
+    source = 'Hunter (Scouting Portugal)',
     dealValue = PROSPECT_PIPELINE_CONFIG.DEFAULT_DEAL_VALUE,
     userId = PROSPECT_PIPELINE_CONFIG.DEFAULT_USER_ID
 } = {}) {
@@ -488,7 +492,7 @@ export async function insertNewProspect({
     });
 
     if (!validation.valid) {
-        console.warn(`⚠️ [Jack Hunter] Oportunidade rejeitada por campos em falta: ${validation.missingFields.join(', ')}`);
+        console.warn(`⚠️ [Hunter] Oportunidade rejeitada por campos em falta: ${validation.missingFields.join(', ')}`);
         return {
             success: false,
             duplicate: false,
@@ -507,7 +511,7 @@ export async function insertNewProspect({
     });
 
     if (duplicateCheck.duplicate) {
-        console.log(`🛡️ [Jack Hunter Anti-Duplicidade] INSERÇÃO BARRADA: ${duplicateCheck.reason}`);
+        console.log(`🛡️ [Hunter Anti-Duplicidade] INSERÇÃO BARRADA: ${duplicateCheck.reason}`);
         return {
             success: false,
             duplicate: true,
@@ -563,7 +567,7 @@ export async function insertNewProspect({
                 company_id: companyId,
                 role: 'Lead',
                 marketing_status: 'subscribed',
-                notes: `Captado por Jack Hunter em ${city} (${region} de Portugal). Especialidade: ${niche}.`
+                notes: `Captado por Hunter em ${city} (${region} de Portugal). Especialidade: ${niche}.`
             }])
             .select()
             .single();
@@ -582,7 +586,7 @@ export async function insertNewProspect({
 
         // 5. Inserir o Deal na etapa 'Prospect'
         const dealTitle = `Negócio ${cleanName}`;
-        const tags = ['Jack Hunter', niche, city];
+        const tags = ['Hunter', niche, city];
         if (phoneNorm.isMobile) tags.push('WhatsApp Apto');
         if (phoneNorm.isLandline) tags.push('Linha Fixa');
 
@@ -608,14 +612,14 @@ export async function insertNewProspect({
 
         if (dealErr) throw dealErr;
 
-        console.log(`🎯 [Jack Hunter] Oportunidade inserida com sucesso no CRM: '${dealTitle}' (ID: ${newDeal.id})`);
+        console.log(`🎯 [Hunter] Oportunidade inserida com sucesso no CRM: '${dealTitle}' (ID: ${newDeal.id})`);
 
-        // 6. Registrar Log Factual da Ação do Jack Hunter e prestação de contas ao Jonh
+        // 6. Registrar Log Factual da Ação do Hunter e prestação de contas ao Jonh
         await supabase
             .from('deal_logs')
             .insert([{
                 deal_id: newDeal.id,
-                content: `🎯 [Jack Hunter ➔ Jonh] Oportunidade captada e reportada ao Gerente de Operações Jonh. Clínica em ${city} validada na Tríade do ICP (Site + Instagram + WhatsApp 9x) e 100% livre de duplicidades no CRM.`,
+                content: `🎯 [Hunter ➔ Jonh] Oportunidade captada e reportada ao Gerente de Operações Jonh. Clínica em ${city} validada na Tríade do ICP (Site + Instagram + WhatsApp 9x) e 100% livre de duplicidades no CRM.`,
                 log_type: 'lead_captured'
             }]);
 
@@ -625,7 +629,7 @@ export async function insertNewProspect({
             title: `Acompanhamento Jonh: ${dealTitle}`,
             type: 'message',
             dueDate: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-            notes: `Oportunidade captada pelo Jack Hunter e entregue à gerência de operações do Jonh para fiscalização e avanço de etapa.`
+            notes: `Oportunidade captada pelo Hunter e entregue à gerência de operações do Jonh para fiscalização e avanço de etapa.`
         });
 
         return {
@@ -637,17 +641,17 @@ export async function insertNewProspect({
             nextStepScheduled: nextStepRes.success
         };
     } catch (err) {
-        console.error('❌ [Jack Hunter] Falha fatal ao inserir prospect:', err.message);
+        console.error('❌ [Hunter] Falha fatal ao inserir prospect:', err.message);
         return { success: false, duplicate: false, error: err.message };
     }
 }
 
 /**
- * Processamento em lote de oportunidades caçadas pelo Jack Hunter.
+ * Processamento em lote de oportunidades caçadas pelo Hunter.
  */
 export async function batchHuntAndImport(prospectsList = []) {
     console.log(`\n============================================================`);
-    console.log(`🎯 [Jack Hunter] INICIANDO PROCESSAMENTO DE ${prospectsList.length} OPORTUNIDADES...`);
+    console.log(`🎯 [Hunter] INICIANDO PROCESSAMENTO DE ${prospectsList.length} OPORTUNIDADES...`);
     console.log(`============================================================`);
 
     const summary = {
@@ -689,7 +693,7 @@ export async function batchHuntAndImport(prospectsList = []) {
         }
     }
 
-    console.log(`✅ [Jack Hunter] Varredura Concluída:`);
+    console.log(`✅ [Hunter] Varredura Concluída:`);
     console.log(`   • Oportunidades Novas Inseridas: ${summary.insertedCount}`);
     console.log(`   • Duplicidades Prevenidas (Aberto/Ganho/Perdido): ${summary.duplicatesPrevented}`);
     console.log(`   • Inválidos (Campos em falta): ${summary.invalidCount}`);
@@ -722,7 +726,7 @@ export async function enrichClinicFromWebsite(rawUrl) {
     // ========================================================================
     if (firecrawlApiKey && !firecrawlApiKey.includes('SEU_API_KEY')) {
         try {
-            console.log(`🔥 [Jack Hunter / Firecrawl] Analisando site com IA: ${normalizedUrl}`);
+            console.log(`🔥 [Hunter / Firecrawl] Analisando site com IA: ${normalizedUrl}`);
             const { Firecrawl } = await import('firecrawl');
             const app = new Firecrawl({ apiKey: firecrawlApiKey });
 
@@ -783,7 +787,7 @@ export async function enrichClinicFromWebsite(rawUrl) {
                 };
             }
         } catch (fcErr) {
-            console.warn(`⚠️ [Jack Hunter / Firecrawl] Aviso na extração via Firecrawl (${fcErr.message}). Acionando extrator semântico nativo...`);
+            console.warn(`⚠️ [Hunter / Firecrawl] Aviso na extração via Firecrawl (${fcErr.message}). Acionando extrator semântico nativo...`);
         }
     }
 
@@ -791,7 +795,7 @@ export async function enrichClinicFromWebsite(rawUrl) {
     // TIER 2: EXTRATOR SEMÂNTICO NATIVO (Zero-Dependency Fallback)
     // ========================================================================
     try {
-        console.log(`🌐 [Jack Hunter Extrator] Rastreando código do site: ${normalizedUrl}`);
+        console.log(`🌐 [Hunter Extrator] Rastreando código do site: ${normalizedUrl}`);
         let html = '';
 
         try {
@@ -809,7 +813,7 @@ export async function enrichClinicFromWebsite(rawUrl) {
             }
         } catch (fetchErr) {
             // Se o fetch do Node 22 falhar por TLS handshake / socket, aciona o curl do sistema como fallback resiliente
-            console.log(`⚠️ [Jack Hunter] Fetch nativo falhou (${fetchErr.message}). Tentando fallback via curl...`);
+            console.log(`⚠️ [Hunter] Fetch nativo falhou (${fetchErr.message}). Tentando fallback via curl...`);
             const { execSync } = await import('child_process');
             html = execSync(`curl -s -L -m 10 -A "Mozilla/5.0" "${normalizedUrl}"`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
         }
@@ -903,7 +907,7 @@ export async function enrichClinicFromWebsite(rawUrl) {
         const hasWhatsApp = phoneNorm.isMobile;
         const icpApproved = hasWebsite && hasInstagram && hasWhatsApp;
 
-        console.log(`🎯 [Jack Hunter Triage] Resultado da Tríade para '${clinicName || normalizedUrl}':`);
+        console.log(`🎯 [Hunter Triage] Resultado da Tríade para '${clinicName || normalizedUrl}':`);
         console.log(`   • Site Ativo: SIM`);
         console.log(`   • Instagram: ${hasInstagram ? '@' + instaHandle : 'NÃO DETECTADO'}`);
         console.log(`   • WhatsApp Móvel (9x): ${hasWhatsApp ? phoneNorm.clean : (phoneNorm.isLandline ? 'FIXO (' + phoneNorm.clean + ')' : 'NÃO DETECTADO')}`);
@@ -936,7 +940,7 @@ export async function enrichClinicFromWebsite(rawUrl) {
             }
         };
     } catch (err) {
-        console.error(`❌ [Jack Hunter Extrator] Erro ao extrair dados de ${normalizedUrl}:`, err.message);
+        console.error(`❌ [Hunter Extrator] Erro ao extrair dados de ${normalizedUrl}:`, err.message);
         return {
             success: false,
             engine: 'NATIVE',
@@ -957,7 +961,7 @@ export async function enrichClinicFromWebsite(rawUrl) {
 export async function huntAndInsertFromWebsite(rawUrl, {
     forceInsertIfPartial = false,
     niche = 'Clínica Dentária',
-    source = 'Jack Hunter (Web Scout)',
+    source = 'Hunter (Web Scout)',
     userId = PROSPECT_PIPELINE_CONFIG.DEFAULT_USER_ID
 } = {}) {
     const enrichment = await enrichClinicFromWebsite(rawUrl);

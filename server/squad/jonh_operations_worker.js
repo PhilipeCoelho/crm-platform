@@ -144,7 +144,7 @@ export class JonhOperationsWorker {
             reportsTo: 'Jarvis (O Chefão)',
             subordinates: [
                 {
-                    name: 'Jack Hunter',
+                    name: 'Hunter',
                     role: 'Head de Prospeção & Scouting (Portugal)',
                     status: 'ONLINE_24_7',
                     reportsTo: 'Jonh',

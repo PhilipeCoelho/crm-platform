@@ -1,6 +1,6 @@
 ---
 name: dental-clinic-marketing
-description: Playbook avançado de Marketing e Atração de Pacientes de Alto Valor para Clínicas Dentárias em Portugal (Implantes, Invisalign e Reabilitação Oral). Armamento tático para o Jack Hunter e Investigador Forense.
+description: Playbook avançado de Marketing e Atração de Pacientes de Alto Valor para Clínicas Dentárias em Portugal (Implantes, Invisalign e Reabilitação Oral). Armamento tático para o Hunter e Investigador Forense.
 license: MIT
 metadata:
   version: 1.0.0
@@ -10,7 +10,7 @@ metadata:
 
 # Dental Clinic Marketing — Playbook de Alto Ticket (Portugal)
 
-Este manual mune o **Jack Hunter** e o **Investigador Forense** com o conhecimento aprofundado dos procedimentos de maior margem e das dores de crescimento dos médicos dentistas e diretores clínicos em Portugal.
+Este manual mune o **Hunter** e o **Investigador Forense** com o conhecimento aprofundado dos procedimentos de maior margem e das dores de crescimento dos médicos dentistas e diretores clínicos em Portugal.
 
 ---
 
@@ -32,9 +32,9 @@ Para a Vamuss, o cliente ideal não procura "limpezas" ou "consultas de rotina".
 
 ---
 
-## 2. A Tríade Obrigatória do Jack Hunter no Site da Clínica
+## 2. A Tríade Obrigatória do Hunter no Site da Clínica
 
-Ao auditar o site de uma clínica dentária portuguesa, o Jack Hunter deve extrair e validar:
+Ao auditar o site de uma clínica dentária portuguesa, o Hunter deve extrair e validar:
 
 | Elemento | O que procurar | Critério de Aprovação |
 | :--- | :--- | :--- |
