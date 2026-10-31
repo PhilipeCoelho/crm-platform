@@ -150,7 +150,53 @@ export async function recordFactualAction(dealId, {
 }
 
 /**
- * Jonh obtém os negócios abertos ordenados pelas 3 ondas prioritárias.
+ * Jonh avança o negócio de etapa no CRM dando vazão ao fluxo até ao GANHO.
+ * Prioridade: sempre empurrar quem está mais perto de fechar (Lead Engajado -> Cal.com -> Ganho).
+ */
+export async function advanceDealStage(dealId, targetStage, { reason = 'Avanço de etapa pelo Jonh' } = {}) {
+    const supabase = getSupabaseClient();
+    if (!supabase || !dealId || !targetStage) return { success: false, error: 'INVALID_PARAMS' };
+
+    try {
+        const updateData = { stage_id: targetStage };
+        if (targetStage === 'won' || targetStage === 'ganho') {
+            updateData.status = 'won';
+            updateData.won_at = new Date().toISOString();
+        } else if (targetStage === 'lost' || targetStage === 'perdido') {
+            updateData.status = 'lost';
+            updateData.lost_at = new Date().toISOString();
+            updateData.lost_reason = reason;
+        }
+
+        const { data, error } = await supabase
+            .from('deals')
+            .update(updateData)
+            .eq('id', dealId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        // Registrar atividade de mudança de etapa
+        await recordFactualAction(dealId, {
+            activityTitle: `Etapa avançada para: ${targetStage}`,
+            activityType: 'status_change',
+            logContent: `Jonh deu vazão ao negócio no CRM avançando para a etapa '${targetStage}'. Motivo: ${reason}`
+        });
+
+        console.log(`🚀 [Jonh] Vazão dada ao Deal [${dealId}]: avançou para '${targetStage}'!`);
+        return { success: true, deal: data };
+    } catch (err) {
+        console.error(`❌ [Jonh] Erro ao avançar etapa do deal ${dealId}:`, err.message);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
+ * Jonh obtém os negócios abertos ordenados rigorosamente por maior probabilidade de GANHO:
+ * 1. Onda 1 (Lead Engajado - 4): Já falaram, máxima chance de fechar reunião agora!
+ * 2. Onda 2 (Lead - 15): 1 mensagem enviada, requer quebra de silêncio para avançar.
+ * 3. Onda 3 (Prospect - 215): Fila fria de base (5 a 10 por dia).
  */
 export async function getOpenDealsByPriorityWaves() {
     const supabase = getSupabaseClient();
