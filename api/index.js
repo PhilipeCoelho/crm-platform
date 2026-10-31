@@ -8368,6 +8368,13 @@ if (process.env.VERCEL !== '1') {
                 defaultJonhWorker.start({ intervalMinutes: parseInt(process.env.JONH_WORKER_INTERVAL_MINUTES, 10) || 15 });
             }).catch(err => console.error('❌ Falha ao iniciar Jonh Operations Worker:', err));
         }
+
+        // Inicializar Hunter (Head de Prospeção & Lead Scouting 24/7)
+        if (process.env.HUNTER_AUTONOMOUS_WORKER !== 'false') {
+            import('../server/squad/hunter_autonomous_worker.js').then(({ defaultHunterWorker }) => {
+                defaultHunterWorker.start({ intervalMinutes: parseInt(process.env.HUNTER_WORKER_INTERVAL_MINUTES, 10) || 30 });
+            }).catch(err => console.error('❌ Falha ao iniciar Hunter Autonomous Worker:', err));
+        }
     });
 }
 

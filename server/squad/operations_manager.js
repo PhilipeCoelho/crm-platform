@@ -141,10 +141,16 @@ export async function auditProspectsDataHygiene() {
                 ready.push({ dealId: p.id, title: p.title, check });
             } else {
                 incomplete.push({ dealId: p.id, title: p.title, check });
+                // Sinaliza no deal que faltam dados para evitar falsos prospects
+                if (check.missingFields.includes('Telefone de Contacto Válido')) {
+                    supabase.from('deals').update({
+                        tags: ['DADOS_INCOMPLETOS', 'PENDENTE_ENRIQUECIMENTO']
+                    }).eq('id', p.id).then(() => {}).catch(() => {});
+                }
             }
         }
 
-        console.log(`📋 [Jonh Fiscalização] Auditoria Concluída em lote: ${ready.length} aptos para WhatsApp, ${incomplete.length} com campos pendentes/fixos.`);
+        console.log(`📋 [Jonh Fiscalização] Auditoria Concluída em lote: ${ready.length} aptos para WhatsApp, ${incomplete.length} retidos por campos pendentes/fixos.`);
         return { ready, incomplete, totalAudited: prospects?.length || 0 };
     } catch (err) {
         console.error('❌ [Jonh] Erro ao fiscalizar dados dos prospects:', err.message);
@@ -246,17 +252,23 @@ export async function enforceNextStepActivitiesInBatch(deals = []) {
         const defaultUserId = '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
         const dueDate = new Date(Date.now() + 48 * 3600 * 1000).toISOString();
 
-        const activitiesToInsert = missingDeals.map(deal => ({
-            user_id: deal.user_id || defaultUserId,
-            deal_id: deal.id,
-            title: `Acompanhamento Jonh: ${deal.title}`,
-            type: deal.stage_id === 'contacted' ? 'task' : 'message',
-            date: dueDate,
-            status: 'pending',
-            completed: false,
-            notes: `Garantido pelo Gerente de Operações Jonh para dar vazão à etapa '${deal.stage_id}'`,
-            is_automatic: true
-        }));
+        const activitiesToInsert = missingDeals.map(deal => {
+            const hasPhone = Boolean(deal.contacts?.phone || deal.companies?.phone);
+            const isTaskOnly = deal.stage_id === 'contacted' || !hasPhone;
+            return {
+                user_id: deal.user_id || defaultUserId,
+                deal_id: deal.id,
+                title: isTaskOnly ? `🔍 [Fiscalização Jonh] Enriquecer Dados: ${deal.title}` : `Acompanhamento Jonh: ${deal.title}`,
+                type: isTaskOnly ? 'task' : 'message',
+                date: dueDate,
+                status: 'pending',
+                completed: false,
+                notes: isTaskOnly 
+                    ? `Retido pelo Gerente Jonh: dados de contacto incompletos. Requer validação de WhatsApp ou Website pelo Hunter antes de qualquer disparo.`
+                    : `Garantido pelo Gerente de Operações Jonh para dar vazão à etapa '${deal.stage_id}'`,
+                is_automatic: true
+            };
+        });
 
         // Inserção em chunks de 50 para máxima robustez
         const chunkSize = 50;

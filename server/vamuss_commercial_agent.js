@@ -1771,11 +1771,26 @@ export function setupCommercialAgentRoutes(app) {
         }
     });
 
-    // 7. Hunter (Head de Prospeção & Scouting Portugal)
+    // 7. Hunter (Head de Prospeção & Scouting Portugal 24/7)
     app.get('/api/sdr/squad/hunter/status', async (req, res) => {
         try {
-            const { JACK_HUNTER_IDENTITY } = await import('./squad/jack_hunter.js');
-            return res.json({ success: true, hunter: JACK_HUNTER_IDENTITY });
+            const { HUNTER_IDENTITY } = await import('./squad/jack_hunter.js');
+            const { defaultHunterWorker } = await import('./squad/hunter_autonomous_worker.js');
+            return res.json({ 
+                success: true, 
+                hunter: HUNTER_IDENTITY,
+                worker: defaultHunterWorker.getStatus()
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/hunter/run-cycle', async (req, res) => {
+        try {
+            const { defaultHunterWorker } = await import('./squad/hunter_autonomous_worker.js');
+            const result = await defaultHunterWorker.runHuntCycle();
+            return res.json({ success: true, result });
         } catch (err) {
             return res.status(500).json({ success: false, error: err.message });
         }
