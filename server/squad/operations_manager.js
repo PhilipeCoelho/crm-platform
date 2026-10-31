@@ -34,7 +34,7 @@ export const JONH_IDENTITY = {
     role: 'Gerente de Operações / RevOps Controller',
     boss: 'Jarvis (O Chefão)',
     subordinates: [
-        'Hunter / Prospector',
+        'Jack Hunter (Hunter & Prospector)',
         'Investigador Forense',
         'SDR Outbound',
         'Ghosting Buster',

@@ -1770,4 +1770,45 @@ export function setupCommercialAgentRoutes(app) {
             return res.status(500).json({ success: false, error: err.message });
         }
     });
+
+    // 7. Jack Hunter (Head de Prospeção & Scouting Portugal)
+    app.get('/api/sdr/squad/hunter/status', async (req, res) => {
+        try {
+            const { JACK_HUNTER_IDENTITY } = await import('./squad/jack_hunter.js');
+            return res.json({ success: true, hunter: JACK_HUNTER_IDENTITY });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/hunter/check-duplicate', async (req, res) => {
+        try {
+            const { checkDuplicateInCRM } = await import('./squad/jack_hunter.js');
+            const check = await checkDuplicateInCRM(req.body || {});
+            return res.json({ success: true, check });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/hunter/insert-prospect', async (req, res) => {
+        try {
+            const { insertNewProspect } = await import('./squad/jack_hunter.js');
+            const result = await insertNewProspect(req.body || {});
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/hunter/batch-import', async (req, res) => {
+        try {
+            const { batchHuntAndImport } = await import('./squad/jack_hunter.js');
+            const prospects = req.body?.prospects || [];
+            const summary = await batchHuntAndImport(prospects);
+            return res.json({ success: true, summary });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
 }
