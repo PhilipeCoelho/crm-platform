@@ -31,10 +31,12 @@ function getSupabaseClient() {
 export const JACK_HUNTER_IDENTITY = {
     name: 'Jack Hunter',
     role: 'Head de Prospeção & Caçador de Oportunidades (Norte a Sul de Portugal)',
-    supervisor: 'Jonh (Gerente de Operações)',
+    supervisor: 'Jonh (Gerente Geral de Operações)',
+    reportsTo: 'Jonh',
+    commandChain: 'Jack Hunter ➔ Jonh (Operações) ➔ Jarvis (Chefão) ➔ Philipe Coelho (CEO)',
     ultimateBoss: 'Jarvis (O Chefão)',
     schedule: '24/7 Ininterrupto (Trabalha todos os dias, inclusive sábados, domingos e feriados)',
-    mission: 'Descobrir e qualificar clínicas dentárias em Portugal com alto potencial de receita (Implantes, Invisalign e Reabilitação Oral), validando a Tríade do ICP (Site + Instagram + WhatsApp 9x com Firecrawl) e bloqueando 100% de duplicidades no CRM antes de adicionar na coluna de Prospect.',
+    mission: 'Descobrir e qualificar clínicas dentárias em Portugal com alto potencial de receita (Implantes, Invisalign e Reabilitação Oral), validando a Tríade do ICP (Site + Instagram + WhatsApp 9x com Firecrawl) e bloqueando 100% de duplicidades no CRM antes de adicionar na coluna de Prospect e reportar ao Jonh.',
     territoryCoverage: [
         'Norte: Porto, Vila Nova de Gaia, Matosinhos, Maia, Braga, Guimarães, Viana do Castelo',
         'Centro: Coimbra, Aveiro, Leiria, Viseu, Figueira da Foz',
@@ -46,6 +48,8 @@ export const JACK_HUNTER_IDENTITY = {
         'Clínicas de Estética e Médicos Estéticos (Harmonização Facial, Botox, Bioestimuladores)'
     ],
     rules: {
+        subordinatedToJonh: true,
+        reportsEverythingToJonh: true,
         runs247: true,
         neverSpeaksToClientsDirectly: true,
         multiLayerAntiDuplication: true,
@@ -606,12 +610,12 @@ export async function insertNewProspect({
 
         console.log(`🎯 [Jack Hunter] Oportunidade inserida com sucesso no CRM: '${dealTitle}' (ID: ${newDeal.id})`);
 
-        // 6. Registrar Log Factual da Ação do Jack Hunter
+        // 6. Registrar Log Factual da Ação do Jack Hunter e prestação de contas ao Jonh
         await supabase
             .from('deal_logs')
             .insert([{
                 deal_id: newDeal.id,
-                content: `🎯 [Jack Hunter] Nova oportunidade captada em ${city} e inserida na coluna Prospect. Dados validados e 100% livre de duplicidade no CRM.`,
+                content: `🎯 [Jack Hunter ➔ Jonh] Oportunidade captada e reportada ao Gerente de Operações Jonh. Clínica em ${city} validada na Tríade do ICP (Site + Instagram + WhatsApp 9x) e 100% livre de duplicidades no CRM.`,
                 log_type: 'lead_captured'
             }]);
 
@@ -621,7 +625,7 @@ export async function insertNewProspect({
             title: `Acompanhamento Jonh: ${dealTitle}`,
             type: 'message',
             dueDate: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-            notes: `Oportunidade originada por Jack Hunter. Jonh fiscalizou dados e programou Touch 1.`
+            notes: `Oportunidade captada pelo Jack Hunter e entregue à gerência de operações do Jonh para fiscalização e avanço de etapa.`
         });
 
         return {

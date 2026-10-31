@@ -141,6 +141,16 @@ export class JonhOperationsWorker {
             name: 'Jonh',
             role: 'Gerente Geral de Operações (RevOps 24h)',
             supervisor: 'Jarvis (O Chefão)',
+            reportsTo: 'Jarvis (O Chefão)',
+            subordinates: [
+                {
+                    name: 'Jack Hunter',
+                    role: 'Head de Prospeção & Scouting (Portugal)',
+                    status: 'ONLINE_24_7',
+                    reportsTo: 'Jonh',
+                    description: 'Subordinado direto do Jonh. Caça clínicas dentárias 24/7 com Firecrawl e entrega estoque 100% livre de duplicidades.'
+                }
+            ],
             isRunning: this.isRunning,
             intervalMinutes: this.intervalMinutes,
             cycleCount: this.cycleCount,
