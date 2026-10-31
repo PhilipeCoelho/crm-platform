@@ -1724,4 +1724,30 @@ export function setupCommercialAgentRoutes(app) {
             return res.status(500).json({ success: false, error: err.message });
         }
     });
+
+    // 5. Caça de Novas Skills no GitHub pelo Jarvis
+    app.post('/api/sdr/squad/jarvis/hunt', async (req, res) => {
+        try {
+            const { runJarvisSkillHuntingMission } = await import('./squad/jarvis_github_skill_hunter.js');
+            const topic = req.body?.topic || 'b2b sales outbound skills';
+            const result = await runJarvisSkillHuntingMission(topic);
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.get('/api/sdr/squad/jarvis/skills', async (req, res) => {
+        try {
+            const fs = await import('fs');
+            const path = await import('path');
+            const skillsDir = path.resolve(process.cwd(), '.agent', 'skills');
+            const dirs = fs.readdirSync(skillsDir, { withFileTypes: true })
+                .filter(d => d.isDirectory())
+                .map(d => d.name);
+            return res.json({ success: true, count: dirs.length, skills: dirs });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
 }
