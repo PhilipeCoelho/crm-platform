@@ -68,6 +68,9 @@ export const TERESA_IDENTITY = {
     rules: {
         subordinatedToJonh: true,
         neverSpeaksToClientsDirectly: true,
+        neverSendsMessagesToDeals: true, // REGRA DE OURO: Jamais contacta nem dispara mensagens aos negócios no CRM
+        strictlyInternalRecon: true,     // Atuação estritamente analítica e forense interna
+        savesFullDossierToHistory: true, // Todo dossiê é gravado no histórico (activities e custom_fields) do Deal
         zeroHallucinationStrict: true,
         justInTimeAuditing: true
     }
@@ -800,19 +803,60 @@ export async function generateForensicDossier(dealId, options = {}) {
     memory.totalInvestigations = (memory.totalInvestigations || 0) + 1;
     saveTeresaMemory(memory);
 
-    // 7. Log Factual no CRM se Supabase estiver ativo
+    // 7. Log Factual e Registro Completo no Histórico do Negócio (CRM)
     if (supabase) {
         try {
+            const formattedHistoryReport = [
+                `🔬 [DOSSIÊ FORENSE DA TERESA — NÍVEL 3.2]`,
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+                `• Decisor Clínico: ${clinicalDirector.targetName || 'Direção Clínica / Não discriminado nominalmente'} (Confiança: ${clinicalDirector.confidence})`,
+                `• Procedimento Herói: ${heroProcedure.hero.name} [Ticket: ${heroProcedure.hero.ticketTier}]`,
+                `• Diagnóstico Meta Ads: ${trafficAudit.status} (${trafficAudit.primaryFlaw.title})`,
+                `• Porte / Gabinetes: ${sizeClassification.label} [${sizeClassification.cabinetsEstimate}]`,
+                `• Seguros de Saúde: ${insuranceAudit.isHighDependence ? `Alta Dependência (${insuranceAudit.insurancesFound.join(', ')})` : 'Foco em Pacientes Particulares'}`,
+                `• Fricção de Agendamento: ${bookingFriction.primaryFriction}`,
+                goldenClues.length > 0 ? `• Sinais Ouro Detectados: ${goldenClues.join(' | ')}` : null,
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+                `🎯 GANCHO SUGERIDO EM 3 LINHAS (PARA O SDR OUTBOUND):`,
+                `1️⃣ ${tacticalHook.line1}`,
+                `2️⃣ ${tacticalHook.line2}`,
+                `3️⃣ ${tacticalHook.line3}`,
+                `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+                `⚠️ REGRA DE SEGURANÇA: Teresa opera em modo 100% interno e JAMAIS envia mensagens ao cliente. Dossiê entregue ao Jonh para aprovação do SDR Outbound.`
+            ].filter(Boolean).join('\n');
+
+            // 7.1 Insere atividade no histórico visual do Deal
             await supabase.from('activities').insert({
                 deal_id: dealId,
                 user_id: '9469fb08-7de5-405e-a4e7-d83cf818ea1e',
                 type: 'system_log',
-                subject: `🔬 [Teresa ➔ Jonh] Dossiê Forense Gerado: ${clinicName}`,
-                description: `Perícia concluída com sucesso (${dossier.durationMs}ms).\n• Decisor: ${clinicalDirector.targetName || 'Direção Clínica'} (${clinicalDirector.confidence})\n• Carro-Chefe: ${heroProcedure.hero.name}\n• Tráfego: ${trafficAudit.status}\n• Porte: ${sizeClassification.label}\n• Gancho: "${tacticalHook.line3}"\nEntregue ao Jonh para aprovação do SDR Outbound.`,
+                subject: `🔬 [Dossiê Teresa] ${clinicName}: ${heroProcedure.hero.name}`,
+                description: formattedHistoryReport,
                 completed: true
             });
+
+            // 7.2 Atualiza os campos personalizados do Deal para consumo direto do SDR
+            const { data: currentDeal } = await supabase.from('deals').select('custom_fields').eq('id', dealId).maybeSingle();
+            const existingCustom = currentDeal?.custom_fields || {};
+            
+            await supabase.from('deals').update({
+                custom_fields: {
+                    ...existingCustom,
+                    teresa_investigated: true,
+                    teresa_investigated_at: new Date().toISOString(),
+                    teresa_target_name: clinicalDirector.targetName,
+                    teresa_target_confidence: clinicalDirector.confidence,
+                    teresa_hero_procedure: heroProcedure.hero.name,
+                    teresa_traffic_status: trafficAudit.status,
+                    teresa_traffic_flaw: trafficAudit.primaryFlaw.title,
+                    teresa_size_tier: sizeClassification.tier,
+                    teresa_insurance_dependence: insuranceAudit.isHighDependence,
+                    teresa_suggested_hook: tacticalHook.fullHook
+                }
+            }).eq('id', dealId);
+
         } catch (actErr) {
-            // Silencioso em caso de atividade
+            console.warn(`⚠️ [Teresa] Erro ao gravar log no CRM Supabase:`, actErr.message);
         }
     }
 
