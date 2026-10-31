@@ -1,5 +1,231 @@
 [
   {
+    "id": "fa1003a1-07b0-4368-9864-80a546b4d2ce",
+    "idempotency_key": "38417211-03ab-4a21-a324-b3f1e81753bf_DISPATCH_MESSAGE_EMAIL_2026-10-31",
+    "deal_id": "38417211-03ab-4a21-a324-b3f1e81753bf",
+    "contact_id": "98a7a4f1-a860-4bdd-b411-c0a795c7278e",
+    "task_type": "DISPATCH_MESSAGE",
+    "channel": "EMAIL",
+    "state": "AGUARDANDO_REVISAO_HUMANA",
+    "priority": "MEDIA",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-31T11:22:15.763Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Clínica Ferreira Borges",
+      "phone": "935189807",
+      "messageText": "Bom dia, agradeço a sua resposta anterior. Poderia indicar quem é o responsável pela comunicação na clínica? Gostaria de entender melhor como a Vamuss pode ajudar.",
+      "strategy": "PEDIR_ORIENTACAO_DECISOR",
+      "gptDiagnosis": {
+        "source": "openai_gpt4o_mini",
+        "strategyVersion": "v1793445735396",
+        "openai_token_usage": {
+          "prompt": 2680,
+          "completion": 1381,
+          "total": 4061
+        },
+        "ab_variant": "B",
+        "research_dossier": {
+          "dealId": "38417211-03ab-4a21-a324-b3f1e81753bf",
+          "clinicName": "Clínica Ferreira Borges",
+          "concelho": null,
+          "researchedAt": "2026-10-31T11:22:04.210Z",
+          "expiresAt": "2026-11-30T11:22:04.210Z",
+          "hasReliableData": false,
+          "decisionMaker": {
+            "found": false,
+            "confianca": 0,
+            "salutacao_recomendada": "Bom dia, equipa da Clínica Ferreira Borges,"
+          },
+          "siteAnalysis": {
+            "hasWebsite": false,
+            "reason": "URL inválido ou não fornecido"
+          },
+          "visibilityAnalysis": {
+            "checked": true,
+            "clinicName": "Clínica Ferreira Borges",
+            "concelho": "",
+            "searchQueries": [
+              "implantes dentários Portugal",
+              "clínica dentária Portugal"
+            ],
+            "appearsInTopOrganic": false,
+            "rating": null,
+            "reviewCount": null,
+            "source": "Pesquisa Web e Diretórios",
+            "extractedAt": "2026-10-31T11:22:04.210Z"
+          },
+          "verifiedFacts": [],
+          "antiHallucinationCheck": {
+            "strictSourceRequired": true,
+            "maxFactsPerMessage": 1,
+            "relyOnCRMOnlyIfEmpty": true
+          }
+        },
+        "routed_angle": {
+          "angle": "historico_crm_puro",
+          "angleDescription": "Baseado estritamente no CRM. Nenhum tratamento inventado.",
+          "openingHook": "Revisão do histórico anterior da clínica sem presunções externas.",
+          "recommendedSpinQuestion": "De onde chegam hoje a maioria das vossas primeiras consultas particulares — é sobretudo por recomendação de pacientes?",
+          "allowsImplants": false
+        },
+        "analise_decisao_previa": {
+          "1_o_que_aconteceu_historico": "A Clínica Ferreira Borges foi contactada pela Vamuss, mas respondeu que já tinha alguém a tratar da parte de comunicação e marketing.",
+          "2_o_que_vamuss_comunicou": "A Vamuss apresentou a sua proposta de valor, focando na atração de pacientes particulares através de sistemas de comunicação e pesquisa no Google.",
+          "3_tentativas_e_canais": "Foram realizadas 3 tentativas de contato através de mensagens, sem resposta efetiva.",
+          "4_houve_resposta_real": "NÃO, a única interação foi uma resposta de recusa.",
+          "5_motivo_registado_perda": "A clínica informou que já tem alguém a tratar dessa parte, o que é um motivo de perda comprovado.",
+          "6_interlocutor_e_decisor_conhecido": "O contacto no CRM é apenas o nome da clínica, sem identificação de decisor.",
+          "7_o_que_ainda_nao_sabemos": "Não sabemos quem é o decisor na clínica e qual o cargo da pessoa que respondeu.",
+          "8_obstaculo_comercial_provavel_factos_vs_hipoteses": "Fato: A clínica já tem alguém a tratar do marketing. Hipótese: O decisor pode não estar ciente das limitações da atual parceria.",
+          "9_proxima_acao_minima_recomendada": "Enviar um e-mail para solicitar a identificação do decisor responsável pela comunicação.",
+          "10_porque_acao_superior_alternativas": "Esta ação permite identificar a pessoa certa para futuras interações, enquanto outras ações poderiam ser ignoradas sem resposta."
+        },
+        "raciocinio_interno": {
+          "o_que_sabemos": "A clínica já está a trabalhar com outra agência e não respondeu a propostas anteriores.",
+          "o_que_aconteceu": "A primeira abordagem foi feita em setembro de 2026, com uma resposta de recusa em outubro do mesmo ano.",
+          "hipotese_bloqueio": "O decisor não está ciente da eficácia da Vamuss ou da insatisfação com a agência atual.",
+          "informacao_necessaria": "Precisamos saber quem é o decisor na clínica.",
+          "menor_intervencao": "Enviar um e-mail para identificar o decisor.",
+          "porque_esta_abordagem": "Focar na identificação do decisor é fundamental para evitar repetição de tentativas sem sucesso."
+        },
+        "reconstrucao_factual": {
+          "primeira_abordagem": "Primeira abordagem realizada em 25 de setembro de 2026.",
+          "mensagens_enviadas": "Foi enviada uma mensagem inicial, mas não houve resposta.",
+          "respostas_recebidas": "Nenhuma resposta registada.",
+          "perguntas_pendentes": "Nenhuma.",
+          "proposta_comercial": "Não identificada.",
+          "objecoes_expressas": "A clínica já tem alguém a tratar do marketing.",
+          "ultima_interacao_efetiva": "01 de outubro de 2026, onde foi confirmada a perda do negócio.",
+          "motivo_perda_confirmado": "CONFIRMADO",
+          "nivel_confianca": "ALTA",
+          "decisor_confirmado": "DESCONHECIDO",
+          "dados_em_falta": [
+            "Nome do decisor",
+            "Cargo do contacto",
+            "Satisfação com a agência atual"
+          ]
+        },
+        "estrategia_comercial": {
+          "estrategia_selecionada": "PEDIR_ORIENTACAO_DECISOR",
+          "justificacao_detalhada": "Identificar o decisor é crucial para futuras interações e para entender melhor as necessidades da clínica.",
+          "estrategias_descartadas": [
+            "Reenviar proposta comercial",
+            "Contactar a mesma pessoa novamente"
+          ],
+          "razao_descarte": "Essas estratégias não abordam a necessidade de identificar o decisor e podem resultar em mais recusa.",
+          "resposta_pretendida": "Esperamos que o interlocutor nos indique quem é o responsável pela comunicação na clínica."
+        },
+        "mensagem_sdr_pt_pt": {
+          "canal_sugerido": "EMAIL",
+          "texto_recomendado": "Bom dia, agradeço a sua resposta anterior. Poderia indicar quem é o responsável pela comunicação na clínica? Gostaria de entender melhor como a Vamuss pode ajudar.",
+          "texto": "Bom dia, agradeço a sua resposta anterior. Poderia indicar quem é o responsável pela comunicação na clínica? Gostaria de entender melhor como a Vamuss pode ajudar.",
+          "alternativa_comercial_relevante": "Bom dia, compreendo que já têm alguém a tratar do marketing. Se houver algum feedback sobre essa parceria, ficaria grato.",
+          "explicacao_diferenca_estrategica": "A primeira mensagem foca na identificação do decisor, enquanto a alternativa tenta obter feedback sobre a agência atual, que pode não ser tão eficaz.",
+          "pede_reuniao": false,
+          "assume_problema_agenda": false,
+          "demonstra_compreensao_historico": true
+        },
+        "facto_pesquisa_usado": null,
+        "variante_ab": "B",
+        "objecoes_antecipadas": [
+          {
+            "objecao": "Já temos uma agência.",
+            "interpretacao": "A clínica pode estar satisfeita ou não ciente de outras opções.",
+            "como_contornar": "Perguntar sobre a experiência com a agência atual e se estão abertos a explorar alternativas."
+          }
+        ],
+        "qualificacao_closer": {
+          "criterio_transferencia": "Identificação do decisor responsável pela comunicação.",
+          "contexto_para_closer": "A clínica já tem uma agência, mas pode haver insatisfação. O decisor não foi identificado.",
+          "roteiro_spin": {
+            "situacao": "Como está a comunicação da clínica com os pacientes atualmente?",
+            "problema": "Quais desafios têm enfrentado com a agência atual?",
+            "implicacao": "Como esses desafios impactam a captação de pacientes particulares?",
+            "necessidade": "Estão abertos a explorar novas soluções que possam melhorar a situação?"
+          },
+          "condicao_propor_reuniao_20min": "Se houver interesse em discutir soluções alternativas que possam ser mais vantajosas."
+        }
+      },
+      "learningMetadata": {
+        "segment": "OBJECAO_NAO_RESOLVIDA",
+        "approach_type": "PEDIR_ORIENTACAO_DECISOR",
+        "message_variant": "default",
+        "gpt_decision": "PEDIR_ORIENTACAO_DECISOR",
+        "gpt_justification": "Focar na identificação do decisor é fundamental para evitar repetição de tentativas sem sucesso.",
+        "openai_token_usage": {
+          "prompt": 2680,
+          "completion": 1381,
+          "total": 4061
+        },
+        "whatsapp_cost_est": 0,
+        "time_spent_seconds": 13,
+        "ab_test_id": null,
+        "hypothesis_id": null,
+        "learning_context_used": false
+      },
+      "isPilotOutbound": true,
+      "humanReviewReason": "Nome do contacto \"Clínica Ferreira Borges\" parece ser nome de empresa, não de pessoa. Decisor não identificado.; Cargo/função do contacto não registado no CRM."
+    },
+    "result": null,
+    "error": null,
+    "created_at": "2026-10-31T11:22:15.763Z",
+    "updated_at": "2026-10-31T11:22:15.763Z"
+  },
+  {
+    "id": "8f41e951-91b3-4ca4-9278-cfb65dca4713",
+    "idempotency_key": "38417211-03ab-4a21-a324-b3f1e81753bf_ANALYZE_DEAL_WHATSAPP_2026-10-31",
+    "deal_id": "38417211-03ab-4a21-a324-b3f1e81753bf",
+    "contact_id": "98a7a4f1-a860-4bdd-b411-c0a795c7278e",
+    "task_type": "ANALYZE_DEAL",
+    "channel": "WHATSAPP",
+    "state": "EXECUTADA",
+    "priority": "PRIORIDADE_MEDIA",
+    "attempts": 0,
+    "max_attempts": 3,
+    "next_run_at": "2026-10-31T11:22:02.267Z",
+    "locked_at": null,
+    "locked_by": null,
+    "payload": {
+      "clinicName": "Negócio Clínica Ferreira Borges",
+      "contactPerson": "Clínica Ferreira Borges",
+      "phone": "935189807",
+      "lostReason": "Já anuncia - [11:29, 30/09/2026] +351 935 189 807: Olá bom dia Caro Philippi agradecemos o seu contato, mas já temos alguém que trata dessa parte aqui na clínica\n[11:29, 30/09/2026] +351 935 189 807: Obrigada\n[12:20, 01/10/2026] euphilipecoelho: Obrigado pelo retorno! Ótima continuação!",
+      "daysSinceLost": 30,
+      "isNonMessaging": false,
+      "isPilotOutbound": true
+    },
+    "result": {
+      "strategy": "PEDIR_ORIENTACAO_DECISOR",
+      "channel": "EMAIL",
+      "score": 32,
+      "nextTask": "DISPATCH_MESSAGE",
+      "learningMetadata": {
+        "segment": "OBJECAO_NAO_RESOLVIDA",
+        "approach_type": "PEDIR_ORIENTACAO_DECISOR",
+        "message_variant": "default",
+        "gpt_decision": "PEDIR_ORIENTACAO_DECISOR",
+        "gpt_justification": "Focar na identificação do decisor é fundamental para evitar repetição de tentativas sem sucesso.",
+        "openai_token_usage": {
+          "prompt": 2680,
+          "completion": 1381,
+          "total": 4061
+        },
+        "whatsapp_cost_est": 0,
+        "time_spent_seconds": 13,
+        "ab_test_id": null,
+        "hypothesis_id": null,
+        "learning_context_used": false
+      }
+    },
+    "error": null,
+    "created_at": "2026-10-31T11:22:02.267Z",
+    "updated_at": "2026-10-31T11:22:15.782Z",
+    "completed_at": "2026-10-31T11:22:15.782Z"
+  },
+  {
     "id": "f0b9aad1-808d-4b31-b189-137350cdcd1d",
     "idempotency_key": "6b57f5b1-a05e-4ec8-b0b8-00a302e5a7ff_DISPATCH_MESSAGE_EMAIL_2026-10-31",
     "deal_id": "6b57f5b1-a05e-4ec8-b0b8-00a302e5a7ff",

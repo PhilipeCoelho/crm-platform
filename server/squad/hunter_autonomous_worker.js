@@ -202,13 +202,85 @@ export class HunterAutonomousWorker {
                 }
             }
 
-            console.log(`📊 [Hunter 24/7 Ronda #${this.cycleCount} Concluída] Inseridos: ${cycleResults.inserted} | Duplicados Barrados: ${cycleResults.duplicatesBarred} | Descartados por dados incompletos: ${cycleResults.incompleteDiscarded}`);
+            // 5. CAÇA ATIVA DE ENRIQUECIMENTO PARA DEALS PENDENTES NO CRM
+            const enrichRes = await this.enrichPendingTriadDeals(3);
+            cycleResults.dealsEnriched = enrichRes.enriched;
+
+            console.log(`📊 [Hunter 24/7 Ronda #${this.cycleCount} Concluída] Inseridos: ${cycleResults.inserted} | Enriquecidos: ${enrichRes.enriched} | Duplicados Barrados: ${cycleResults.duplicatesBarred} | Descartados: ${cycleResults.incompleteDiscarded}`);
 
         } catch (err) {
             console.error(`❌ [Hunter 24/7] Erro na ronda de caça:`, err.message);
         }
 
         return cycleResults;
+    }
+
+    /**
+     * Caça e enriquece ativamente deals antigos do CRM que estão sem a Tríade (WhatsApp + Website)
+     */
+    async enrichPendingTriadDeals(limit = 3) {
+        const supabase = getSupabaseClient();
+        if (!supabase) return { enriched: 0, disqualified: 0 };
+
+        try {
+            const { data: deals } = await supabase
+                .from('deals')
+                .select('id, title, contact_id, company_id, tags')
+                .contains('tags', ['Pendente Enriquecimento Hunter'])
+                .eq('status', 'open')
+                .limit(limit);
+
+            if (!deals || deals.length === 0) {
+                return { enriched: 0, disqualified: 0 };
+            }
+
+            console.log(`🔍 [Hunter ➔ Jonh] ${deals.length} deals em fila para enriquecimento activo da Tríade...`);
+            let enrichedCount = 0;
+
+            for (const deal of deals) {
+                const cleanName = (deal.title || '').replace(/^(Negócio|Clinica|Clínica)\s+/i, '').trim();
+                const candidates = await this.discoverClinicCandidates('Portugal', cleanName);
+                const best = candidates.find(c => c.phone || c.website);
+
+                if (best && (best.phone || best.website)) {
+                    // Atualiza company
+                    if (deal.company_id) {
+                        await supabase.from('companies').update({
+                            phone: best.phone || null,
+                            website: best.website || null
+                        }).eq('id', deal.company_id);
+                    }
+                    // Atualiza contact
+                    if (deal.contact_id) {
+                        await supabase.from('contacts').update({
+                            phone: best.phone || null,
+                            email: best.email || null,
+                            notes: `Enriquecido pelo Hunter 24/7. Site: ${best.website || 'N/A'}`
+                        }).eq('id', deal.contact_id);
+                    }
+                    // Atualiza deal
+                    const newTags = (deal.tags || []).filter(t => t !== 'Pendente Enriquecimento Hunter' && t !== 'Sem WhatsApp');
+                    newTags.push('Enriquecido pelo Hunter', 'WhatsApp Apto');
+                    await supabase.from('deals').update({ tags: newTags }).eq('id', deal.id);
+
+                    // Conclui atividade de auditoria
+                    await supabase.from('activities').update({
+                        status: 'completed',
+                        completed: true,
+                        completed_at: new Date().toISOString(),
+                        notes: `✅ Tríade encontrada pelo Hunter: Telefone (${best.phone || 'N/A'}), Website (${best.website || 'N/A'}).`
+                    }).eq('deal_id', deal.id).eq('status', 'pending');
+
+                    console.log(`✅ [Hunter Enriquecimento] "${cleanName}" ENRIQUECIDA com sucesso!`);
+                    enrichedCount++;
+                }
+            }
+
+            return { enriched: enrichedCount };
+        } catch (err) {
+            console.error('❌ [Hunter Enriquecimento] Erro:', err.message);
+            return { enriched: 0, error: err.message };
+        }
     }
 
     /**

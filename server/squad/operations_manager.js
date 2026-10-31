@@ -77,21 +77,37 @@ export async function markDealAsLostAutonomously(dealId, {
 
         if (updErr) throw updErr;
 
-        // 2. Remove atividades pendentes de mensagem/WhatsApp para esse negócio
+        // 2. Remove apenas atividades abertas/pendentes para esse negócio (preservando histórico anterior)
         await supabase
             .from('activities')
             .delete()
             .eq('deal_id', dealId)
             .eq('status', 'pending');
 
-        // 3. Registra log factual no histórico do negócio
+        // 3. Sincroniza imediatamente com deal_analytics para entrar nas métricas do Dashboard e Insights
+        try {
+            await supabase.from('deal_analytics').upsert({
+                deal_id: dealId,
+                status_final: 'lost',
+                motivo_perda: reason,
+                closed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'deal_id' });
+        } catch (syncErr) {
+            console.warn('⚠️ [Jonh Autônomo] Falha ao sincronizar deal_analytics:', syncErr.message);
+        }
+
+        // 4. Registra atividade de conclusão visível no histórico do negócio
         await supabase.from('activities').insert({
             deal_id: dealId,
             user_id: '9469fb08-7de5-405e-a4e7-d83cf818ea1e',
-            type: 'system_log',
-            subject: auditSubject,
-            description: `Auditado e dado como Perdido autonomamente pelo Jonh:\n• Motivo: ${reason}\n${notes ? `• Detalhes: ${notes}\n` : ''}• Ação: Removido da fila ativa e atividades pendentes canceladas.`,
-            completed: true
+            type: 'task',
+            title: auditSubject,
+            notes: `Auditado e dado como Perdido autonomamente pelo Jonh:\n• Motivo: ${reason}\n${notes ? `• Detalhes: ${notes}\n` : ''}• Ação: Removido da fila de Prospect. Histórico e notas preservados.`,
+            status: 'completed',
+            completed: true,
+            completed_at: new Date().toISOString(),
+            date: new Date().toISOString()
         });
 
         console.log(`🛑 [Jonh Autônomo] Deal "${dealId}" dado como PERDIDO com sucesso: ${reason}`);

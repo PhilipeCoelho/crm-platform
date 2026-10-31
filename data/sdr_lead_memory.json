@@ -763,5 +763,34 @@
     "confianca_intencao": 0.95,
     "createdAt": "2026-10-30T12:30:37.981Z",
     "updatedAt": "2026-10-30T12:30:37.984Z"
+  },
+  "38417211-03ab-4a21-a324-b3f1e81753bf": {
+    "dealId": "38417211-03ab-4a21-a324-b3f1e81753bf",
+    "clinic_name": "Clínica Ferreira Borges",
+    "tratamentos_confirmados": [],
+    "tem_site": false,
+    "website_url": null,
+    "decisor_identificado": {
+      "found": false,
+      "confianca": 0,
+      "salutacao_recomendada": "Bom dia, equipa da Clínica Ferreira Borges,"
+    },
+    "interlocutor_atual": "desconhecido",
+    "motivo_perda_original": "Já anuncia - [11:29, 30/09/2026] +351 935 189 807: Olá bom dia Caro Philippi agradecemos o seu contato, mas já temos alguém que trata dessa parte aqui na clínica\n[11:29, 30/09/2026] +351 935 189 807: Obrigada\n[12:20, 01/10/2026] euphilipecoelho: Obrigado pelo retorno! Ótima continuação!",
+    "objecao_atual": null,
+    "perguntas_ja_feitas": [
+      "Bom dia, agradeço a sua resposta anterior. Poderia indicar quem é o responsável pela comunicação na clínica? Gostaria de entender melhor como a Vamuss pode ajudar."
+    ],
+    "angulo_usado": "historico_crm_puro",
+    "factos_citados": [],
+    "proximo_contacto_prometido": null,
+    "toques_outbound_sem_humano": 0,
+    "consecutive_bot_replies": 0,
+    "estado": "COLD",
+    "ultima_intencao": null,
+    "confianca_intencao": 0,
+    "createdAt": "2026-10-31T11:22:04.229Z",
+    "updatedAt": "2026-10-31T11:22:15.396Z",
+    "pergunta_adicional": "Bom dia, agradeço a sua resposta anterior. Poderia indicar quem é o responsável pela comunicação na clínica? Gostaria de entender melhor como a Vamuss pode ajudar."
   }
 }

@@ -2445,5 +2445,43 @@
       "relyOnCRMOnlyIfEmpty": false,
       "zeroHallucinationCompliant": true
     }
+  },
+  "38417211-03ab-4a21-a324-b3f1e81753bf": {
+    "dealId": "38417211-03ab-4a21-a324-b3f1e81753bf",
+    "clinicName": "Clínica Ferreira Borges",
+    "concelho": null,
+    "researchedAt": "2026-10-31T11:22:04.210Z",
+    "expiresAt": "2026-11-30T11:22:04.210Z",
+    "hasReliableData": false,
+    "decisionMaker": {
+      "found": false,
+      "confianca": 0,
+      "salutacao_recomendada": "Bom dia, equipa da Clínica Ferreira Borges,"
+    },
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "reason": "URL inválido ou não fornecido"
+    },
+    "visibilityAnalysis": {
+      "checked": true,
+      "clinicName": "Clínica Ferreira Borges",
+      "concelho": "",
+      "searchQueries": [
+        "implantes dentários Portugal",
+        "clínica dentária Portugal"
+      ],
+      "appearsInTopOrganic": false,
+      "rating": null,
+      "reviewCount": null,
+      "source": "Pesquisa Web e Diretórios",
+      "extractedAt": "2026-10-31T11:22:04.210Z"
+    },
+    "verifiedFacts": [],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": true
+    },
+    "savedAt": "2026-10-31T11:22:04.215Z"
   }
 }
