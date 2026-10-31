@@ -26,6 +26,15 @@
       "text": "[Mensagem recebida do tipo undefined]",
       "isAudioTranscript": false,
       "recordedAt": "2026-10-29T15:16:08.952Z"
+    },
+    {
+      "id": "obj_1793363437985_ng87",
+      "dealId": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce",
+      "clinicName": "Lacerda Clínica Dentária ",
+      "category": "AUTO_REPLY_RECEPCAO",
+      "text": "[Mensagem recebida do tipo undefined]",
+      "isAudioTranscript": false,
+      "recordedAt": "2026-10-30T12:30:37.985Z"
     }
   ],
   "version": 1

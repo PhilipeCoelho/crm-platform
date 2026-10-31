@@ -8361,6 +8361,13 @@ if (process.env.VERCEL !== '1') {
                 defaultSDRWorker.start({ intervalMinutes: parseInt(process.env.SDR_WORKER_INTERVAL_MINUTES, 10) || 5 });
             }).catch(err => console.error('❌ Falha ao iniciar SDR Worker:', err));
         }
+
+        // Inicializar Jonh (Gerente de Operações / RevOps 24h)
+        if (process.env.JONH_AUTONOMOUS_WORKER !== 'false') {
+            import('../server/squad/jonh_operations_worker.js').then(({ defaultJonhWorker }) => {
+                defaultJonhWorker.start({ intervalMinutes: parseInt(process.env.JONH_WORKER_INTERVAL_MINUTES, 10) || 15 });
+            }).catch(err => console.error('❌ Falha ao iniciar Jonh Operations Worker:', err));
+        }
     });
 }
 

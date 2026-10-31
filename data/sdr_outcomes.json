@@ -1,5 +1,87 @@
 [
   {
+    "id": "c708570e-8e5d-4e97-8dd5-e4f57f910ce7",
+    "idempotency_key": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce_RESPOSTA_POSITIVA_WHATSAPP_2026-10-30",
+    "deal_id": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce",
+    "contact_id": "e083fc63-9190-4467-9652-18ecbab7c49a",
+    "strategy": "REGISTO_OPERACIONAL",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "Resposta classificada como AUTO_REPLY_RECEPCAO: \"[Mensagem recebida do tipo undefined]\"",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-30T12:30:38.083Z",
+    "outcome": "RESPOSTA_POSITIVA",
+    "notes": "Resposta classificada como AUTO_REPLY_RECEPCAO: \"[Mensagem recebida do tipo undefined]\"",
+    "metadata": {
+      "inbound_text": "[Mensagem recebida do tipo undefined]",
+      "response_classification": "AUTO_REPLY_RECEPCAO",
+      "conversational_decision": {
+        "source": "bot_detector_guard",
+        "intencao_identificada": "AUTO_REPLY_RECEPCAO",
+        "interlocutor": "robo",
+        "evidencias": "Latência ultra-rápida (0.1s < 15s) típica de auto-responder",
+        "grau_confianca": "ALTA",
+        "proxima_acao": "REENCAMINHAMENTO_RECEPCAO",
+        "mensagem_sugerida": "Pode reencaminhar ao diretor clínico? É sobre a origem das consultas particulares, não é marcação.",
+        "justificacao_comercial": "Resposta automática de receção. Enfileirar reencaminhamento cortês no próximo dia útil.",
+        "informacao_em_falta": "Contacto do Diretor Clínico",
+        "intervencao_humana_necessaria": false,
+        "motivo_intervencao": null,
+        "funnel_event": "NONE",
+        "window24h": {
+          "isWithin24h": true,
+          "hoursElapsed": 0,
+          "requiresTemplate": false
+        }
+      }
+    },
+    "executed_by": "SDR Conversational Agent (sdr_worker_88120_gwl4)",
+    "synced_to_supabase": true,
+    "created_at": "2026-10-30T12:30:38.083Z"
+  },
+  {
+    "id": "1fe20d1b-fcb9-4926-9c62-86526c7f6848",
+    "idempotency_key": "105e2dc6-a009-449f-88d8-f72498522255_EXECUTADA_WHATSAPP_2026-10-30",
+    "deal_id": "105e2dc6-a009-449f-88d8-f72498522255",
+    "contact_id": "f04e6d03-4a82-44ea-9eba-4b56d2ecb7f9",
+    "strategy": "REAPROXIMACAO_TRANSPARENTE",
+    "strategy_version": "v2",
+    "channel": "WHATSAPP",
+    "message_approved": "[Disparo Real WhatsApp Web] Mensagem enviada para 960018949 (ID: 3EB0C291F88212F702EEAA)",
+    "loss_classification": "OPERACIONAL",
+    "recoverability_score": 50,
+    "diagnostic_confidence": "MEDIA",
+    "attempt_date": "2026-10-30T11:45:38.815Z",
+    "outcome": "EXECUTADA",
+    "notes": "[Disparo Real WhatsApp Web] Mensagem enviada para 960018949 (ID: 3EB0C291F88212F702EEAA)",
+    "metadata": {
+      "segment": "SILENCIO_POS_PROSPECAO",
+      "approach_type": "REAPROXIMACAO_TRANSPARENTE",
+      "message_variant": "default",
+      "gpt_decision": "REAPROXIMACAO_TRANSPARENTE",
+      "gpt_justification": "É uma abordagem de baixo atrito, que evita pressão e permite um recomeço.",
+      "openai_token_usage": {
+        "prompt": 2394,
+        "completion": 1326,
+        "total": 3720
+      },
+      "whatsapp_cost_est": 0.0485,
+      "time_spent_seconds": 12.7,
+      "ab_test_id": null,
+      "hypothesis_id": null,
+      "learning_context_used": false,
+      "staging_simulation": false,
+      "provider": "whatsapp_web",
+      "whatsapp_cost_actual": 0,
+      "wamid": "3EB0C291F88212F702EEAA"
+    },
+    "executed_by": "SDR Autonomous Worker (sdr_worker_88120_gwl4)",
+    "synced_to_supabase": true,
+    "created_at": "2026-10-30T11:45:38.815Z"
+  },
+  {
     "id": "11acbd37-9aa7-44dd-b708-0e3d5db377fa",
     "idempotency_key": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce_RESPOSTA_POSITIVA_WHATSAPP_2026-10-29",
     "deal_id": "e4f2c8ee-e2b6-496d-affc-7b77b91194ce",

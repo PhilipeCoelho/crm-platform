@@ -51,6 +51,27 @@
       "outcome": "SEM_RESPOSTA",
       "outcomeHistory": [],
       "exchangesCount": 0
+    },
+    {
+      "id": "disp_1793360739493_5wq82",
+      "dealId": "105e2dc6-a009-449f-88d8-f72498522255",
+      "contactId": "f04e6d03-4a82-44ea-9eba-4b56d2ecb7f9",
+      "phone": "351960018949",
+      "clinicName": "OP Alvalade",
+      "variant": "default",
+      "angle": "REAPROXIMACAO_TRANSPARENTE",
+      "lossReason": "Perda anterior",
+      "usedWebFact": null,
+      "messageLengthChars": 245,
+      "messageLengthWords": 40,
+      "messagePreview": "Na sequência de contactos anteriores da Vamuss, gostaria de saber se ainda está interessado em discutir como podemos ajudar a atrair mais pa",
+      "fullMessage": "Na sequência de contactos anteriores da Vamuss, gostaria de saber se ainda está interessado em discutir como podemos ajudar a atrair mais pacientes para a sua clínica. Se não fizer sentido receber contactos nossos, diga-me e retiro o seu número.",
+      "sentDayOfWeek": 5,
+      "sentHour": 11,
+      "sentAt": "2026-10-30T11:45:39.493Z",
+      "outcome": "SEM_RESPOSTA",
+      "outcomeHistory": [],
+      "exchangesCount": 0
     }
   ],
   "version": 1

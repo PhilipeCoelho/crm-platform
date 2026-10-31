@@ -1750,4 +1750,24 @@ export function setupCommercialAgentRoutes(app) {
             return res.status(500).json({ success: false, error: err.message });
         }
     });
+
+    // 6. Controlo Operacional do Jonh (Gerente de Operações)
+    app.get('/api/sdr/squad/jonh/status', async (req, res) => {
+        try {
+            const { defaultJonhWorker } = await import('./squad/jonh_operations_worker.js');
+            return res.json({ success: true, jonh: defaultJonhWorker.getStatus() });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/jonh/run-cycle', async (req, res) => {
+        try {
+            const { defaultJonhWorker } = await import('./squad/jonh_operations_worker.js');
+            const summary = await defaultJonhWorker.runFullOperationalCycle();
+            return res.json({ success: true, summary });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
 }

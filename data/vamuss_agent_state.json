@@ -1,14 +1,34 @@
 {
-  "totalOutboundsSent": 27,
+  "totalOutboundsSent": 29,
   "totalRepliesHandled": 16,
   "totalMeetingsBooked": 0,
   "dailyDispatches": {
     "2026-10-27": 0,
     "2026-10-28": 5,
     "2026-10-29": 17,
-    "2026-10-30": 2
+    "2026-10-30": 4
   },
   "recentActions": [
+    {
+      "timestamp": "2026-10-30T15:15:15.342Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "3c3fa28c-9d7d-43e9-9ec5-664508a1bb72",
+        "phone": "351913913800",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Boa tarde, Dr. [Nome]. Notei que a Dentalcare Lisboa tem uma forte presença em t"
+      }
+    },
+    {
+      "timestamp": "2026-10-30T12:30:12.950Z",
+      "actionType": "OUTBOUND_DISPATCH",
+      "details": {
+        "deal_id": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+        "phone": "351912241187",
+        "intent": "PRIMEIRA_ABORDAGEM",
+        "snippet": "Olá Margarida, boa tarde. Notei que há algum tempo não temos falado sobre a clín"
+      }
+    },
     {
       "timestamp": "2026-10-30T10:15:21.030Z",
       "actionType": "OUTBOUND_DISPATCH",

@@ -624,5 +624,81 @@
     "historyOfQuestionsAsked": [],
     "createdAt": "2026-10-30T10:15:08.443Z",
     "updatedAt": "2026-10-30T10:15:08.443Z"
+  },
+  "679d85c8-9a84-4710-bc33-9d5b7e3b8163": {
+    "dealId": "679d85c8-9a84-4710-bc33-9d5b7e3b8163",
+    "clinicName": "Margarida Cortez",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-30T12:30:08.203Z",
+    "updatedAt": "2026-10-30T12:30:08.203Z"
+  },
+  "3c3fa28c-9d7d-43e9-9ec5-664508a1bb72": {
+    "dealId": "3c3fa28c-9d7d-43e9-9ec5-664508a1bb72",
+    "clinicName": "Dentalcare Lisboa",
+    "exchangesCount": 0,
+    "currentStage": "SITUACAO",
+    "spinState": {
+      "situacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "problema": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "implicacao": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      },
+      "necessidade": {
+        "status": "vazio",
+        "leadQuote": null,
+        "lastUpdated": null
+      }
+    },
+    "maturitySignals": {
+      "directMeetingRequest": false,
+      "askedHowItWorksOrCost": false,
+      "confirmedProblemAndWantsSolution": false
+    },
+    "calcomLinkSent": false,
+    "closedPolitely": false,
+    "historyOfQuestionsAsked": [],
+    "createdAt": "2026-10-30T15:15:09.883Z",
+    "updatedAt": "2026-10-30T15:15:09.884Z"
   }
 }

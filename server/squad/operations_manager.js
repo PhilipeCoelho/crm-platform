@@ -51,13 +51,116 @@ export const OPS_CONFIG = {
 };
 
 /**
+ * JONH FISCALIZAÇÃO DE DADOS:
+ * Inspeciona rigorosamente se o Prospect possui os devidos campos preenchidos
+ * antes de permitir que qualquer robô de campo entre em ação.
+ */
+export function validateProspectFields(deal, contact = {}, company = {}) {
+    const missing = [];
+    const clinicName = (deal?.title || company?.name || '').replace(/^(Negócio|Clinica|Clínica)\s+/i, '').trim();
+    if (!clinicName || clinicName.length < 3) {
+        missing.push('Nome da Clínica');
+    }
+
+    const rawPhone = (contact?.phone || company?.phone || '').replace(/\D/g, '');
+    let phoneType = 'INVALID';
+    if (rawPhone.length >= 9) {
+        const clean = rawPhone.startsWith('351') ? rawPhone.slice(3) : rawPhone;
+        if (/^9\d{8}$/.test(clean)) {
+            phoneType = 'MOBILE'; // Telemóvel (apto para WhatsApp)
+        } else if (/^2\d{8}$/.test(clean)) {
+            phoneType = 'LANDLINE'; // Telefone Fixo (apenas chamada ou e-mail)
+        } else {
+            phoneType = 'OTHER_VALID';
+        }
+    } else {
+        missing.push('Telefone de Contacto Válido');
+    }
+
+    const digitalPresence = Boolean(
+        deal?.instagram_url || 
+        deal?.ad_library_url || 
+        company?.website || 
+        contact?.email
+    );
+
+    if (!digitalPresence) {
+        missing.push('Presença Digital (Website, Instagram ou E-mail)');
+    }
+
+    const isReady = missing.length === 0 && phoneType === 'MOBILE';
+
+    return {
+        valid: missing.length === 0,
+        readyForWhatsAppOutbound: isReady,
+        phoneType,
+        missingFields: missing,
+        clinicName,
+        phone: rawPhone
+    };
+}
+
+/**
+ * Jonh audita toda a fila de Prospects no CRM e separa os prontos dos que têm campos em falta.
+ */
+export async function auditProspectsDataHygiene() {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { ready: [], incomplete: [] };
+
+    try {
+        const { data: prospects, error } = await supabase
+            .from('deals')
+            .select('id, title, stage_id, status, contact_id, company_id, instagram_url, ad_library_url, created_at')
+            .eq('status', 'open')
+            .neq('stage_id', 'contacted')
+            .neq('stage_id', 'new');
+
+        if (error) throw error;
+
+        // Coletar IDs para busca em lote ultra-rápida (batch query)
+        const contactIds = prospects.map(p => p.contact_id).filter(Boolean);
+        const companyIds = prospects.map(p => p.company_id).filter(Boolean);
+
+        const [contactsRes, companiesRes] = await Promise.all([
+            contactIds.length > 0 ? supabase.from('contacts').select('id, name, phone, email').in('id', contactIds) : { data: [] },
+            companyIds.length > 0 ? supabase.from('companies').select('id, name, website, phone').in('id', companyIds) : { data: [] }
+        ]);
+
+        const contactsMap = new Map((contactsRes.data || []).map(c => [c.id, c]));
+        const companiesMap = new Map((companiesRes.data || []).map(comp => [comp.id, comp]));
+
+        const ready = [];
+        const incomplete = [];
+
+        for (const p of (prospects || [])) {
+            const contact = contactsMap.get(p.contact_id) || {};
+            const company = companiesMap.get(p.company_id) || {};
+
+            const check = validateProspectFields(p, contact, company);
+            if (check.readyForWhatsAppOutbound) {
+                ready.push({ dealId: p.id, title: p.title, check });
+            } else {
+                incomplete.push({ dealId: p.id, title: p.title, check });
+            }
+        }
+
+        console.log(`📋 [Jonh Fiscalização] Auditoria Concluída em lote: ${ready.length} aptos para WhatsApp, ${incomplete.length} com campos pendentes/fixos.`);
+        return { ready, incomplete, totalAudited: prospects?.length || 0 };
+    } catch (err) {
+        console.error('❌ [Jonh] Erro ao fiscalizar dados dos prospects:', err.message);
+        return { ready: [], incomplete: [], error: err.message };
+    }
+}
+
+/**
  * Jonh garante a Regra de Ouro: Todo o negócio em aberto deve ter um próximo passo pendente.
  */
 export async function ensureNextStepActivity(dealId, {
     title = 'Próximo Passo Comercial',
     type = 'task',
     dueDate = new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-    notes = 'Agendado pelo Gerente de Operações Jonh'
+    notes = 'Agendado pelo Gerente de Operações Jonh',
+    userId = null
 } = {}) {
     const supabase = getSupabaseClient();
     if (!supabase || !dealId) return { success: false, error: 'INVALID_PARAMS' };
@@ -76,9 +179,20 @@ export async function ensureNextStepActivity(dealId, {
             return { success: true, updated: false, existingActivityId: existing[0].id };
         }
 
+        let resolvedUserId = userId;
+        if (!resolvedUserId) {
+            const { data: deal } = await supabase
+                .from('deals')
+                .select('user_id')
+                .eq('id', dealId)
+                .single();
+            resolvedUserId = deal?.user_id || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
+        }
+
         const { data: created, error: crErr } = await supabase
             .from('activities')
             .insert([{
+                user_id: resolvedUserId,
                 deal_id: dealId,
                 title,
                 type,
@@ -101,21 +215,101 @@ export async function ensureNextStepActivity(dealId, {
 }
 
 /**
+ * Jonh assegura em lote (ultra-rápido) a Regra de Ouro:
+ * Identifica quais dos negócios não possuem atividade pendente e insere de uma só vez.
+ */
+export async function enforceNextStepActivitiesInBatch(deals = []) {
+    const supabase = getSupabaseClient();
+    if (!supabase || !deals.length) return { checked: 0, created: 0 };
+
+    try {
+        const dealIds = deals.map(d => d.id).filter(Boolean);
+        if (!dealIds.length) return { checked: 0, created: 0 };
+
+        // 1. Busca todas as atividades pendentes existentes para esses deals de uma só vez
+        const { data: existingActivities, error: exErr } = await supabase
+            .from('activities')
+            .select('deal_id')
+            .in('deal_id', dealIds)
+            .eq('status', 'pending');
+
+        if (exErr) throw exErr;
+
+        const dealsWithPending = new Set((existingActivities || []).map(a => a.deal_id));
+        const missingDeals = deals.filter(d => !dealsWithPending.has(d.id));
+
+        if (missingDeals.length === 0) {
+            return { checked: deals.length, created: 0, message: 'Todos os negócios já possuem próximo passo agendado.' };
+        }
+
+        // 2. Prepara inserção em massa
+        const defaultUserId = '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
+        const dueDate = new Date(Date.now() + 48 * 3600 * 1000).toISOString();
+
+        const activitiesToInsert = missingDeals.map(deal => ({
+            user_id: deal.user_id || defaultUserId,
+            deal_id: deal.id,
+            title: `Acompanhamento Jonh: ${deal.title}`,
+            type: deal.stage_id === 'contacted' ? 'task' : 'message',
+            date: dueDate,
+            status: 'pending',
+            completed: false,
+            notes: `Garantido pelo Gerente de Operações Jonh para dar vazão à etapa '${deal.stage_id}'`,
+            is_automatic: true
+        }));
+
+        // Inserção em chunks de 50 para máxima robustez
+        const chunkSize = 50;
+        let totalInserted = 0;
+        for (let i = 0; i < activitiesToInsert.length; i += chunkSize) {
+            const chunk = activitiesToInsert.slice(i, i + chunkSize);
+            const { error: insErr } = await supabase
+                .from('activities')
+                .insert(chunk);
+
+            if (insErr) {
+                console.warn(`⚠️ [Jonh Batch NextStep] Erro ao inserir lote de atividades:`, insErr.message);
+            } else {
+                totalInserted += chunk.length;
+            }
+        }
+
+        console.log(`🛡️ [Jonh Regra de Ouro] Fiscalização concluída: ${totalInserted} novos passos criados de ${deals.length} analisados.`);
+        return { checked: deals.length, created: totalInserted };
+    } catch (err) {
+        console.error('❌ [Jonh Batch NextStep] Erro fatal:', err.message);
+        return { checked: deals.length, created: 0, error: err.message };
+    }
+}
+
+/**
  * Jonh registra formalmente a ação realizada em activities e deal_logs.
  */
 export async function recordFactualAction(dealId, {
     activityTitle,
     activityType = 'message',
     logContent,
-    logType = 'activity_note'
+    logType = 'activity_note',
+    userId = null
 } = {}) {
     const supabase = getSupabaseClient();
     if (!supabase || !dealId) return { success: false };
 
     try {
+        let resolvedUserId = userId;
+        if (!resolvedUserId) {
+            const { data: deal } = await supabase
+                .from('deals')
+                .select('user_id')
+                .eq('id', dealId)
+                .single();
+            resolvedUserId = deal?.user_id || '9469fb08-7de5-405e-a4e7-d83cf818ea1e';
+        }
+
         const { data: act, error: actErr } = await supabase
             .from('activities')
             .insert([{
+                user_id: resolvedUserId,
                 deal_id: dealId,
                 title: activityTitle,
                 type: activityType,
@@ -204,7 +398,7 @@ export async function getOpenDealsByPriorityWaves() {
 
     const { data: deals, error } = await supabase
         .from('deals')
-        .select('id, title, stage_id, status, contact_id, company_id, created_at')
+        .select('id, title, stage_id, status, contact_id, company_id, user_id, created_at')
         .eq('status', 'open');
 
     if (error) {
