@@ -1371,33 +1371,8 @@ const BLOCKED_PERSONAL_PHONES = [
  * Deteta rigorosamente se a mensagem recebida é uma resposta automática / auto-reply / ausência
  * de WhatsApp Business ou bot de recepção.
  */
-export function isClinicAutoReply(rawText) {
-    if (!rawText) return false;
-    const text = rawText.toLowerCase().trim();
-
-    const autoReplyPatterns = [
-        /obrigad[oa] por nos contactar/i,
-        /obrigad[oa] por entrar em contacto/i,
-        /obrigad[oa] pelo seu contacto/i,
-        /estamos [àa] sua disposi[çc][ãa]o/i,
-        /está a contactar a /i,
-        /está a contatar a /i,
-        /está a falar com a /i,
-        /bem[- ]vindo\(?a?\)? [àa] /i,
-        /daremos resposta t[ãa]o breve quanto poss[íi]vel/i,
-        /responderemos assim que poss[íi]vel/i,
-        /fora do hor[áa]rio de atendimento/i,
-        /o nosso hor[áa]rio de funcionamento/i,
-        /mensagem autom[áa]tica/i,
-        /esta [ée] uma mensagem autom[áa]tica/i,
-        /para agendar consulta envie/i,
-        /pedimos-lhe que nos contacte para \d+/i,
-        /in order to answer you as soon as possible/i,
-        /welcome to /i
-    ];
-
-    return autoReplyPatterns.some(pattern => pattern.test(text));
-}
+import { isClinicAutoReply, AUTO_REPLY_PATTERNS } from './sdr_auto_reply_filter.js';
+export { isClinicAutoReply, AUTO_REPLY_PATTERNS };
 
 /**
  * Validação ultrarrápida para o listener do WhatsApp:
@@ -1713,6 +1688,37 @@ export function setupCommercialAgentRoutes(app) {
                 return res.status(400).json({ error: 'phone e text são obrigatórios' });
             }
             const result = await processInboundLeadTurn({ phone, text, isAudio: Boolean(isAudio) });
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    // 4. Endpoints do Squad Comercial (Chefão, Gerente de Operações e Ghosting Buster)
+    app.get('/api/sdr/squad/audit', async (req, res) => {
+        try {
+            const { auditDailyPerformance } = await import('./squad/boss_agent.js');
+            const result = await auditDailyPerformance(req.query.date || new Date());
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.get('/api/sdr/squad/daily-report', async (req, res) => {
+        try {
+            const { generateDailyExecutiveReport } = await import('./squad/boss_agent.js');
+            const report = await generateDailyExecutiveReport(req.query.date || new Date());
+            return res.type('text/markdown').send(report);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.get('/api/sdr/squad/waves', async (req, res) => {
+        try {
+            const { getOpenDealsByPriorityWaves } = await import('./squad/operations_manager.js');
+            const result = await getOpenDealsByPriorityWaves();
             return res.json(result);
         } catch (err) {
             return res.status(500).json({ success: false, error: err.message });

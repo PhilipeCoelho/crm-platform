@@ -32,6 +32,7 @@ import { readLocalOutcomes, writeLocalOutcomes } from './sdr_engine.js';
 import { isPhoneSuppressedLocally } from './suppression_store.js';
 import { getWhatsAppWebStatus } from './whatsapp_web.js';
 import { validateDispatchTiming } from './sdr_business_hours.js';
+import { isClinicAutoReply } from './sdr_auto_reply_filter.js';
 
 const PIPELINE_FILE = path.resolve(process.cwd(), 'data', 'sdr_recovery_pipeline.json');
 
@@ -167,11 +168,18 @@ export async function determineInitialRecoveryStage(deal, contact, outcomes = []
         return 'nao_reativado';
     }
 
+    // 3. Em Conversa / Qualificação (APENAS RESPOSTA HUMANA REAL)
+    // FILTRO SUB-MILISSEGUNDO: Auto-respostas automáticas de WhatsApp Business NÃO movem o negócio!
+    const hasHumanReply = agentActionsForPhone.some(a => {
+        if (a.actionType !== 'INBOUND_REPLY') return false;
+        const txt = (a.details?.textSnippet || a.details?.text || '').trim();
+        return txt.length > 0 && !isClinicAutoReply(txt);
+    });
+
     const hasInterestOrReply = outcomes.some(o => 
-        o.outcome === 'RESPOSTA_POSITIVA' || 
-        o.outcome === 'RESPOSTA_INBOUND' || 
-        o.intent_detected === 'interested'
-    ) || agentActionsForPhone.some(a => a.actionType === 'INBOUND_REPLY');
+        (o.outcome === 'RESPOSTA_POSITIVA' || o.outcome === 'RESPOSTA_INBOUND' || o.intent_detected === 'interested') &&
+        !isClinicAutoReply(o.inbound_text || o.text || '')
+    ) || hasHumanReply;
 
     if (hasInterestOrReply) {
         return 'em_conversa';
