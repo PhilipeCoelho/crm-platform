@@ -2023,5 +2023,427 @@
       "relyOnCRMOnlyIfEmpty": false
     },
     "savedAt": "2026-10-30T15:15:12.295Z"
+  },
+  "test_deal_teresa_01": {
+    "dealId": "test_deal_teresa_01",
+    "clinicName": "Dentária Hugo Madeira",
+    "concelho": "Lisboa",
+    "websiteUrl": "https://hugomadeira.com",
+    "phone": null,
+    "investigatedBy": "Teresa",
+    "investigatedAt": "2026-10-31T10:05:00.923Z",
+    "durationMs": 671,
+    "hasReliableData": false,
+    "clinicalDirector": {
+      "targetName": null,
+      "targetRole": "Direção Clínica",
+      "confidence": "UNCERTAIN",
+      "salutation": "À Direção Clínica",
+      "evidence": "Website inacessível ou sem dados públicos do corpo clínico"
+    },
+    "heroProcedure": {
+      "hero": {
+        "category": "GENERAL_DENTISTRY",
+        "name": "Clínica Geral e Saúde Oral",
+        "ticketTier": "STANDARD",
+        "keywordsFound": [
+          "dentária geral"
+        ]
+      },
+      "allDetected": [
+        {
+          "category": "GENERAL_DENTISTRY",
+          "name": "Clínica Geral e Saúde Oral",
+          "ticketTier": "STANDARD",
+          "keywordsFound": [
+            "dentária geral"
+          ]
+        }
+      ]
+    },
+    "trafficAudit": {
+      "status": "NO_ACTIVE_ADS_OPPORTUNITY",
+      "hasMetaPixel": false,
+      "flaws": [
+        {
+          "type": "NO_PAID_TRAFFIC_LOCAL_THREAT",
+          "title": "Ausência de presença paga na Meta Ad Library",
+          "impact": "Dependência total de passa-a-palavra e da passagem na rua, perdendo pacientes particulares para clínicas vizinhas.",
+          "sdrAngle": "Notei que a clínica ainda não está a proteger o vosso território local com campanhas ativas de reabilitação no Instagram..."
+        }
+      ],
+      "primaryFlaw": {
+        "type": "NO_PAID_TRAFFIC_LOCAL_THREAT",
+        "title": "Ausência de presença paga na Meta Ad Library",
+        "impact": "Dependência de passa-a-palavra",
+        "sdrAngle": "Enquanto a maioria das clínicas na vossa zona já capta particulares por campanhas de autoridade, a vossa equipa fica dependente de indicações."
+      },
+      "recommendation": "Usar o ângulo de oportunidade geográfica e perda de pacientes particulares para clínicas vizinhas."
+    },
+    "insuranceAudit": {
+      "detected": false,
+      "insurancesFound": [],
+      "count": 0,
+      "isHighDependence": false,
+      "tacticalAngle": "Foco predominantemente privado. Ângulo focado em preenchimento de agenda cirúrgica de alta rentabilidade."
+    },
+    "sizeClassification": {
+      "tier": "SOLO_PRACTICE",
+      "label": "Consultório Individual / Clínica Boutique",
+      "cabinetsEstimate": "1 a 2 Gabinetes",
+      "isGoldICP": true,
+      "notes": "Médico é o dono e o operador principal. Dor central: falta de tempo e no-show de pacientes."
+    },
+    "bookingFriction": {
+      "hasOnlineBooking": false,
+      "hasFloatingWhatsApp": false,
+      "frictionsFound": [
+        "Falta de canal direto de resposta imediata; exige que o paciente espere pela abertura da clínica às 09h."
+      ],
+      "primaryFriction": "Falta de canal direto de resposta imediata; exige que o paciente espere pela abertura da clínica às 09h."
+    },
+    "goldenClues": [],
+    "tacticalHook": {
+      "tacticId": "HOOK_LOCAL_TERRITORY_VACUUM",
+      "line1": "À Direção Clínica, acompanho o vosso trabalho de referência em Clínica Geral e Saúde Oral em Lisboa.",
+      "line2": "Notei que a vossa clínica ainda não está a proteger o vosso território local no Instagram, enquanto outros consultórios na mesma área captam pacientes particulares diariamente.",
+      "line3": "Seria completamente descabido partilhar consigo os números de captação direta para a vossa zona em Lisboa?",
+      "fullHook": "À Direção Clínica, acompanho o vosso trabalho de referência em Clínica Geral e Saúde Oral em Lisboa.\nNotei que a vossa clínica ainda não está a proteger o vosso território local no Instagram, enquanto outros consultórios na mesma área captam pacientes particulares diariamente.\nSeria completamente descabido partilhar consigo os números de captação direta para a vossa zona em Lisboa?"
+    },
+    "siteAnalysis": {
+      "hasWebsite": false,
+      "url": "https://hugomadeira.com",
+      "accessible": false,
+      "highlightedTreatments": [
+        "Clínica Geral e Saúde Oral"
+      ],
+      "hasOnlineBooking": false,
+      "teamSizeDetected": "1 a 2 Gabinetes",
+      "source": "WEB_FORENSIC"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_CLINICAL_DIRECTOR",
+        "category": "DIRECTOR",
+        "fact": "Diretor Clínico não discriminado nominalmente de forma segura no site público.",
+        "confidence": "UNCERTAIN",
+        "source": "Website inacessível ou sem dados públicos do corpo clínico"
+      },
+      {
+        "factId": "FACT_HERO_TREATMENT",
+        "category": "TREATMENTS",
+        "fact": "A clínica promove e destaca ativamente Clínica Geral e Saúde Oral (STANDARD).",
+        "confidence": "HIGH",
+        "source": "Auditoria de tratamentos do website"
+      },
+      {
+        "factId": "FACT_TRAFFIC_STATUS",
+        "category": "TRAFFIC",
+        "fact": "Ausência de anúncios ativos detectados na Meta Ad Library.",
+        "confidence": "HIGH",
+        "source": "Auditoria de tags e criativos"
+      },
+      {
+        "factId": "FACT_INSURANCE_MIX",
+        "category": "INSURANCE",
+        "fact": "Clínica com foco em pacientes particulares.",
+        "confidence": "HIGH",
+        "source": "Auditoria de rodapé e convénios"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false,
+      "zeroHallucinationCompliant": true
+    }
+  },
+  "test_deal_teresa_02": {
+    "dealId": "test_deal_teresa_02",
+    "clinicName": "Dr. Hugo Madeira",
+    "concelho": "Lisboa",
+    "websiteUrl": "https://hugomadeira.com",
+    "phone": null,
+    "investigatedBy": "Teresa",
+    "investigatedAt": "2026-10-31T10:05:30.551Z",
+    "durationMs": 4653,
+    "hasReliableData": true,
+    "clinicalDirector": {
+      "targetName": "Dr. Hugo Madeira",
+      "rawName": "Hugo Madeira",
+      "targetRole": "Médico Titular da Clínica",
+      "confidence": "HIGH",
+      "salutation": "Dr. Hugo",
+      "evidence": "O próprio nome da clínica referencia o médico fundador: \"Dr. Hugo Madeira\""
+    },
+    "heroProcedure": {
+      "hero": {
+        "category": "IMPLANTS_AND_REHABILITATION",
+        "name": "Carga Imediata e Reabilitação All-on-4",
+        "ticketTier": "HIGH_TICKET_5K_15K",
+        "keywordsFound": [
+          "implantes",
+          "carga imediata",
+          "all-on-4"
+        ]
+      },
+      "allDetected": [
+        {
+          "category": "IMPLANTS_AND_REHABILITATION",
+          "name": "Carga Imediata e Reabilitação All-on-4",
+          "ticketTier": "HIGH_TICKET_5K_15K",
+          "keywordsFound": [
+            "implantes",
+            "carga imediata",
+            "all-on-4"
+          ]
+        }
+      ]
+    },
+    "trafficAudit": {
+      "status": "NO_ACTIVE_ADS_OPPORTUNITY",
+      "hasMetaPixel": false,
+      "flaws": [
+        {
+          "type": "NO_PAID_TRAFFIC_LOCAL_THREAT",
+          "title": "Ausência de presença paga na Meta Ad Library",
+          "impact": "Dependência total de passa-a-palavra e da passagem na rua, perdendo pacientes particulares para clínicas vizinhas.",
+          "sdrAngle": "Notei que a clínica ainda não está a proteger o vosso território local com campanhas ativas de reabilitação no Instagram..."
+        }
+      ],
+      "primaryFlaw": {
+        "type": "NO_PAID_TRAFFIC_LOCAL_THREAT",
+        "title": "Ausência de presença paga na Meta Ad Library",
+        "impact": "Dependência de passa-a-palavra",
+        "sdrAngle": "Enquanto a maioria das clínicas na vossa zona já capta particulares por campanhas de autoridade, a vossa equipa fica dependente de indicações."
+      },
+      "recommendation": "Usar o ângulo de oportunidade geográfica e perda de pacientes particulares para clínicas vizinhas."
+    },
+    "insuranceAudit": {
+      "detected": false,
+      "insurancesFound": [],
+      "count": 0,
+      "isHighDependence": false,
+      "tacticalAngle": "Foco predominantemente privado. Ângulo focado em preenchimento de agenda cirúrgica de alta rentabilidade."
+    },
+    "sizeClassification": {
+      "tier": "SOLO_PRACTICE",
+      "label": "Consultório Individual / Clínica Boutique",
+      "cabinetsEstimate": "1 a 2 Gabinetes",
+      "isGoldICP": true,
+      "notes": "Médico é o dono e o operador principal. Dor central: falta de tempo e no-show de pacientes."
+    },
+    "bookingFriction": {
+      "hasOnlineBooking": false,
+      "hasFloatingWhatsApp": false,
+      "frictionsFound": [
+        "Falta de canal direto de resposta imediata; exige que o paciente espere pela abertura da clínica às 09h."
+      ],
+      "primaryFriction": "Falta de canal direto de resposta imediata; exige que o paciente espere pela abertura da clínica às 09h."
+    },
+    "goldenClues": [],
+    "tacticalHook": {
+      "tacticId": "HOOK_LOCAL_TERRITORY_VACUUM",
+      "line1": "Dr. Hugo, acompanho o vosso trabalho de referência em Carga Imediata e Reabilitação All-on-4 em Lisboa.",
+      "line2": "Notei que a vossa clínica ainda não está a proteger o vosso território local no Instagram, enquanto outros consultórios na mesma área captam pacientes particulares diariamente.",
+      "line3": "Seria completamente descabido partilhar consigo os números de captação direta para a vossa zona em Lisboa?",
+      "fullHook": "Dr. Hugo, acompanho o vosso trabalho de referência em Carga Imediata e Reabilitação All-on-4 em Lisboa.\nNotei que a vossa clínica ainda não está a proteger o vosso território local no Instagram, enquanto outros consultórios na mesma área captam pacientes particulares diariamente.\nSeria completamente descabido partilhar consigo os números de captação direta para a vossa zona em Lisboa?"
+    },
+    "siteAnalysis": {
+      "hasWebsite": true,
+      "url": "https://hugomadeira.com",
+      "accessible": true,
+      "highlightedTreatments": [
+        "Carga Imediata e Reabilitação All-on-4"
+      ],
+      "hasOnlineBooking": false,
+      "teamSizeDetected": "1 a 2 Gabinetes",
+      "source": "FIRECRAWL_ENGINE"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_CLINICAL_DIRECTOR",
+        "category": "DIRECTOR",
+        "fact": "Diretor Clínico identificado como Dr. Hugo Madeira.",
+        "confidence": "HIGH",
+        "source": "O próprio nome da clínica referencia o médico fundador: \"Dr. Hugo Madeira\""
+      },
+      {
+        "factId": "FACT_HERO_TREATMENT",
+        "category": "TREATMENTS",
+        "fact": "A clínica promove e destaca ativamente Carga Imediata e Reabilitação All-on-4 (HIGH_TICKET_5K_15K).",
+        "confidence": "HIGH",
+        "source": "Auditoria de tratamentos do website"
+      },
+      {
+        "factId": "FACT_TRAFFIC_STATUS",
+        "category": "TRAFFIC",
+        "fact": "Ausência de anúncios ativos detectados na Meta Ad Library.",
+        "confidence": "HIGH",
+        "source": "Auditoria de tags e criativos"
+      },
+      {
+        "factId": "FACT_INSURANCE_MIX",
+        "category": "INSURANCE",
+        "fact": "Clínica com foco em pacientes particulares.",
+        "confidence": "HIGH",
+        "source": "Auditoria de rodapé e convénios"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false,
+      "zeroHallucinationCompliant": true
+    }
+  },
+  "test_deal_cclinic": {
+    "dealId": "test_deal_cclinic",
+    "clinicName": "C Clinic Clínica Médica e Dentária",
+    "concelho": "Leiria",
+    "websiteUrl": "https://cclinic.pt",
+    "phone": null,
+    "investigatedBy": "Teresa",
+    "investigatedAt": "2026-10-31T10:05:45.497Z",
+    "durationMs": 5658,
+    "hasReliableData": true,
+    "clinicalDirector": {
+      "targetName": null,
+      "targetRole": "Direção Clínica / Coordenação Geral",
+      "confidence": "UNCERTAIN",
+      "salutation": "À Direção Clínica",
+      "evidence": "Nome específico do médico não confirmado com 100% de precisão no site. Abordagem institucional recomendada para proteger a reputação."
+    },
+    "heroProcedure": {
+      "hero": {
+        "category": "IMPLANTS_AND_REHABILITATION",
+        "name": "Carga Imediata e Reabilitação All-on-4",
+        "ticketTier": "HIGH_TICKET_5K_15K",
+        "keywordsFound": [
+          "implantes",
+          "carga imediata",
+          "all-on-4"
+        ]
+      },
+      "allDetected": [
+        {
+          "category": "IMPLANTS_AND_REHABILITATION",
+          "name": "Carga Imediata e Reabilitação All-on-4",
+          "ticketTier": "HIGH_TICKET_5K_15K",
+          "keywordsFound": [
+            "implantes",
+            "carga imediata",
+            "all-on-4"
+          ]
+        },
+        {
+          "category": "FACIAL_AESTHETICS",
+          "name": "Harmonização Facial e Bioestimuladores de Colagénio",
+          "ticketTier": "HIGH_TICKET_1K_4K",
+          "keywordsFound": [
+            "harmonização",
+            "bioestimuladores",
+            "botox"
+          ]
+        }
+      ]
+    },
+    "trafficAudit": {
+      "status": "NO_ACTIVE_ADS_OPPORTUNITY",
+      "hasMetaPixel": false,
+      "flaws": [
+        {
+          "type": "NO_PAID_TRAFFIC_LOCAL_THREAT",
+          "title": "Ausência de presença paga na Meta Ad Library",
+          "impact": "Dependência total de passa-a-palavra e da passagem na rua, perdendo pacientes particulares para clínicas vizinhas.",
+          "sdrAngle": "Notei que a clínica ainda não está a proteger o vosso território local com campanhas ativas de reabilitação no Instagram..."
+        }
+      ],
+      "primaryFlaw": {
+        "type": "NO_PAID_TRAFFIC_LOCAL_THREAT",
+        "title": "Ausência de presença paga na Meta Ad Library",
+        "impact": "Dependência de passa-a-palavra",
+        "sdrAngle": "Enquanto a maioria das clínicas na vossa zona já capta particulares por campanhas de autoridade, a vossa equipa fica dependente de indicações."
+      },
+      "recommendation": "Usar o ângulo de oportunidade geográfica e perda de pacientes particulares para clínicas vizinhas."
+    },
+    "insuranceAudit": {
+      "detected": false,
+      "insurancesFound": [],
+      "count": 0,
+      "isHighDependence": false,
+      "tacticalAngle": "Foco predominantemente privado. Ângulo focado em preenchimento de agenda cirúrgica de alta rentabilidade."
+    },
+    "sizeClassification": {
+      "tier": "ICP_GOLD_MEDIUM_CLINIC",
+      "label": "Clínica Média com Equipa Multidisciplinar (ICP Ouro)",
+      "cabinetsEstimate": "3 a 5 Gabinetes (Estimado por equipa médica)",
+      "isGoldICP": true,
+      "notes": "Possui especialistas dedicados. Dor principal: coordenação de agenda e rentabilidade."
+    },
+    "bookingFriction": {
+      "hasOnlineBooking": true,
+      "hasFloatingWhatsApp": false,
+      "frictionsFound": [
+        "Agendamento funcional, mas dependente de triagem manual da secretária."
+      ],
+      "primaryFriction": "Atendimento fora do horário comercial não automatizado."
+    },
+    "goldenClues": [],
+    "tacticalHook": {
+      "tacticId": "HOOK_LOCAL_TERRITORY_VACUUM",
+      "line1": "À Direção Clínica, acompanho o vosso trabalho de referência em Carga Imediata e Reabilitação All-on-4 em Leiria.",
+      "line2": "Notei que a vossa clínica ainda não está a proteger o vosso território local no Instagram, enquanto outros consultórios na mesma área captam pacientes particulares diariamente.",
+      "line3": "Seria completamente descabido partilhar consigo os números de captação direta para a vossa zona em Leiria?",
+      "fullHook": "À Direção Clínica, acompanho o vosso trabalho de referência em Carga Imediata e Reabilitação All-on-4 em Leiria.\nNotei que a vossa clínica ainda não está a proteger o vosso território local no Instagram, enquanto outros consultórios na mesma área captam pacientes particulares diariamente.\nSeria completamente descabido partilhar consigo os números de captação direta para a vossa zona em Leiria?"
+    },
+    "siteAnalysis": {
+      "hasWebsite": true,
+      "url": "https://cclinic.pt",
+      "accessible": true,
+      "highlightedTreatments": [
+        "Carga Imediata e Reabilitação All-on-4",
+        "Harmonização Facial e Bioestimuladores de Colagénio"
+      ],
+      "hasOnlineBooking": true,
+      "teamSizeDetected": "3 a 5 Gabinetes (Estimado por equipa médica)",
+      "source": "FIRECRAWL_ENGINE"
+    },
+    "verifiedFacts": [
+      {
+        "factId": "FACT_CLINICAL_DIRECTOR",
+        "category": "DIRECTOR",
+        "fact": "Diretor Clínico não discriminado nominalmente de forma segura no site público.",
+        "confidence": "UNCERTAIN",
+        "source": "Nome específico do médico não confirmado com 100% de precisão no site. Abordagem institucional recomendada para proteger a reputação."
+      },
+      {
+        "factId": "FACT_HERO_TREATMENT",
+        "category": "TREATMENTS",
+        "fact": "A clínica promove e destaca ativamente Carga Imediata e Reabilitação All-on-4 (HIGH_TICKET_5K_15K).",
+        "confidence": "HIGH",
+        "source": "Auditoria de tratamentos do website"
+      },
+      {
+        "factId": "FACT_TRAFFIC_STATUS",
+        "category": "TRAFFIC",
+        "fact": "Ausência de anúncios ativos detectados na Meta Ad Library.",
+        "confidence": "HIGH",
+        "source": "Auditoria de tags e criativos"
+      },
+      {
+        "factId": "FACT_INSURANCE_MIX",
+        "category": "INSURANCE",
+        "fact": "Clínica com foco em pacientes particulares.",
+        "confidence": "HIGH",
+        "source": "Auditoria de rodapé e convénios"
+      }
+    ],
+    "antiHallucinationCheck": {
+      "strictSourceRequired": true,
+      "maxFactsPerMessage": 1,
+      "relyOnCRMOnlyIfEmpty": false,
+      "zeroHallucinationCompliant": true
+    }
   }
 }

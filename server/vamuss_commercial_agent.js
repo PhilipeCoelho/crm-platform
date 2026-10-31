@@ -1835,4 +1835,58 @@ export function setupCommercialAgentRoutes(app) {
             return res.status(500).json({ success: false, error: err.message });
         }
     });
+
+    // =========================================================================
+    // ENDPOINTS DA TERESA — INVESTIGADORA FORENSE & INTELIGÊNCIA COMERCIAL (3.2)
+    // =========================================================================
+    app.get('/api/sdr/squad/teresa/status', async (req, res) => {
+        try {
+            const { getTeresaStatus } = await import('./squad/teresa_recon.js');
+            return res.json(getTeresaStatus());
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.get('/api/sdr/squad/teresa/memory', async (req, res) => {
+        try {
+            const { loadTeresaMemory } = await import('./squad/teresa_recon.js');
+            return res.json(loadTeresaMemory());
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.get('/api/sdr/squad/teresa/dossier/:dealId', async (req, res) => {
+        try {
+            const { loadDossiersFile } = await import('./squad/teresa_recon.js');
+            const dossiers = loadDossiersFile();
+            const dossier = dossiers[req.params.dealId];
+            if (!dossier) return res.status(404).json({ success: false, error: 'DOSSIER_NOT_FOUND' });
+            return res.json({ success: true, dossier });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/teresa/investigate/:dealId', async (req, res) => {
+        try {
+            const { generateForensicDossier } = await import('./squad/teresa_recon.js');
+            const dossier = await generateForensicDossier(req.params.dealId, req.body || {});
+            return res.json({ success: true, dossier });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/teresa/investigate-raw', async (req, res) => {
+        try {
+            const { generateForensicDossier } = await import('./squad/teresa_recon.js');
+            const rawId = 'raw_' + Date.now();
+            const dossier = await generateForensicDossier(rawId, req.body || {});
+            return res.json({ success: true, dossier });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
 }

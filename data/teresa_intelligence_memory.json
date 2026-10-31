@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-10-31T10:05:45.526Z",
+  "totalInvestigations": 3,
+  "regionalPatterns": {
+    "Norte": {
+      "highTicketPreference": "Carga Imediata / Eficiência de Gabinete",
+      "commonPain": "Ociosidade de cadeiras e concorrência agressiva"
+    },
+    "Grande Lisboa": {
+      "highTicketPreference": "Reabilitação Estética / All-on-4 / Invisalign",
+      "commonPain": "Saturação de clínicas e perda de tráfego para a home"
+    },
+    "Centro": {
+      "highTicketPreference": "Ortodontia Digital / Prótese Fixa",
+      "commonPain": "Dependência de seguros e falta de tráfego digital"
+    },
+    "Sul & Ilhas": {
+      "highTicketPreference": "Turismo Dentário / Reabilitação Total",
+      "commonPain": "Sazonalidade e atendimento multilingue deficiente"
+    }
+  },
+  "winningHookCategories": {
+    "HOME_REDIRECT_FLAW": {
+      "timesUsed": 12,
+      "positiveReplies": 4,
+      "winRate": "33.3%"
+    },
+    "INSURANCE_VS_PRIVATE": {
+      "timesUsed": 15,
+      "positiveReplies": 5,
+      "winRate": "33.3%"
+    },
+    "NO_ADS_LOCAL_COMPETITOR": {
+      "timesUsed": 9,
+      "positiveReplies": 3,
+      "winRate": "33.3%"
+    },
+    "BOOKING_FRICTION_NIGHT": {
+      "timesUsed": 8,
+      "positiveReplies": 2,
+      "winRate": "25.0%"
+    },
+    "TECH_3D_UNDERUTILIZED": {
+      "timesUsed": 6,
+      "positiveReplies": 2,
+      "winRate": "33.3%"
+    }
+  },
+  "learnedEmergingTrends": [
+    "Aumento de clínicas a promover Alinhadores Spark além de Invisalign",
+    "Demanda por Bioestimuladores Radiesse e Sculptra em clínicas integradas de Medicina Dentária & Estética",
+    "Clínicas médias a adquirir Scanners 3D mas sem divulgar nos anúncios"
+  ]
+}

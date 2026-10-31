@@ -106,6 +106,8 @@ def main():
                 log(f"   ⏳ Rate limit temporário da Oracle (429). Aguardando...")
             else:
                 log(f"   ⚠️ Ampere ARM erro: [{e.status}] {e.code} - {e.message}")
+        except Exception as e:
+            log(f"   ⚠️ Oscilação de rede/timeout na Oracle: {e}. Continuando caça...")
 
         log(f"💤 Aguardando {interval_seconds}s para a próxima tentativa...\n")
         time.sleep(interval_seconds)
