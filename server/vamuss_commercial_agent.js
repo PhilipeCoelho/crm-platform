@@ -1707,8 +1707,8 @@ export function setupCommercialAgentRoutes(app) {
 
     app.get('/api/sdr/squad/daily-report', async (req, res) => {
         try {
-            const { generateDailyExecutiveReport } = await import('./squad/boss_agent.js');
-            const report = await generateDailyExecutiveReport(req.query.date || new Date());
+            const { generateExecutiveReportForPhilipe } = await import('./squad/boss_agent.js');
+            const report = await generateExecutiveReportForPhilipe(req.query.date || new Date());
             return res.type('text/markdown').send(report);
         } catch (err) {
             return res.status(500).json({ success: false, error: err.message });

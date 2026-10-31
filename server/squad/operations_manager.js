@@ -1,17 +1,19 @@
 /**
  * server/squad/operations_manager.js
  * ============================================================================
- * GERENTE DE OPERAÇÕES (REVOPS CONTROLLER)
+ * JONH — GERENTE DE OPERAÇÕES (REVOPS CONTROLLER)
  * ============================================================================
- * Responsável por:
- * 1. Controlar rigidamente a segurança do WhatsApp (5 a 10 novos disparos/dia).
- * 2. Aplicar horários comerciais portugueses (09h00-18h00 Lisboa) e cadência de 7 dias.
- * 3. Garantir a REGRA DO PRÓXIMO PASSO OBRIGATÓRIO (todo negócio tem atividade com data e hora).
- * 4. Garantir a REGRA DO REGISTRO FACTUAL (toda ação grava em activities e deal_logs).
- * 5. Orquestrar a fila de execução em 3 ondas cirúrgicas:
- *    - Onda 1: Lead Engajado (4 negócios)
- *    - Onda 2: Lead (15 negócios)
- *    - Onda 3: Prospect (215 negócios)
+ * - Presta contas diretamente ao JARVIS (O Chefão): passa métricas, resultados e gargalos.
+ * - Cuida de toda a operação de campo e comanda os agentes especializados:
+ *   1. Hunter / Prospector (validação no CRM e deduplicação)
+ *   2. Investigador Forense (site + Meta Ad Library)
+ *   3. SDR Outbound (abordagem em 3 linhas sem jargão)
+ *   4. Ghosting Buster (quebra de silêncio com Chris Voss e micro-áudio)
+ *   5. Gatekeeper Navigator (secretárias e e-mail em 60s)
+ *   6. Closer (4 objeções e Cal.com 20 min)
+ *   7. Anti No-Show (lembretes pré-reunião 24h e 2h)
+ * - Controla teto seguro (5 a 10 envios/dia), janela útil (09h–18h Lisboa) e
+ *   garante que NENHUM negócio fique sem Próximo Passo Agendado com data e hora.
  * ============================================================================
  */
 
@@ -27,6 +29,21 @@ function getSupabaseClient() {
     return createClient(supabaseUrl, supabaseKey);
 }
 
+export const JONH_IDENTITY = {
+    name: 'Jonh',
+    role: 'Gerente de Operações / RevOps Controller',
+    boss: 'Jarvis (O Chefão)',
+    subordinates: [
+        'Hunter / Prospector',
+        'Investigador Forense',
+        'SDR Outbound',
+        'Ghosting Buster',
+        'Gatekeeper Navigator',
+        'Closer',
+        'Anti No-Show'
+    ]
+};
+
 export const OPS_CONFIG = {
     DAILY_MIN_SAFE_OUTBOUND: 5,
     DAILY_MAX_SAFE_OUTBOUND: 10,
@@ -34,19 +51,18 @@ export const OPS_CONFIG = {
 };
 
 /**
- * Garante a Regra de Ouro: Todo o negócio em aberto deve ter um próximo passo pendente.
+ * Jonh garante a Regra de Ouro: Todo o negócio em aberto deve ter um próximo passo pendente.
  */
 export async function ensureNextStepActivity(dealId, {
     title = 'Próximo Passo Comercial',
     type = 'task',
     dueDate = new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-    notes = 'Agendado pelo Gerente de Operações'
+    notes = 'Agendado pelo Gerente de Operações Jonh'
 } = {}) {
     const supabase = getSupabaseClient();
     if (!supabase || !dealId) return { success: false, error: 'INVALID_PARAMS' };
 
     try {
-        // Verificar se já existe uma atividade pendente para este negócio
         const { data: existing, error: exErr } = await supabase
             .from('activities')
             .select('id, title, date, status')
@@ -60,7 +76,6 @@ export async function ensureNextStepActivity(dealId, {
             return { success: true, updated: false, existingActivityId: existing[0].id };
         }
 
-        // Criar a atividade obrigatória de próximo passo
         const { data: created, error: crErr } = await supabase
             .from('activities')
             .insert([{
@@ -80,13 +95,13 @@ export async function ensureNextStepActivity(dealId, {
 
         return { success: true, updated: true, activityId: created.id };
     } catch (err) {
-        console.error(`❌ [Gerente Ops] Falha ao assegurar próximo passo para deal ${dealId}:`, err.message);
+        console.error(`❌ [Jonh] Falha ao assegurar próximo passo para deal ${dealId}:`, err.message);
         return { success: false, error: err.message };
     }
 }
 
 /**
- * Registra formalmente a ação realizada em activities e deal_logs.
+ * Jonh registra formalmente a ação realizada em activities e deal_logs.
  */
 export async function recordFactualAction(dealId, {
     activityTitle,
@@ -98,7 +113,6 @@ export async function recordFactualAction(dealId, {
     if (!supabase || !dealId) return { success: false };
 
     try {
-        // 1. Criar atividade concluída
         const { data: act, error: actErr } = await supabase
             .from('activities')
             .insert([{
@@ -115,9 +129,8 @@ export async function recordFactualAction(dealId, {
             .select()
             .single();
 
-        if (actErr) console.warn('⚠️ [Gerente Ops] Aviso ao gravar atividade:', actErr.message);
+        if (actErr) console.warn('⚠️ [Jonh] Aviso ao gravar atividade:', actErr.message);
 
-        // 2. Criar log histórico do negócio
         const { error: logErr } = await supabase
             .from('deal_logs')
             .insert([{
@@ -127,17 +140,17 @@ export async function recordFactualAction(dealId, {
                 log_type: logType
             }]);
 
-        if (logErr) console.warn('⚠️ [Gerente Ops] Aviso ao gravar log:', logErr.message);
+        if (logErr) console.warn('⚠️ [Jonh] Aviso ao gravar log:', logErr.message);
 
         return { success: true, activityId: act?.id };
     } catch (err) {
-        console.error('❌ [Gerente Ops] Erro ao gravar registro factual:', err.message);
+        console.error('❌ [Jonh] Erro ao gravar registro factual:', err.message);
         return { success: false, error: err.message };
     }
 }
 
 /**
- * Obtém os negócios abertos ordenados pelas 3 ondas prioritárias.
+ * Jonh obtém os negócios abertos ordenados pelas 3 ondas prioritárias.
  */
 export async function getOpenDealsByPriorityWaves() {
     const supabase = getSupabaseClient();
@@ -149,7 +162,7 @@ export async function getOpenDealsByPriorityWaves() {
         .eq('status', 'open');
 
     if (error) {
-        console.error('❌ [Gerente Ops] Erro ao carregar negócios abertos:', error.message);
+        console.error('❌ [Jonh] Erro ao carregar negócios abertos:', error.message);
         return { onda1: [], onda2: [], onda3: [] };
     }
 
@@ -158,6 +171,7 @@ export async function getOpenDealsByPriorityWaves() {
     const onda3 = deals.filter(d => d.stage_id !== 'contacted' && d.stage_id !== 'new');
 
     return {
+        manager: JONH_IDENTITY.name,
         onda1, // Lead Engajado (4)
         onda2, // Lead (15)
         onda3, // Prospect (215)
