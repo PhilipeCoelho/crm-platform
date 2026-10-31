@@ -679,3 +679,308 @@ export async function batchHuntAndImport(prospectsList = []) {
 
     return summary;
 }
+
+/**
+ * ============================================================================
+ * MOTOR DE ENRIQUECIMENTO DE SITES (FIRECRAWL & EXTRATOR SEMÂNTICO NATIVO)
+ * ============================================================================
+ * Varre o site oficial de uma clínica dentária e extrai a Tríade do ICP:
+ * 1. Site ativo e funcional
+ * 2. Perfil de Instagram oficial
+ * 3. Telemóvel português para WhatsApp (9x)
+ * + Validação de Alto Ticket (Implantes, All-on-4, Invisalign)
+ */
+export async function enrichClinicFromWebsite(rawUrl) {
+    if (!rawUrl) return { success: false, error: 'URL_REQUIRED' };
+
+    let normalizedUrl = rawUrl.trim();
+    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+        normalizedUrl = `https://${normalizedUrl}`;
+    }
+
+    const firecrawlApiKey = process.env.FIRECRAWL_API_KEY;
+
+    // ========================================================================
+    // TIER 1: FIRECRAWL CLOUD SDK (Se FIRECRAWL_API_KEY estiver configurada)
+    // ========================================================================
+    if (firecrawlApiKey && !firecrawlApiKey.includes('SEU_API_KEY')) {
+        try {
+            console.log(`🔥 [Jack Hunter / Firecrawl] Analisando site com IA: ${normalizedUrl}`);
+            const { Firecrawl } = await import('firecrawl');
+            const app = new Firecrawl({ apiKey: firecrawlApiKey });
+
+            const extractRes = await app.extract({
+                urls: [normalizedUrl],
+                prompt: "Extraia o nome limpo da clínica dentária, o telemóvel português de WhatsApp (9 dígitos com ou sem +351, preferência números móveis 9x), o perfil ou URL do Instagram oficial, o e-mail de contacto, o nome do médico dentista responsável ou diretor clínico, a cidade em Portugal e verifique se realizam implantes dentários ou invisalign/alinhadores.",
+                schema: {
+                    type: "object",
+                    properties: {
+                        clinicName: { type: "string" },
+                        whatsapp: { type: "string" },
+                        phone: { type: "string" },
+                        email: { type: "string" },
+                        instagramUrl: { type: "string" },
+                        doctorName: { type: "string" },
+                        city: { type: "string" },
+                        offersImplants: { type: "boolean" },
+                        offersInvisalign: { type: "boolean" }
+                    }
+                }
+            });
+
+            if (extractRes && extractRes.success && extractRes.data) {
+                const d = extractRes.data;
+                const phoneCandidate = d.whatsapp || d.phone || '';
+                const phoneNorm = normalizePhone(phoneCandidate);
+                const instaHandle = extractInstagramHandle(d.instagramUrl || '');
+
+                const hasWhatsApp = phoneNorm.isMobile;
+                const hasInstagram = Boolean(instaHandle);
+                const hasHighTicket = Boolean(d.offersImplants || d.offersInvisalign);
+                const icpApproved = hasWhatsApp && hasInstagram && hasHighTicket;
+
+                return {
+                    success: true,
+                    engine: 'FIRECRAWL',
+                    url: normalizedUrl,
+                    data: {
+                        clinicName: normalizeClinicName(d.clinicName || ''),
+                        rawPhone: phoneCandidate,
+                        phoneNorm,
+                        email: (d.email || '').toLowerCase().trim(),
+                        instagramUrl: d.instagramUrl || '',
+                        instagramHandle: instaHandle,
+                        doctorName: d.doctorName || '',
+                        city: d.city || 'Portugal',
+                        offersImplants: Boolean(d.offersImplants),
+                        offersInvisalign: Boolean(d.offersInvisalign),
+                        hasHighTicket
+                    },
+                    icpTriage: {
+                        hasWebsite: true,
+                        hasInstagram,
+                        hasWhatsApp,
+                        icpApproved,
+                        status: icpApproved ? 'QUALIFIED' : 'PARTIAL'
+                    }
+                };
+            }
+        } catch (fcErr) {
+            console.warn(`⚠️ [Jack Hunter / Firecrawl] Aviso na extração via Firecrawl (${fcErr.message}). Acionando extrator semântico nativo...`);
+        }
+    }
+
+    // ========================================================================
+    // TIER 2: EXTRATOR SEMÂNTICO NATIVO (Zero-Dependency Fallback)
+    // ========================================================================
+    try {
+        console.log(`🌐 [Jack Hunter Extrator] Rastreando código do site: ${normalizedUrl}`);
+        let html = '';
+
+        try {
+            const response = await fetch(normalizedUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                },
+                redirect: 'follow',
+                signal: AbortSignal.timeout(10000)
+            });
+
+            if (response.ok) {
+                html = await response.text();
+            }
+        } catch (fetchErr) {
+            // Se o fetch do Node 22 falhar por TLS handshake / socket, aciona o curl do sistema como fallback resiliente
+            console.log(`⚠️ [Jack Hunter] Fetch nativo falhou (${fetchErr.message}). Tentando fallback via curl...`);
+            const { execSync } = await import('child_process');
+            html = execSync(`curl -s -L -m 10 -A "Mozilla/5.0" "${normalizedUrl}"`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+        }
+
+        if (!html || html.length < 50) {
+            return {
+                success: false,
+                engine: 'NATIVE',
+                url: normalizedUrl,
+                error: 'EMPTY_HTML',
+                icpTriage: { hasWebsite: false, icpApproved: false }
+            };
+        }
+
+        // 1. WhatsApp Hunting: procura links wa.me, api.whatsapp e padrões de telemóvel 9x
+        let foundPhone = '';
+        const waLinkMatch = html.match(/(?:wa\.me|api\.whatsapp\.com\/send\?phone=)(?:%2B|351)?(\d{9})/i);
+        if (waLinkMatch) {
+            foundPhone = waLinkMatch[1];
+        } else {
+            // Procura links tel:
+            const telMatches = [...html.matchAll(/href=["']tel:(?:\+?351)?(\d{9})["']/gi)];
+            for (const tm of telMatches) {
+                if (/^9\d{8}$/.test(tm[1])) {
+                    foundPhone = tm[1];
+                    break;
+                } else if (!foundPhone) {
+                    foundPhone = tm[1];
+                }
+            }
+        }
+
+        // Se ainda não achou, procura no texto plano por 9xx xxx xxx ou +351 9xx...
+        if (!foundPhone) {
+            const textMobileMatch = html.match(/(?:\+351\s*)?(9\d{2}[\s.-]?\d{3}[\s.-]?\d{3})/);
+            if (textMobileMatch) {
+                foundPhone = textMobileMatch[1].replace(/\D/g, '');
+            }
+        }
+
+        const phoneNorm = normalizePhone(foundPhone);
+
+        // 2. Instagram Hunting: procura links para instagram.com
+        let foundInstagram = '';
+        let instaHandle = '';
+        const instaMatches = [...html.matchAll(/href=["'](https?:\/\/(?:www\.)?instagram\.com\/[a-zA-Z0-9._]+(?:\/)?)["']/gi)];
+        for (const im of instaMatches) {
+            const h = extractInstagramHandle(im[1]);
+            if (h && !['p', 'explore', 'stories', 'reels', 'sharer'].includes(h)) {
+                foundInstagram = im[1];
+                instaHandle = h;
+                break;
+            }
+        }
+
+        // 3. Email Hunting
+        let foundEmail = '';
+        const emailMatch = html.match(/href=["']mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})["']/i);
+        if (emailMatch) {
+            foundEmail = emailMatch[1].toLowerCase().trim();
+        }
+
+        // 4. Detecção de Procedimentos de Alto Ticket
+        const htmlLower = html.toLowerCase();
+        const offersImplants = /implante|implantes|all-on-4|all-on-6|carga\s+imediata|cirurgia\s+guiada/.test(htmlLower);
+        const offersInvisalign = /invisalign|alinhador|alinhadores|ortodontia\s+invis[ií]vel/.test(htmlLower);
+        const offersVeneers = /faceta|facetas|lentes\s+de\s+contacto|est[eé]tica\s+dent[aá]ria/.test(htmlLower);
+        const hasHighTicket = offersImplants || offersInvisalign || offersVeneers;
+
+        // 5. Nome da Clínica a partir da tag <title>
+        let clinicName = '';
+        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) {
+            const rawTitle = titleMatch[1];
+            clinicName = rawTitle.split(/[|\-–—]/)[0].trim();
+            clinicName = normalizeClinicName(clinicName);
+        }
+
+        // 6. Detecção da Cidade
+        let city = 'Portugal';
+        const cities = ['Porto', 'Lisboa', 'Braga', 'Coimbra', 'Cascais', 'Sintra', 'Oeiras', 'Setúbal', 'Faro', 'Aveiro', 'Leiria', 'Guimarães', 'Matosinhos', 'Vila Nova de Gaia'];
+        for (const c of cities) {
+            if (new RegExp(`\\b${c}\\b`, 'i').test(htmlLower)) {
+                city = c;
+                break;
+            }
+        }
+
+        const hasWebsite = true;
+        const hasInstagram = Boolean(instaHandle);
+        const hasWhatsApp = phoneNorm.isMobile;
+        const icpApproved = hasWebsite && hasInstagram && hasWhatsApp;
+
+        console.log(`🎯 [Jack Hunter Triage] Resultado da Tríade para '${clinicName || normalizedUrl}':`);
+        console.log(`   • Site Ativo: SIM`);
+        console.log(`   • Instagram: ${hasInstagram ? '@' + instaHandle : 'NÃO DETECTADO'}`);
+        console.log(`   • WhatsApp Móvel (9x): ${hasWhatsApp ? phoneNorm.clean : (phoneNorm.isLandline ? 'FIXO (' + phoneNorm.clean + ')' : 'NÃO DETECTADO')}`);
+        console.log(`   • Alto Ticket: ${hasHighTicket ? 'SIM (Implantes/Invisalign)' : 'NÃO IDENTIFICADO'}`);
+        console.log(`   • Decisão ICP: ${icpApproved ? '✅ APROVADO' : '⚠️ PARCIAL'}`);
+
+        return {
+            success: true,
+            engine: 'NATIVE',
+            url: normalizedUrl,
+            data: {
+                clinicName: clinicName || extractDomain(normalizedUrl),
+                rawPhone: foundPhone,
+                phoneNorm,
+                email: foundEmail,
+                instagramUrl: foundInstagram,
+                instagramHandle: instaHandle,
+                city,
+                offersImplants,
+                offersInvisalign,
+                offersVeneers,
+                hasHighTicket
+            },
+            icpTriage: {
+                hasWebsite: true,
+                hasInstagram,
+                hasWhatsApp,
+                icpApproved,
+                status: icpApproved ? 'QUALIFIED' : 'PARTIAL'
+            }
+        };
+    } catch (err) {
+        console.error(`❌ [Jack Hunter Extrator] Erro ao extrair dados de ${normalizedUrl}:`, err.message);
+        return {
+            success: false,
+            engine: 'NATIVE',
+            url: normalizedUrl,
+            error: err.message,
+            icpTriage: { hasWebsite: false, icpApproved: false }
+        };
+    }
+}
+
+/**
+ * CAÇA COMPLETA & INSERÇÃO POR URL DE WEBSITE:
+ * 1. Rastreia e enriquece o site (Firecrawl ou Extrator Nativo).
+ * 2. Valida a Tríade do ICP (Site + Instagram + WhatsApp).
+ * 3. Analisa 100% de duplicidades no CRM (aberto, ganho ou perdido).
+ * 4. Insere na coluna Prospect e aciona o Jonh para o Próximo Passo.
+ */
+export async function huntAndInsertFromWebsite(rawUrl, {
+    forceInsertIfPartial = false,
+    niche = 'Clínica Dentária',
+    source = 'Jack Hunter (Web Scout)',
+    userId = PROSPECT_PIPELINE_CONFIG.DEFAULT_USER_ID
+} = {}) {
+    const enrichment = await enrichClinicFromWebsite(rawUrl);
+
+    if (!enrichment.success) {
+        return {
+            success: false,
+            error: 'WEBSITE_UNREACHABLE',
+            details: enrichment.error
+        };
+    }
+
+    const { data, icpTriage } = enrichment;
+
+    if (!icpTriage.icpApproved && !forceInsertIfPartial) {
+        return {
+            success: false,
+            rejectedByICP: true,
+            reason: 'Clínica não cumpre a Tríade obrigatória do ICP (necessário Site + Instagram + WhatsApp 9x).',
+            icpTriage,
+            data
+        };
+    }
+
+    // Se aprovado no ICP, submete à auditoria anti-duplicidade e inserção
+    const insertResult = await insertNewProspect({
+        clinicName: data.clinicName,
+        phone: data.phoneNorm.clean,
+        email: data.email,
+        website: enrichment.url,
+        instagramUrl: data.instagramUrl,
+        city: data.city,
+        niche,
+        source,
+        userId
+    });
+
+    return {
+        ...insertResult,
+        enrichmentEngine: enrichment.engine,
+        icpTriage
+    };
+}

@@ -1811,4 +1811,28 @@ export function setupCommercialAgentRoutes(app) {
             return res.status(500).json({ success: false, error: err.message });
         }
     });
+
+    app.post('/api/sdr/squad/hunter/enrich-website', async (req, res) => {
+        try {
+            const { enrichClinicFromWebsite } = await import('./squad/jack_hunter.js');
+            const url = req.body?.url;
+            if (!url) return res.status(400).json({ success: false, error: 'URL_REQUIRED' });
+            const result = await enrichClinicFromWebsite(url);
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.post('/api/sdr/squad/hunter/hunt-from-website', async (req, res) => {
+        try {
+            const { huntAndInsertFromWebsite } = await import('./squad/jack_hunter.js');
+            const url = req.body?.url;
+            if (!url) return res.status(400).json({ success: false, error: 'URL_REQUIRED' });
+            const result = await huntAndInsertFromWebsite(url, req.body || {});
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
 }
