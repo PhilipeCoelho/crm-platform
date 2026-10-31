@@ -1771,6 +1771,16 @@ export function setupCommercialAgentRoutes(app) {
         }
     });
 
+    app.post('/api/sdr/squad/jonh/mark-lost/:dealId', async (req, res) => {
+        try {
+            const { markDealAsLostAutonomously } = await import('./squad/operations_manager.js');
+            const result = await markDealAsLostAutonomously(req.params.dealId, req.body || {});
+            return res.json(result);
+        } catch (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
     // 7. Hunter (Head de Prospeção & Scouting Portugal 24/7)
     app.get('/api/sdr/squad/hunter/status', async (req, res) => {
         try {

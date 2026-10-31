@@ -51,6 +51,58 @@ export const OPS_CONFIG = {
 };
 
 /**
+ * JONH PODER AUTÓNOMO:
+ * Dá um negócio como Perdido (Lost) diretamente no CRM com autoridade total,
+ * sem requerer nenhuma intervenção manual do operador humano.
+ */
+export async function markDealAsLostAutonomously(dealId, {
+    reason = 'Desqualificado pelo Gerente de Operações Jonh',
+    notes = '',
+    auditSubject = '🛑 [Jonh Autônomo] Negócio Dado como Perdido'
+} = {}) {
+    const supabase = getSupabaseClient();
+    if (!supabase || !dealId) return { success: false, error: 'INVALID_PARAMS' };
+
+    try {
+        // 1. Atualiza o status para lost
+        const { data: updated, error: updErr } = await supabase
+            .from('deals')
+            .update({
+                status: 'lost',
+                lost_reason: reason,
+                lost_at: new Date().toISOString()
+            })
+            .eq('id', dealId)
+            .select('id, title, status, lost_reason');
+
+        if (updErr) throw updErr;
+
+        // 2. Remove atividades pendentes de mensagem/WhatsApp para esse negócio
+        await supabase
+            .from('activities')
+            .delete()
+            .eq('deal_id', dealId)
+            .eq('status', 'pending');
+
+        // 3. Registra log factual no histórico do negócio
+        await supabase.from('activities').insert({
+            deal_id: dealId,
+            user_id: '9469fb08-7de5-405e-a4e7-d83cf818ea1e',
+            type: 'system_log',
+            subject: auditSubject,
+            description: `Auditado e dado como Perdido autonomamente pelo Jonh:\n• Motivo: ${reason}\n${notes ? `• Detalhes: ${notes}\n` : ''}• Ação: Removido da fila ativa e atividades pendentes canceladas.`,
+            completed: true
+        });
+
+        console.log(`🛑 [Jonh Autônomo] Deal "${dealId}" dado como PERDIDO com sucesso: ${reason}`);
+        return { success: true, deal: updated?.[0] };
+    } catch (err) {
+        console.error(`❌ [Jonh Autônomo] Erro ao dar deal como perdido:`, err.message);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
  * JONH FISCALIZAÇÃO DE DADOS:
  * Inspeciona rigorosamente se o Prospect possui os devidos campos preenchidos
  * antes de permitir que qualquer robô de campo entre em ação.
